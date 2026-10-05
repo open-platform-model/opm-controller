@@ -304,13 +304,15 @@ The kind cluster, registry, and published deps are left intact for reuse.
 
 **Executed 2026-06-14** on `kind-opm-dev` against `library` branch `fix/materialized-platform-composed`
 (commit `5490696` "fix(materialize): source transforms from open composed map").
+The results below are the record of that run and keep the names then in use; the project was renamed
+opm-controller afterwards (ADR-019).
 
 | Item | Result | Notes |
 | --- | --- | --- |
-| Fixed-controller render (§7) | ☑ **PASS** | `hello-web` → `Ready=True ReconciliationSucceeded`; `Deployment/hello-web-web` **1/1**, `nginx:1.27`; provenance `managed-by=opm-controller`, `uuid=afb6caaf-…`, `version=0.1.0`; inventory digest `sha256:4229484d…` + 1 Deployment entry; **zero** `list.Concat … _` in logs. |
-| Negative control (§8) | ☑ **PASS** | Identical module on `opm-controller:nofix` (library `v0.5.0`) → `Ready=False RenderFailed` with the exact §2 signature on `deployment-transformer@0.5.2 … output.spec.template.spec.containers: list.Concat: non-concrete value _`; no Deployment. Re-installing the fixed image flipped it back to `Ready=True` with no other change. |
+| Fixed-operator render (§7) | ☑ **PASS** | `hello-web` → `Ready=True ReconciliationSucceeded`; `Deployment/hello-web-web` **1/1**, `nginx:1.27`; provenance `managed-by=opm-controller`, `uuid=afb6caaf-…`, `version=0.1.0`; inventory digest `sha256:4229484d…` + 1 Deployment entry; **zero** `list.Concat … _` in logs. |
+| Negative control (§8) | ☑ **PASS** | Identical module on `opm-operator:nofix` (library `v0.5.0`) → `Ready=False RenderFailed` with the exact §2 signature on `deployment-transformer@0.5.2 … output.spec.template.spec.containers: list.Concat: non-concrete value _`; no Deployment. Re-installing the fixed image flipped it back to `Ready=True` with no other change. |
 | Prune/recreate (§7) | ☑ **PASS** (with caveat) | Finalizer pruned the Deployment (`Deletion cleanup pruned resources deleted=1`, `Finalizer removed`); re-apply recreated it `1/1`. **Caveat:** `kubectl delete -f hello-web.yaml` deletes the applier SA *and* the MR together, so the finalizer can't impersonate the (now-gone) SA → MR strands `Ready=False DeletionSAMissing`. Recover by restoring the SA/RBAC (re-apply) and re-reconciling. To exercise prune cleanly, delete only the `ModuleRelease` (keep the SA), or split the SA/RBAC into a separate manifest. Not a kernel-fix issue. |
-| Controller regressions watched (`FINDINGS.md` §5) | ☑ none new | Re-confirmed: #1 (Release-controller crashloop, mitigated by Flux source CRDs only), #2 (manager restart drops in-memory platform store; re-materialize the Platform after every rollout — hit repeatedly here), #3 (drift-detection dry-run runs as controller SA → noisy `Forbidden`). All pre-existing. |
+| Operator regressions watched (`FINDINGS.md` §5) | ☑ none new | Re-confirmed: #1 (Release-controller crashloop, mitigated by Flux source CRDs only), #2 (manager restart drops in-memory platform store; re-materialize the Platform after every rollout — hit repeatedly here), #3 (drift-detection dry-run runs as controller SA → noisy `Forbidden`). All pre-existing. |
 
 ### Execution deltas (environment + plan drift since drafting)
 
@@ -324,7 +326,7 @@ The plan ran end-to-end but several drafted assumptions did not hold as written:
    (still pre-fix: `_convertedSidecars` inside `output`) via `task publish VERSION=v0.5.2` — correctly
    buggy per §2.
 3. **`task docker:build` cannot build a local `replace`.** The Dockerfile's build context is
-   `opm-controller/` only, so `go mod download` can't reach `../library`. Worked around by compiling the
+   `opm-operator/` only, so `go mod download` can't reach `../library`. Worked around by compiling the
    manager on the host (`CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build`) and wrapping the binary in a
    minimal distroless image from a clean temp context (the repo `.dockerignore` excludes non-Go files).
 4. **Component shape in §3 was under-specified for catalog `v0.5.2`.** `#config.image` must be typed
