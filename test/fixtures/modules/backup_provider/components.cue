@@ -21,7 +21,7 @@ import (
 		metadata: name: "registration"
 
 		spec: transformerRegistration: {
-			catalog: "testing.opmodel.dev/catalogs/operator/backup@v0"
+			catalog: "testing.opmodel.dev/catalogs/controller/backup@v0"
 			version: "0.1.0"
 			provides: [tra.#BackupTrait.metadata.fqn]
 		}

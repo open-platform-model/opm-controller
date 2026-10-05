@@ -26,14 +26,14 @@ spec:
     - jsonPath: .status.conditions[?(@.type=='Ready')].reason
       name: Reason
       type: string
-    - jsonPath: .status.operatorVersion
-      name: Operator
+    - jsonPath: .status.controllerVersion
+      name: Controller
       type: string
     name: v1alpha1
     schema:
       openAPIV3Schema:
         description: |-
-          Platform declares the catalogs the operator renders against: the operator
+          Platform declares the catalogs the controller renders against: the controller
           generates a platform CUE module from it, and renders ModuleInstances and
           ModulePackages against that module.
 
@@ -80,7 +80,7 @@ spec:
                         string (e.g. "2.0.0-alpha.3") — the platform module IS the resolution
                         (0010:D14); there is no range or allow/deny vocabulary. The
                         version's major must agree with the subscription key's `@vN` suffix.
-                        The operator uses it twice: as the generated cue.mod pin and as the
+                        The controller uses it twice: as the generated cue.mod pin and as the
                         entry's stamped expected version, which unifies with the imported
                         catalog's own version so wrong bytes fail the build naming the entry
                         (0019:D13).
@@ -101,7 +101,7 @@ spec:
                 type: object
               skewPolicy:
                 description: |-
-                  SkewPolicy is the operator's response to catalog version skew: a
+                  SkewPolicy is the controller's response to catalog version skew: a
                   module whose cue.mod requires a newer build of an OPM-namespace path
                   (core or a catalog) than the platform pins (0019:D7/D18).
                   "Warn" (the default when unset) renders against the platform's build
@@ -119,7 +119,7 @@ spec:
                 description: |-
                   Type is the informational discriminator for the platform (core
                   #Platform.type). It is required and shown in the Type column of
-                  kubectl get. The operator passes it on to the generated platform
+                  kubectl get. The controller passes it on to the generated platform
                   module, and nothing in OPM acts on its value.
                 minLength: 1
                 type: string
@@ -139,7 +139,7 @@ spec:
                   imported catalog, the module did not build, or its contract inventory
                   could not be read; the message names the dependency, the entry or the
                   field), GenerateFailed (the module could not be written to the
-                  operator's disk), ContractCollisions (the module built, but more than
+                  controller's disk), ContractCollisions (the module built, but more than
                   one enabled registry entry defines a contract key, as two majors of one
                   catalog sharing keys do; the message names each key and the defining
                   entries), OverSubscribedContracts (the module built, but a
@@ -223,16 +223,16 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
+              controllerVersion:
+                description: |-
+                  controllerVersion is the version of the controller that last patched this
+                  Platform's status, stamped on every reconcile regardless of outcome
+                  (0006:D24). The CLI reads it as the version-skew ceiling;
+                  absence means no controller has reconciled the Platform (solo cluster).
+                type: string
               observedGeneration:
                 format: int64
                 type: integer
-              operatorVersion:
-                description: |-
-                  operatorVersion is the version of the operator that last patched this
-                  Platform's status, stamped on every reconcile regardless of outcome
-                  (0006:D24). The CLI reads it as the version-skew ceiling;
-                  absence means no operator has reconciled the Platform (solo cluster).
-                type: string
               packageIdentity:
                 description: |-
                   packageIdentity identifies the generated platform package by the two

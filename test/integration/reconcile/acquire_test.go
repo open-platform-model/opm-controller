@@ -83,7 +83,7 @@ var _ = Describe("Module Acquisition Integration", func() {
 			before := countAcquireTempDirs()
 
 			mod, err := moduleacquire.Acquire(ctx, k,
-				"testing.opmodel.dev/modules/operator/does-not-exist@v0", "v9.9.9", registry)
+				"testing.opmodel.dev/modules/controller/does-not-exist@v0", "v9.9.9", registry)
 			Expect(err).To(HaveOccurred())
 			Expect(mod).To(BeNil())
 			Expect(err.Error()).To(ContainSubstring("acquiring module"))

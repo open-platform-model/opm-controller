@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"encoding/json"
@@ -48,19 +48,19 @@ const (
 	repoRoot = "../../.."
 
 	// The only instance coordinates the module renders for.
-	instanceName      = "opm-operator"
-	instanceNamespace = "opm-operator-system"
+	instanceName      = "opm-controller"
+	instanceNamespace = "opm-controller-system"
 
 	// catalogPath is the catalog the module pins; the generated platform
 	// subscribes to exactly the build the module's cue.mod names.
 	catalogPath = "opmodel.dev/catalogs/opm@v4"
 
-	runtimeName = "operator-module-test"
+	runtimeName = "controller-module-test"
 )
 
 var (
-	moduleDir      = filepath.Join(repoRoot, "modules", "opm_operator")
-	minVersionFile = filepath.Join(repoRoot, "hack", "operator-module", "min-operator-version")
+	moduleDir      = filepath.Join(repoRoot, "modules", "opm_controller")
+	minVersionFile = filepath.Join(repoRoot, "hack", "controller-module", "min-controller-version")
 )
 
 // registrySkip skips the current spec for a missing prerequisite, unless
@@ -123,7 +123,7 @@ func moduleRenderEnv() *renderEnv {
 			envSkipMsg = "generating the platform module: " + err.Error()
 			return
 		}
-		dir, err := os.MkdirTemp("", "operatormodule-platform-")
+		dir, err := os.MkdirTemp("", "controllermodule-platform-")
 		if err != nil {
 			envSkipMsg = err.Error()
 			return
@@ -253,7 +253,7 @@ func find(objs []obj, kind, name string) obj {
 // managerContainer returns the Deployment's manager container.
 func managerContainer(objs []obj) map[string]any {
 	GinkgoHelper()
-	d := find(objs, "Deployment", "opm-operator-controller-manager")
+	d := find(objs, "Deployment", "opm-controller-manager")
 	for _, c := range list(d.Object, "spec", "template", "spec", "containers") {
 		if m, ok := c.(map[string]any); ok && m["name"] == "manager" {
 			return m
@@ -263,21 +263,21 @@ func managerContainer(objs []obj) map[string]any {
 	return nil
 }
 
-// moduleOperator is the operator release the module names, read from
-// operator/operator.cue without a render.
-type moduleOperator struct {
+// moduleController is the controller release the module names, read from
+// controller/controller.cue without a render.
+type moduleController struct {
 	Version    string
 	Repository string
 	Tag        string
 	Digest     string
 }
 
-func readModuleOperator(dir string) (moduleOperator, error) {
-	v, err := compileFile(filepath.Join(dir, "operator", "operator.cue"))
+func readModuleController(dir string) (moduleController, error) {
+	v, err := compileFile(filepath.Join(dir, "controller", "controller.cue"))
 	if err != nil {
-		return moduleOperator{}, err
+		return moduleController{}, err
 	}
-	var out moduleOperator
+	var out moduleController
 	for field, dst := range map[string]*string{
 		"Version":          &out.Version,
 		"Image.repository": &out.Repository,
@@ -286,18 +286,18 @@ func readModuleOperator(dir string) (moduleOperator, error) {
 	} {
 		s, err := v.LookupPath(cue.ParsePath(field)).String()
 		if err != nil {
-			return moduleOperator{}, fmt.Errorf("operator/operator.cue %s: %w", field, err)
+			return moduleController{}, fmt.Errorf("controller/controller.cue %s: %w", field, err)
 		}
 		*dst = s
 	}
 	return out, nil
 }
 
-// checkMinOperatorVersion refuses a module whose operator release is below
-// the repository's minimum operator version (the first release that refuses
+// checkMinControllerVersion refuses a module whose controller release is below
+// the repository's minimum controller version (the first release that refuses
 // to reconcile its own instance), naming both.
-func checkMinOperatorVersion(dir, minFile string) error {
-	op, err := readModuleOperator(dir)
+func checkMinControllerVersion(dir, minFile string) error {
+	op, err := readModuleController(dir)
 	if err != nil {
 		return err
 	}
@@ -307,15 +307,15 @@ func checkMinOperatorVersion(dir, minFile string) error {
 	}
 	minTag := strings.TrimSpace(string(b))
 	if !semver.IsValid(minTag) {
-		return fmt.Errorf("%s holds %q, not a v-prefixed operator release tag", minFile, minTag)
+		return fmt.Errorf("%s holds %q, not a v-prefixed controller release tag", minFile, minTag)
 	}
 	got := "v" + op.Version
 	if !semver.IsValid(got) {
-		return fmt.Errorf("operator/operator.cue Version %q is not SemVer", op.Version)
+		return fmt.Errorf("controller/controller.cue Version %q is not SemVer", op.Version)
 	}
 	if semver.Compare(got, minTag) < 0 {
-		return fmt.Errorf("the module names operator %s, below the minimum operator version %s (%s): "+
-			"an older operator reconciles its own instance", got, minTag, filepath.Base(minFile))
+		return fmt.Errorf("the module names controller %s, below the minimum controller version %s (%s): "+
+			"an older controller reconciles its own instance", got, minTag, filepath.Base(minFile))
 	}
 	return nil
 }
@@ -420,7 +420,7 @@ func copyTree(src, dst string) {
 // scratchModule copies the module tree into a temporary directory.
 func scratchModule() string {
 	GinkgoHelper()
-	dst := filepath.Join(GinkgoT().TempDir(), "opm_operator")
+	dst := filepath.Join(GinkgoT().TempDir(), "opm_controller")
 	copyTree(moduleDir, dst)
 	return dst
 }

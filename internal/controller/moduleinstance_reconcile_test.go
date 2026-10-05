@@ -455,8 +455,8 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			current.Status.LastAppliedSourceDigest = "sha256:clisource"
 			current.Status.LastAppliedConfigDigest = "sha256:cliconfig"
 			current.Status.LastAppliedRenderDigest = "sha256:clirender"
-			// A Healthy left from an operator-owned past must not survive the
-			// hand-over: the operator judges no health on a CLI-owned instance.
+			// A Healthy left from a controller-owned past must not survive the
+			// hand-over: the controller judges no health on a CLI-owned instance.
 			status.MarkHealthy(&current, metav1.ConditionTrue, status.RolledOutReason, "1/1 objects ready")
 			current.Status.Inventory = &releasesv1alpha1.Inventory{
 				Revision: 7,
@@ -564,7 +564,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			}, 5*time.Second, 100*time.Millisecond).Should(BeTrue())
 		})
 
-		It("should adopt the instance on handoff when owner flips to operator", func() {
+		It("should adopt the instance on handoff when owner flips to controller", func() {
 			ctx := context.Background()
 
 			mr := &releasesv1alpha1.ModuleInstance{
@@ -600,8 +600,8 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(ackReady.Reason).To(Equal(status.ManagedExternallyReason))
 			Expect(controllerutil.ContainsFinalizer(&acked, opmreconcile.FinalizerName)).To(BeFalse())
 
-			// Flip owner to operator (the handoff).
-			acked.Spec.Owner = releasesv1alpha1.OwnerOperator
+			// Flip owner to controller (the handoff).
+			acked.Spec.Owner = releasesv1alpha1.OwnerController
 			Expect(k8sClient.Update(ctx, &acked)).To(Succeed())
 
 			// Next reconcile falls through to the normal path: adds the finalizer.
@@ -637,11 +637,11 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 		})
 	})
 
-	Context("Operator-managed default (empty owner)", func() {
+	Context("Controller-managed default (empty owner)", func() {
 		It("should reconcile normally when spec.owner is absent (no skip, no ManagedExternally)", func() {
 			ctx := context.Background()
 
-			// createModuleInstance sets no spec.owner — the operator-managed
+			// createModuleInstance sets no spec.owner — the controller-managed
 			// default the 0006:D24 skew model leans on.
 			createModuleInstance(ctx, "empty-owner-mr")
 
@@ -713,10 +713,10 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 		})
 	})
 
-	Context("Operator's own instance", func() {
+	Context("Controller's own instance", func() {
 		// ownModulePath is the module path signal: it makes an instance the
-		// operator's own in any namespace, so most specs stay in "default".
-		const ownModulePath = "opmodel.dev/modules/opm_operator@v0"
+		// controller's own in any namespace, so most specs stay in "default".
+		const ownModulePath = "opmodel.dev/modules/opm_controller@v0"
 
 		newOwnInstance := func(name string, owner releasesv1alpha1.OwnerType) *releasesv1alpha1.ModuleInstance {
 			return &releasesv1alpha1.ModuleInstance{
@@ -754,9 +754,9 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(mi.Status.ObservedGeneration).To(Equal(mi.Generation))
 		}
 
-		It("refuses an own instance flipped to operator without adding the finalizer", func() {
+		It("refuses an own instance flipped to controller without adding the finalizer", func() {
 			ctx := context.Background()
-			mi := newOwnInstance("own-operator-mi", releasesv1alpha1.OwnerOperator)
+			mi := newOwnInstance("own-controller-mi", releasesv1alpha1.OwnerController)
 			mi.Spec.Prune = true
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
 			nn := client.ObjectKeyFromObject(mi)
@@ -770,7 +770,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(k8sClient.Get(ctx, nn, &refused)).To(Succeed())
 			expectRefused(&refused)
 			Expect(apimeta.FindStatusCondition(refused.Status.Conditions, status.ReadyCondition).Message).
-				To(ContainSubstring("module opmodel.dev/modules/opm_operator"))
+				To(ContainSubstring("module opmodel.dev/modules/opm_controller"))
 			Expect(refused.Status.Inventory).To(BeNil())
 			Expect(refused.Status.InstanceUUID).To(BeEmpty())
 			Expect(refused.Status.LastAttemptedAction).To(BeEmpty())
@@ -793,13 +793,13 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 
 		It("refuses an own instance with no owner at the fixed coordinates", func() {
 			ctx := context.Background()
-			ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "opm-operator-system"}}
+			ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "opm-controller-system"}}
 			Expect(client.IgnoreAlreadyExists(k8sClient.Create(ctx, ns))).To(Succeed())
 
 			mi := &releasesv1alpha1.ModuleInstance{
-				ObjectMeta: metav1.ObjectMeta{Name: "opm-operator", Namespace: "opm-operator-system"},
+				ObjectMeta: metav1.ObjectMeta{Name: "opm-controller", Namespace: "opm-controller-system"},
 				Spec: releasesv1alpha1.ModuleInstanceSpec{
-					Module: releasesv1alpha1.ModuleReference{Path: "example.com/forks/operator@v0", Version: "v0.1.0"},
+					Module: releasesv1alpha1.ModuleReference{Path: "example.com/forks/controller@v0", Version: "v0.1.0"},
 				},
 			}
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
@@ -813,14 +813,14 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(refused.Spec.Owner).To(BeEmpty())
 			expectRefused(&refused)
 			Expect(apimeta.FindStatusCondition(refused.Status.Conditions, status.ReadyCondition).Message).
-				To(ContainSubstring("name opm-operator in namespace opm-operator-system"))
+				To(ContainSubstring("name opm-controller in namespace opm-controller-system"))
 
 			Expect(k8sClient.Delete(ctx, &refused)).To(Succeed())
 		})
 
 		It("refuses a suspended own instance instead of marking it Suspended", func() {
 			ctx := context.Background()
-			mi := newOwnInstance("own-suspended-mi", releasesv1alpha1.OwnerOperator)
+			mi := newOwnInstance("own-suspended-mi", releasesv1alpha1.OwnerController)
 			mi.Spec.Suspend = true
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
 			nn := client.ObjectKeyFromObject(mi)
@@ -835,13 +835,13 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(k8sClient.Delete(ctx, &refused)).To(Succeed())
 		})
 
-		It("refuses an instance whose recorded inventory holds an operator CRD", func() {
+		It("refuses an instance whose recorded inventory holds a controller CRD", func() {
 			ctx := context.Background()
 			mi := &releasesv1alpha1.ModuleInstance{
 				ObjectMeta: metav1.ObjectMeta{Name: "renamed-fork-mi", Namespace: namespace},
 				Spec: releasesv1alpha1.ModuleInstanceSpec{
-					Owner:  releasesv1alpha1.OwnerOperator,
-					Module: releasesv1alpha1.ModuleReference{Path: "example.com/forks/operator@v0", Version: "v0.1.0"},
+					Owner:  releasesv1alpha1.OwnerController,
+					Module: releasesv1alpha1.ModuleReference{Path: "example.com/forks/controller@v0", Version: "v0.1.0"},
 				},
 			}
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
@@ -876,7 +876,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 
 		It("removes conditions left by an earlier adoption and leaves CLI-written status alone", func() {
 			ctx := context.Background()
-			mi := newOwnInstance("own-adopted-mi", releasesv1alpha1.OwnerOperator)
+			mi := newOwnInstance("own-adopted-mi", releasesv1alpha1.OwnerController)
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
 			nn := client.ObjectKeyFromObject(mi)
 
@@ -894,7 +894,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 				Digest:   "sha256:cliinv",
 				Count:    1,
 				Entries: []releasesv1alpha1.InventoryEntry{
-					{Kind: "ServiceAccount", Name: "opm-operator-controller-manager", Namespace: namespace, Version: "v1"},
+					{Kind: "ServiceAccount", Name: "opm-controller-manager", Namespace: namespace, Version: "v1"},
 				},
 			}
 			Expect(k8sClient.Status().Update(ctx, &current)).To(Succeed())
@@ -929,7 +929,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 
 		It("re-refuses with an empty patch and no event, and hands back to the CLI cleanly", func() {
 			ctx := context.Background()
-			mi := newOwnInstance("own-rerefuse-mi", releasesv1alpha1.OwnerOperator)
+			mi := newOwnInstance("own-rerefuse-mi", releasesv1alpha1.OwnerController)
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
 			nn := client.ObjectKeyFromObject(mi)
 
@@ -974,7 +974,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 
 		It("releases a leftover finalizer from a live own instance and refuses it", func() {
 			ctx := context.Background()
-			mi := newOwnInstance("own-leftover-mi", releasesv1alpha1.OwnerOperator)
+			mi := newOwnInstance("own-leftover-mi", releasesv1alpha1.OwnerController)
 			mi.Finalizers = []string{opmreconcile.FinalizerName}
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
 			nn := client.ObjectKeyFromObject(mi)
@@ -1003,7 +1003,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			}
 			Expect(k8sClient.Create(ctx, cm)).To(Succeed())
 
-			mi := newOwnInstance("own-deleting-mi", releasesv1alpha1.OwnerOperator)
+			mi := newOwnInstance("own-deleting-mi", releasesv1alpha1.OwnerController)
 			mi.Spec.Prune = true
 			mi.Finalizers = []string{opmreconcile.FinalizerName}
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
@@ -1057,7 +1057,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(k8sClient.Delete(ctx, &acked)).To(Succeed())
 		})
 
-		It("refuses the operator's own instance when the CLI hands it to the operator", func() {
+		It("refuses the controller's own instance when the CLI hands it to the controller", func() {
 			ctx := context.Background()
 			mi := newOwnInstance("own-handoff-mi", releasesv1alpha1.OwnerCLI)
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
@@ -1072,7 +1072,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(apimeta.FindStatusCondition(acked.Status.Conditions, status.ReadyCondition).Reason).
 				To(Equal(status.ManagedExternallyReason))
 
-			acked.Spec.Owner = releasesv1alpha1.OwnerOperator
+			acked.Spec.Owner = releasesv1alpha1.OwnerController
 			Expect(k8sClient.Update(ctx, &acked)).To(Succeed())
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
@@ -1088,10 +1088,10 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 		It("still registers the finalizer on an instance with only similar names", func() {
 			ctx := context.Background()
 			mi := &releasesv1alpha1.ModuleInstance{
-				ObjectMeta: metav1.ObjectMeta{Name: "opm-operator", Namespace: namespace},
+				ObjectMeta: metav1.ObjectMeta{Name: "opm-controller", Namespace: namespace},
 				Spec: releasesv1alpha1.ModuleInstanceSpec{
-					Owner:  releasesv1alpha1.OwnerOperator,
-					Module: releasesv1alpha1.ModuleReference{Path: "opmodel.dev/modules/opm_operator_dashboard@v0", Version: "v0.1.0"},
+					Owner:  releasesv1alpha1.OwnerController,
+					Module: releasesv1alpha1.ModuleReference{Path: "opmodel.dev/modules/opm_controller_dashboard@v0", Version: "v0.1.0"},
 				},
 			}
 			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
@@ -1336,7 +1336,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 				ResourceManager:     apply.NewResourceManager(k8sClient, "opm-controller"),
 				EventRecorder:       events.NewFakeRecorder(10),
 				Renderer:            renderer,
-				OperatorVersion:     testOperatorVersion,
+				ControllerVersion:   testControllerVersion,
 				LibraryVersion:      testLibraryVersion,
 				DriftRenderInterval: interval,
 			}
@@ -1389,12 +1389,12 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(mi.Status.LastAppliedInputs.Digest).To(HavePrefix("sha256:"))
 			Expect(mi.Status.LastAppliedInputs.RenderedAt.IsZero()).To(BeFalse())
 			want := status.RenderInputKey{
-				Source:          mi.Status.LastAppliedSourceDigest,
-				Config:          mi.Status.LastAppliedConfigDigest,
-				PackageIdentity: stubPlatformIdentity,
-				SkewPolicy:      stubSkewPolicy,
-				OperatorVersion: testOperatorVersion,
-				LibraryVersion:  testLibraryVersion,
+				Source:            mi.Status.LastAppliedSourceDigest,
+				Config:            mi.Status.LastAppliedConfigDigest,
+				PackageIdentity:   stubPlatformIdentity,
+				SkewPolicy:        stubSkewPolicy,
+				ControllerVersion: testControllerVersion,
+				LibraryVersion:    testLibraryVersion,
 			}
 			Expect(mi.Status.LastAppliedInputs.Digest).To(Equal(want.Digest()),
 				"the key is built from the render's own platform report")
@@ -2535,7 +2535,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 })
 
 // failOnRenderRenderer fails the running spec if the reconciler renders: the
-// operator's own instance must be refused before any render.
+// controller's own instance must be refused before any render.
 type failOnRenderRenderer struct{}
 
 func (failOnRenderRenderer) RenderModule(

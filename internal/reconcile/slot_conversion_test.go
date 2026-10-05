@@ -42,7 +42,7 @@ func instanceSlotParams(
 ) *ModuleInstanceParams {
 	t.Helper()
 	return &ModuleInstanceParams{
-		Client:        loopTestClient(t, operatorInstance(nil)),
+		Client:        loopTestClient(t, controllerInstance(nil)),
 		EventRecorder: events.NewFakeRecorder(32),
 		Renderer:      moduleRendererFunc(func() (*render.RenderResult, error) { return configMapRenderResult(t), nil }),
 		RenderSlots:   pool,
@@ -98,7 +98,7 @@ func TestSlotConversion_ModulePackage(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	converted, fail, err := renderModulePackage(context.Background(), params, operatorPackage(nil), dir, dir, DefaultModulePackageInterval)
+	converted, fail, err := renderModulePackage(context.Background(), params, controllerPackage(nil), dir, dir, DefaultModulePackageInterval)
 	if err != nil || fail != nil {
 		t.Fatalf("renderModulePackage: fail=%+v err=%v", fail, err)
 	}

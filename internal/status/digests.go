@@ -90,8 +90,8 @@ func IsNoOp(current, lastApplied DigestSet) bool {
 const renderInputsEncoding = "opm-render-inputs/v1"
 
 // RenderInputKey holds the inputs a render is a function of: what the
-// operator renders, with what values, against which platform package, under
-// which skew policy, by which operator and library. Its digest is recorded in
+// controller renders, with what values, against which platform package, under
+// which skew policy, by which controller and library. Its digest is recorded in
 // status.lastAppliedInputs and compared before the next render.
 type RenderInputKey struct {
 	// Source is ModuleSourceDigest for a ModuleInstance, the Flux artifact
@@ -106,15 +106,15 @@ type RenderInputKey struct {
 	// SkewPolicy is the catalog skew policy as the API spells it ("Warn" or
 	// "Refuse").
 	SkewPolicy string
-	// OperatorVersion is the running operator's version.Full().
-	OperatorVersion string
-	// LibraryVersion is the running operator's version.Library().
+	// ControllerVersion is the running controller's version.Full().
+	ControllerVersion string
+	// LibraryVersion is the running controller's version.Library().
 	LibraryVersion string
 }
 
 // parts returns the key's parts in their fixed encoding order.
 func (k RenderInputKey) parts() []string {
-	return []string{k.Source, k.Config, k.PackageIdentity, k.SkewPolicy, k.OperatorVersion, k.LibraryVersion}
+	return []string{k.Source, k.Config, k.PackageIdentity, k.SkewPolicy, k.ControllerVersion, k.LibraryVersion}
 }
 
 // Complete reports whether every part is set. An incomplete key is never

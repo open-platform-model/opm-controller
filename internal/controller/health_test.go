@@ -135,7 +135,7 @@ var _ = Describe("ModuleInstance Healthy condition", func() {
 			ResourceManager:     apply.NewResourceManager(k8sClient, "opm-controller"),
 			EventRecorder:       events.NewFakeRecorder(100),
 			Renderer:            renderer,
-			OperatorVersion:     testOperatorVersion,
+			ControllerVersion:   testControllerVersion,
 			LibraryVersion:      testLibraryVersion,
 			DriftRenderInterval: drift,
 		}
@@ -411,7 +411,7 @@ var _ = Describe("ModulePackage Healthy condition", func() {
 			EventRecorder:       events.NewFakeRecorder(100),
 			Fetcher:             &stubFetcher{pathInArtifact: "releases/app"},
 			Renderer:            renderer,
-			OperatorVersion:     testOperatorVersion,
+			ControllerVersion:   testControllerVersion,
 			LibraryVersion:      testLibraryVersion,
 			DriftRenderInterval: 30 * time.Minute,
 		}

@@ -72,7 +72,7 @@ var _ = Describe("Claim-driven regeneration (manager-driven, registry-backed)", 
 
 		// A second real catalog the spec's Platform does not subscribe, so its
 		// arrival in the generated module can only have come from the claim:
-		// the operator's test catalog (test/fixtures/catalogs/provider).
+		// the controller's test catalog (test/fixtures/catalogs/provider).
 		provider := fixtures.MustCatalog(GinkgoT(), "provider")
 		claimCatalog, claimCatalogVersion := provider.ModulePath, provider.Version
 

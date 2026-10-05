@@ -1,4 +1,4 @@
-module: "testing.opmodel.dev/modules/operator/backup_provider@v0"
+module: "testing.opmodel.dev/modules/controller/backup_provider@v0"
 language: {
 	version: "v0.17.0"
 }

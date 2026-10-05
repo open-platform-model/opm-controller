@@ -1,4 +1,4 @@
-module: "testing.opmodel.dev/releases/operator/hello_web@v0"
+module: "testing.opmodel.dev/releases/controller/hello_web@v0"
 language: {
 	version: "v0.17.0"
 }
@@ -12,7 +12,7 @@ deps: {
 	"opmodel.dev/core@v2": {
 		v: "v2.0.0-beta.1"
 	}
-	"testing.opmodel.dev/modules/operator/hello_web@v0": {
+	"testing.opmodel.dev/modules/controller/hello_web@v0": {
 		v: "v0.1.11"
 	}
 }

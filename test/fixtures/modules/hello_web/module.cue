@@ -10,7 +10,7 @@ import (
 	m "opmodel.dev/core@v2"
 	res "opmodel.dev/catalogs/opm/resources/v1beta1"
 
-	id "testing.opmodel.dev/modules/operator/hello_web/identity"
+	id "testing.opmodel.dev/modules/controller/hello_web/identity"
 )
 
 m.#Module

@@ -17,7 +17,7 @@ import (
 // package it acquires the instance from its directory as a source-carrying
 // artifact, leases the generated platform from the store, renders the instance
 // against it through the kernel's single-build render, and adapts the compiled
-// output to operator resources plus inventory entries. Any package whose kind
+// output to controller resources plus inventory entries. Any package whose kind
 // is not #ModuleInstance is rejected with ErrUnsupportedKind.
 //
 // No values are injected: a ModulePackage references an authored #ModuleInstance

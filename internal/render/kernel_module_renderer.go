@@ -86,7 +86,7 @@ var _ ModuleRenderer = (*KernelModuleRenderer)(nil)
 // (an empty document when none are supplied, letting the module's #config
 // defaults apply) and checks it against the module's #config, synthesizes
 // the instance, renders it against the platform, and adapts the compiled
-// output to operator resources plus inventory entries.
+// output to controller resources plus inventory entries.
 //
 // Every kernel call shares nothing (library ADR-005, ADR-007): acquisition,
 // synthesis and the render build each evaluate in a context of their own, so
@@ -209,7 +209,7 @@ func cueFindings(err error) string {
 	return strings.Join(lines, "; ")
 }
 
-// resultFromRender adapts the kernel's render output to the operator's
+// resultFromRender adapts the kernel's render output to the controller's
 // RenderResult: compiled objects to resources with provenance, the advisory
 // rows worded as warnings (renderWarnings), and the rows themselves
 // (unhandled traits, resolved versions) carried through for the reconciler.

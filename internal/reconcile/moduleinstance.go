@@ -70,12 +70,12 @@ type ModuleInstanceParams struct {
 	// events are emitted on transition only. Nil emits every non-empty set.
 	Warnings *WarningTracker
 
-	// OperatorVersion and LibraryVersion are the running operator's
+	// ControllerVersion and LibraryVersion are the running controller's
 	// version.Full() and version.Library(), parts of the render input key.
 	// They are injected so tests can set them; an empty one makes every key
 	// incomplete, so nothing is recorded and nothing is skipped.
-	OperatorVersion string
-	LibraryVersion  string
+	ControllerVersion string
+	LibraryVersion    string
 
 	// DriftRenderInterval is the manager's --drift-render-interval: how long
 	// a reconcile whose render inputs are unchanged may skip its render after
@@ -150,7 +150,7 @@ func commitNoOpStatus(
 // the panic hit set its Ran flag but never its Failed flag, so handing over
 // the in-flight phases would reset its counter as if it had succeeded.
 // nextRetryAt is cleared because the controller runtime's rate limiter, not
-// the operator's backoff, schedules the retry. lastApplied* and the inventory
+// the controller's backoff, schedules the retry. lastApplied* and the inventory
 // keep the last success. The caller re-panics afterwards, and the controller
 // runtime logs the stack.
 func commitPanicStatus(
@@ -216,15 +216,15 @@ func ReconcileModuleInstance(
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Instances the operator does not reconcile: CLI-owned ones and the
-	// operator's own. Both are decided before finalizer registration.
+	// Instances the controller does not reconcile: CLI-owned ones and the
+	// controller's own. Both are decided before finalizer registration.
 	if handled, err := handleNotReconciled(ctx, params, &mi); handled {
 		return ctrl.Result{}, err
 	}
 
 	// Track reconcile start time for duration calculation.
 	// Set after the gates above (which record no metrics) and before the
-	// suspend/deletion checks so all operator-managed paths are measured.
+	// suspend/deletion checks so all controller-managed paths are measured.
 	reconcileStart := time.Now()
 
 	// Register finalizer if not present. Finalizer patches don't bump
@@ -455,7 +455,7 @@ func ReconcileModuleInstance(
 	digests.Render = converted.digest
 	digests.Inventory = inventoryDigestOf(converted.entries)
 	renderedVersion = &renderResult.ModuleVersion
-	key := renderedKey(digests.Source, digests.Config, renderResult, params.OperatorVersion, params.LibraryVersion)
+	key := renderedKey(digests.Source, digests.Config, renderResult, params.ControllerVersion, params.LibraryVersion)
 	renderedInputs = &key
 
 	// Phase 4: Plan actions — no-op detection, drift detection, compute stale set.
@@ -522,9 +522,9 @@ func ReconcileModuleInstance(
 	//
 	// It compares the apply list, not the full rendered set, so a withheld
 	// resource is excluded. Drift reports that the cluster diverged from what
-	// the operator asserts; a withheld resource is one the operator is
+	// the controller asserts; a withheld resource is one the controller is
 	// deliberately not asserting, so reporting it would name a difference the
-	// operator created on purpose and intends not to close — a condition that
+	// controller created on purpose and intends not to close — a condition that
 	// never clears, burying real drift on the same instance behind it. The
 	// refusal carries that signal instead. A resource that stops being
 	// withheld re-enters the apply list and is compared again from then on.
@@ -592,7 +592,7 @@ func ReconcileModuleInstance(
 	// The return sits before ClearDrifted and before the prune on purpose.
 	// Clearing drift would claim an apply resolved a divergence this
 	// reconcile deliberately left standing, and pruning while refusing would
-	// delete on the strength of a render the operator just declined to
+	// delete on the strength of a render the controller just declined to
 	// assert. Leaving reconciled false is what keeps the refusal alive: the
 	// applied digests stay behind the rendered ones, so the next reconcile is
 	// not a no-op and the refusal is re-decided rather than forgotten.
@@ -840,26 +840,26 @@ func inventoryDigest(inv *releasesv1alpha1.Inventory) string {
 	return inv.Digest
 }
 
-// handleNotReconciled runs the two gates that keep the operator away from an
+// handleNotReconciled runs the two gates that keep the controller away from an
 // instance, in order, and reports whether one of them handled it.
 func handleNotReconciled(
 	ctx context.Context,
 	params *ModuleInstanceParams,
 	mi *releasesv1alpha1.ModuleInstance,
 ) (bool, error) {
-	// Owner-skip gate: CLI-owned instances are managed externally. The operator
+	// Owner-skip gate: CLI-owned instances are managed externally. The controller
 	// stays entirely hands-off — no render, apply, prune, deletion cleanup, and
 	// crucially no finalizer. The check sits before finalizer registration so a
 	// CLI-owned CR never carries opmodel.dev/cleanup (whose deletion path would
 	// prune resources the CLI owns). Only an explicit owner == cli skips; absent,
-	// empty, and operator all fall through to the normal operator-managed path,
-	// except on the operator's own instance, which is refused below.
+	// empty, and controller all fall through to the normal controller-managed path,
+	// except on the controller's own instance, which is refused below.
 	if mi.Spec.Owner == releasesv1alpha1.OwnerCLI {
 		return true, handleCLIOwned(ctx, params, mi)
 	}
 
-	// The operator never reconciles the instance that deploys it, whatever its
-	// owner says: install must be able to repair the operator without it.
+	// The controller never reconciles the instance that deploys it, whatever its
+	// owner says: install must be able to repair the controller without it.
 	if signal, own := isOwnInstance(mi); own {
 		return true, handleOwnInstance(ctx, params, mi, signal)
 	}
@@ -867,7 +867,7 @@ func handleNotReconciled(
 }
 
 // handleCLIOwned implements the owner-skip gate for CLI-owned instances. The
-// operator is hands-off: no render, apply, prune, deletion cleanup, or
+// controller is hands-off: no render, apply, prune, deletion cleanup, or
 // finalizer. For a deleting instance it returns immediately — no finalizer was
 // ever added, so there is nothing to clean up or unblock. Otherwise it records
 // a single Ready=Unknown/ManagedExternally acknowledgement and nothing else: no
@@ -905,11 +905,11 @@ func handleCLIOwned(
 	)
 }
 
-// handleOwnInstance refuses the operator's own instance when its owner is
-// absent or operator. It never renders, applies or prunes, and it releases a
-// cleanup finalizer an earlier operator release may have added, without
-// pruning, so neither uninstall nor a reinstall of the operator waits on a
-// finalizer only a running operator could clear. On a live instance it
+// handleOwnInstance refuses the controller's own instance when its owner is
+// absent or controller. It never renders, applies or prunes, and it releases
+// any cleanup finalizer the instance carries, without pruning, so neither
+// uninstall nor a reinstall of the controller waits on a finalizer only a
+// running controller could clear. On a live instance it
 // records Ready=False and Stalled=True (SelfManagementRefused) with the
 // observed generation, so a client waiting on that generation reads a final
 // verdict; it leaves inventory, digests, instanceUUID and history alone. No
@@ -923,7 +923,7 @@ func handleOwnInstance(
 	log := logf.FromContext(ctx)
 
 	if controllerutil.ContainsFinalizer(mi, FinalizerName) {
-		log.Info("Releasing the cleanup finalizer from the operator's own instance without pruning")
+		log.Info("Releasing the cleanup finalizer from the controller's own instance without pruning")
 		if err := removeFinalizer(ctx, params.Client, mi); err != nil {
 			if apierrors.IsNotFound(err) {
 				params.Warnings.Forget(keyOf(mi))
@@ -938,13 +938,13 @@ func handleOwnInstance(
 		return nil
 	}
 
-	msg := fmt.Sprintf("this ModuleInstance deploys the operator (%s); "+
-		"the operator never applies or prunes its own instance. Set spec.owner to cli", signal)
+	msg := fmt.Sprintf("this ModuleInstance deploys the controller (%s); "+
+		"the controller never applies or prunes its own instance. Set spec.owner to cli", signal)
 	ready := apimeta.FindStatusCondition(mi.Status.Conditions, status.ReadyCondition)
 	already := ready != nil && ready.Reason == status.SelfManagementRefusedReason &&
 		mi.Status.ObservedGeneration == mi.Generation
 
-	log.Info("Refusing to reconcile the operator's own instance", "signal", signal)
+	log.Info("Refusing to reconcile the controller's own instance", "signal", signal)
 	patcher := patch.NewSerialPatcher(mi, params.Client)
 	status.MarkSelfManagementRefused(mi, msg)
 	mi.Status.ObservedGeneration = mi.Generation
@@ -967,7 +967,7 @@ func handleOwnInstance(
 	)
 }
 
-// handleSuspend records the suspended state for an operator-owned instance:
+// handleSuspend records the suspended state for a controller-owned instance:
 // Ready=False/Suspended (clearing Reconciling/Stalled), the observed generation,
 // and a Suspend event. It runs before the deferred status commit so the existing
 // status fields (inventory, lastApplied*, history) are preserved untouched.
@@ -1409,12 +1409,12 @@ func instanceRenderSkippable(ctx context.Context, params *ModuleInstanceParams, 
 	key := func() status.RenderInputKey {
 		identity, skew := platformKeyParts(ctx, params.Client)
 		return status.RenderInputKey{
-			Source:          status.ModuleSourceDigest(mi.Spec.Module.Path, mi.Spec.Module.Version),
-			Config:          status.ConfigDigest(mi.Spec.Values),
-			PackageIdentity: identity,
-			SkewPolicy:      skew,
-			OperatorVersion: params.OperatorVersion,
-			LibraryVersion:  params.LibraryVersion,
+			Source:            status.ModuleSourceDigest(mi.Spec.Module.Path, mi.Spec.Module.Version),
+			Config:            status.ConfigDigest(mi.Spec.Values),
+			PackageIdentity:   identity,
+			SkewPolicy:        skew,
+			ControllerVersion: params.ControllerVersion,
+			LibraryVersion:    params.LibraryVersion,
 		}
 	}
 	skip := renderSkip{interval: params.DriftRenderInterval, now: time.Now()}

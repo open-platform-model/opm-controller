@@ -1,9 +1,9 @@
 package transformers
 
 import (
-	id "testing.opmodel.dev/catalogs/operator/provider/identity"
+	id "testing.opmodel.dev/catalogs/controller/provider/identity"
 	c "opmodel.dev/core@v2"
-	res "testing.opmodel.dev/catalogs/operator/provider/resources/v1alpha1"
+	res "testing.opmodel.dev/catalogs/controller/provider/resources/v1alpha1"
 )
 
 // #ProbeTransformer renders a component carrying the probe resource as one

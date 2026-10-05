@@ -123,7 +123,7 @@ type TransformerRegistrationStatus struct {
 // distinct claims, the second refused at acceptance naming the claimant,
 // rather than contending for one object.
 //
-// Creating one requires platform-admin RBAC. The operator ships that role
+// Creating one requires platform-admin RBAC. The controller ships that role
 // unbound (config/rbac/transformerregistration_admin_role.yaml) and ships no
 // tenant-facing role granting create, so a module applied under an
 // impersonated tenant ServiceAccount cannot register a transformer unless a

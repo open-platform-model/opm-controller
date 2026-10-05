@@ -58,7 +58,7 @@ func dependentDemanding(ctx context.Context, namespace, name string, contracts .
 }
 
 // claimExists reports whether the claim is still stored. A blocked deletion
-// is exactly the case where the object is gone from the operator's intent and
+// is exactly the case where the object is gone from the controller's intent and
 // still present here.
 func claimExists(ctx context.Context, name string) bool {
 	GinkgoHelper()

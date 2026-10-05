@@ -1,4 +1,4 @@
-// provider — the operator's test catalog: the smallest valid core #Catalog,
+// provider — the controller's test catalog: the smallest valid core #Catalog,
 // one resource and one transformer. The registry-backed specs use it as a
 // real, resolvable catalog other than opmodel.dev/catalogs/opm, for example
 // the catalog a TransformerRegistration claim contributes to the generated
@@ -9,16 +9,16 @@ package provider
 
 import (
 	c "opmodel.dev/core@v2"
-	id "testing.opmodel.dev/catalogs/operator/provider/identity"
-	t "testing.opmodel.dev/catalogs/operator/provider/transformers"
-	res "testing.opmodel.dev/catalogs/operator/provider/resources/v1alpha1"
+	id "testing.opmodel.dev/catalogs/controller/provider/identity"
+	t "testing.opmodel.dev/catalogs/controller/provider/transformers"
+	res "testing.opmodel.dev/catalogs/controller/provider/resources/v1alpha1"
 )
 
 c.#Catalog
 metadata: {
 	modulePath:  id.ModulePath
 	version:     id.Version
-	description: "Operator test catalog: one probe resource and its transformer"
+	description: "Controller test catalog: one probe resource and its transformer"
 }
 
 #resources: {

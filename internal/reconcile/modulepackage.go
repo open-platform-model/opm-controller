@@ -73,12 +73,12 @@ type ModulePackageParams struct {
 	// events are emitted on transition only. Nil emits every non-empty set.
 	Warnings *WarningTracker
 
-	// OperatorVersion and LibraryVersion are the running operator's
+	// ControllerVersion and LibraryVersion are the running controller's
 	// version.Full() and version.Library(), parts of the render input key.
 	// They are injected so tests can set them; an empty one makes every key
 	// incomplete, so nothing is recorded and nothing is skipped.
-	OperatorVersion string
-	LibraryVersion  string
+	ControllerVersion string
+	LibraryVersion    string
 
 	// DriftRenderInterval is the manager's --drift-render-interval: how long
 	// a reconcile whose render inputs are unchanged may skip its render after
@@ -335,7 +335,7 @@ func ReconcileModulePackage(
 
 	computeModulePackageDigests(converted, &digests)
 	renderedVersion = &converted.result.ModuleVersion
-	key := renderedKey(digests.Source, digests.Config, converted.result, params.OperatorVersion, params.LibraryVersion)
+	key := renderedKey(digests.Source, digests.Config, converted.result, params.ControllerVersion, params.LibraryVersion)
 	renderedInputs = &key
 
 	lastApplied := status.DigestSet{
@@ -433,12 +433,12 @@ func packageRenderSkippable(
 	key := func() status.RenderInputKey {
 		identity, skew := platformKeyParts(ctx, params.Client)
 		return status.RenderInputKey{
-			Source:          sourceDigest,
-			Config:          status.ConfigDigest(nil),
-			PackageIdentity: identity,
-			SkewPolicy:      skew,
-			OperatorVersion: params.OperatorVersion,
-			LibraryVersion:  params.LibraryVersion,
+			Source:            sourceDigest,
+			Config:            status.ConfigDigest(nil),
+			PackageIdentity:   identity,
+			SkewPolicy:        skew,
+			ControllerVersion: params.ControllerVersion,
+			LibraryVersion:    params.LibraryVersion,
 		}
 	}
 	skip := renderSkip{interval: params.DriftRenderInterval, now: time.Now()}

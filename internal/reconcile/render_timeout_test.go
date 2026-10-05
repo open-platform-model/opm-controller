@@ -137,7 +137,7 @@ func expectEvent(t *testing.T, rec *events.FakeRecorder, reason string) {
 // counters and a last success, which a timeout must leave alone.
 func timeoutInstanceParams(t *testing.T, pool *render.Slots, r render.ModuleRenderer, reconcileFailures int64) *ModuleInstanceParams {
 	t.Helper()
-	mi := operatorInstance(&releasesv1alpha1.FailureCounters{Reconcile: reconcileFailures})
+	mi := controllerInstance(&releasesv1alpha1.FailureCounters{Reconcile: reconcileFailures})
 	mi.Status.LastAppliedRenderDigest = lastSuccessDigest
 	mi.Status.Inventory = &releasesv1alpha1.Inventory{Revision: 3, Digest: "sha256:inventory"}
 	return &ModuleInstanceParams{
@@ -288,7 +288,7 @@ func TestRenderTimeout_ModuleInstance(t *testing.T) {
 func timeoutPackageParams(t *testing.T, pool *render.Slots, r render.PackageRenderer) *ModulePackageParams {
 	t.Helper()
 	return &ModulePackageParams{
-		Client:        loopTestClient(t, readyOCIRepository(), operatorPackage(nil)),
+		Client:        loopTestClient(t, readyOCIRepository(), controllerPackage(nil)),
 		EventRecorder: events.NewFakeRecorder(32),
 		Fetcher:       instanceFileFetcher{},
 		Renderer:      r,

@@ -36,7 +36,7 @@ const (
 // complete, pruned to the current and every leased identity after each
 // successful build, and emptied at manager start. The module content itself
 // comes from the library's generator (opm/helper/platformmodule); the
-// lifecycle is operator process policy, which is why it lives here beside the
+// lifecycle is controller process policy, which is why it lives here beside the
 // store that records the directories.
 type Layout struct {
 	Root string

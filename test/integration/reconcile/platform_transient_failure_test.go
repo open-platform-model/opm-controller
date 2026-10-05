@@ -44,7 +44,7 @@ var _ = Describe("Platform transient registry failure (registry-backed)", func()
 
 		plat, generation := createClusterPlatform(catalogPath)
 
-		// The operator's shape: one mapping for the Kernel and the reconciler.
+		// The controller's shape: one mapping for the Kernel and the reconciler.
 		store := platformstore.NewStore()
 		r := &opmcontroller.PlatformReconciler{
 			Client:        k8sClient,

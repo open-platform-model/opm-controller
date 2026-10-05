@@ -53,7 +53,7 @@ type ModuleReference struct {
 // a LocalObjectReference when absent. A TransformerRegistration is
 // cluster-scoped, so it has no namespace of its own to fall back to and an
 // omitted namespace would name nothing findable. Both fields are required
-// here. The operator stamps them from the rendering instance rather than
+// here. The controller stamps them from the rendering instance rather than
 // accepting them from a module author (0015:D11).
 type ProviderReference struct {
 	// Namespace of the claiming ModuleInstance.
@@ -103,7 +103,7 @@ type SourceStatus struct {
 type RenderInputs struct {
 	// digest is a SHA-256 over the render's inputs: the module source, the
 	// values, the platform package identity, the catalog skew policy, and the
-	// operator and library versions.
+	// controller and library versions.
 	// +required
 	Digest string `json:"digest"`
 

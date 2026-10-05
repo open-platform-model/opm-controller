@@ -113,7 +113,7 @@ package opm_operator
 		kind:       "Role"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "leader-election-role"
@@ -185,7 +185,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "moduleinstance-admin-role"
@@ -207,7 +207,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "moduleinstance-editor-role"
@@ -237,7 +237,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "moduleinstance-viewer-role"
@@ -263,7 +263,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "platform-viewer-role"
@@ -289,7 +289,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "modulepackage-viewer-role"
@@ -315,7 +315,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "transformerregistration-viewer-role"
@@ -341,7 +341,7 @@ package opm_operator
 		kind:       "ClusterRole"
 		metadata: {
 			labels: {
-				"app.kubernetes.io/name":       "opm-operator"
+				"app.kubernetes.io/name":       "opm-controller"
 				"app.kubernetes.io/managed-by": "kustomize"
 			}
 			name: "transformerregistration-admin-role"

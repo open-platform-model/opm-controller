@@ -37,7 +37,7 @@ import (
 )
 
 // claimCatalogPath is the catalog a platform spec's active claim contributes:
-// the operator's test catalog (test/fixtures/catalogs/provider), a real,
+// the controller's test catalog (test/fixtures/catalogs/provider), a real,
 // resolvable one the spec's own registry does not subscribe, so the generated
 // module has to pin and import it because the claim said so.
 func claimCatalogPath() string { return fixtures.MustCatalog(GinkgoT(), "provider").ModulePath }

@@ -108,7 +108,7 @@ func emitRenderWarnings(tracker *WarningTracker, recorder events.EventRecorder, 
 
 // advisoryFacts returns one identity key per advisory finding result
 // carries, so the tracker compares what the render reported rather than how
-// the operator worded it: a resolved-versions row marked Newer keys on the
+// the controller worded it: a resolved-versions row marked Newer keys on the
 // path and both versions, an unhandled optional trait on the component and
 // the trait. The keys are opaque to callers; only equality matters.
 func advisoryFacts(result *render.RenderResult) []string {

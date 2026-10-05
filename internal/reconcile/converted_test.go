@@ -217,8 +217,8 @@ func TestRenderDigestFailure(t *testing.T) {
 }
 
 // TestConvertRender_RenderDigestIgnoresTheRuntimeName pins that the render
-// digest the operator records leaves out the managed-by value, so the cli
-// (opm-cli) and the operator (opm-controller) digest one render alike, while
+// digest the controller records leaves out the managed-by value, so the cli
+// (opm-cli) and the controller (opm-controller) digest one render alike, while
 // any other label still counts.
 func TestConvertRender_RenderDigestIgnoresTheRuntimeName(t *testing.T) {
 	digestWith := func(labels string) string {

@@ -80,7 +80,7 @@ type ModulePackageStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
 	// conditions represent the current state of the ModulePackage resource.
-	// Ready reports whether the operator applied the last render. Healthy
+	// Ready reports whether the controller applied the last render. Healthy
 	// reports whether the applied objects have rolled out: True once every
 	// object in the inventory reports ready, False while one is still rolling
 	// out, missing, or stalled past its progress deadline, and Unknown when
@@ -119,7 +119,7 @@ type ModulePackageStatus struct {
 	// +optional
 	LastAppliedSourceDigest string `json:"lastAppliedSourceDigest,omitempty"`
 
-	// lastAppliedVersion is the version of the module the operator last
+	// lastAppliedVersion is the version of the module the controller last
 	// applied, in plain text, as the module declares it in metadata.version
 	// (bare SemVer, for example 0.1.0). It is set with the other last-applied
 	// fields when an apply succeeds, and rewritten by a reconcile that renders
@@ -131,7 +131,7 @@ type ModulePackageStatus struct {
 	// lastAppliedInputs identifies the inputs of the last render that left
 	// the cluster holding its output: a digest over the module source, the
 	// values, the platform package identity, the catalog skew policy, and the
-	// operator and library versions, and renderedAt, when that render ran. It
+	// controller and library versions, and renderedAt, when that render ran. It
 	// is set with the other last-applied fields when an apply succeeds, and
 	// rewritten by a reconcile that renders and finds nothing to change.
 	//
@@ -176,7 +176,7 @@ type ModulePackageStatus struct {
 // ModulePackage renders the ModuleInstance package that a Flux source
 // artifact carries.
 //
-// The operator fetches the artifact spec.sourceRef names, loads instance.cue
+// The controller fetches the artifact spec.sourceRef names, loads instance.cue
 // from the directory at spec.path, and renders and applies it when it
 // evaluates to #ModuleInstance; any other kind is rejected as unsupported.
 type ModulePackage struct {

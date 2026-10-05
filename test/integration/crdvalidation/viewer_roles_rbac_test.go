@@ -74,7 +74,7 @@ func loadShippedRole(t *testing.T, file string) *rbacv1.ClusterRole {
 // reversible direction.
 //
 // The roles are read from config/rbac/ rather than written inline, so the test
-// asserts the artifacts the operator actually ships.
+// asserts the artifacts the controller actually ships.
 func TestViewerRolesShape(t *testing.T) {
 	for _, vr := range shippedViewerRoles {
 		t.Run(vr.file, func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestViewerRolesShape(t *testing.T) {
 
 // The manifest ships no binding naming a viewer role. A cluster started for a
 // test never applies the manifest, so this reads every binding under config/,
-// the tree the install manifest and the operator module are rendered from.
+// the tree the install manifest and the controller module are rendered from.
 func TestViewerRolesShipUnbound(t *testing.T) {
 	names := map[string]bool{}
 	for _, vr := range shippedViewerRoles {
@@ -138,7 +138,7 @@ func TestViewerRolesShipUnbound(t *testing.T) {
 		return nil
 	})
 	require.NoError(t, err)
-	require.Positive(t, bindings, "the scan must see the operator's own bindings")
+	require.Positive(t, bindings, "the scan must see the controller's own bindings")
 }
 
 func TestViewerRolesRBAC(t *testing.T) {

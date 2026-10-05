@@ -61,7 +61,7 @@ func expectPanicRecorded(
 	Expect(history).NotTo(BeEmpty())
 	Expect(history[0].Message).To(ContainSubstring(panicMessage), "the newest history entry is the failure")
 	Expect(history[0].Phase).NotTo(Equal("complete"), "the newest history entry is not a success")
-	Expect(nextRetryAt).To(BeNil(), "the operator schedules no retry of its own")
+	Expect(nextRetryAt).To(BeNil(), "the controller schedules no retry of its own")
 }
 
 var _ = Describe("Render panic", func() {

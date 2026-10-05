@@ -1,6 +1,6 @@
-// backup_consumer — the consumer half of the operator's registration fixture
+// backup_consumer — the consumer half of the controller's registration fixture
 // set. Its one component attaches opm's backup trait, a provider-fulfilled
-// contract that no catalog the operator's sample platform subscribes
+// contract that no catalog the controller's sample platform subscribes
 // implements. Its render is refused naming the contract until a provider is
 // active (0010:D28); once backup_provider's claim is accepted and active it
 // renders one ConfigMap through the backup catalog fixture's transformer.
@@ -11,7 +11,7 @@ import (
 
 	m "opmodel.dev/core@v2"
 
-	id "testing.opmodel.dev/modules/operator/backup_consumer/identity"
+	id "testing.opmodel.dev/modules/controller/backup_consumer/identity"
 )
 
 m.#Module

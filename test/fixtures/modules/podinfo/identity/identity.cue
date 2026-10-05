@@ -7,7 +7,7 @@ package identity
 
 // ModulePath is the module's complete CUE module path, major suffix included
 // — byte-identical to cue.mod's `module:` field.
-ModulePath: "testing.opmodel.dev/modules/operator/podinfo@v0"
+ModulePath: "testing.opmodel.dev/modules/controller/podinfo@v0"
 
 // Version is the module's bare SemVer; its major must agree with ModulePath's.
 // Hand-managed: these fixtures are not on release-please's version train, so a

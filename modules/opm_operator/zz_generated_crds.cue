@@ -48,12 +48,12 @@ package opm_operator
 				name: "v1alpha1"
 				schema: openAPIV3Schema: {
 					description: """
-						ModuleInstance asks the operator to render one CUE module at a pinned
+						ModuleInstance asks the controller to render one CUE module at a pinned
 						version with the given values and apply the result.
 
 						The module is resolved from an OCI registry by spec.module.path and
 						spec.module.version. When spec.owner is "cli", the OPM CLI manages the
-						instance and the operator leaves it alone: it renders, applies and prunes
+						instance and the controller leaves it alone: it renders, applies and prunes
 						nothing, adds no finalizer, and records only a ManagedExternally
 						acknowledgement.
 						"""
@@ -110,32 +110,32 @@ package opm_operator
 								owner: {
 									description: """
 	Owner identifies which actor manages this instance. An absent or
-	"operator" value means operator-managed: the controller reconciles
+	"controller" value means controller-managed: the controller reconciles
 	normally. The API server rejects any other value, including an explicit
-	empty string. Only an explicit "cli" makes the operator skip the instance
+	empty string. Only an explicit "cli" makes the controller skip the instance
 	(no render/apply/prune, no finalizer) and record a single
 	ManagedExternally acknowledgement. There is no CRD default; the
-	reconciler carries the operator-managed default semantics.
+	reconciler carries the controller-managed default semantics.
 
-	The operator never reconciles the instance that deploys the operator
-	itself, whatever this field says: an instance named opm-operator in
-	opm-operator-system, an instance of the opmodel.dev/modules/opm_operator
-	module, or one whose inventory records the operator's own
-	CustomResourceDefinitions. With an absent or "operator" value such an
+	The controller never reconciles the instance that deploys the controller
+	itself, whatever this field says: an instance named opm-controller in
+	opm-controller-system, an instance of the opmodel.dev/modules/opm_controller
+	module, or one whose inventory records the controller's own
+	CustomResourceDefinitions. With an absent or "controller" value such an
 	instance is refused (Ready=False, Stalled=True, reason
 	SelfManagementRefused) and never gets the cleanup finalizer, so
-	re-running the install can always repair the operator. Keep it "cli".
+	re-running the install can always repair the controller. Keep it "cli".
 	"""
 									enum: [
 										"cli",
-										"operator",
+										"controller",
 									]
 									type: "string"
 								}
 								prune: {
 									description: """
-	Prune controls whether the operator deletes what an instance no longer
-	renders. When true, the operator deletes stale resources on reconcile
+	Prune controls whether the controller deletes what an instance no longer
+	renders. When true, the controller deletes stale resources on reconcile
 	and every applied object when the ModuleInstance is deleted. When false
 	or absent, it leaves them in place: deleting the ModuleInstance leaves
 	its applied objects running. Namespaces and CustomResourceDefinitions
@@ -175,7 +175,7 @@ package opm_operator
 								conditions: {
 									description: """
 	conditions represent the current state of the ModuleInstance resource.
-	Ready reports whether the operator applied the last render. Healthy
+	Ready reports whether the controller applied the last render. Healthy
 	reports whether the applied objects have rolled out: True once every
 	object in the inventory reports ready, False while one is still rolling
 	out, missing, or stalled past its progress deadline, and Unknown when
@@ -360,7 +360,7 @@ package opm_operator
 	lastAppliedInputs identifies the inputs of the last render that left
 	the cluster holding its output: a digest over the module source, the
 	values, the platform package identity, the catalog skew policy, and the
-	operator and library versions, and renderedAt, when that render ran. It
+	controller and library versions, and renderedAt, when that render ran. It
 	is set with the other last-applied fields when an apply succeeds, and
 	rewritten by a reconcile that renders and finds nothing to change.
 
@@ -374,7 +374,7 @@ package opm_operator
 											description: """
 	digest is a SHA-256 over the render's inputs: the module source, the
 	values, the platform package identity, the catalog skew policy, and the
-	operator and library versions.
+	controller and library versions.
 	"""
 											type: "string"
 										}
@@ -394,15 +394,15 @@ package opm_operator
 								lastAppliedSourceDigest: type: "string"
 								lastAppliedVersion: {
 									description: """
-	lastAppliedVersion is the version of the module the operator last
+	lastAppliedVersion is the version of the module the controller last
 	applied, in plain text, as the module declares it in metadata.version
 	(bare SemVer, for example 0.1.0). It is set with the other last-applied
 	fields when an apply succeeds, and rewritten by a reconcile that renders
 	and finds nothing to change. It is empty when the module's version could
 	not be read.
 
-	Written by the operator only. While spec.owner is cli it is not updated
-	and may name the version of an earlier operator apply.
+	Written by the controller only. While spec.owner is cli it is not updated
+	and may name the version of an earlier controller apply.
 	"""
 									type: "string"
 								}
@@ -515,7 +515,7 @@ package opm_operator
 						ModulePackage renders the ModuleInstance package that a Flux source
 						artifact carries.
 
-						The operator fetches the artifact spec.sourceRef names, loads instance.cue
+						The controller fetches the artifact spec.sourceRef names, loads instance.cue
 						from the directory at spec.path, and renders and applies it when it
 						evaluates to #ModuleInstance; any other kind is rejected as unsupported.
 						"""
@@ -666,7 +666,7 @@ package opm_operator
 								conditions: {
 									description: """
 	conditions represent the current state of the ModulePackage resource.
-	Ready reports whether the operator applied the last render. Healthy
+	Ready reports whether the controller applied the last render. Healthy
 	reports whether the applied objects have rolled out: True once every
 	object in the inventory reports ready, False while one is still rolling
 	out, missing, or stalled past its progress deadline, and Unknown when
@@ -842,7 +842,7 @@ package opm_operator
 	lastAppliedInputs identifies the inputs of the last render that left
 	the cluster holding its output: a digest over the module source, the
 	values, the platform package identity, the catalog skew policy, and the
-	operator and library versions, and renderedAt, when that render ran. It
+	controller and library versions, and renderedAt, when that render ran. It
 	is set with the other last-applied fields when an apply succeeds, and
 	rewritten by a reconcile that renders and finds nothing to change.
 
@@ -856,7 +856,7 @@ package opm_operator
 											description: """
 	digest is a SHA-256 over the render's inputs: the module source, the
 	values, the platform package identity, the catalog skew policy, and the
-	operator and library versions.
+	controller and library versions.
 	"""
 											type: "string"
 										}
@@ -876,7 +876,7 @@ package opm_operator
 								lastAppliedSourceDigest: type: "string"
 								lastAppliedVersion: {
 									description: """
-	lastAppliedVersion is the version of the module the operator last
+	lastAppliedVersion is the version of the module the controller last
 	applied, in plain text, as the module declares it in metadata.version
 	(bare SemVer, for example 0.1.0). It is set with the other last-applied
 	fields when an apply succeeds, and rewritten by a reconcile that renders
@@ -996,14 +996,14 @@ package opm_operator
 					name:     "Reason"
 					type:     "string"
 				}, {
-					jsonPath: ".status.operatorVersion"
-					name:     "Operator"
+					jsonPath: ".status.controllerVersion"
+					name:     "Controller"
 					type:     "string"
 				}]
 				name: "v1alpha1"
 				schema: openAPIV3Schema: {
 					description: """
-						Platform declares the catalogs the operator renders against: the operator
+						Platform declares the catalogs the controller renders against: the controller
 						generates a platform CUE module from it, and renders ModuleInstances and
 						ModulePackages against that module.
 
@@ -1057,7 +1057,7 @@ package opm_operator
 	string (e.g. "2.0.0-alpha.3") — the platform module IS the resolution
 	(0010:D14); there is no range or allow/deny vocabulary. The
 	version's major must agree with the subscription key's `@vN` suffix.
-	The operator uses it twice: as the generated cue.mod pin and as the
+	The controller uses it twice: as the generated cue.mod pin and as the
 	entry's stamped expected version, which unifies with the imported
 	catalog's own version so wrong bytes fail the build naming the entry
 	(0019:D13).
@@ -1083,7 +1083,7 @@ package opm_operator
 								}
 								skewPolicy: {
 									description: """
-	SkewPolicy is the operator's response to catalog version skew: a
+	SkewPolicy is the controller's response to catalog version skew: a
 	module whose cue.mod requires a newer build of an OPM-namespace path
 	(core or a catalog) than the platform pins (0019:D7/D18).
 	"Warn" (the default when unset) renders against the platform's build
@@ -1104,7 +1104,7 @@ package opm_operator
 									description: """
 	Type is the informational discriminator for the platform (core
 	#Platform.type). It is required and shown in the Type column of
-	kubectl get. The operator passes it on to the generated platform
+	kubectl get. The controller passes it on to the generated platform
 	module, and nothing in OPM acts on its value.
 	"""
 									minLength: 1
@@ -1127,7 +1127,7 @@ package opm_operator
 	imported catalog, the module did not build, or its contract inventory
 	could not be read; the message names the dependency, the entry or the
 	field), GenerateFailed (the module could not be written to the
-	operator's disk), ContractCollisions (the module built, but more than
+	controller's disk), ContractCollisions (the module built, but more than
 	one enabled registry entry defines a contract key, as two majors of one
 	catalog sharing keys do; the message names each key and the defining
 	entries), OverSubscribedContracts (the module built, but a
@@ -1225,18 +1225,18 @@ package opm_operator
 									"x-kubernetes-list-map-keys": ["type"]
 									"x-kubernetes-list-type": "map"
 								}
+								controllerVersion: {
+									description: """
+	controllerVersion is the version of the controller that last patched this
+	Platform's status, stamped on every reconcile regardless of outcome
+	(0006:D24). The CLI reads it as the version-skew ceiling;
+	absence means no controller has reconciled the Platform (solo cluster).
+	"""
+									type: "string"
+								}
 								observedGeneration: {
 									format: "int64"
 									type:   "integer"
-								}
-								operatorVersion: {
-									description: """
-	operatorVersion is the version of the operator that last patched this
-	Platform's status, stamped on every reconcile regardless of outcome
-	(0006:D24). The CLI reads it as the version-skew ceiling;
-	absence means no operator has reconciled the Platform (solo cluster).
-	"""
-									type: "string"
 								}
 								packageIdentity: {
 									description: """
@@ -1393,7 +1393,7 @@ package opm_operator
 						distinct claims, the second refused at acceptance naming the claimant,
 						rather than contending for one object.
 
-						Creating one requires platform-admin RBAC. The operator ships that role
+						Creating one requires platform-admin RBAC. The controller ships that role
 						unbound (config/rbac/transformerregistration_admin_role.yaml) and ships no
 						tenant-facing role granting create, so a module applied under an
 						impersonated tenant ServiceAccount cannot register a transformer unless a

@@ -1,6 +1,6 @@
-// backup_provider — the provider half of the operator's registration fixture
+// backup_provider — the provider half of the controller's registration fixture
 // set. Its one component renders a TransformerRegistration claiming that the
-// backup catalog fixture (testing.opmodel.dev/catalogs/operator/backup)
+// backup catalog fixture (testing.opmodel.dev/catalogs/controller/backup)
 // implements opm's provider-fulfilled backup trait (0015:D3, 0015:D9). Applied
 // under an identity that may create the cluster-scoped claim
 // (moduleinstance.yaml), the claim is accepted, and it activates once this
@@ -13,7 +13,7 @@ import (
 
 	m "opmodel.dev/core@v2"
 
-	id "testing.opmodel.dev/modules/operator/backup_provider/identity"
+	id "testing.opmodel.dev/modules/controller/backup_provider/identity"
 )
 
 m.#Module

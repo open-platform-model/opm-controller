@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"fmt"
@@ -36,20 +36,20 @@ var fixedSelector = map[string]any{
 	"component.opmodel.dev/name":       "controller-manager",
 	"control-plane":                    "controller-manager",
 	"core.opmodel.dev/workload-type":   "stateless",
-	"module-instance.opmodel.dev/name": "opm-operator",
+	"module-instance.opmodel.dev/name": "opm-controller",
 }
 
-// adminRoleNames are the administrator ClusterRoles the operator ships
+// adminRoleNames are the administrator ClusterRoles the controller ships
 // unbound, the only objects the module renders as raw objects.
 var adminRoleNames = []string{
-	"opm-operator-metrics-reader",
-	"opm-operator-moduleinstance-admin-role",
-	"opm-operator-moduleinstance-editor-role",
-	"opm-operator-moduleinstance-viewer-role",
-	"opm-operator-platform-viewer-role",
-	"opm-operator-modulepackage-viewer-role",
-	"opm-operator-transformerregistration-viewer-role",
-	"opm-operator-transformerregistration-admin-role",
+	"opm-controller-metrics-reader",
+	"opm-controller-moduleinstance-admin-role",
+	"opm-controller-moduleinstance-editor-role",
+	"opm-controller-moduleinstance-viewer-role",
+	"opm-controller-platform-viewer-role",
+	"opm-controller-modulepackage-viewer-role",
+	"opm-controller-transformerregistration-viewer-role",
+	"opm-controller-transformerregistration-admin-role",
 }
 
 const (
@@ -60,20 +60,20 @@ const (
 	kindClusterRole = "ClusterRole"
 )
 
-var _ = Describe("The operator module", func() {
+var _ = Describe("The controller module", func() {
 	// Needs no registry, so it runs before any render and is enforced
 	// without GHCR too.
-	Context("the operator release it names", func() {
-		It("is at or above the minimum operator version", func() {
-			Expect(checkMinOperatorVersion(moduleDir, minVersionFile)).To(Succeed())
+	Context("the controller release it names", func() {
+		It("is at or above the minimum controller version", func() {
+			Expect(checkMinControllerVersion(moduleDir, minVersionFile)).To(Succeed())
 		})
 
-		It("refuses an older operator, naming both versions", func() {
+		It("refuses an older controller, naming both versions", func() {
 			dir := scratchModule()
-			path := filepath.Join(dir, "operator", "operator.cue")
+			path := filepath.Join(dir, "controller", "controller.cue")
 			b, err := os.ReadFile(path)
 			Expect(err).NotTo(HaveOccurred())
-			op, err := readModuleOperator(moduleDir)
+			op, err := readModuleController(moduleDir)
 			Expect(err).NotTo(HaveOccurred())
 			older := strings.Replace(string(b), fmt.Sprintf("Version: %q", op.Version), `Version: "1.0.0-beta.5"`, 1)
 			Expect(older).NotTo(Equal(string(b)), "the scratch copy names another version")
@@ -81,7 +81,7 @@ var _ = Describe("The operator module", func() {
 
 			minTag, err := os.ReadFile(minVersionFile)
 			Expect(err).NotTo(HaveOccurred())
-			err = checkMinOperatorVersion(dir, minVersionFile)
+			err = checkMinControllerVersion(dir, minVersionFile)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("v1.0.0-beta.5"))
 			Expect(err.Error()).To(ContainSubstring(strings.TrimSpace(string(minTag))))
@@ -107,29 +107,29 @@ var _ = Describe("The operator module", func() {
 				key{"CustomResourceDefinition", "", "modulepackages.opmodel.dev"},
 				key{"CustomResourceDefinition", "", "platforms.opmodel.dev"},
 				key{"CustomResourceDefinition", "", "transformerregistrations.opmodel.dev"},
-				key{"Namespace", "", "opm-operator-system"},
-				key{"ServiceAccount", ns, "opm-operator-controller-manager"},
-				key{"Deployment", ns, "opm-operator-controller-manager"},
-				key{"Service", ns, "opm-operator-controller-manager-metrics-service"},
-				key{"Role", ns, "opm-operator-leader-election-role"},
-				key{"RoleBinding", ns, "opm-operator-leader-election-role"},
-				key{"ClusterRole", "", "opm-operator-manager-role"},
-				key{"ClusterRoleBinding", "", "opm-operator-manager-role"},
-				key{"ClusterRole", "", "opm-operator-metrics-auth-role"},
-				key{"ClusterRoleBinding", "", "opm-operator-metrics-auth-role"},
-				key{"ClusterRole", "", "opm-operator-metrics-reader"},
-				key{"ClusterRole", "", "opm-operator-moduleinstance-admin-role"},
-				key{"ClusterRole", "", "opm-operator-moduleinstance-editor-role"},
-				key{"ClusterRole", "", "opm-operator-moduleinstance-viewer-role"},
-				key{"ClusterRole", "", "opm-operator-platform-viewer-role"},
-				key{"ClusterRole", "", "opm-operator-modulepackage-viewer-role"},
-				key{"ClusterRole", "", "opm-operator-transformerregistration-viewer-role"},
-				key{"ClusterRole", "", "opm-operator-transformerregistration-admin-role"},
+				key{"Namespace", "", "opm-controller-system"},
+				key{"ServiceAccount", ns, "opm-controller-manager"},
+				key{"Deployment", ns, "opm-controller-manager"},
+				key{"Service", ns, "opm-controller-manager-metrics-service"},
+				key{"Role", ns, "opm-controller-leader-election-role"},
+				key{"RoleBinding", ns, "opm-controller-leader-election-role"},
+				key{"ClusterRole", "", "opm-controller-manager-role"},
+				key{"ClusterRoleBinding", "", "opm-controller-manager-role"},
+				key{"ClusterRole", "", "opm-controller-metrics-auth-role"},
+				key{"ClusterRoleBinding", "", "opm-controller-metrics-auth-role"},
+				key{"ClusterRole", "", "opm-controller-metrics-reader"},
+				key{"ClusterRole", "", "opm-controller-moduleinstance-admin-role"},
+				key{"ClusterRole", "", "opm-controller-moduleinstance-editor-role"},
+				key{"ClusterRole", "", "opm-controller-moduleinstance-viewer-role"},
+				key{"ClusterRole", "", "opm-controller-platform-viewer-role"},
+				key{"ClusterRole", "", "opm-controller-modulepackage-viewer-role"},
+				key{"ClusterRole", "", "opm-controller-transformerregistration-viewer-role"},
+				key{"ClusterRole", "", "opm-controller-transformerregistration-admin-role"},
 			))
 		})
 
 		It("renders the fixed Deployment selector, with control-plane on the pods", func() {
-			d := find(objs, "Deployment", "opm-operator-controller-manager")
+			d := find(objs, "Deployment", "opm-controller-manager")
 			Expect(dict(d.Object, "spec", "selector", "matchLabels")).To(Equal(fixedSelector),
 				"the selector differs from the fixed one; a module with another selector fails every upgrade")
 			Expect(dict(d.Object, "spec", "template", "metadata", "labels")).To(
@@ -138,15 +138,15 @@ var _ = Describe("The operator module", func() {
 
 		It("binds each controller role to the controller's ServiceAccount under the catalog's binding name", func() {
 			for _, b := range []struct{ kind, name, roleKind string }{
-				{"ClusterRoleBinding", "opm-operator-manager-role", "ClusterRole"},
-				{"ClusterRoleBinding", "opm-operator-metrics-auth-role", "ClusterRole"},
-				{"RoleBinding", "opm-operator-leader-election-role", "Role"},
+				{"ClusterRoleBinding", "opm-controller-manager-role", "ClusterRole"},
+				{"ClusterRoleBinding", "opm-controller-metrics-auth-role", "ClusterRole"},
+				{"RoleBinding", "opm-controller-leader-election-role", "Role"},
 			} {
 				o := find(objs, b.kind, b.name)
 				Expect(dict(o.Object, "roleRef")).To(HaveKeyWithValue("name", b.name))
 				Expect(dict(o.Object, "roleRef")).To(HaveKeyWithValue("kind", b.roleKind))
 				Expect(list(o.Object, "subjects")).To(ConsistOf(map[string]any{
-					"kind": "ServiceAccount", "name": "opm-operator-controller-manager", "namespace": instanceNamespace,
+					"kind": "ServiceAccount", "name": "opm-controller-manager", "namespace": instanceNamespace,
 				}))
 			}
 		})
@@ -205,8 +205,8 @@ var _ = Describe("The operator module", func() {
 			}
 		})
 
-		It("runs the operator release the module names, pulled IfNotPresent", func() {
-			op, err := readModuleOperator(moduleDir)
+		It("runs the controller release the module names, pulled IfNotPresent", func() {
+			op, err := readModuleController(moduleDir)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(op.Tag).To(Equal("v" + op.Version))
 			Expect(op.Digest).To(MatchRegexp(`^sha256:[0-9a-f]{64}$`))

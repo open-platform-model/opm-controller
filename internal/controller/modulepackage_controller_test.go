@@ -273,7 +273,7 @@ var _ = Describe("ModulePackage Controller", func() {
 			fetcher := &stubFetcher{pathInArtifact: "releases/app"}
 			renderer := &stubPackageRenderer{result: stubRenderResult(namespace, nil)}
 			r := buildReconciler(fetcher, renderer)
-			r.OperatorVersion, r.LibraryVersion = testOperatorVersion, testLibraryVersion
+			r.ControllerVersion, r.LibraryVersion = testControllerVersion, testLibraryVersion
 			// No Platform exists, so the pre-render key is incomplete and no
 			// reconcile here skips its render.
 			r.DriftRenderInterval = 30 * time.Minute
@@ -284,12 +284,12 @@ var _ = Describe("ModulePackage Controller", func() {
 			Expect(k8sClient.Get(ctx, nn, &got)).To(Succeed())
 			Expect(got.Status.LastAppliedInputs).NotTo(BeNil(), "a successful apply records the key")
 			want := status.RenderInputKey{
-				Source:          "sha256:ccc",
-				Config:          status.ConfigDigest(nil),
-				PackageIdentity: stubPlatformIdentity,
-				SkewPolicy:      stubSkewPolicy,
-				OperatorVersion: testOperatorVersion,
-				LibraryVersion:  testLibraryVersion,
+				Source:            "sha256:ccc",
+				Config:            status.ConfigDigest(nil),
+				PackageIdentity:   stubPlatformIdentity,
+				SkewPolicy:        stubSkewPolicy,
+				ControllerVersion: testControllerVersion,
+				LibraryVersion:    testLibraryVersion,
 			}
 			Expect(got.Status.LastAppliedInputs.Digest).To(Equal(want.Digest()))
 

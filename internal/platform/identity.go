@@ -23,7 +23,7 @@ func (c ClaimCoordinate) String() string { return c.Catalog + "@" + c.Version }
 // PackageIdentity identifies one generated platform package by the two inputs
 // the package is a function of (0015:D13): the Platform CR's
 // .metadata.generation and the sorted set of active claims' catalog
-// coordinates. Enhancement 0015:D17 makes it the unit the operator holds,
+// coordinates. Enhancement 0015:D17 makes it the unit the controller holds,
 // because a claim activating changes the package while leaving the generation
 // untouched: keying on the generation alone would leave a render consuming a
 // platform that does not contain the provider just accepted.
@@ -89,7 +89,7 @@ func (id PackageIdentity) IsZero() bool { return id == PackageIdentity{} }
 //
 // The same inputs always produce the same string and any change to either
 // input produces a different one. A platform with no active claims keeps the
-// plain "gen-<generation>" form the operator used before claims existed.
+// plain "gen-<generation>" form the controller used before claims existed.
 func (id PackageIdentity) String() string {
 	name := "gen-" + strconv.FormatInt(id.generation, 10)
 	if id.claims == "" {

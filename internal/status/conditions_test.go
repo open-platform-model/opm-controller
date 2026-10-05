@@ -93,15 +93,15 @@ func TestMarkSuspended(t *testing.T) {
 func TestMarkSelfManagementRefused(t *testing.T) {
 	obj := newModuleInstance()
 	// Conditions an earlier adoption may have left behind.
-	MarkModuleResolved(obj, "opmodel.dev/modules/opm_operator@v0")
+	MarkModuleResolved(obj, "opmodel.dev/modules/opm_controller@v0")
 	MarkDrifted(obj, 2)
 	MarkReconciling(obj, "Progressing", "working")
 
-	MarkSelfManagementRefused(obj, "this ModuleInstance deploys the operator")
+	MarkSelfManagementRefused(obj, "this ModuleInstance deploys the controller")
 
 	assert.True(t, conditions.IsFalse(obj, ReadyCondition))
 	assert.Equal(t, SelfManagementRefusedReason, conditions.GetReason(obj, ReadyCondition))
-	assert.Equal(t, "this ModuleInstance deploys the operator", conditions.GetMessage(obj, ReadyCondition))
+	assert.Equal(t, "this ModuleInstance deploys the controller", conditions.GetMessage(obj, ReadyCondition))
 	assert.True(t, conditions.IsTrue(obj, StalledCondition))
 	assert.Equal(t, SelfManagementRefusedReason, conditions.GetReason(obj, StalledCondition))
 	assert.False(t, conditions.Has(obj, ReconcilingCondition))
@@ -251,6 +251,6 @@ func TestOwnerHelpers_RemoveHealthy(t *testing.T) {
 
 	obj = newModuleInstance()
 	MarkHealthy(obj, metav1.ConditionTrue, RolledOutReason, "1/1 objects ready")
-	MarkSelfManagementRefused(obj, "this ModuleInstance deploys the operator")
+	MarkSelfManagementRefused(obj, "this ModuleInstance deploys the controller")
 	assert.False(t, conditions.Has(obj, HealthyCondition))
 }

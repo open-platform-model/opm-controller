@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 // Package crdvalidation_test measures apiextensions validation semantics the
-// operator's CRD posture depends on, against the same API server version the
+// controller's CRD posture depends on, against the same API server version the
 // rest of the integration tier runs on.
 package crdvalidation_test
 
@@ -41,7 +41,7 @@ import (
 // The measurement behind the Subscription.Version CRD marker (change
 // operator-library-retarget, task 1.1): the stored `cluster` Platform
 // singleton predates the filter→version reshape (carries `filter`, lacks
-// `version`), the operator never writes its spec, and custom-resource
+// `version`), the controller never writes its spec, and custom-resource
 // validation runs against the whole object on every write including
 // status-subresource patches. If marking `version` required invalidated
 // status patches against that stored object, the singleton would hot-loop on

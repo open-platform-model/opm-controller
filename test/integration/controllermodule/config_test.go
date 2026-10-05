@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-const mirrorRepository = "registry.internal/opm/opm-operator"
+const mirrorRepository = "registry.internal/opm/opm-controller"
 
 // everyValue sets every #config field to a value other than its default.
 var everyValue = fmt.Sprintf(`{
@@ -51,7 +51,7 @@ func envValue(c map[string]any, name string) any {
 	return nil
 }
 
-var _ = Describe("The operator module's #config", func() {
+var _ = Describe("The controller module's #config", func() {
 	Context("with every value set", Ordered, func() {
 		var objs []obj
 
@@ -60,7 +60,7 @@ var _ = Describe("The operator module's #config", func() {
 		})
 
 		It("renders every value into the Deployment, extra arguments after the typed ones", func() {
-			d := find(objs, "Deployment", "opm-operator-controller-manager")
+			d := find(objs, "Deployment", "opm-controller-manager")
 			Expect(lookup(d.Object, "spec", "replicas")).To(BeNumerically("==", 2))
 
 			c := managerContainer(objs)
@@ -78,13 +78,13 @@ var _ = Describe("The operator module's #config", func() {
 		})
 
 		It("keeps the module's tag and digest under a mirrored repository", func() {
-			op, err := readModuleOperator(moduleDir)
+			op, err := readModuleController(moduleDir)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(managerContainer(objs)["image"]).To(Equal(fmt.Sprintf("%s:v%s@%s", mirrorRepository, op.Version, op.Digest)))
 		})
 
 		It("leaves the Deployment selector equal to the fixed one", func() {
-			d := find(objs, "Deployment", "opm-operator-controller-manager")
+			d := find(objs, "Deployment", "opm-controller-manager")
 			Expect(dict(d.Object, "spec", "selector", "matchLabels")).To(Equal(fixedSelector))
 		})
 	})
@@ -148,7 +148,7 @@ var _ = Describe("The operator module's #config", func() {
 			"resources.requests.cpu", `write 4, not "4"`),
 	)
 
-	It("refuses any instance but opm-operator in opm-operator-system, naming the expected coordinates", func() {
+	It("refuses any instance but opm-controller in opm-controller-system, naming the expected coordinates", func() {
 		for _, c := range []struct{ name, namespace string }{
 			{"opm", "opm-system"},
 			{instanceName, "opm-system"},

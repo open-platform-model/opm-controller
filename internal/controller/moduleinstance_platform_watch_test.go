@@ -44,7 +44,7 @@ func watchedPlatform() *releasesv1alpha1.Platform {
 		Status: releasesv1alpha1.PlatformStatus{
 			ObservedGeneration: 3,
 			PackageIdentity:    "g3",
-			OperatorVersion:    "v1.0.0-beta.1",
+			ControllerVersion:  "v1.0.0-beta.1",
 			Registry: []releasesv1alpha1.ResolvedRegistryEntry{
 				{Catalog: "opmodel.dev/catalogs/opm@v1", Version: "4.3.0"},
 			},
@@ -106,8 +106,8 @@ var _ = Describe("Platform watch predicate", func() {
 			}),
 		Entry("observedGeneration bumped", func(*releasesv1alpha1.Platform) {},
 			func(p *releasesv1alpha1.Platform) { p.Status.ObservedGeneration++ }),
-		Entry("operatorVersion changed (the upgrade recovery edge)", func(*releasesv1alpha1.Platform) {},
-			func(p *releasesv1alpha1.Platform) { p.Status.OperatorVersion = "v1.0.0-beta.2" }),
+		Entry("controllerVersion changed (the upgrade recovery edge)", func(*releasesv1alpha1.Platform) {},
+			func(p *releasesv1alpha1.Platform) { p.Status.ControllerVersion = "v1.0.0-beta.2" }),
 	)
 
 	DescribeTable("drops an update that changes nothing instances consume",
@@ -166,16 +166,16 @@ var _ = Describe("Platform watch index and mapper", func() {
 			Expect(moduleInstancePlatform(obj)).To(Equal(want))
 		},
 		Entry("owner absent", instance("a", "mi", "", false), []string{platformSingletonName}),
-		Entry("owner operator", instance("a", "mi", releasesv1alpha1.OwnerOperator, false), []string{platformSingletonName}),
+		Entry("owner controller", instance("a", "mi", releasesv1alpha1.OwnerController, false), []string{platformSingletonName}),
 		Entry("owner cli", instance("a", "mi", releasesv1alpha1.OwnerCLI, false), nil),
 		Entry("suspended", instance("a", "mi", "", true), nil),
-		Entry("suspended operator-owned", instance("a", "mi", releasesv1alpha1.OwnerOperator, true), nil),
+		Entry("suspended controller-owned", instance("a", "mi", releasesv1alpha1.OwnerController, true), nil),
 		Entry("not a ModuleInstance", &corev1.ConfigMap{}, nil),
 	)
 
-	It("enqueues only the operator-managed, unsuspended instances of the changed Platform", func() {
+	It("enqueues only the controller-managed, unsuspended instances of the changed Platform", func() {
 		managedA := instance("ns-a", "managed", "", false)
-		managedB := instance("ns-b", "managed", releasesv1alpha1.OwnerOperator, false)
+		managedB := instance("ns-b", "managed", releasesv1alpha1.OwnerController, false)
 		cliOwned := instance("ns-a", "cli-owned", releasesv1alpha1.OwnerCLI, false)
 		suspended := instance("ns-b", "suspended", "", true)
 

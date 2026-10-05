@@ -49,7 +49,7 @@ func newRenderTestNamespace(ctx context.Context, prefix string) string {
 	return ns.Name
 }
 
-// createRenderTestInstance creates an operator-owned ModuleInstance.
+// createRenderTestInstance creates a controller-owned ModuleInstance.
 func createRenderTestInstance(ctx context.Context, namespace, name string) types.NamespacedName {
 	mi := &releasesv1alpha1.ModuleInstance{
 		ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace},

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ import (
 // The envtest API server enforces Pod Security admission (a default-enabled
 // plugin; envtest disables only ServiceAccount admission), so these specs
 // prove admission, not field presence.
-var _ = Describe("The operator module's pods under Pod Security restricted", Ordered, func() {
+var _ = Describe("The controller module's pods under Pod Security restricted", Ordered, func() {
 	var namespace string
 
 	BeforeAll(func() {
@@ -48,7 +48,7 @@ var _ = Describe("The operator module's pods under Pod Security restricted", Ord
 	// podFrom builds a Pod from the rendered Deployment's pod template.
 	podFrom := func(objs []obj) *corev1.Pod {
 		GinkgoHelper()
-		d := find(objs, "Deployment", "opm-operator-controller-manager")
+		d := find(objs, "Deployment", "opm-controller-manager")
 		b, err := json.Marshal(lookup(d.Object, "spec", "template"))
 		Expect(err).NotTo(HaveOccurred())
 		var tmpl corev1.PodTemplateSpec

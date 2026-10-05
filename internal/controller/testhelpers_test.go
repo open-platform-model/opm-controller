@@ -91,11 +91,11 @@ const (
 	stubSkewPolicy       = releasesv1alpha1.SkewPolicyWarn
 )
 
-// testOperatorVersion and testLibraryVersion stand in for version.Full() and
+// testControllerVersion and testLibraryVersion stand in for version.Full() and
 // version.Library(), which a test binary cannot report for the library.
 const (
-	testOperatorVersion = "v1.0.0-test"
-	testLibraryVersion  = "v1.0.0-test.library"
+	testControllerVersion = "v1.0.0-test"
+	testLibraryVersion    = "v1.0.0-test.library"
 )
 
 // stubRenderResult builds a ConfigMap render result named "test-module" in the

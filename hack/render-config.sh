@@ -3,8 +3,8 @@
 # working tree.
 #
 # `kustomize edit set image` rewrites config/manager/kustomization.yaml in place,
-# so running `task operator:installer` or `task operator:controller:install`
-# used to clobber the committed image pin (example.com/opm-operator:v0.0.1) with
+# so running `task controller:installer` or `task controller:install`
+# used to clobber the committed image pin (example.com/opm-controller:v0.0.1) with
 # whatever IMG happened to default to, leaving a spurious diff that is easy to
 # commit by accident. Everything config/default references lives under config/,
 # so rendering from a throwaway copy gives the same output and touches nothing

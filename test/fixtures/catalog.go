@@ -1,4 +1,4 @@
-// Catalog subscription coordinate for registry-backed specs. Operator-local:
+// Catalog subscription coordinate for registry-backed specs. Controller-local:
 // not part of the byte-identical fixture flow shared with cli (fixtures.sh,
 // fixtures.go, fixtures_test.go), so `task fixtures:lint` does not cover it.
 package fixtures

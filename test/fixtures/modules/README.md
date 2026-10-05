@@ -1,8 +1,8 @@
 # Example test modules
 
-OPM example modules used as operator test fixtures **and** as ready-to-apply
+OPM example modules used as controller test fixtures **and** as ready-to-apply
 "getting started" examples. All are authored under the CUE module path
-`testing.opmodel.dev/modules/operator/<module>@v0` and published to
+`testing.opmodel.dev/modules/controller/<module>@v0` and published to
 `ghcr.io/open-platform-model`, so a consumer needs no extra registry
 configuration beyond the canonical mapping — which routes both `opmodel.dev`
 (core, catalogs) and `testing.opmodel.dev` (these fixtures) to GHCR.
@@ -24,7 +24,7 @@ outright.
 | `backup_consumer` | volume + opm `backup` trait | one ConfigMap, rendered by the `backup` catalog          | a consumer of a provider-fulfilled contract   |
 
 `backup_provider` and `backup_consumer` are one set with the catalog fixture
-`test/fixtures/catalogs/backup` (`testing.opmodel.dev/catalogs/operator/backup@v0`),
+`test/fixtures/catalogs/backup` (`testing.opmodel.dev/catalogs/controller/backup@v0`),
 which implements opm's provider-fulfilled backup trait. Apply
 `backup_provider` first: its claim is accepted, turns active once the
 instance is Ready, and adds the `backup` catalog to the generated platform.
@@ -41,10 +41,10 @@ the claim is refused `CatalogUnresolved` and the e2e spec fails. That failure
 is expected and the e2e check is not required. After the merge,
 `publish-fixtures.yml` publishes the new build; re-run the e2e workflow on
 `main` then and expect it green.
-An operator accepts the claim only when its library accepts a bare SemVer in
+A controller accepts the claim only when its library accepts a bare SemVer in
 `spec.version` (library v1.0.0-beta.2 or later); earlier ones refuse it
 `CatalogUnresolved`.
-The `backup` catalog's core pin (`v2.0.0-beta.1`) is also what the operator's
+The `backup` catalog's core pin (`v2.0.0-beta.1`) is also what the controller's
 old-catalog acceptance spec relies on. The library derives a catalog's
 provider set from the `provides` field core computes since core
 `v2.0.0-beta.3`, and falls back to a deprecated fold over `#transformers` for a
@@ -69,7 +69,7 @@ Each module declares its own path and semver in its `identity/identity.cue`
 package — the single source of both (core `#IdentityPackage`; enhancements 0010
 D38 / 0011:D12) — and `module.cue`'s `metadata` block derives from it. Edit the
 identity package, never the metadata block. Versions are independent of the
-operator's release version.
+controller's release version.
 
 Publishing goes through `opm module publish` (`hack/fixtures.sh`, the same script
 the cli repo carries), so every publish gate runs over these fixtures and a
@@ -97,13 +97,13 @@ specs read the version from the identity package (`test/fixtures/fixtures.go`)
 and need no edit. Across the workspace, `task deps:pins:fixtures` at the root
 does all of this for a dependency bump.
 
-## Apply an example against a running operator
+## Apply an example against a running controller
 
-Prerequisites: the opm-operator is running in the cluster, a `Platform` named
+Prerequisites: the opm-controller is running in the cluster, a `Platform` named
 `cluster` is applied and `Ready` (see
 `config/samples/releases_v1alpha1_platform.yaml`), and the controller can
 resolve `testing.opmodel.dev/*` (these fixtures) and `opmodel.dev/*` (core, the
-catalogs) from a reachable registry. The operator's built-in `--registry` default
+catalogs) from a reachable registry. The controller's built-in `--registry` default
 routes both to GHCR, so no configuration is needed for the published versions.
 
 ```bash

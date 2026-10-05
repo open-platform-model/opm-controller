@@ -361,7 +361,7 @@ var _ = Describe("Drift Detection with the render skip", func() {
 		params := reconcileParams()
 		params.Renderer = &stubRenderer{result: result}
 		params.ResourceManager = apply.NewResourceManager(counting, "opm-controller")
-		params.OperatorVersion = "v1.0.0-test"
+		params.ControllerVersion = "v1.0.0-test"
 		params.LibraryVersion = "v1.0.0-test.library"
 		params.DriftRenderInterval = 30 * time.Minute
 

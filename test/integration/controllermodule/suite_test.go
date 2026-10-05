@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package operatormodule_test renders the operator's own OPM module
-// (modules/opm_operator) the way the cli will: from its directory, against a
+// Package controllermodule_test renders the controller's own OPM module
+// (modules/opm_controller) the way the cli will: from its directory, against a
 // platform generated from the module's own catalog pin, with no cluster and
 // no Platform. The render specs need the module's core and catalog pins from
 // CUE_REGISTRY (GHCR under `task dev:test`) and skip without them, failing
 // instead under OPM_TEST_REGISTRY_FORCE=1. The Pod Security specs admit the
 // rendered pod template against the envtest API server.
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"context"
@@ -48,9 +48,9 @@ var (
 	k8sClient client.Client
 )
 
-func TestOperatorModule(t *testing.T) {
+func TestControllerModule(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Operator Module Suite")
+	RunSpecs(t, "Controller Module Suite")
 }
 
 var _ = BeforeSuite(func() {

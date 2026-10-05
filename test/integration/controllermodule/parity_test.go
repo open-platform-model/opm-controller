@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ import (
 // (the module names a release), labels and the selector (the catalog's,
 // pinned in module_test.go), the fields the catalog sets to Kubernetes API
 // defaults, and binding names (a binding is matched by its role and subjects).
-var _ = Describe("The operator module against the kustomize install", func() {
+var _ = Describe("The controller module against the kustomize install", func() {
 	It("renders the object set of config/default, bindings matched by role and subjects", func() {
 		Expect(objectSetDiffs(mustRender(moduleDir), kustomizeBuild(repoRoot))).To(BeEmpty())
 	})
@@ -55,7 +55,7 @@ roleRef:
   name: metrics-reader
 subjects:
 - kind: ServiceAccount
-  name: controller-manager
+  name: manager
   namespace: system
 `
 		Expect(os.WriteFile(filepath.Join(rbac, "metrics_reader_role_binding.yaml"), []byte(binding), 0o644)).To(Succeed())
@@ -66,8 +66,8 @@ subjects:
 
 		diffs := objectSetDiffs(mustRender(moduleDir), kustomizeBuild(tree))
 		Expect(diffs).To(ConsistOf(
-			"only in config/: ClusterRoleBinding roleRef=ClusterRole/opm-operator-metrics-reader " +
-				"subjects=[ServiceAccount opm-operator-system/opm-operator-controller-manager]"))
+			"only in config/: ClusterRoleBinding roleRef=ClusterRole/opm-controller-metrics-reader " +
+				"subjects=[ServiceAccount opm-controller-system/opm-controller-manager]"))
 	})
 
 	It("fails naming the field when the Deployment's replicas change in config/manager only", func() {
@@ -129,17 +129,17 @@ func parityDiffs(objs []obj, manifest []map[string]any) []string {
 	var mDeploy, mService map[string]any
 	for _, m := range manifest {
 		switch {
-		case str(m, "kind") == "Deployment" && str(m, "metadata", "name") == "opm-operator-controller-manager":
+		case str(m, "kind") == "Deployment" && str(m, "metadata", "name") == "opm-controller-manager":
 			mDeploy = m
-		case str(m, "kind") == "Service" && str(m, "metadata", "name") == "opm-operator-controller-manager-metrics-service":
+		case str(m, "kind") == "Service" && str(m, "metadata", "name") == "opm-controller-manager-metrics-service":
 			mService = m
 		}
 	}
 	Expect(mDeploy).NotTo(BeNil(), "the kustomize build has the controller Deployment")
 	Expect(mService).NotTo(BeNil(), "the kustomize build has the metrics Service")
 
-	rDeploy := find(objs, "Deployment", "opm-operator-controller-manager").Object
-	rService := find(objs, "Service", "opm-operator-controller-manager-metrics-service").Object
+	rDeploy := find(objs, "Deployment", "opm-controller-manager").Object
+	rService := find(objs, "Service", "opm-controller-manager-metrics-service").Object
 
 	var diffs []string
 	diff("deployment", comparableDeployment(dict(rDeploy, "spec")), comparableDeployment(dict(mDeploy, "spec")), &diffs)

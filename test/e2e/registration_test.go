@@ -43,7 +43,7 @@ import (
 // The provider is the backup_provider fixture, whose claim names the backup
 // catalog fixture. Both are published to GHCR and readable without
 // credentials, so a run needs neither LOCAL_REGISTRY nor
-// OPERATOR_DOCKER_CONFIG; it honours both when set, as the podinfo spec does.
+// CONTROLLER_DOCKER_CONFIG; it honours both when set, as the podinfo spec does.
 // A LOCAL_REGISTRY run needs the backup fixtures seeded there.
 //
 // It is self-contained (own controller deploy and teardown), so it does not
@@ -103,11 +103,11 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 		_, _ = kubectl("create", "ns", namespace)
 
 		By("installing CRDs")
-		_, err = utils.Run(exec.Command("make", "install"))
+		_, err = utils.Run(exec.Command("task", "controller:crds"))
 		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
 
 		By("deploying the controller-manager")
-		_, err = utils.Run(exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", managerImage)))
+		_, err = utils.Run(exec.Command("task", "controller:deploy", fmt.Sprintf("IMG=%s", managerImage)))
 		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 
 		// Local-dev override: resolve the catalogs and the fixtures from the
@@ -116,17 +116,17 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 			By("overriding controller registry for local dev")
 			arg := fmt.Sprintf(`{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry=%s"}`,
 				localRegistry)
-			_, err = kubectl("-n", namespace, "patch", "deployment", "opm-operator-controller-manager",
+			_, err = kubectl("-n", namespace, "patch", "deployment", "opm-controller-manager",
 				"--type=json", "-p=["+arg+"]")
 			Expect(err).NotTo(HaveOccurred(), "Failed to override controller registry")
 		}
 
 		// CI override: the PR e2e workflow re-pins the provider instance to a
 		// per-commit pre-release published to GHCR, which needs credentials.
-		if dockerCfg := os.Getenv("OPERATOR_DOCKER_CONFIG"); dockerCfg != "" {
+		if dockerCfg := os.Getenv("CONTROLLER_DOCKER_CONFIG"); dockerCfg != "" {
 			By("provisioning GHCR pull credentials for the controller")
 			// Tolerate only AlreadyExists; any other failure (an unreadable
-			// OPERATOR_DOCKER_CONFIG) would otherwise surface as a rollout
+			// CONTROLLER_DOCKER_CONFIG) would otherwise surface as a rollout
 			// timeout on a pod stuck mounting a missing secret.
 			_, err = kubectl("-n", namespace, "create", "secret", "generic",
 				"ghcr-auth", "--from-file=config.json="+dockerCfg)
@@ -150,7 +150,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
           volumeMounts:
             - {name: ghcr-auth, mountPath: /ghcr, readOnly: true}`
 			_, err = kubectl("-n", namespace, "patch", "deployment",
-				"opm-operator-controller-manager", "--type=strategic", "-p", patch)
+				"opm-controller-manager", "--type=strategic", "-p", patch)
 			Expect(err).NotTo(HaveOccurred(), "Failed to mount GHCR credentials")
 		}
 
@@ -159,7 +159,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 		// the Platform is applied, so its first build is not raced by a
 		// leader handoff.
 		_, err = kubectl("-n", namespace, "rollout", "status",
-			"deployment/opm-operator-controller-manager", "--timeout=180s")
+			"deployment/opm-controller-manager", "--timeout=180s")
 		Expect(err).NotTo(HaveOccurred(), "controller-manager rollout did not settle")
 
 		By("applying the cluster Platform")
@@ -201,7 +201,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 		// impersonating the applier ServiceAccount, so the instance goes while
 		// the RBAC still exists. A claim that outlives it (prune stalled, or
 		// an earlier spec failed) still holds its removal-guard finalizer,
-		// which would block the CRD deletion in `make uninstall` until the
+		// which would block the CRD deletion in `task controller:crds:remove` until the
 		// test binary times out; so any leftover claim goes next, with the
 		// same bounded wait and finalizer strip, before the CRDs do.
 		By("removing the backup-provider ModuleInstance")
@@ -229,10 +229,10 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 			filepath.Join(projectDir, "config/samples/opmodel.dev_v1alpha1_platform.yaml"))
 
 		By("undeploying the controller-manager")
-		_, _ = utils.Run(exec.Command("make", "undeploy"))
+		_, _ = utils.Run(exec.Command("task", "controller:uninstall", "IGNORE_NOT_FOUND=true"))
 
 		By("uninstalling CRDs")
-		_, _ = utils.Run(exec.Command("make", "uninstall"))
+		_, _ = utils.Run(exec.Command("task", "controller:crds:remove", "IGNORE_NOT_FOUND=true"))
 	})
 
 	It("accepts a bare-version claim and builds it into the platform", func() {
@@ -268,7 +268,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 	It("accepts a v-prefixed claim and builds it into the platform", func() {
 		vVersion := "v" + backup.Version
 
-		By("suspending backup-provider so its controller does not re-apply the rendered claim")
+		By("suspending backup-provider so its reconciler does not re-apply the rendered claim")
 		_, err := kubectl("-n", providerNamespace, "patch", "moduleinstance", providerName,
 			"--type=merge", "-p", `{"spec":{"suspend":true}}`)
 		Expect(err).NotTo(HaveOccurred())
@@ -316,7 +316,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 			g.Expect(identityV).NotTo(BeEmpty())
 			// The identity moves on a spelling-only edit only because the
 			// claim coordinates keep the claim's own spelling
-			// (opm-operator#234). A change that normalises the version to
+			// (opm-controller#234). A change that normalises the version to
 			// bare SemVer must turn this into identityV == identityBare: the
 			// same build, no regeneration.
 			g.Expect(identityV).NotTo(Equal(identityBare), "package identity did not move")

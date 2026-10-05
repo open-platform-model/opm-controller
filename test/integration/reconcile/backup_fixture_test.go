@@ -124,7 +124,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		// SemVer opm renders included, and re-derives provides from it
 		// (0015:D11): this is the same call with the same inputs. A library
 		// that resolves only a v-prefixed version fails here, as acceptance
-		// would refuse the claim CatalogUnresolved (opm-operator#210).
+		// would refuse the claim CatalogUnresolved (opm-controller#210).
 		cat, err := k.AcquireCatalogFromRegistry(ctx, catalogPath, version)
 		Expect(err).NotTo(HaveOccurred())
 		derived, err := cat.Provides()

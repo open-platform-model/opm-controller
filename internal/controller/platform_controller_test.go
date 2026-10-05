@@ -236,7 +236,7 @@ var _ = Describe("Platform Controller", func() {
 			r := newPlatformReconciler(store, k, reg)
 
 			disabled := false
-			// A disabled second entry, the operator's test catalog: it must still
+			// A disabled second entry, the controller's test catalog: it must still
 			// be pinned and imported, so it has to resolve.
 			second := fixtures.MustCatalog(GinkgoT(), "provider")
 			plat := &releasesv1alpha1.Platform{
@@ -261,7 +261,7 @@ var _ = Describe("Platform Controller", func() {
 			Expect(ready.Status).To(Equal(metav1.ConditionTrue), "reason=%s message=%s", ready.Reason, ready.Message)
 			Expect(ready.Reason).To(Equal(status.GeneratedReason))
 			Expect(fetched.Status.ObservedGeneration).To(Equal(fetched.Generation))
-			Expect(fetched.Status.OperatorVersion).To(Equal(version.Full()))
+			Expect(fetched.Status.ControllerVersion).To(Equal(version.Full()))
 
 			rec, ok := store.Generated()
 			Expect(ok).To(BeTrue(), "store should hold the generated platform")
@@ -281,7 +281,7 @@ var _ = Describe("Platform Controller", func() {
 			Expect(mf.Deps).To(HaveKey(platformmodule.CorePath))
 			// Core pin follows the library: the generated module pins core at
 			// the release the library verified its glue against, with no
-			// operator-side constant involved.
+			// controller-side constant involved.
 			Expect(mf.Deps[platformmodule.CorePath].Version).To(Equal(schema.DefaultSchemaVersion()))
 			// The closure pins the catalog's transitive requirement the CR never
 			// names, so the render module's promoted list covers it.

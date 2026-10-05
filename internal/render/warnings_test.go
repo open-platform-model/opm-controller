@@ -8,7 +8,7 @@ import (
 	"github.com/open-platform-model/library/opm/kernel"
 )
 
-// The operator words the render's advisory rows itself: one line per
+// The controller words the render's advisory rows itself: one line per
 // resolved-versions row marked Newer and one per unhandled optional trait,
 // each naming the facts the spec pins (path and both versions; component
 // and trait). Rows the policy did not flag produce nothing.

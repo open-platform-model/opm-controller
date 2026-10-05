@@ -76,7 +76,7 @@ func TestDocsKitReconciledByNamesTheControllers(t *testing.T) {
 }
 
 // readReconciledBy returns the reconciledBy map of the crd source of the
-// opm-operator bundle in docs-kit.cue.
+// opm-controller bundle in docs-kit.cue.
 func readReconciledBy(t *testing.T, path string) map[string]string {
 	t.Helper()
 	src, err := os.ReadFile(path)
@@ -87,9 +87,9 @@ func readReconciledBy(t *testing.T, path string) map[string]string {
 	if err := v.Err(); err != nil {
 		t.Fatalf("compile %s: %v", path, err)
 	}
-	iter, err := v.LookupPath(cue.ParsePath(`bundles."opm-operator".sources`)).List()
+	iter, err := v.LookupPath(cue.ParsePath(`bundles."opm-controller".sources`)).List()
 	if err != nil {
-		t.Fatalf("%s: bundles.\"opm-operator\".sources: %v", path, err)
+		t.Fatalf("%s: bundles.\"opm-controller\".sources: %v", path, err)
 	}
 	for iter.Next() {
 		src := iter.Value()
@@ -102,7 +102,7 @@ func readReconciledBy(t *testing.T, path string) map[string]string {
 		}
 		return out
 	}
-	t.Fatalf("%s: the opm-operator bundle has no crd source", path)
+	t.Fatalf("%s: the opm-controller bundle has no crd source", path)
 	return nil
 }
 

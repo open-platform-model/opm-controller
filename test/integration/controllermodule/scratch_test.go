@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package operatormodule_test
+package controllermodule_test
 
 import (
 	"os"
@@ -29,12 +29,12 @@ import (
 // These specs change a scratch copy of the module or of config/ and render
 // the copy, to prove what the module does with controller output it has not
 // seen yet.
-var _ = Describe("The operator module on changed controller output", func() {
+var _ = Describe("The controller module on changed controller output", func() {
 	It("refuses a CRD field the catalog cannot carry, naming it", func() {
 		dir := scratchModule()
 		// The same as a CRD whose imported spec gained spec.conversion.
 		Expect(os.WriteFile(filepath.Join(dir, "zz_scratch_conversion.cue"), []byte(
-			"package opm_operator\n\n#crdSource: \"platforms.opmodel.dev\": spec: conversion: strategy: \"None\"\n",
+			"package opm_controller\n\n#crdSource: \"platforms.opmodel.dev\": spec: conversion: strategy: \"None\"\n",
 		), 0o644)).To(Succeed())
 
 		_, err := render(dir, instanceName, instanceNamespace, "{}")
@@ -46,7 +46,7 @@ var _ = Describe("The operator module on changed controller output", func() {
 		dir := scratchModule()
 		// The same as a CRD manifest that gained metadata.labels.
 		Expect(os.WriteFile(filepath.Join(dir, "zz_scratch_labels.cue"), []byte(
-			"package opm_operator\n\n#crdSource: \"platforms.opmodel.dev\": metadata: labels: team: \"opm\"\n",
+			"package opm_controller\n\n#crdSource: \"platforms.opmodel.dev\": metadata: labels: team: \"opm\"\n",
 		), 0o644)).To(Succeed())
 
 		_, err := render(dir, instanceName, instanceNamespace, "{}")
@@ -70,12 +70,12 @@ var _ = Describe("The operator module on changed controller output", func() {
 		Expect(os.WriteFile(rolePath, []byte(withList), 0o644)).To(Succeed())
 
 		dir := scratchModule()
-		runScript(repoRoot, []string{"SRC=" + mustAbs(config), "OUT=" + dir}, "hack/operator-module/generate.sh")
+		runScript(repoRoot, []string{"SRC=" + mustAbs(config), "OUT=" + dir}, "hack/controller-module/generate.sh")
 		after := mustRender(dir)
 
 		// The manager ClusterRole gained exactly the verb.
-		oldRules := list(find(before, "ClusterRole", "opm-operator-manager-role").Object, "rules")
-		newRules := list(find(after, "ClusterRole", "opm-operator-manager-role").Object, "rules")
+		oldRules := list(find(before, "ClusterRole", "opm-controller-manager-role").Object, "rules")
+		newRules := list(find(after, "ClusterRole", "opm-controller-manager-role").Object, "rules")
 		Expect(newRules).To(HaveLen(len(oldRules)))
 		changed := 0
 		for i := range oldRules {
@@ -93,7 +93,7 @@ var _ = Describe("The operator module on changed controller output", func() {
 
 		// Every other object renders the same.
 		for _, o := range before {
-			if o.kind() == "ClusterRole" && o.name() == "opm-operator-manager-role" {
+			if o.kind() == "ClusterRole" && o.name() == "opm-controller-manager-role" {
 				continue
 			}
 			// The instance and module uuids derive from the module path and

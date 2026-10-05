@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package version carries the operator's build-time version identity.
+// Package version carries the controller's build-time version identity.
 //
 // The version is burned into source rather than injected at build time:
 // release-please rewrites the annotated Version constant on every Release PR
 // (via extra-files in release-please-config.json), so any build of a tagged
 // commit — container image, local go build, go install — reports the tag's
 // version with no ldflags or Dockerfile cooperation. The PlatformReconciler
-// publishes it to Platform.status.operatorVersion (0006:D24),
+// publishes it to Platform.status.controllerVersion (0006:D24),
 // where the CLI's version-skew ceiling reads it.
 package version
 
@@ -29,14 +29,14 @@ import (
 	"runtime/debug"
 )
 
-// Version is the operator's semantic version, without the leading "v".
+// Version is the controller's semantic version, without the leading "v".
 // The trailing annotation is load-bearing: release-please's generic updater
 // rewrites this line on every Release PR. Do not detach the comment from the
 // constant.
 const Version = "1.0.0-beta.8" // x-release-please-version
 
-// Full returns the operator version as published to
-// Platform.status.operatorVersion: "v" + Version, matching release tags
+// Full returns the controller version as published to
+// Platform.status.controllerVersion: "v" + Version, matching release tags
 // (e.g. "v1.0.0-alpha.2").
 //
 // When the binary was built from a VCS checkout that exposes build info
@@ -79,7 +79,7 @@ func Full() string {
 // reports the version of.
 const libraryModule = "github.com/open-platform-model/library"
 
-// Library returns the version of the library the operator binary was built
+// Library returns the version of the library the controller binary was built
 // with, read from the binary's build info: the dependency's module version,
 // or its replacement's when the dependency is replaced ("(devel) <path>" for
 // a replacement by a local path). It returns "" when the binary carries no

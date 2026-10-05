@@ -112,24 +112,24 @@ func TestIsNoOp_EmptyLastApplied(t *testing.T) {
 
 func fullKey() RenderInputKey {
 	return RenderInputKey{
-		Source:          "sha256:src",
-		Config:          "sha256:cfg",
-		PackageIdentity: "gen-3",
-		SkewPolicy:      "Warn",
-		OperatorVersion: "v1.0.0-beta.9",
-		LibraryVersion:  "v1.0.0-beta.4",
+		Source:            "sha256:src",
+		Config:            "sha256:cfg",
+		PackageIdentity:   "gen-3",
+		SkewPolicy:        "Warn",
+		ControllerVersion: "v1.0.0-beta.9",
+		LibraryVersion:    "v1.0.0-beta.4",
 	}
 }
 
 func TestRenderInputKey_EachPartChangesTheDigest(t *testing.T) {
 	base := fullKey().Digest()
 	mutations := map[string]func(*RenderInputKey){
-		"source":   func(k *RenderInputKey) { k.Source = "sha256:other" },
-		"config":   func(k *RenderInputKey) { k.Config = "sha256:other" },
-		"identity": func(k *RenderInputKey) { k.PackageIdentity = "gen-4" },
-		"skew":     func(k *RenderInputKey) { k.SkewPolicy = "Refuse" },
-		"operator": func(k *RenderInputKey) { k.OperatorVersion = "v1.0.0-beta.10" },
-		"library":  func(k *RenderInputKey) { k.LibraryVersion = "v1.0.0-beta.5" },
+		"source":     func(k *RenderInputKey) { k.Source = "sha256:other" },
+		"config":     func(k *RenderInputKey) { k.Config = "sha256:other" },
+		"identity":   func(k *RenderInputKey) { k.PackageIdentity = "gen-4" },
+		"skew":       func(k *RenderInputKey) { k.SkewPolicy = "Refuse" },
+		"controller": func(k *RenderInputKey) { k.ControllerVersion = "v1.0.0-beta.10" },
+		"library":    func(k *RenderInputKey) { k.LibraryVersion = "v1.0.0-beta.5" },
 	}
 	for name, mutate := range mutations {
 		t.Run(name, func(t *testing.T) {
@@ -146,20 +146,20 @@ func TestRenderInputKey_SamePartsSameDigest(t *testing.T) {
 
 func TestRenderInputKey_PartBoundariesAreUnambiguous(t *testing.T) {
 	a, b := fullKey(), fullKey()
-	a.SkewPolicy, a.OperatorVersion = "ab", "c"
-	b.SkewPolicy, b.OperatorVersion = "a", "bc"
+	a.SkewPolicy, a.ControllerVersion = "ab", "c"
+	b.SkewPolicy, b.ControllerVersion = "a", "bc"
 	assert.NotEqual(t, a.Digest(), b.Digest())
 }
 
 func TestRenderInputKey_CompleteNeedsEveryPart(t *testing.T) {
 	assert.True(t, fullKey().Complete())
 	clears := map[string]func(*RenderInputKey){
-		"source":   func(k *RenderInputKey) { k.Source = "" },
-		"config":   func(k *RenderInputKey) { k.Config = "" },
-		"identity": func(k *RenderInputKey) { k.PackageIdentity = "" },
-		"skew":     func(k *RenderInputKey) { k.SkewPolicy = "" },
-		"operator": func(k *RenderInputKey) { k.OperatorVersion = "" },
-		"library":  func(k *RenderInputKey) { k.LibraryVersion = "" },
+		"source":     func(k *RenderInputKey) { k.Source = "" },
+		"config":     func(k *RenderInputKey) { k.Config = "" },
+		"identity":   func(k *RenderInputKey) { k.PackageIdentity = "" },
+		"skew":       func(k *RenderInputKey) { k.SkewPolicy = "" },
+		"controller": func(k *RenderInputKey) { k.ControllerVersion = "" },
+		"library":    func(k *RenderInputKey) { k.LibraryVersion = "" },
 	}
 	for name, clear := range clears {
 		t.Run(name, func(t *testing.T) {

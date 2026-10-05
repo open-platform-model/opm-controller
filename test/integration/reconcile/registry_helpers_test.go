@@ -70,7 +70,7 @@ func testCatalogVersion() string {
 }
 
 // skipIfNoTestRegistry skips the current spec when no registry is configured to
-// serve the fixture modules (testing.opmodel.dev/modules/operator/*) and their
+// serve the fixture modules (testing.opmodel.dev/modules/controller/*) and their
 // deps (opmodel.dev/core, opmodel.dev/catalogs/opm).
 //
 // The fixtures are published to GHCR, so the ordinary GHCR mapping satisfies

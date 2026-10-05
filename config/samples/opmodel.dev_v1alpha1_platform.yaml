@@ -2,7 +2,7 @@ apiVersion: opmodel.dev/v1alpha1
 kind: Platform
 metadata:
   labels:
-    app.kubernetes.io/name: opm-operator
+    app.kubernetes.io/name: opm-controller
     app.kubernetes.io/managed-by: kustomize
   # Platform is a cluster singleton; the only permitted name is "cluster".
   name: cluster
@@ -16,7 +16,7 @@ spec:
       # Load-bearing pin: applied verbatim by the e2e specs, and kept aligned
       # with the CLI's DefaultPlatformTemplate seed and the library's
       # opm_platform fixture. This file is NOT part of dist/install.yaml
-      # (`opm operator install` resolves the catalog version live), so bump
-      # it as `test(fixtures)`: no operator release. The mirrored CLI seed
+      # (`opm controller install` resolves the catalog version live), so bump
+      # it as `test(fixtures)`: no controller release. The mirrored CLI seed
       # is shipped and bumps as `fix(deps)`.
       version: "4.6.0"

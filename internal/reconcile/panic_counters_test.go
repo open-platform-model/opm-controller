@@ -100,9 +100,9 @@ func (instanceFileFetcher) Fetch(_ context.Context, _, _, dir string, _ opmsourc
 	return os.WriteFile(filepath.Join(pkgDir, "instance.cue"), []byte("package app\n"), 0o600)
 }
 
-// operatorInstance is an operator-owned ModuleInstance past its finalizer
+// controllerInstance is a controller-owned ModuleInstance past its finalizer
 // registration, carrying counters.
-func operatorInstance(counters *releasesv1alpha1.FailureCounters) *releasesv1alpha1.ModuleInstance {
+func controllerInstance(counters *releasesv1alpha1.FailureCounters) *releasesv1alpha1.ModuleInstance {
 	return &releasesv1alpha1.ModuleInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: loopTestName, Namespace: loopTestNamespace, Generation: 1,
@@ -133,9 +133,9 @@ func readyOCIRepository() *sourcev1.OCIRepository {
 	}
 }
 
-// operatorPackage is a ModulePackage past its finalizer registration,
+// controllerPackage is a ModulePackage past its finalizer registration,
 // sourcing loopTestPath from readyOCIRepository and carrying counters.
-func operatorPackage(counters *releasesv1alpha1.FailureCounters) *releasesv1alpha1.ModulePackage {
+func controllerPackage(counters *releasesv1alpha1.FailureCounters) *releasesv1alpha1.ModulePackage {
 	return &releasesv1alpha1.ModulePackage{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: loopTestName, Namespace: loopTestNamespace, Generation: 1,
@@ -212,7 +212,7 @@ func expectPanicAttempt(t *testing.T, action string, attemptedAt, nextRetryAt *m
 // nil receiver, after the phase flag is set.
 func TestPanicKeepsPhaseCounters(t *testing.T) {
 	t.Run("ModuleInstance panics in drift detection", func(t *testing.T) {
-		mi := operatorInstance(&releasesv1alpha1.FailureCounters{Drift: 2, Apply: 3, Prune: 1})
+		mi := controllerInstance(&releasesv1alpha1.FailureCounters{Drift: 2, Apply: 3, Prune: 1})
 		mi.Status.LastAttemptedAt = &staleAttempt
 		mi.Status.NextRetryAt = &pendingRetry
 		c := loopTestClient(t, mi)
@@ -237,7 +237,7 @@ func TestPanicKeepsPhaseCounters(t *testing.T) {
 	})
 
 	t.Run("ModulePackage panics in apply", func(t *testing.T) {
-		pkg := operatorPackage(&releasesv1alpha1.FailureCounters{Apply: 3, Prune: 1})
+		pkg := controllerPackage(&releasesv1alpha1.FailureCounters{Apply: 3, Prune: 1})
 		pkg.Status.LastAttemptedAt = &staleAttempt
 		pkg.Status.NextRetryAt = &pendingRetry
 		c := loopTestClient(t, readyOCIRepository(), pkg)

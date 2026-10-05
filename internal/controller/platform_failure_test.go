@@ -122,7 +122,7 @@ var _ = Describe("Platform Controller failure handling", func() {
 		Expect(fetched.Status.ObservedGeneration).NotTo(BeZero())
 	})
 
-	It("stamps operatorVersion on the failure path", func() {
+	It("stamps controllerVersion on the failure path", func() {
 		r, _ := failureReconciler(platformstore.NewStore())
 		plat := createSingleton()
 		patcher := freshPatcher(plat)
@@ -132,7 +132,7 @@ var _ = Describe("Platform Controller failure handling", func() {
 
 		fetched := &releasesv1alpha1.Platform{}
 		Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(plat), fetched)).To(Succeed())
-		Expect(fetched.Status.OperatorVersion).To(Equal(version.Full()))
+		Expect(fetched.Status.ControllerVersion).To(Equal(version.Full()))
 	})
 
 	It("does not re-emit the warning event across repeated identical failures", func() {

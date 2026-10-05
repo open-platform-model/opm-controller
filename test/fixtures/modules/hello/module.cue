@@ -1,7 +1,7 @@
 // hello — minimal core-v2 (opmodel.dev/core@v2) test module. One component
 // attaches the catalog's ConfigMaps resource, which the catalog's
 // configmap-transformer matches without any workload-type label
-// (requiredLabels: {}). Renders a single ConfigMap. Consumed by the operator's
+// (requiredLabels: {}). Renders a single ConfigMap. Consumed by the controller's
 // registry-backed integration tests.
 package hello
 
@@ -10,7 +10,7 @@ import (
 
 	m "opmodel.dev/core@v2"
 
-	id "testing.opmodel.dev/modules/operator/hello/identity"
+	id "testing.opmodel.dev/modules/controller/hello/identity"
 )
 
 m.#Module

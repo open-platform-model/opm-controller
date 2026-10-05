@@ -3,7 +3,7 @@ package transformers
 import (
 	"encoding/json"
 
-	id "testing.opmodel.dev/catalogs/operator/backup/identity"
+	id "testing.opmodel.dev/catalogs/controller/backup/identity"
 	c "opmodel.dev/core@v2"
 	tra "opmodel.dev/catalogs/opm/traits/v1alpha1"
 )
@@ -16,7 +16,7 @@ import (
 
 // #BackupTransformer renders a component's backup policy as one ConfigMap. A
 // real engine would render its own schedule object; a ConfigMap needs no CRD,
-// so the fixture works on any cluster the operator runs on.
+// so the fixture works on any cluster the controller runs on.
 #BackupTransformer: c.#ComponentTransformer & {
 	metadata: {
 		modulePath:     id.kindPrefix.transformers

@@ -50,7 +50,7 @@ import (
 // whose _testTransformerRegistrationLabelCount guard asserts the label count
 // is exactly four. Only the managed-by value differs: the fixture renders
 // under the CLI's test runtime name, while a claim reaching this controller
-// was rendered by the operator.
+// was rendered by the controller.
 const (
 	spikeClaimInstanceName      = "k8up"
 	spikeClaimInstanceNamespace = "backup-system"

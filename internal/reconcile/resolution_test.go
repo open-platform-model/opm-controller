@@ -265,7 +265,7 @@ func TestClassifyRenderError(t *testing.T) {
 			wantReason:  status.RenderFailedReason,
 		},
 		{
-			name:        "pre-evaluation operator defect stays RenderFailed",
+			name:        "pre-evaluation controller defect stays RenderFailed",
 			err:         fmt.Errorf("rendering module instance: %w", errors.New(`platform "cluster" carries no Source`)),
 			wantOutcome: FailedStalled,
 			wantReason:  status.RenderFailedReason,

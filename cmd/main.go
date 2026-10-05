@@ -116,7 +116,7 @@ func main() {
 	flag.StringVar(&cueCacheDir, "cue-cache-dir", "/tmp/cue-cache",
 		"Directory for CUE module download cache.")
 	flag.StringVar(&platformDir, "platform-dir", "/tmp/opm-platform",
-		"Directory the operator writes the generated platform CUE module to, one subdirectory per "+
+		"Directory the controller writes the generated platform CUE module to, one subdirectory per "+
 			"Platform generation. Emptied at start; the module is regenerated from the Platform CR on "+
 			"the first reconcile. Must be writable (the shipped manifest mounts an emptyDir at /tmp).")
 	flag.StringVar(&defaultServiceAccount, "default-service-account", "",
@@ -136,7 +136,7 @@ func main() {
 	flag.DurationVar(&driftRenderInterval, "drift-render-interval", 30*time.Minute,
 		"Longest a ModuleInstance or ModulePackage reconcile skips its render after the last render that "+
 			"left the cluster holding its output, while the render's inputs are unchanged (module source, "+
-			"values, platform package identity, catalog skew policy, operator and library versions) and the "+
+			"values, platform package identity, catalog skew policy, controller and library versions) and the "+
 			"object is Ready and has observed its generation. A skipped reconcile renders nothing, runs no "+
 			"drift detection and patches no status, so drift is re-evaluated at most once per interval per "+
 			"unchanged object. The interval schedules no reconcile of its own. 0 disables the skip: every "+
@@ -165,12 +165,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// The operator and library versions are parts of every render input key,
+	// The controller and library versions are parts of every render input key,
 	// so an upgrade of either renders every object once. Read once here and
 	// injected, so the reconcilers hold no process globals.
-	operatorVersion := opmversion.Full()
+	controllerVersion := opmversion.Full()
 	libraryVersion := opmversion.Library()
-	setupLog.Info("Starting opm-operator", "version", operatorVersion, "libraryVersion", libraryVersion,
+	setupLog.Info("Starting opm-controller", "version", controllerVersion, "libraryVersion", libraryVersion,
 		"driftRenderInterval", driftRenderInterval.String(), "renderTimeout", renderTimeout.String())
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
@@ -346,7 +346,7 @@ func main() {
 		MaxConcurrentRenders:  maxConcurrentRenders,
 		RenderSlots:           renderSlots,
 		RenderTimeout:         renderTimeout,
-		OperatorVersion:       operatorVersion,
+		ControllerVersion:     controllerVersion,
 		LibraryVersion:        libraryVersion,
 		DriftRenderInterval:   driftRenderInterval,
 	}).SetupWithManager(mgr); err != nil {
@@ -371,7 +371,7 @@ func main() {
 		MaxConcurrentRenders:  maxConcurrentRenders,
 		RenderSlots:           renderSlots,
 		RenderTimeout:         renderTimeout,
-		OperatorVersion:       operatorVersion,
+		ControllerVersion:     controllerVersion,
 		LibraryVersion:        libraryVersion,
 		DriftRenderInterval:   driftRenderInterval,
 	}).SetupWithManager(mgr); err != nil {

@@ -24,14 +24,14 @@ import (
 // PlatformSpec defines the desired state of Platform.
 // It is a near-1:1 projection of the core #Platform author surface: an
 // informational type discriminator plus a path-keyed registry of catalog
-// subscriptions. The operator generates a platform CUE module from it on its
+// subscriptions. The controller generates a platform CUE module from it on its
 // own disk (a cue.mod pinning every subscribed catalog and a platform.cue
 // carrying each catalog by import) and builds that module; the CR stays the
 // API and the module is derived state (0019:D6).
 type PlatformSpec struct {
 	// Type is the informational discriminator for the platform (core
 	// #Platform.type). It is required and shown in the Type column of
-	// kubectl get. The operator passes it on to the generated platform
+	// kubectl get. The controller passes it on to the generated platform
 	// module, and nothing in OPM acts on its value.
 	// +kubebuilder:validation:MinLength=1
 	// +required
@@ -44,7 +44,7 @@ type PlatformSpec struct {
 	// +optional
 	Registry map[string]Subscription `json:"registry,omitempty"`
 
-	// SkewPolicy is the operator's response to catalog version skew: a
+	// SkewPolicy is the controller's response to catalog version skew: a
 	// module whose cue.mod requires a newer build of an OPM-namespace path
 	// (core or a catalog) than the platform pins (0019:D7/D18).
 	// "Warn" (the default when unset) renders against the platform's build
@@ -84,7 +84,7 @@ type Subscription struct {
 	// string (e.g. "2.0.0-alpha.3") — the platform module IS the resolution
 	// (0010:D14); there is no range or allow/deny vocabulary. The
 	// version's major must agree with the subscription key's `@vN` suffix.
-	// The operator uses it twice: as the generated cue.mod pin and as the
+	// The controller uses it twice: as the generated cue.mod pin and as the
 	// entry's stamped expected version, which unifies with the imported
 	// catalog's own version so wrong bytes fail the build naming the entry
 	// (0019:D13).
@@ -110,7 +110,7 @@ const (
 
 	// RegistryEntryRegistration is a catalog an accepted-and-active
 	// TransformerRegistration contributed: a provider module registered it
-	// and the operator judged the claim.
+	// and the controller judged the claim.
 	RegistryEntryRegistration RegistryEntrySource = "Registration"
 )
 
@@ -187,7 +187,7 @@ type PlatformStatus struct {
 	// imported catalog, the module did not build, or its contract inventory
 	// could not be read; the message names the dependency, the entry or the
 	// field), GenerateFailed (the module could not be written to the
-	// operator's disk), ContractCollisions (the module built, but more than
+	// controller's disk), ContractCollisions (the module built, but more than
 	// one enabled registry entry defines a contract key, as two majors of one
 	// catalog sharing keys do; the message names each key and the defining
 	// entries), OverSubscribedContracts (the module built, but a
@@ -218,12 +218,12 @@ type PlatformStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// operatorVersion is the version of the operator that last patched this
+	// controllerVersion is the version of the controller that last patched this
 	// Platform's status, stamped on every reconcile regardless of outcome
 	// (0006:D24). The CLI reads it as the version-skew ceiling;
-	// absence means no operator has reconciled the Platform (solo cluster).
+	// absence means no controller has reconciled the Platform (solo cluster).
 	// +optional
-	OperatorVersion string `json:"operatorVersion,omitempty"`
+	ControllerVersion string `json:"controllerVersion,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -233,9 +233,9 @@ type PlatformStatus struct {
 // +kubebuilder:printcolumn:name="Type",type=string,JSONPath=".spec.type"
 // +kubebuilder:printcolumn:name="Ready",type=string,JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=".status.conditions[?(@.type=='Ready')].reason"
-// +kubebuilder:printcolumn:name="Operator",type=string,JSONPath=".status.operatorVersion"
+// +kubebuilder:printcolumn:name="Controller",type=string,JSONPath=".status.controllerVersion"
 
-// Platform declares the catalogs the operator renders against: the operator
+// Platform declares the catalogs the controller renders against: the controller
 // generates a platform CUE module from it, and renders ModuleInstances and
 // ModulePackages against that module.
 //

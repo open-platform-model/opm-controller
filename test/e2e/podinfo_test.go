@@ -62,11 +62,11 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 		// This spec resolves the podinfo example module from a registry the
 		// controller can reach. That requires either the in-cluster registry
 		// override (LOCAL_REGISTRY, set by `task dev:e2e:local`) or GHCR pull
-		// credentials (OPERATOR_DOCKER_CONFIG, set by the PR e2e workflow after
+		// credentials (CONTROLLER_DOCKER_CONFIG, set by the PR e2e workflow after
 		// publishing the modules under a pre-release tag). Without one of these
 		// the module cannot be pulled, so skip rather than time out.
-		if os.Getenv("LOCAL_REGISTRY") == "" && os.Getenv("OPERATOR_DOCKER_CONFIG") == "" {
-			Skip("example modules unresolvable: set LOCAL_REGISTRY (local) or OPERATOR_DOCKER_CONFIG (CI GHCR creds)")
+		if os.Getenv("LOCAL_REGISTRY") == "" && os.Getenv("CONTROLLER_DOCKER_CONFIG") == "" {
+			Skip("example modules unresolvable: set LOCAL_REGISTRY (local) or CONTROLLER_DOCKER_CONFIG (CI GHCR creds)")
 		}
 
 		var err error
@@ -78,11 +78,11 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 		_, _ = utils.Run(exec.Command("kubectl", "create", "ns", namespace))
 
 		By("installing CRDs")
-		_, err = utils.Run(exec.Command("make", "install"))
+		_, err = utils.Run(exec.Command("task", "controller:crds"))
 		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
 
 		By("deploying the controller-manager")
-		_, err = utils.Run(exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", managerImage)))
+		_, err = utils.Run(exec.Command("task", "controller:deploy", fmt.Sprintf("IMG=%s", managerImage)))
 		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 
 		// Local-dev override: resolve catalog/module deps from the in-cluster
@@ -90,7 +90,7 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 		if localRegistry := os.Getenv("LOCAL_REGISTRY"); localRegistry != "" {
 			By("overriding controller registry for local dev")
 			_, err = utils.Run(exec.Command("kubectl", "-n", namespace, "patch", "deployment",
-				"opm-operator-controller-manager",
+				"opm-controller-manager",
 				"--type=json",
 				fmt.Sprintf(`-p=[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry=%s"}]`, localRegistry)))
 			Expect(err).NotTo(HaveOccurred(), "Failed to override controller registry")
@@ -100,10 +100,10 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 		// pre-release tag before this suite runs, so the in-cluster controller
 		// needs credentials to resolve them from the ghcr default registry. The
 		// workflow writes a Docker config.json (ghcr.io auth) and points
-		// OPERATOR_DOCKER_CONFIG at it; we mount it and set DOCKER_CONFIG so the
+		// CONTROLLER_DOCKER_CONFIG at it; we mount it and set DOCKER_CONFIG so the
 		// CUE module loader (ociauth) authenticates. No-op for local runs, which
 		// resolve from the unauthenticated in-cluster registry above.
-		if dockerCfg := os.Getenv("OPERATOR_DOCKER_CONFIG"); dockerCfg != "" {
+		if dockerCfg := os.Getenv("CONTROLLER_DOCKER_CONFIG"); dockerCfg != "" {
 			By("provisioning GHCR pull credentials for the controller")
 			_, err = utils.Run(exec.Command("kubectl", "-n", namespace, "create", "secret", "generic",
 				"ghcr-auth", "--from-file=config.json="+dockerCfg))
@@ -127,14 +127,14 @@ var _ = Describe("Podinfo example module", Ordered, func() {
           volumeMounts:
             - {name: ghcr-auth, mountPath: /ghcr, readOnly: true}`
 			_, err = utils.Run(exec.Command("kubectl", "-n", namespace, "patch", "deployment",
-				"opm-operator-controller-manager", "--type=strategic", "-p", patch))
+				"opm-controller-manager", "--type=strategic", "-p", patch))
 			Expect(err).NotTo(HaveOccurred(), "Failed to mount GHCR credentials")
 		}
 
 		By("waiting for the controller-manager to be Available")
 		Eventually(func(g Gomega) {
 			out, err := utils.Run(exec.Command("kubectl", "-n", namespace, "get", "deploy",
-				"opm-operator-controller-manager", "-o", "jsonpath={.status.availableReplicas}"))
+				"opm-controller-manager", "-o", "jsonpath={.status.availableReplicas}"))
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(out).To(Equal("1"), "controller-manager not Available yet")
 		}, 3*time.Minute, 3*time.Second).Should(Succeed())
@@ -160,7 +160,7 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 		// ServiceAccount. The fixture bundles that SA/RBAC and the CR in one
 		// file, so deleting the file wholesale removes the SA out from under the
 		// prune — the controller then stalls with DeletionSAMissing, the
-		// finalizer never clears, and the CRD deletion in `make undeploy`
+		// finalizer never clears, and the CRD deletion in `task controller:uninstall`
 		// (config/default includes ../crd) blocks until the test binary times
 		// out. So delete the CR first, let it drain while the SA still exists,
 		// and only then remove the RBAC.
@@ -212,10 +212,10 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 			filepath.Join(projectDir, "config/samples/opmodel.dev_v1alpha1_platform.yaml")))
 
 		By("undeploying the controller-manager")
-		_, _ = utils.Run(exec.Command("make", "undeploy"))
+		_, _ = utils.Run(exec.Command("task", "controller:uninstall", "IGNORE_NOT_FOUND=true"))
 
 		By("uninstalling CRDs")
-		_, _ = utils.Run(exec.Command("make", "uninstall"))
+		_, _ = utils.Run(exec.Command("task", "controller:crds:remove", "IGNORE_NOT_FOUND=true"))
 	})
 
 	AfterEach(func() {
@@ -271,7 +271,7 @@ var _ = Describe("Podinfo example module", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred(), "podinfo Service should exist")
 
 		By("waiting for the ModuleInstance to report the rollout in its Healthy condition")
-		// The operator requeues a not-rolled-out instance at most 2 minutes
+		// The controller requeues a not-rolled-out instance at most 2 minutes
 		// apart, so the condition follows the pods within that.
 		Eventually(func(g Gomega) {
 			out, err := utils.Run(exec.Command("kubectl", "-n", mrNamespace, "get", "moduleinstance", "podinfo",

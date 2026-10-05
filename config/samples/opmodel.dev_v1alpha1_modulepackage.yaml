@@ -22,7 +22,7 @@ apiVersion: opmodel.dev/v1alpha1
 kind: ModulePackage
 metadata:
   labels:
-    app.kubernetes.io/name: opm-operator
+    app.kubernetes.io/name: opm-controller
     app.kubernetes.io/managed-by: kustomize
   name: modulepackage-sample
   namespace: default

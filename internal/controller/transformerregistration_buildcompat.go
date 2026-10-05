@@ -51,7 +51,7 @@ var opmNamespacePrefixes = []string{"opmodel.dev/", "testing.opmodel.dev/"}
 // committed-resolution discipline).
 func platformRequirements(dir string) (map[string]string, error) {
 	path := filepath.Join(dir, filepath.FromSlash(platformModFileName))
-	data, err := os.ReadFile(path) //nolint:gosec // dir is the operator's own --platform-dir
+	data, err := os.ReadFile(path) //nolint:gosec // dir is the controller's own --platform-dir
 	if err != nil {
 		return nil, fmt.Errorf("reading generated platform %s: %w", platformModFileName, err)
 	}

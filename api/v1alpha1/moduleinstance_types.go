@@ -29,12 +29,12 @@ type OwnerType string
 
 const (
 	// OwnerCLI marks an instance as managed externally by the OPM CLI. The
-	// operator stays hands-off: it renders, applies, prunes nothing, adds no
+	// controller stays hands-off: it renders, applies, prunes nothing, adds no
 	// finalizer, and only records a ManagedExternally acknowledgement.
 	OwnerCLI OwnerType = "cli"
-	// OwnerOperator marks an instance as managed by the operator (the default
+	// OwnerController marks an instance as managed by the controller (the default
 	// semantics). The reconciler also treats an absent owner this way.
-	OwnerOperator OwnerType = "operator"
+	OwnerController OwnerType = "controller"
 )
 
 // ModuleInstanceSpec defines the desired state of ModuleInstance
@@ -43,22 +43,22 @@ type ModuleInstanceSpec struct {
 	Suspend bool `json:"suspend,omitempty"`
 
 	// Owner identifies which actor manages this instance. An absent or
-	// "operator" value means operator-managed: the controller reconciles
+	// "controller" value means controller-managed: the controller reconciles
 	// normally. The API server rejects any other value, including an explicit
-	// empty string. Only an explicit "cli" makes the operator skip the instance
+	// empty string. Only an explicit "cli" makes the controller skip the instance
 	// (no render/apply/prune, no finalizer) and record a single
 	// ManagedExternally acknowledgement. There is no CRD default; the
-	// reconciler carries the operator-managed default semantics.
+	// reconciler carries the controller-managed default semantics.
 	//
-	// The operator never reconciles the instance that deploys the operator
-	// itself, whatever this field says: an instance named opm-operator in
-	// opm-operator-system, an instance of the opmodel.dev/modules/opm_operator
-	// module, or one whose inventory records the operator's own
-	// CustomResourceDefinitions. With an absent or "operator" value such an
+	// The controller never reconciles the instance that deploys the controller
+	// itself, whatever this field says: an instance named opm-controller in
+	// opm-controller-system, an instance of the opmodel.dev/modules/opm_controller
+	// module, or one whose inventory records the controller's own
+	// CustomResourceDefinitions. With an absent or "controller" value such an
 	// instance is refused (Ready=False, Stalled=True, reason
 	// SelfManagementRefused) and never gets the cleanup finalizer, so
-	// re-running the install can always repair the operator. Keep it "cli".
-	// +kubebuilder:validation:Enum=cli;operator
+	// re-running the install can always repair the controller. Keep it "cli".
+	// +kubebuilder:validation:Enum=cli;controller
 	// +optional
 	Owner OwnerType `json:"owner,omitempty"`
 
@@ -69,8 +69,8 @@ type ModuleInstanceSpec struct {
 	// +optional
 	Values *RawValues `json:"values,omitempty"`
 
-	// Prune controls whether the operator deletes what an instance no longer
-	// renders. When true, the operator deletes stale resources on reconcile
+	// Prune controls whether the controller deletes what an instance no longer
+	// renders. When true, the controller deletes stale resources on reconcile
 	// and every applied object when the ModuleInstance is deleted. When false
 	// or absent, it leaves them in place: deleting the ModuleInstance leaves
 	// its applied objects running. Namespaces and CustomResourceDefinitions
@@ -98,7 +98,7 @@ type ModuleInstanceStatus struct {
 	InstanceUUID string `json:"instanceUUID,omitempty"`
 
 	// conditions represent the current state of the ModuleInstance resource.
-	// Ready reports whether the operator applied the last render. Healthy
+	// Ready reports whether the controller applied the last render. Healthy
 	// reports whether the applied objects have rolled out: True once every
 	// object in the inventory reports ready, False while one is still rolling
 	// out, missing, or stalled past its progress deadline, and Unknown when
@@ -133,22 +133,22 @@ type ModuleInstanceStatus struct {
 	// +optional
 	LastAppliedSourceDigest string `json:"lastAppliedSourceDigest,omitempty"`
 
-	// lastAppliedVersion is the version of the module the operator last
+	// lastAppliedVersion is the version of the module the controller last
 	// applied, in plain text, as the module declares it in metadata.version
 	// (bare SemVer, for example 0.1.0). It is set with the other last-applied
 	// fields when an apply succeeds, and rewritten by a reconcile that renders
 	// and finds nothing to change. It is empty when the module's version could
 	// not be read.
 	//
-	// Written by the operator only. While spec.owner is cli it is not updated
-	// and may name the version of an earlier operator apply.
+	// Written by the controller only. While spec.owner is cli it is not updated
+	// and may name the version of an earlier controller apply.
 	// +optional
 	LastAppliedVersion string `json:"lastAppliedVersion,omitempty"`
 
 	// lastAppliedInputs identifies the inputs of the last render that left
 	// the cluster holding its output: a digest over the module source, the
 	// values, the platform package identity, the catalog skew policy, and the
-	// operator and library versions, and renderedAt, when that render ran. It
+	// controller and library versions, and renderedAt, when that render ran. It
 	// is set with the other last-applied fields when an apply succeeds, and
 	// rewritten by a reconcile that renders and finds nothing to change.
 	//
@@ -208,12 +208,12 @@ type ModuleInstanceStatus struct {
 // +kubebuilder:printcolumn:name="Version",type=string,JSONPath=".spec.module.version"
 // +kubebuilder:printcolumn:name="Retry",type=date,JSONPath=".status.nextRetryAt",priority=1
 
-// ModuleInstance asks the operator to render one CUE module at a pinned
+// ModuleInstance asks the controller to render one CUE module at a pinned
 // version with the given values and apply the result.
 //
 // The module is resolved from an OCI registry by spec.module.path and
 // spec.module.version. When spec.owner is "cli", the OPM CLI manages the
-// instance and the operator leaves it alone: it renders, applies and prunes
+// instance and the controller leaves it alone: it renders, applies and prunes
 // nothing, adds no finalizer, and records only a ManagedExternally
 // acknowledgement.
 type ModuleInstance struct {

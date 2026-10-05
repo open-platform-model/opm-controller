@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	id "testing.opmodel.dev/catalogs/operator/provider/identity"
+	id "testing.opmodel.dev/catalogs/controller/provider/identity"
 	c "opmodel.dev/core@v2"
 )
 

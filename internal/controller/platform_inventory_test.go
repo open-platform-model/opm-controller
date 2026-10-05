@@ -299,7 +299,7 @@ func TestInventoryRefusal(t *testing.T) {
 		},
 		{
 			// Core reads the platform unroutable and names no row: a term
-			// in routable the operator does not know. Refuse anyway, and
+			// in routable the controller does not know. Refuse anyway, and
 			// never claim a count of zero.
 			name: "an unroutable inventory naming no row still refuses without a zero count",
 			inv: &platform.ContractInventory{
