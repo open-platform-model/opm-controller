@@ -42,7 +42,7 @@ The module key leaves `.release-please-manifest.json`, so release-please treats 
 
 ### Image pin of the module
 
-`controller/controller.cue` keeps the version and digest of the last release published under the old image name, marked `TODO(cutover)`, because no `opm-controller` image exists until the first release after the merge. The module image PR of that release replaces both, and `min-controller-version` moves to that release at the same time.
+`controller/controller.cue` keeps the version and digest of the last release published under the old image name, marked `TODO(cutover)`, because no `opm-controller` image exists until the first release after the merge. The module image PR of that release replaces both. `min-controller-version` moves to that release in a separate hidden-type `ci(module):` commit after the bot PR merges, because the bot branch's tar allow-path accepts only `modules/opm_controller/`; the same follow-up drops the `TODO(cutover)` note.
 
 ## Risks / Trade-offs
 

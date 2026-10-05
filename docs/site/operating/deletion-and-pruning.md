@@ -30,7 +30,7 @@ Check against: cli/internal/cmd/instance/delete.go, opm-controller/internal/reco
 
 <!-- `status.inventory` on the ModuleInstance holds one entry per applied object: group, kind, namespace, name, `v` (API version) and component, plus revision, digest and count. Both managers write the same shape. The CLI writes it after each successful apply, and moved it there from a per-instance Secret (the first apply after upgrading migrates the Secret). The controller writes it only after a fully successful reconcile. Every delete and prune reads this list and nothing else.
 
-Check against: opm-controller/api/v1alpha1/common_types.go, opm-controller/adr/002-authoritative-inventory-model.md, cli/internal/workflow/apply/apply.go, cli/internal/inventory/legacy.go -->
+Check against: opm-controller/api/v1alpha1/common_types.go, opm-controller/adr/002-authoritative-inventory-model.md, cli/internal/workflow/apply/apply.go -->
 
 ### Deleting a CLI-managed instance
 
