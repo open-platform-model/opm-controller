@@ -121,7 +121,7 @@ rules:
   proposal:
     - "Focus: WHY we're doing this, WHAT's in/out of scope"
     - "Updates when: Scope changes, intent clarifies, approach fundamentally shifts"
-    - Identify affected API types and controllers.
+    - Identify affected API types and reconcilers.
     - State whether this is MAJOR/MINOR/PATCH per SemVer; until GA, state the class as it would be
       after GA and note that beta ships it as the next `-beta.N`.
     - Complexity additions MUST include justification (Principle VII).

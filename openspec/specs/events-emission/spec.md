@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the Kubernetes events the controllers emit across the reconcile phases:
+Define the Kubernetes events the reconcilers emit across the reconcile phases:
 which outcomes produce a `Normal` or `Warning` event, their reasons and action
 verbs, the events.k8s.io/v1 recorder they go through, and when a successful
 render's advisory findings are surfaced as events.

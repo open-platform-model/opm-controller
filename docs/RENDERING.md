@@ -39,7 +39,7 @@ identities and refuses the whole render when two objects share one
 
 The flag (default `1`) is the number of renders in flight across the whole
 process, ModuleInstances and ModulePackages together. The manager builds one
-pool of that many render slots and both controllers share it: a reconcile
+pool of that many render slots and both reconcilers share it: a reconcile
 takes a slot just before it calls the renderer (platform lease, acquisition,
 synthesis and the render build) and holds it through the export of the
 result for apply. Each resource is exported once inside the slot, and the
@@ -49,7 +49,7 @@ as it returns. It gives the slot back once the rendered CUE values are
 dropped, on success, error or a recovered panic. The export is part of the
 window because the rendered values pin the whole build until then, and it is
 where the heap peaks: for a cert-manager-sized module the export peaks higher
-than the render itself. Each of the two controllers also
+than the render itself. Each of the two reconcilers also
 reconciles up to that many objects of its kind at once, so apply, prune,
 deletion and suspend of one kind never queue behind the other kind's renders;
 only the renders share the bound. A reconcile waiting for a slot holds no

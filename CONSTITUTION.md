@@ -205,7 +205,7 @@ These principles also shape how OpenSpec artifacts should be written.
 
 - Focus on WHY the change is needed and WHAT is in or out of scope
 - Update the proposal when scope changes, intent clarifies, or the approach fundamentally shifts
-- Identify affected API types and controllers
+- Identify affected API types and reconcilers
 - State whether the change is MAJOR, MINOR, or PATCH under SemVer; until GA, state the class as it would be after GA and note that beta ships it as the next `-beta.N`
 - Any added complexity MUST include explicit justification
 - Scope MUST remain small enough for a short implementation session
