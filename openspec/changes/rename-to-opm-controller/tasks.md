@@ -1,0 +1,52 @@
+# Tasks: rename-to-opm-controller
+
+Built in the worktree `opm-operator/.claude/worktrees/rename-opm-controller` on the branch `refactor/rename-to-opm-controller`, and merged at the rename cutover as one PR titled `refactor!:`. Cutover steps that need artifacts which do not exist yet (the first `opm-controller` release, its module image PR, module 0.1.0) are listed in the rename plan's cutover notes, not here.
+
+## 1. Go module path
+
+- [x] 1.1 `go.mod`, every import and `PROJECT` name `github.com/open-platform-model/opm-controller`; `.golangci.yml` follows.
+- [x] 1.2 `go build ./...` and `go vet ./...` green, then commit `refactor!: move the Go module to github.com/open-platform-model/opm-controller`.
+
+## 2. API, runtime names and install shape
+
+- [x] 2.1 `OwnerController` with `+kubebuilder:validation:Enum=cli;controller`; `Platform.status.controllerVersion` (`ControllerVersion`) with the printer column `Controller`; `RenderInputKey.ControllerVersion` and the reconciler fields; doc comments say controller.
+- [x] 2.2 Self-skip constants in `internal/reconcile/owninstance.go` (`opm-controller`, `opm-controller-system`, `opmodel.dev/modules/opm_controller`) and their tests, including the `opm_controller_dashboard` prefix traps; condition text names the controller.
+- [x] 2.3 Registry `ClientType` and the startup log `Starting opm-controller`; per-kind loops called reconcilers in prose.
+- [x] 2.4 Kustomize namespace, `namePrefix`, `app.kubernetes.io/name` and placeholder image; base name `manager` for the Deployment, ServiceAccount, bindings, metrics Service and monitor.
+- [x] 2.5 Fixtures on `testing.opmodel.dev/{modules,releases,catalogs}/controller/*` in `test/fixtures`, `config/samples`, Go fixture strings and `hack/fixtures.sh`; `test/integration/controllermodule`; e2e constants and the e2e deploy through `task controller:*`.
+- [x] 2.6 `task dev:manifests dev:generate` and `task controller:installer` regenerate the CRDs, deepcopy, `modules/opm_controller/zz_generated_*` and `dist/install.yaml`.
+- [x] 2.7 `task dev:fmt dev:vet dev:lint`, and `task dev:test:seeded` against a throwaway registry seeded from the tree, green; then commit `refactor(api)!: name the controller in the owner enum, status and install`.
+
+## 3. The controller module
+
+- [x] 3.1 `git mv modules/opm_operator modules/opm_controller`; sub-package `controller/controller.cue` (`package controller`); module path, package, identity, `_instance`, `_namespace`, `let P`, `let SA`, description and README; image repository `ghcr.io/open-platform-model/opm-controller` with the deployed version and digest marked `TODO(cutover)`.
+- [x] 3.2 `RELEASE` 0.1.0, a fresh `CHANGELOG.md`; release-please component and package `opm_controller`, no manifest key, root `package-name: opm-controller`, both module paths excluded, `bootstrap-sha` kept.
+- [x] 3.3 `hack/controller-module` (with `min-controller-version`) and `hack/testdata/controller-module-*`; image and branch regexes and messages.
+- [x] 3.4 `task controller-module:release-check:test`, `publish:test`, `image:test`, `bot-pr:test`, `fmt:check` and `drift`, and `cue vet` of the module, green; then commit `refactor(module)!: move the controller's module to opmodel.dev/modules/opm_controller`.
+
+## 4. The install manifest only from the module release
+
+- [x] 4.1 `release.yml` `image-release`: drop "Render digest-pinned install manifest", "Upload install.yaml to the draft release" and the Task install; the job holds `contents: read`.
+- [x] 4.2 `release-guard.sh publish` requires only `opm-examples.tar.gz` for a `v*` tag and `install.yaml` for an `opm_controller-v*` tag.
+- [x] 4.3 actionlint and `task cascade:wiring:check` green; then commit `feat(release)!: publish the install manifest only from the module release`.
+
+## 5. Workflows, tasks and the docs bundle
+
+- [x] 5.1 `controller-module.yml`; every workflow literal (`lint.yml` release branch and manifest key, `release.yml` outputs, branch, repository guards and docs project, `module-image.yml` and `module-deps.yml` tar allow-paths, bot branch `module/controller-image`), `image-pr.yml`, `docs.yml`, `test*.yml`, CODEOWNERS.
+- [x] 5.2 Task namespaces `controller` and `controller-module`, `controller:install` and `controller:uninstall` flattened, `controller:deploy` added; kind cluster and buildx builder names; `.tasks/cascade` (the `.github`-owned `wiring-check.sh` is left to the `.github` change).
+- [x] 5.3 `docs-kit.cue`: bundle `opm-controller`, owning `reference/controller/` titled "Controller Reference", `stripLabels` and the reconciler wording; the `reconciledBy` test reads the new key.
+- [x] 5.4 Delete the `Makefile`.
+- [x] 5.5 actionlint, `task cascade:wiring:check` and `task docs:bundle:check` green; then commit `ci!: rename the workflows, tasks and docs bundle to the controller`.
+
+## 6. Docs and ADRs
+
+- [x] 6.1 `docs/site` pages renamed to `start/install-the-controller`, `diagnostics/controller-conditions` and `reference/controller/`; product prose says controller, per-kind loops reconcilers; the install page drops the manifest-migration note and points kubectl at a module release.
+- [x] 6.2 ADR-019 "Rename opm-operator to opm-controller"; delete ADR-015; dated ADR bodies, `docs/RENDERING.md`, the design doc and the kind test plans follow the new names.
+- [x] 6.3 README, AGENTS, CONSTITUTION and `openspec/config.yaml`.
+- [x] 6.4 `task docs:bundle:check` green; then commit `docs!: name the controller in the docs, ADRs and agent guides`.
+
+## 7. Specs and archive
+
+- [x] 7.1 Recreate `operator-module`, `operator-module-release`, `operator-resource-reference` and `operator-version-identity` as `controller-*`; REMOVED + ADDED retitles and MODIFIED wording in every other spec that names the operator; fold the still-valid deltas of `stop-operator-install-manifest` and remove that change.
+- [x] 7.2 `openspec validate rename-to-opm-controller --strict` and `openspec validate --all --strict` (no new failures) green, the residue search clean apart from history and the generic word; then commit `docs(openspec): propose rename-to-opm-controller`.
+- [x] 7.3 Verify the change against its artifacts, archive it with `retire_capabilities`, restore the requirement order and Purpose wording in the touched main specs, and commit `docs(openspec): archive rename-to-opm-controller`.
