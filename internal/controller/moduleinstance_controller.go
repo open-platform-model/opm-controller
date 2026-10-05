@@ -185,7 +185,7 @@ func (r *ModuleInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // platformConsumedFieldsChanged passes a Platform update only when a field a
 // ModuleInstance or ModulePackage render consumes differs between the old and
 // the new object. Both renderers read the same platform store record (the
-// generated package, its pin set and its skew policy), and both controllers'
+// generated package, its pin set and its skew policy), and both reconcilers'
 // Platform watches use this predicate. The fields are:
 //   - the Ready condition's status (the only True reason is Generated, so the
 //     status alone carries the recovery edge),

@@ -127,7 +127,7 @@ func main() {
 			"controller's own identity. See docs/TENANCY.md for the recommended per-namespace SA pattern.")
 	flag.IntVar(&maxConcurrentRenders, "max-concurrent-renders", 1,
 		"Maximum number of renders in flight at once, ModuleInstances and ModulePackages together; each "+
-			"of the two controllers also reconciles up to this many objects of its kind. Renders share "+
+			"of the two reconcilers also reconciles up to this many objects of its kind. Renders share "+
 			"nothing, so the bound is memory, not cores: budget about 61 MB plus 7.75 MB per component of "+
 			"the largest module per concurrent render, on top of a 0.3 GB base, against the pod's memory "+
 			"limit (enhancement 0019). Throughput saturates at about physical cores divided by 1.6 renders "+
