@@ -498,8 +498,8 @@ jobs:
   # tag whose release is still a draft and the dispatch runs on main. The
   # module jobs run release scripts from scripts_ref: the tag on a push, so
   # the push path runs the tag's own scripts as before; main's commit on the
-  # dispatch, so a script fixed since the tag (the opm_controller-v0.1.0
-  # read-back) is the one that runs, against the tag's tree.
+  # dispatch, so a script fixed since the tag (the first module
+  # release's read-back) is the one that runs, against the tag's tree.
   module-target:
     name: Resolve the controller module release
     needs: release-please

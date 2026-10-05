@@ -8,12 +8,13 @@
 # reference CUE resolves for the OPM_REGISTRY it is given, which is where the
 # real cli pushes. The cases assert the literal GHCR and job-local references
 # the module lands at, so a hand-spelled repository that drops the module
-# path's opmodel.dev prefix (the opm_controller-v0.1.0 read-back failure) fails
+# path's opmodel.dev prefix (the first module release's read-back failure) fails
 # here. The stub derives its push location with the same `cue mod resolve` that
 # publish.sh uses, so this test cannot catch a cli whose registry mapping
 # differs from CUE's; the evidence that the cli pushes where CUE resolves is
-# GHCR's listing of v0.1.0 and a one-off publish to a local registry, not this
-# test. Needs cue; no network. Prints PASS/FAIL per case, exits 1 on any FAIL.
+# the published listing of the first module release and a one-off publish to
+# a local registry, not this test. Needs cue; no network. Prints PASS/FAIL
+# per case, exits 1 on any FAIL.
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo=$(cd "$here/../.." && pwd)
