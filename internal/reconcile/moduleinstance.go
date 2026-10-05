@@ -906,9 +906,12 @@ func handleCLIOwned(
 }
 
 // handleOwnInstance refuses the controller's own instance when its owner is
-// absent or controller. It never renders, applies or prunes, and the gate runs
-// before finalizer registration, so the instance never carries the cleanup
-// finalizer. On a live instance it records Ready=False and Stalled=True
+// absent or controller. It never renders, applies or prunes. The gate runs
+// before finalizer registration, so an instance recognised before its first
+// reconcile never gets the cleanup finalizer. An instance recognised only after
+// a normal reconcile (by its recorded inventory, or after its module path was
+// edited to the controller module) already carries it, and this function does
+// not remove it. On a live instance it records Ready=False and Stalled=True
 // (SelfManagementRefused) with the observed generation, so a client waiting on
 // that generation reads a final verdict; it leaves inventory, digests,
 // instanceUUID and history alone. No requeue: the refusal is re-evaluated when
