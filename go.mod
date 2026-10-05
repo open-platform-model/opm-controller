@@ -1,4 +1,4 @@
-module github.com/open-platform-model/opm-operator
+module github.com/open-platform-model/opm-controller
 
 go 1.26.2
 

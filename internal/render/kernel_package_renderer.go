@@ -9,7 +9,7 @@ import (
 	"github.com/open-platform-model/library/opm/kernel"
 	"github.com/open-platform-model/library/opm/module"
 
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // KernelPackageRenderer renders a Flux-fetched ModulePackage through the

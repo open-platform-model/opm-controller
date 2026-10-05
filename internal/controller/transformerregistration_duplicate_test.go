@@ -22,7 +22,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/open-platform-model/opm-operator/internal/status"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 var _ = Describe("TransformerRegistration acceptance: D12 — one claim per provider", func() {

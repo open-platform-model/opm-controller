@@ -34,13 +34,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmmetrics "github.com/open-platform-model/opm-operator/internal/metrics"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmmetrics "github.com/open-platform-model/opm-controller/internal/metrics"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // overlapProbe records how many renders, of either kind, are in flight at

@@ -28,8 +28,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/catalog"
 
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // modFile renders a cue.mod/module.cue for the module at path with the given

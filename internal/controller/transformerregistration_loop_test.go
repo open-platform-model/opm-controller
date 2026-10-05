@@ -23,8 +23,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // Acceptance and regeneration form a loop: claims feed the platform, and the

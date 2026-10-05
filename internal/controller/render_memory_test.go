@@ -31,10 +31,10 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // renderTestPath is where the ModulePackage specs in this file place

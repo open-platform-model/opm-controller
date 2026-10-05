@@ -24,8 +24,8 @@ import (
 	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/open-platform-model/library/opm/platform"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The three verdicts the Platform reconciler reads off a built platform's

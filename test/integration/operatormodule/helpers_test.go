@@ -40,7 +40,7 @@ import (
 	"github.com/open-platform-model/library/opm/kernel"
 	"github.com/open-platform-model/library/opm/platform"
 
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
 )
 
 const (

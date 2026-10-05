@@ -38,11 +38,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/internal/version"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/internal/version"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // clusterRequest is the reconcile request for the singleton Platform.

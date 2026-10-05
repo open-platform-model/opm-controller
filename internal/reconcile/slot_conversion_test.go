@@ -9,9 +9,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/events"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The render slot is held through the export of the rendered set for apply,

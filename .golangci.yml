@@ -35,7 +35,7 @@ linters:
           files:
             - $all
           deny:
-            - pkg: github.com/open-platform-model/opm-operator/pkg/core
+            - pkg: github.com/open-platform-model/opm-controller/pkg/core
               desc: the operator keeps no copy of the library's Kubernetes tier; import github.com/open-platform-model/library/opm/k8s/object or github.com/open-platform-model/library/opm/k8s/labels
     custom:
       logcheck:

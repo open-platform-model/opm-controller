@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/open-platform-model/opm-operator/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/render"
 )
 
 // renderKey names one object for the render pool, so the pool can refuse a

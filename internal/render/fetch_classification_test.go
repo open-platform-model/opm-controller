@@ -16,7 +16,7 @@ import (
 	oerrors "github.com/open-platform-model/library/opm/errors"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // These tests pin what library v1.0.0-beta.6 returns at the operator's two

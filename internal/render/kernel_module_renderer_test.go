@@ -14,7 +14,7 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/object"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // compiledObject builds one rendered object the way the kernel hands it to

@@ -41,14 +41,14 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/controller"
-	_ "github.com/open-platform-model/opm-operator/internal/metrics"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/source"
-	opmversion "github.com/open-platform-model/opm-operator/internal/version"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/controller"
+	_ "github.com/open-platform-model/opm-controller/internal/metrics"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/source"
+	opmversion "github.com/open-platform-model/opm-controller/internal/version"
 	// +kubebuilder:scaffold:imports
 )
 

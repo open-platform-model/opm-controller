@@ -27,8 +27,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/shrink"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/shrink"
 )
 
 // refuseByName is a ClaimShrinkDecider that refuses the named resources,

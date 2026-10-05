@@ -29,8 +29,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/open-platform-model/opm-operator/test/fixtures"
-	"github.com/open-platform-model/opm-operator/test/utils"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
+	"github.com/open-platform-model/opm-controller/test/utils"
 )
 
 // This spec drives a claim rendered by a real provider module through the

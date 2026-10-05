@@ -26,9 +26,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 var _ = Describe("Reconcile Change Propagation", func() {

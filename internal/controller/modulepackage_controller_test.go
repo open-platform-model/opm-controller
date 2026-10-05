@@ -37,12 +37,12 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // stubFetcher creates a placeholder instance.cue at dir/<path>/instance.cue so

@@ -32,9 +32,9 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/render"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/render"
 )
 
 // This spec is the measurement behind the rule that the rendered claim carries

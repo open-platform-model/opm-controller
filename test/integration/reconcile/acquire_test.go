@@ -25,8 +25,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/kernel"
 
-	"github.com/open-platform-model/opm-operator/internal/moduleacquire"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	"github.com/open-platform-model/opm-controller/internal/moduleacquire"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // These tests require the fixture module published to a local OCI registry.

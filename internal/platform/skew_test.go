@@ -5,7 +5,7 @@ import (
 
 	"github.com/open-platform-model/library/opm/kernel"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // The skew policy the Platform reconciler records beside the generated module

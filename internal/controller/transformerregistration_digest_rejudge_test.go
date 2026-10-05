@@ -29,8 +29,8 @@ import (
 	"github.com/open-platform-model/library/opm/catalog"
 	k8sinventory "github.com/open-platform-model/library/opm/k8s/inventory"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/inventory"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/inventory"
 )
 
 // countingCatalogs counts the registry acquisitions a verdict makes.

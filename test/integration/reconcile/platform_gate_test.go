@@ -35,12 +35,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // platformGatedStubRenderer mirrors KernelModuleRenderer's platform gate without

@@ -30,10 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // claimCatalogPath is the catalog a platform spec's active claim contributes:

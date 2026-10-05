@@ -44,12 +44,12 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
 	"github.com/open-platform-model/library/opm/helper/platformmodule"
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // backupTraitFQN is the provider-fulfilled contract the backup fixture set is

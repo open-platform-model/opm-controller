@@ -32,12 +32,12 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // skewedCatalogVersion is a published build of the test catalog older than

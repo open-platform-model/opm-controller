@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 func rawValues(jsonStr string) *releasesv1alpha1.RawValues {

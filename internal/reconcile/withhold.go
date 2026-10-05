@@ -23,7 +23,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/open-platform-model/opm-operator/internal/shrink"
+	"github.com/open-platform-model/opm-controller/internal/shrink"
 )
 
 // ClaimShrinkDecider judges whether one rendered resource must be withheld

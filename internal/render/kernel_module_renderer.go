@@ -12,9 +12,9 @@ import (
 	"github.com/open-platform-model/library/opm/kernel"
 	"github.com/open-platform-model/library/opm/module"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/moduleacquire"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/moduleacquire"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // ErrPlatformNotReady is returned by the renderers when the platform store

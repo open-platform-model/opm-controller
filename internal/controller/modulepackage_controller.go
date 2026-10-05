@@ -40,10 +40,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
 )
 
 // ModulePackageReconciler reconciles a ModulePackage object.

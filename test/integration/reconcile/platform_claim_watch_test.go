@@ -35,11 +35,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // This is the end-to-end counterpart to the unit-level claim-watch specs

@@ -29,12 +29,12 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 var _ = Describe("ModuleInstance platform-gated rendering", func() {

@@ -36,7 +36,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 func newUnstructuredConfigMap(name string, data map[string]string) *unstructured.Unstructured {

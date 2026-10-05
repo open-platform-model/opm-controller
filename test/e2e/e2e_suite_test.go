@@ -28,7 +28,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/open-platform-model/opm-operator/test/utils"
+	"github.com/open-platform-model/opm-controller/test/utils"
 )
 
 var (

@@ -13,10 +13,10 @@ import (
 	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // A render that does not finish within --render-timeout is a transient

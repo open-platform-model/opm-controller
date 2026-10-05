@@ -23,12 +23,12 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmmetrics "github.com/open-platform-model/opm-operator/internal/metrics"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/shrink"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmmetrics "github.com/open-platform-model/opm-controller/internal/metrics"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/shrink"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 const (

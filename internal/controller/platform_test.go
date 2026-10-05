@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // These tests exercise the Platform CRD's API-server-level validation

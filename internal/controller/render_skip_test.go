@@ -44,11 +44,11 @@ import (
 	k8sinventory "github.com/open-platform-model/library/opm/k8s/inventory"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // upgradedOperatorVersion is the operator version the upgrade specs move to

@@ -17,8 +17,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/health"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The Healthy condition is judged here and only here. Every readiness rule

@@ -25,9 +25,9 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // registrySkip skips the current spec for a missing registry prerequisite —
