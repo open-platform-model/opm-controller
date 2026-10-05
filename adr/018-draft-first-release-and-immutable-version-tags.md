@@ -16,7 +16,7 @@ consumer pulls.
 The organization enforces the git half with rulesets the owner manages: `tags-immutable` refuses
 update and deletion of every tag with an empty bypass list, and `tags-create-app-only` lets only the
 `opm-release-please` App create a tag. GitHub immutable releases go further: once a release is
-published, its assets can no longer be added, replaced or removed. The operator joins immutable
+published, its assets can no longer be added, replaced or removed. The controller joins immutable
 releases only after it has shipped one release that was created as a draft, received every asset
 while a draft and was published last (0021:D10:R8).
 
@@ -72,7 +72,7 @@ rulesets and immutable releases on; the evidence is in the archived change
 ## Consequences
 
 **Positive:** A release is public only once it carries every asset, so the flow survives immutable
-releases and the operator can join them after its first draft-first release. No workflow in this
+releases and the controller can join them after its first draft-first release. No workflow in this
 repository can move, delete or re-create a tag, or make `:vX.Y.Z` name different content.
 
 **Recovery rolls forward.** A run that fails before publish leaves a mutable draft. Recover it with
@@ -95,24 +95,24 @@ unchanged.
 
 **Trade-off:** The reuse path identifies "this release's image" by its revision label, which only
 this workflow writes and only this workflow pushes under a version tag. Anyone able to push a forged
-image to `ghcr.io/open-platform-model/opm-operator` already defeats the rule; byte-reproducible
+image to `ghcr.io/open-platform-model/opm-controller` already defeats the rule; byte-reproducible
 builds would remove the trust in the label at a cost this repository does not pay.
 
 **Negative:** Between tag creation and publish the tag exists without a public release, so
-`releases/download/<tag>/install.yaml` returns not found for that tag. The cli pins the operator
+`releases/download/<tag>/install.yaml` returns not found for that tag. The cli pins the controller
 version, so it only reaches a new tag after a cli bump, by which time the release is public. The
-human-run push paths (`.tasks/docker.yaml`, `Makefile` `docker-buildx`) can still overwrite a
-version tag if `IMG` names one; they run in no workflow and are left to an owner decision.
+human-run push path (`.tasks/docker.yaml`, `push` and `buildx`) can still overwrite a
+version tag if `IMG` names one; it runs in no workflow and is left to an owner decision.
 
 **Deferred:** Release branches (`release/vX.Y`, the cut action, release runs on `release/**`) are
-Phase 2 of 0021 D10, delivered before GA by a separate change. Until then a fix for a released
+Phase 2 of 0021:D10, delivered before GA by a separate change. Until then a fix for a released
 version goes forward on `main`.
 
-**Addendum (2026-10-04):** the operator module (`modules/opm_operator`) releases on its own train
-with tags `opm_operator-vX.Y.Z`, through the same draft-first flow (`module-publish`,
+**Addendum (2026-10-04):** the controller module (`modules/opm_controller`) releases on its own train
+with tags `opm_controller-vX.Y.Z`, through the same draft-first flow (`module-publish`,
 `module-manifest`, `module-publish-release`). For those tags only, `release-guard.sh publish`
 requires `install.yaml` alone and sends `make_latest=false`, so a module release never takes the
-repository's Latest mark (0021:D11:R12). Operator tags still send neither flag. A module draft
+repository's Latest mark (0021:D11:R12). Controller tags still send neither flag. A module draft
 stranded by a broken script at its tag is recovered by `release.yml`'s `workflow_dispatch`
 (`module_tag`), which runs only the module jobs, with `main`'s scripts against the tag's tree; the
 tag and the published version stay as they are.

@@ -1,4 +1,4 @@
-# opm-operator
+# opm-controller
 // TODO(user): Add simple overview of use/purpose
 
 ## Description
@@ -15,35 +15,35 @@
 
 ### Installing
 
-With the opm CLI, install the operator release that CLI embeds:
+With the opm CLI, install the controller module version that CLI pins:
 
 ```sh
-opm operator install
+opm controller install
 ```
 
-Without the CLI, apply the `install.yaml` asset of a tagged release. Pick `<tag>` from the [Releases page](https://github.com/open-platform-model/opm-operator/releases):
+Without the CLI, apply the `install.yaml` of a controller module release, tagged `opm_controller-vX.Y.Z`. Pick `<tag>` from the [Releases page](https://github.com/open-platform-model/opm-controller/releases):
 
 ```sh
-kubectl apply --server-side -f https://github.com/open-platform-model/opm-operator/releases/download/<tag>/install.yaml
+kubectl apply --server-side -f https://github.com/open-platform-model/opm-controller/releases/download/<tag>/install.yaml
 ```
 
-Do not use the `releases/latest` alias: every current release is flagged Pre-release, GitHub's Latest skips Pre-releases, and so it serves the retired v0.7.5 manifest.
+Do not use the `releases/latest` alias: module releases never take the Latest mark, and every controller release is flagged Pre-release, which GitHub's Latest skips, so it serves a retired manifest.
 
-The manifest pins the controller image by digest (`ghcr.io/open-platform-model/opm-operator:vX.Y.Z@sha256:...`), so the exact bytes from the release are pulled regardless of future tag movement.
+The manifest is the controller module rendered at its default values, and it pins the controller image by tag and digest (`ghcr.io/open-platform-model/opm-controller:vX.Y.Z@sha256:...`), so the exact bytes from the release are pulled regardless of future tag movement.
 
 Verify the release image signature with cosign:
 
 ```sh
-cosign verify ghcr.io/open-platform-model/opm-operator:vX.Y.Z \
-  --certificate-identity-regexp='^https://github.com/open-platform-model/opm-operator/\.github/workflows/release\.yml@refs/heads/main$' \
+cosign verify ghcr.io/open-platform-model/opm-controller:vX.Y.Z \
+  --certificate-identity-regexp='^https://github.com/open-platform-model/opm-controller/\.github/workflows/release\.yml@refs/heads/main$' \
   --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
 
 For a PR preview image, swap the workflow path to `image-pr.yml` and adjust the ref:
 
 ```sh
-cosign verify ghcr.io/open-platform-model/opm-operator:pr-123 \
-  --certificate-identity-regexp='^https://github.com/open-platform-model/opm-operator/\.github/workflows/image-pr\.yml@refs/pull/.*$' \
+cosign verify ghcr.io/open-platform-model/opm-controller:pr-123 \
+  --certificate-identity-regexp='^https://github.com/open-platform-model/opm-controller/\.github/workflows/image-pr\.yml@refs/pull/.*$' \
   --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
 
@@ -61,7 +61,7 @@ cosign verify ghcr.io/open-platform-model/opm-operator:pr-123 \
 **Build and push your image to the location specified by `IMG`:**
 
 ```sh
-task docker:build docker:push IMG=<some-registry>/opm-operator:tag
+task docker:build docker:push IMG=<some-registry>/opm-controller:tag
 ```
 
 **NOTE:** This image ought to be published in the personal registry you specified.
@@ -71,13 +71,13 @@ Make sure you have the proper permission to the registry if the above commands d
 **Install the CRDs into the cluster:**
 
 ```sh
-task operator:crds
+task controller:crds
 ```
 
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
 
 ```sh
-task operator:controller:install IMG=<some-registry>/opm-operator:tag
+task controller:install IMG=<some-registry>/opm-controller:tag
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
@@ -102,13 +102,13 @@ kubectl delete -k config/samples/
 **Delete the APIs(CRDs) from the cluster:**
 
 ```sh
-task operator:crds:remove
+task controller:crds:remove
 ```
 
 **UnDeploy the controller from the cluster:**
 
 ```sh
-task operator:controller:uninstall
+task controller:uninstall
 ```
 
 ## Project Distribution
@@ -120,7 +120,7 @@ Following the options to release and provide this solution to the users.
 1. Build the installer for the image built and published in the registry:
 
 ```sh
-task operator:installer IMG=<some-registry>/opm-operator:tag
+task controller:installer IMG=<some-registry>/opm-controller:tag
 ```
 
 **NOTE:** The task above generates an 'install.yaml' file in the dist
@@ -133,7 +133,7 @@ Users can just run 'kubectl apply -f <URL for YAML BUNDLE>' to install
 the project, i.e.:
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/opm-operator/<tag or branch>/dist/install.yaml
+kubectl apply -f https://raw.githubusercontent.com/<org>/opm-controller/<tag or branch>/dist/install.yaml
 ```
 
 ## Contributing

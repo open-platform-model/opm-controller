@@ -1,7 +1,7 @@
-# kind-opm-dev operator test — findings
+# kind-opm-dev controller test — findings
 
-Status: **operator verified end-to-end; container-render blocker ROOT-CAUSED + FIXED (catalog).**
-Date: 2026-06-13. Cluster: `kind-opm-dev` (kind name `opm-dev`). Operator: `opm-operator` v0.7.0 on `library v0.5.0`.
+Status: **controller verified end-to-end; container-render blocker ROOT-CAUSED + FIXED (catalog).**
+Date: 2026-06-13. Cluster: `kind-opm-dev` (kind name `opm-dev`). Controller: `opm-controller` v0.7.0 on `library v0.5.0`.
 
 > **RESOLUTION (see §3a).** The non-concrete-container blocker is fixed in `catalog_opm`
 > (branch `fix/container-non-concrete-marshal`, published locally as `opmodel.dev/catalogs/opm@v0.5.7`).
@@ -9,7 +9,7 @@ Date: 2026-06-13. Cluster: `kind-opm-dev` (kind name `opm-dev`). Operator: `opm-
 > HTTPRoute + 2 ConfigMaps and reconciles `Ready=True`. The §2/§3/§4 analysis below is retained as the
 > investigation record; §3a documents the actual root cause and fix.
 
-This document records a manual end-to-end test of the post-enhancement-0001 operator on a local kind
+This document records a manual end-to-end test of the post-enhancement-0001 controller on a local kind
 cluster, the bug that blocks container workloads, and the evidence that narrows its root cause to the
 **library kernel** (`opm/compile`), not the catalog. Use it to resume the fix.
 
@@ -17,7 +17,7 @@ cluster, the bug that blocks container workloads, and the evidence that narrows 
 
 ## 1. What was verified (works)
 
-The operator is **proven end-to-end** via the `hello` ModuleRelease (a ConfigMap-only module):
+The controller is **proven end-to-end** via the `hello` ModuleRelease (a ConfigMap-only module):
 
 - `Platform/cluster` materializes the catalog → `Ready=True / Materialized`.
 - ModuleRelease gates on `ErrPlatformNotReady` until the platform store is populated, then renders.
@@ -46,7 +46,7 @@ building inventory entries: converting resource Deployment/default/web-app-web t
     error in call to list.Concat: non-concrete value _
 ```
 
-- The operator is behaving correctly: it materialized, matched `deployment-transformer@0.5.x`, ran the
+- The controller is behaving correctly: it materialized, matched `deployment-transformer@0.5.x`, ran the
   transform, and surfaced a precise CUE error when the apply layer marshals the `*core.Compiled` value
   to unstructured JSON.
 - Reproduces identically against catalog **v0.5.0 and v0.5.2**.
@@ -125,7 +125,7 @@ pattern and would all fail for any container workload):
 
 Validated end-to-end:
 - `library` flow test `TestFlow_WebApp_OnOpmPlatform` passes against `v0.5.7`.
-- Operator on `kind-opm-dev`: web-app `v1.0.10` (pins catalog `v0.5.7`) → `Ready=True`,
+- Controller on `kind-opm-dev`: web-app `v1.0.10` (pins catalog `v0.5.7`) → `Ready=True`,
   Deployment `web-app-web` **2/2 ready** (`nginx:1.27`, replicas 2), Service + HTTPRoute + 2 ConfigMaps,
   all `managed-by=opm-controller`.
 
@@ -176,20 +176,20 @@ case dump:
 A minimal repro harness already exists: `TestFlow_WebApp_OnOpmPlatform` in
 `library/opm/kernel/flow_integration_test.go` drives plan→match→compile on the on-disk `web_app` +
 `opm_platform` fixtures. It currently asserts success and does **not** marshal to unstructured — add a
-`json`/`cue.Concrete(true)` step on each `Compiled.Value` to make it fail the same way the operator does.
+`json`/`cue.Concrete(true)` step on each `Compiled.Value` to make it fail the same way the controller does.
 
 ### Secondary (orthogonal) matching discrepancy
 
 `TestFlow_WebApp_OnOpmPlatform` / `flow-inspect` **fail to match** the `web` component
 ("no matching transformer") when `web_app` pins catalog **v0.5.0**, but **match** at **v0.5.2** — while
-the operator matches at both 0.5.0 and 0.5.2. Suggests a version-availability/filter difference between
-the on-disk `opm_platform` fixture's subscription and the operator's `Platform/cluster` CR. Independent
+the controller matches at both 0.5.0 and 0.5.2. Suggests a version-availability/filter difference between
+the on-disk `opm_platform` fixture's subscription and the controller's `Platform/cluster` CR. Independent
 of the container bug, but it complicates using the flow test as the repro at 0.5.0 — pin the fixture to
 0.5.2 to reach compile.
 
 ---
 
-## 5. Operator findings (real, none fatal) — also worth fixing
+## 5. Controller findings (real, none fatal) — also worth fixing
 
 1. **Manager crashloops without Flux source CRDs.** The `Release` controller's `SetupWithManager`
    watches `Bucket`/`GitRepository`/`OCIRepository` unconditionally (`cmd/main.go:272`), and there is
@@ -235,9 +235,9 @@ of the container bug, but it complicates using the flow test as the repro at 0.5
   `flux install --components=source-controller --export` → keep only `kind: CustomResourceDefinition`
   docs → `kubectl apply`.
 
-**Deploy the operator** (from `opm-operator/`)
+**Deploy the controller** (from `opm-controller/`)
 ```bash
-KIND_CLUSTER=opm-dev IMG=opm-operator:dev task operator:controller:install
+KIND_CLUSTER=opm-dev IMG=opm-controller:dev task controller:install
 # patches --registry=testing.opmodel.dev=opm-registry:5000+insecure,opmodel.dev=opm-registry:5000+insecure,registry.cue.works
 ```
 
@@ -272,12 +272,12 @@ CUE_REGISTRY='opmodel.dev=localhost:5000+insecure,testing.opmodel.dev=localhost:
   `#transform` from it instead of out of the closed `Package`. **Validated end-to-end on `kind-opm-dev`
   2026-06-14** via [`TEST-PLAN-kernel-hidden-field-fix.md`](./TEST-PLAN-kernel-hidden-field-fix.md): a
   container module pinned to the *buggy* catalog `v0.5.2` renders `Deployment/hello-web-web` 1/1
-  (`Ready=True`) on the fixed operator, while the identical module on the unfixed operator (`v0.5.0`)
+  (`Ready=True`) on the fixed controller, while the identical module on the unfixed controller (`v0.5.0`)
   fails with the `list.Concat: non-concrete value _` signature. Library guards
   `TestComposed_RendersConcreteWherePackageDoesNot` (`opm/materialize`) and
   `TestExecute_ReadsTransformFromComposedNotPackage` (`opm/compile`) pass.
 - [ ] Commit + release the catalog fix (`catalog_opm` branch `fix/container-non-concrete-marshal` → real `v0.5.x`); re-pin `library/testdata/modules/web_app` + downstream to it.
-- [ ] (operator) gate/disable the `Release` controller when Flux CRDs are absent (finding #1).
-- [ ] (operator) re-enqueue releases on platform re-materialize (finding #2).
-- [ ] (operator) run drift-detection through the impersonated client (finding #3).
+- [ ] (controller) gate/disable the `Release` controller when Flux CRDs are absent (finding #1).
+- [ ] (controller) re-enqueue releases on platform re-materialize (finding #2).
+- [ ] (controller) run drift-detection through the impersonated client (finding #3).
 - [ ] Investigate the `opm_platform` fixture vs Platform-CR matching discrepancy at catalog 0.5.0.

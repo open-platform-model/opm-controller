@@ -20,7 +20,7 @@ Affects `Release` CRs whose `release.cue` imports a published `#Module`. Does
 
 ## Summary
 
-The operator has two independent entry points into the same render pipeline:
+The controller has two independent entry points into the same render pipeline:
 
 - **`ModuleRelease`** — names a published module by registry path + version; the
   controller synthesizes the `#ModuleRelease` **in Go** and compiles it.
@@ -172,7 +172,7 @@ Two changes landed the same day to fix this, taking **opposite** approaches:
 
 The proposals describe them as "independent entry points into the same render
 pipeline … no migration required." That was true on the schema of the day. The
-divergence became a defect later, when `core` migrated to `core@v0` (operator
+divergence became a defect later, when `core` migrated to `core@v0` (controller
 v0.7.0, library v0.5.x): the `ModuleRelease`/`synth.Release` path was updated and
 given the closedness workaround, while the `Release` path's contract (author
 imports a module in `release.cue`) was left pointing at the old behavior. Its
@@ -209,7 +209,7 @@ $ cue eval ./...
 #module.metadata.version: field not allowed: ...
 ```
 
-The operator's `KernelReleaseRenderer.Render(packageDir)` fails identically at
+The controller's `KernelReleaseRenderer.Render(packageDir)` fails identically at
 `LoadReleasePackage`. Replacing the import with an inline `#module` (everything
 authored in the one file) loads and renders to Deployment + Service.
 

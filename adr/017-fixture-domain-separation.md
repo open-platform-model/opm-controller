@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-ADR-008 established a naming taxonomy across the operator's naming layers and observed that "all of
+ADR-008 established a naming taxonomy across the controller's naming layers and observed that "all of
 these use the `opmodel.dev` domain, making it easy to conflate them." Its fifth rule keeps CUE module
 paths separate from Kubernetes CRD naming, but it draws no line *within* the CUE module namespace:
 production modules and test fixtures shared one domain.
@@ -38,9 +38,9 @@ meant nothing validated them.
 
 Test fixtures are authored on a separate CUE module domain from production artifacts.
 
-The operator's fixtures live under `testing.opmodel.dev/modules/operator/<name>` and their
-modulepackage fixtures under `testing.opmodel.dev/releases/operator/<name>`. The owning-repo segment
-(`operator`, alongside the cli's `cli`) keeps two repositories' identically-named fixtures from
+The controller's fixtures live under `testing.opmodel.dev/modules/controller/<name>` and their
+modulepackage fixtures under `testing.opmodel.dev/releases/controller/<name>`. The owning-repo segment
+(`controller`, alongside the cli's `cli`) keeps two repositories' identically-named fixtures from
 colliding on a leaf.
 
 Nothing fixture-shaped is authored under `opmodel.dev/*`. This extends ADR-008's taxonomy with a
