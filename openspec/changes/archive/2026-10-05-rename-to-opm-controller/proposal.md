@@ -2,7 +2,7 @@
 
 "Operator" in the Kubernetes sense names a controller that carries the day-2 knowledge of one application. This project knows no application: it renders any OPM module against a platform and applies the result, a generic delivery controller like Flux's controllers or Argo CD. The name promised knowledge the project does not have, and it shared a word with the platform operator, the person the docs address. The owner decided on 2026-10-05 to rename the project to `opm-controller` everywhere, with no migration, alias or compatibility path, because no installation exists to carry over. ADR-019 records the decision and the two earlier names.
 
-The blocked change `stop-operator-install-manifest` is folded in (owner decision D14 of the rename plan): its gates now hold (the cli installs from the module and no longer downloads a controller release's `install.yaml`, and the cascade resolver checks an asset only when asked), so a controller release stops attaching `install.yaml` here. Its legacy install-page task is dropped, and its plan to stop the controller release's cascade notification is dropped because the module release has no notification to take over.
+The blocked change `stop-operator-install-manifest` is folded in (the owner's 2026-10-05 decision to fold it into the rename): its gates now hold (the cli installs from the module and no longer downloads a controller release's `install.yaml`, and the cascade resolver checks an asset only when asked), so a controller release stops attaching `install.yaml` here. Its legacy install-page task is dropped, and its plan to stop the controller release's cascade notification is dropped because the module release has no notification to take over.
 
 ## What Changes
 

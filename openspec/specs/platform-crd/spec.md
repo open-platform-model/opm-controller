@@ -79,6 +79,8 @@ guarantees at most one `Platform` can exist.
 
 `PlatformStatus` SHALL carry `conditions` (a `metav1.Condition` list keyed by type), `observedGeneration` and `controllerVersion`. The Ready condition SHALL summarise module generation: `Ready=True` reason `Generated`; `Ready=False` reason `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates`. A `ContractsFulfilled` condition SHALL report the effective package's unfulfilled provider-fulfilled contracts without affecting Ready (reasons `UnfulfilledContracts`, `ContractsFulfilled`, `NoContractsDefined`). The field's documentation SHALL name every reason.
 
+Source: 0032:D1:R3.
+
 #### Scenario: Status reflects the generate-and-build outcome
 
 - **WHEN** the Platform reconciles
@@ -97,7 +99,7 @@ guarantees at most one `Platform` can exist.
 #### Scenario: Controller printcolumn
 
 - **WHEN** `kubectl get platform` runs against a reconciled Platform
-- **THEN** the output includes an `Controller` column showing `.status.controllerVersion`
+- **THEN** the output includes a `Controller` column showing `.status.controllerVersion`
 
 ### Requirement: Platform registered in the scheme without a reconciler
 

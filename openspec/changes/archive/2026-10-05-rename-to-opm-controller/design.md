@@ -1,18 +1,18 @@
 ## Context
 
-The owner's rename plan (decisions D1 to D16, 2026-10-05) renames opm-operator to opm-controller across the workspace. This change is the controller repository's part. It is built in a worktree now and merged in one cutover sitting with the other repositories' changes, after the GitHub repository is renamed.
+The owner decided on 2026-10-05 to rename opm-operator to opm-controller across the workspace (0032:D1). This change is the controller repository's part. It is built in a worktree now and merged in one cutover sitting with the other repositories' changes, after the GitHub repository is renamed.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- One name in every identifier that is not immutable history, with no alias, migration or warning (D2).
+- One name in every identifier that is not immutable history, with no alias, migration or warning (0032:D1:R6).
 - The controller module starts clean on `opmodel.dev/modules/opm_controller@v0` at 0.1.0.
-- A controller release stops publishing an install manifest of its own (D14).
+- A controller release stops publishing an install manifest of its own (0021:D4, folded from `stop-operator-install-manifest` by the owner's 2026-10-05 decision).
 
 **Non-Goals:**
 
-- Rewriting history: CHANGELOG entries, `openspec/changes/archive/**` and git tags stay as written (D11).
+- Rewriting history: CHANGELOG entries, `openspec/changes/archive/**` and git tags stay as written (the owner's 2026-10-05 decision to rename dated material but keep changelogs, archived changes and tags).
 - The cli, `.github`, the site and every other consumer (their own changes).
 - The annotation `opm.dev/force-delete-orphan`.
 
@@ -32,7 +32,7 @@ const (
 
 The API enum is a hard rename: `+kubebuilder:validation:Enum=cli;controller`. An absent owner still means controller-managed.
 
-### Base name `manager` (D4)
+### Base name `manager`
 
 `config/manager/manager.yaml` and `config/rbac/service_account.yaml` name the Deployment and ServiceAccount `manager`, so the prefix `opm-controller-` gives `opm-controller-manager`; the module derives `"\(P)-manager"`. The pod label `control-plane: controller-manager` and the module's component key stay, so the e2e selectors and the module's fixed Deployment selector keep their shape.
 
@@ -61,5 +61,5 @@ The module key leaves `.release-please-manifest.json`, so release-please treats 
 ### Folding stop-operator-install-manifest
 **Context**: The blocked change waited on the cli, the resolver and the module release.
 **Explored**: cli `origin/main` installs from the module and resolves only the module pin; the `.github` resolver checks an asset only when a caller passes `--asset`, and no caller does for the controller.
-**Decision**: Fold its asset removal and its `controller-module` rewording; drop its install-page task (legacy text, D2) and its notify change (no module notification exists to replace it).
+**Decision**: Fold its asset removal and its `controller-module` rewording; drop its install-page task (its text served an upgrade path, and 0032:D1:R6 leaves none) and its notify change (no module notification exists to replace it).
 **Rationale**: The gates hold, and the rename is the cheapest moment to drop an asset no consumer reads.

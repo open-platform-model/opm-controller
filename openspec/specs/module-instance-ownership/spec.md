@@ -8,6 +8,8 @@ Define how the controller treats a `ModuleInstance` it does not own. The `spec.o
 
 `ModuleInstanceSpec` SHALL provide an optional `owner` field of a typed enum with exactly two valid values, `cli` and `controller`, serialized as `owner` with `omitempty`. The field SHALL NOT define a CRD-level default. The API SHALL define exported constants for both values. An absent or empty `owner` SHALL be treated by the controller as controller-managed (see the skip requirement), except on the controller's own instance, which the controller never reconciles (see the requirement that the controller never reconciles its own instance).
 
+Source: 0032:D1:R1, 0032:D1:R6.
+
 #### Scenario: Field accepts the two enum values
 
 - **WHEN** a `ModuleInstance` is created with `spec.owner` set to `cli` or to `controller`
