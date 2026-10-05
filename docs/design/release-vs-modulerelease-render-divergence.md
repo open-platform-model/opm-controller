@@ -172,7 +172,7 @@ Two changes landed the same day to fix this, taking **opposite** approaches:
 
 The proposals describe them as "independent entry points into the same render
 pipeline … no migration required." That was true on the schema of the day. The
-divergence became a defect later, when `core` migrated to `core@v0` (controller
+divergence became a defect later, when `core` migrated to `core@v0` (opm-operator
 v0.7.0, library v0.5.x): the `ModuleRelease`/`synth.Release` path was updated and
 given the closedness workaround, while the `Release` path's contract (author
 imports a module in `release.cue`) was left pointing at the old behavior. Its

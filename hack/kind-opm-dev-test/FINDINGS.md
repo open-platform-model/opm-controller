@@ -1,6 +1,6 @@
 # kind-opm-dev controller test — findings
 
-Status: **controller verified end-to-end; container-render blocker ROOT-CAUSED + FIXED (catalog).**
+Status: **operator verified end-to-end; container-render blocker ROOT-CAUSED + FIXED (catalog).**
 Date: 2026-06-13. Cluster: `kind-opm-dev` (kind name `opm-dev`). Operator: `opm-operator` v0.7.0 on `library v0.5.0`.
 (The run record keeps the names then in use; the project was renamed opm-controller afterwards, ADR-019.)
 
@@ -126,7 +126,7 @@ pattern and would all fail for any container workload):
 
 Validated end-to-end:
 - `library` flow test `TestFlow_WebApp_OnOpmPlatform` passes against `v0.5.7`.
-- Controller on `kind-opm-dev`: web-app `v1.0.10` (pins catalog `v0.5.7`) → `Ready=True`,
+- Operator on `kind-opm-dev`: web-app `v1.0.10` (pins catalog `v0.5.7`) → `Ready=True`,
   Deployment `web-app-web` **2/2 ready** (`nginx:1.27`, replicas 2), Service + HTTPRoute + 2 ConfigMaps,
   all `managed-by=opm-controller`.
 
@@ -273,7 +273,7 @@ CUE_REGISTRY='opmodel.dev=localhost:5000+insecure,testing.opmodel.dev=localhost:
   `#transform` from it instead of out of the closed `Package`. **Validated end-to-end on `kind-opm-dev`
   2026-06-14** via [`TEST-PLAN-kernel-hidden-field-fix.md`](./TEST-PLAN-kernel-hidden-field-fix.md): a
   container module pinned to the *buggy* catalog `v0.5.2` renders `Deployment/hello-web-web` 1/1
-  (`Ready=True`) on the fixed controller, while the identical module on the unfixed controller (`v0.5.0`)
+  (`Ready=True`) on the fixed operator, while the identical module on the unfixed operator (`v0.5.0`)
   fails with the `list.Concat: non-concrete value _` signature. Library guards
   `TestComposed_RendersConcreteWherePackageDoesNot` (`opm/materialize`) and
   `TestExecute_ReadsTransformFromComposedNotPackage` (`opm/compile`) pass.
