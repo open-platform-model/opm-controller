@@ -3,11 +3,12 @@
 #
 #   assert-draft TAG      fails unless exactly one release carries TAG and it is a draft
 #   assert-published TAG  read-only: fails unless exactly one release carries TAG and it
-#                         is published (the operator module names only published releases)
+#                         is published (the controller module names only published releases)
 #   publish TAG           publishes the draft once its required assets are attached:
-#                         install.yaml for an operator module tag (opm_operator-v*),
-#                         install.yaml and opm-examples.tar.gz for an operator tag (v*).
-#                         An operator module release is published with make_latest=false:
+#                         install.yaml for a controller module tag (opm_controller-v*),
+#                         opm-examples.tar.gz for a controller tag (v*): the install
+#                         manifest is the module's render, published by the module release.
+#                         A controller module release is published with make_latest=false:
 #                         it never takes the repository's "latest" mark (0021:D11:R12).
 set -euo pipefail
 [ $# -eq 2 ] || { echo "::error::usage: $0 assert-draft|assert-published|publish TAG"; exit 2; }
@@ -27,9 +28,9 @@ publish)
   [ "$draft" = true ] || { echo "release ${tag} already published, nothing to do"; exit 0; }
   latest=()
   case $tag in
-  opm_operator-v*) required=(install.yaml) latest=(-f make_latest=false) ;;
-  v*) required=(install.yaml opm-examples.tar.gz) ;;
-  *) echo "::error::${tag} is neither an operator nor an operator module tag"; exit 1 ;;
+  opm_controller-v*) required=(install.yaml) latest=(-f make_latest=false) ;;
+  v*) required=(opm-examples.tar.gz) ;;
+  *) echo "::error::${tag} is neither a controller nor a controller module tag"; exit 1 ;;
   esac
   for a in "${required[@]}"; do
     jq -e --arg a "$a" '.[0].assets | index($a) != null' <<<"$rels" >/dev/null \
