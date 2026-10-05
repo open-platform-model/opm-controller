@@ -9,7 +9,7 @@ runtime scheme without a reconciler.
 
 ### Requirement: Cluster-scoped singleton Platform resource
 
-The operator SHALL define a `Platform` custom resource that is cluster-scoped and
+The controller SHALL define a `Platform` custom resource that is cluster-scoped and
 constrained to a single instance. The only permitted `metadata.name` SHALL be
 `cluster`, enforced declaratively by a CEL validation rule on the resource root
 (no admission webhook). Because the resource is cluster-scoped, name uniqueness
@@ -33,7 +33,7 @@ guarantees at most one `Platform` can exist.
 
 ### Requirement: PlatformSpec projects core #Platform
 
-`PlatformSpec` SHALL carry `type` (required, informational discriminator), `registry` (path-keyed catalog subscriptions) and `skewPolicy` (optional enum `Warn` | `Refuse`; unset means `Warn`). `skewPolicy` is the operator's response when a module's declared catalog requirement is newer than the build the platform pins: `Warn` renders and reports the skew; `Refuse` refuses the render. The field SHALL be validated at admission by an enum constraint. The operator generates a platform CUE module from `type` and `registry`; `skewPolicy` is not part of the module.
+`PlatformSpec` SHALL carry `type` (required, informational discriminator), `registry` (path-keyed catalog subscriptions) and `skewPolicy` (optional enum `Warn` | `Refuse`; unset means `Warn`). `skewPolicy` is the controller's response when a module's declared catalog requirement is newer than the build the platform pins: `Warn` renders and reports the skew; `Refuse` refuses the render. The field SHALL be validated at admission by an enum constraint. The controller generates a platform CUE module from `type` and `registry`; `skewPolicy` is not part of the module.
 
 #### Scenario: Skew policy defaults to Warn
 
@@ -72,12 +72,12 @@ guarantees at most one `Platform` can exist.
 #### Scenario: Stored legacy singleton remains serviceable
 
 - **WHEN** the stored `cluster` Platform predates the schema change (carries `filter`, lacks `version`)
-- **THEN** the operator's status patches against it continue to succeed
+- **THEN** the controller's status patches against it continue to succeed
 - **AND** its subscriptions fail with `BuildFailed` naming the registry entry's missing version until the spec is re-applied
 
-### Requirement: PlatformStatus carries conditions and observedGeneration
+### Requirement: The Platform status carries conditions and observedGeneration
 
-`PlatformStatus` SHALL carry `conditions` (a `metav1.Condition` list keyed by type), `observedGeneration` and `operatorVersion`. The Ready condition SHALL summarise module generation: `Ready=True` reason `Generated`; `Ready=False` reason `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates`. A `ContractsFulfilled` condition SHALL report the effective package's unfulfilled provider-fulfilled contracts without affecting Ready (reasons `UnfulfilledContracts`, `ContractsFulfilled`, `NoContractsDefined`). The field's documentation SHALL name every reason.
+`PlatformStatus` SHALL carry `conditions` (a `metav1.Condition` list keyed by type), `observedGeneration` and `controllerVersion`. The Ready condition SHALL summarise module generation: `Ready=True` reason `Generated`; `Ready=False` reason `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates`. A `ContractsFulfilled` condition SHALL report the effective package's unfulfilled provider-fulfilled contracts without affecting Ready (reasons `UnfulfilledContracts`, `ContractsFulfilled`, `NoContractsDefined`). The field's documentation SHALL name every reason.
 
 #### Scenario: Status reflects the generate-and-build outcome
 
@@ -92,16 +92,16 @@ guarantees at most one `Platform` can exist.
 #### Scenario: Status subresource present
 
 - **WHEN** the CRD is installed
-- **THEN** `Platform` exposes a `/status` subresource, and `status.conditions`, `status.observedGeneration` and `status.operatorVersion` are part of the schema
+- **THEN** `Platform` exposes a `/status` subresource, and `status.conditions`, `status.observedGeneration` and `status.controllerVersion` are part of the schema
 
-#### Scenario: Operator printcolumn
+#### Scenario: Controller printcolumn
 
 - **WHEN** `kubectl get platform` runs against a reconciled Platform
-- **THEN** the output includes an `Operator` column showing `.status.operatorVersion`
+- **THEN** the output includes an `Controller` column showing `.status.controllerVersion`
 
 ### Requirement: Platform registered in the scheme without a reconciler
 
-The operator SHALL register `Platform` and `PlatformList` with the runtime scheme
+The controller SHALL register `Platform` and `PlatformList` with the runtime scheme
 so the types are serializable and installable. This change SHALL NOT register any
 controller/reconciler for `Platform`; applying a `Platform` resource produces no
 reconciliation and no cluster mutations.

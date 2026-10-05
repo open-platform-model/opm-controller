@@ -51,7 +51,7 @@ an explicit `--registry=<mapping>`, or disable the built-in default by passing
 
 Precedence (highest first):
 
-1. `--registry` flag value (including the built-in default when the operator
+1. `--registry` flag value (including the built-in default when the controller
    does not pass the flag).
 2. `OPM_REGISTRY` environment variable (reached only when `--registry` is
    explicitly empty).

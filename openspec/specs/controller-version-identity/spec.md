@@ -1,15 +1,15 @@
 ## Purpose
 
-Define the operator's build-time version identity: a source-burned constant
+Define the controller's build-time version identity: a source-burned constant
 maintained by release automation, exposed at startup and via
-`Platform.status.operatorVersion`. Slice A6 of enhancement 0006 (D24, operator
+`Platform.status.controllerVersion`. Slice A6 of enhancement 0006 (D24, controller
 half).
 
 ## Requirements
 
 ### Requirement: Version constant is burned into source and maintained by release automation
 
-The operator SHALL carry its version as a Go constant in `internal/version` annotated with `x-release-please-version`, and `release-please-config.json` SHALL list that file under `extra-files` so every Release PR bumps the constant in the same commit the release tag points at. No build path (Dockerfile, Makefile, CI) is required to inject a version.
+The controller SHALL carry its version as a Go constant in `internal/version` annotated with `x-release-please-version`, and `release-please-config.json` SHALL list that file under `extra-files` so every Release PR bumps the constant in the same commit the release tag points at. No build path (Dockerfile, Taskfile, CI) is required to inject a version.
 
 #### Scenario: Tagged commit self-describes
 
@@ -32,14 +32,14 @@ The published version string SHALL be the `v`-prefixed constant (matching releas
 
 #### Scenario: Dev build carries provenance
 
-- **WHEN** the operator is built from a local git checkout with uncommitted changes
+- **WHEN** the controller is built from a local git checkout with uncommitted changes
 - **THEN** the reported version is `v<constant>+g<short-sha>.dirty`
 
 ### Requirement: Version logged at startup
 
-The manager SHALL log the operator version once at startup, before the manager starts.
+The manager SHALL log the controller version once at startup, before the manager starts.
 
 #### Scenario: Startup log line
 
-- **WHEN** the operator process starts
+- **WHEN** the controller process starts
 - **THEN** the setup log contains the resolved version string

@@ -44,7 +44,7 @@ Tooling that invokes the publish CLI SHALL export `OPM_REGISTRY` as well as `CUE
 
 ### Requirement: Test module publication
 
-A fixture module MUST be publishable to a registry as `testing.opmodel.dev/modules/operator/<name>@v0` at the version its own identity package declares. The publish task SHALL force its registry mapping in-script so an ambient environment cannot redirect it, and SHALL derive the version from the identity package rather than accepting it as a parameter.
+A fixture module MUST be publishable to a registry as `testing.opmodel.dev/modules/controller/<name>@v0` at the version its own identity package declares. The publish task SHALL force its registry mapping in-script so an ambient environment cannot redirect it, and SHALL derive the version from the identity package rather than accepting it as a parameter.
 
 #### Scenario: Publish task uses task-local registry mapping
 
@@ -54,7 +54,7 @@ A fixture module MUST be publishable to a registry as `testing.opmodel.dev/modul
 #### Scenario: Fixture published at its declared coordinates
 
 - **WHEN** the publish task completes for `hello`
-- **THEN** `testing.opmodel.dev/modules/operator/hello@v0` is available at the version its identity package declares
+- **THEN** `testing.opmodel.dev/modules/controller/hello@v0` is available at the version its identity package declares
 
 #### Scenario: Stale old-era artifact is inert
 
@@ -63,7 +63,7 @@ A fixture module MUST be publishable to a registry as `testing.opmodel.dev/modul
 
 ### Requirement: Test fixture module path
 
-The fixture modules MUST use module paths `testing.opmodel.dev/modules/operator/<name>@v0`, and each `#Module.metadata.modulePath` MUST equal that full major-suffixed address, derived from the module's identity package.
+The fixture modules MUST use module paths `testing.opmodel.dev/modules/controller/<name>@v0`, and each `#Module.metadata.modulePath` MUST equal that full major-suffixed address, derived from the module's identity package.
 
 #### Scenario: Fixture published under the fixture namespace
 

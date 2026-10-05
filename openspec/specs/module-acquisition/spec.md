@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator acquires a `ModuleRelease`'s target module from the OCI
+Define how the controller acquires a `ModuleRelease`'s target module from the OCI
 registry as a library `*module.Module`. Acquisition delegates to the shared
 `*kernel.Kernel`'s registry module loader (`Kernel.LoadModuleFromRegistry`),
 which fetches the published module and loads it as the main module, then decodes
@@ -11,7 +11,7 @@ writing a temporary directory, or mutating process-global state.
 
 ### Requirement: Acquire a module from the registry as a library Module
 
-The operator SHALL acquire a `ModuleRelease`'s target module from the OCI registry as a library `*module.Module`, given the module path, version, and registry mapping. Acquisition SHALL delegate to the library kernel's registry module loader — `Kernel.LoadModuleFromRegistry(ctx, modPath, version)` — and decode the returned value via `Kernel.NewModuleFromValue`. Acquisition SHALL NOT synthesize a wrapper CUE package that imports and embeds the target module, and SHALL NOT write the module's source to a temporary directory.
+The controller SHALL acquire a `ModuleRelease`'s target module from the OCI registry as a library `*module.Module`, given the module path, version, and registry mapping. Acquisition SHALL delegate to the library kernel's registry module loader — `Kernel.LoadModuleFromRegistry(ctx, modPath, version)` — and decode the returned value via `Kernel.NewModuleFromValue`. Acquisition SHALL NOT synthesize a wrapper CUE package that imports and embeds the target module, and SHALL NOT write the module's source to a temporary directory.
 
 Delegating to the library is load-bearing: the wrapper approach re-embedded core@v0's `#Module` (collapsing its self-referential `metadata.modulePath`/`version`), could not resolve the target's transitive catalog/core dependencies, and failed the loader's root shape gate. The library loader loads the module as the main module — its own `cue.mod/module.cue` resolves transitive deps and its `kind`/`metadata` sit at the package root — so author-set metadata is preserved and dependencies resolve. Registry configuration and the absence of process-environment mutation are the library's responsibility (the kernel's configured registry); acquisition remains safe to call concurrently from reconcilers.
 
@@ -28,7 +28,7 @@ Delegating to the library is load-bearing: the wrapper approach re-embedded core
 #### Scenario: Module with catalog imports is acquired
 
 - **WHEN** acquisition loads a module whose components import catalog resource definitions (for example `opmodel.dev/catalogs/opm/resources`)
-- **THEN** those transitive dependencies resolve and acquisition succeeds without the operator declaring them
+- **THEN** those transitive dependencies resolve and acquisition succeeds without the controller declaring them
 
 #### Scenario: Unresolvable module surfaces a load error
 

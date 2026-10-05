@@ -9,7 +9,7 @@ surfacing the build outcome on the `Platform` status.
 
 ### Requirement: Generate and build the singleton Platform on reconcile
 
-The operator SHALL reconcile the `Platform` named `cluster` by generating its platform CUE module on the operator's own disk, building it through the kernel's shape-gated platform loader, and recording the generated module (its package identity, directory, built platform) together with the resolved skew policy (`spec.skewPolicy`, `Warn` when unset) in the process-local store. The reconciler SHALL reconcile only the object named `cluster`; any other name SHALL be ignored without error. No second, derived copy of the platform exists.
+The controller SHALL reconcile the `Platform` named `cluster` by generating its platform CUE module on the controller's own disk, building it through the kernel's shape-gated platform loader, and recording the generated module (its package identity, directory, built platform) together with the resolved skew policy (`spec.skewPolicy`, `Warn` when unset) in the process-local store. The reconciler SHALL reconcile only the object named `cluster`; any other name SHALL be ignored without error. No second, derived copy of the platform exists.
 
 The package the reconcile generates SHALL be a function of exactly two inputs — the CR's spec and the set of accepted-and-active `TransformerRegistration` claims — and the reconciler SHALL be woken by a change to either (enhancement 0015 D13). The waking event's content SHALL NOT be an input: the reconcile computes from the current state of both, so a stale, duplicated or reordered event yields the package the current state implies. A reconcile whose inputs resolve to the identity the store already holds, for a module directory that still exists, SHALL skip regeneration and still report the outcome on status; this is what bounds a burst of claim activations to one build rather than one per claim.
 
@@ -58,14 +58,14 @@ The reconciler SHALL record the outcome on the `Platform` status: `Ready=True` w
 - **WHEN** a previously recorded good module exists and a subsequent reconcile fails or is refused
 - **THEN** the store still returns the last-good record and the failure or refusal is reflected only on the Ready condition
 
-### Requirement: Reconciler stamps status.operatorVersion on every outcome
+### Requirement: Reconciler stamps status.controllerVersion on every outcome
 
-`PlatformReconciler` SHALL set `status.operatorVersion` to the running operator's version on every status patch it makes, on `Generated`, `BuildFailed` and `GenerateFailed` alike.
+`PlatformReconciler` SHALL set `status.controllerVersion` to the running controller's version on every status patch it makes, on `Generated`, `BuildFailed` and `GenerateFailed` alike.
 
 #### Scenario: Stamped on success and failure
 
 - **WHEN** the singleton Platform reconciles to any outcome
-- **THEN** `status.operatorVersion` equals the running operator's version string
+- **THEN** `status.controllerVersion` equals the running controller's version string
 
 ### Requirement: Single-slot identity-keyed store for concurrent read
 
@@ -119,7 +119,7 @@ When closure derivation, generation or the build fails, the `PlatformReconciler`
 
 #### Scenario: A transient registry failure does not outlive its reconcile
 
-- **WHEN** a reconcile of the `cluster` Platform ends `Ready=False` with reason `BuildFailed` because the registry refused the catalog's module file, and the registry then serves it again, with no change to the Platform spec, the reconciler's configuration or the operator process
+- **WHEN** a reconcile of the `cluster` Platform ends `Ready=False` with reason `BuildFailed` because the registry refused the catalog's module file, and the registry then serves it again, with no change to the Platform spec, the reconciler's configuration or the controller process
 - **THEN** the next reconcile fetches the module file from the registry, builds successfully, and sets `Ready=True` (reason `Generated`) at the same generation
 
 ### Requirement: Transient failures retry faster than semantic failures

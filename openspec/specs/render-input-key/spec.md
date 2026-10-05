@@ -7,18 +7,18 @@ Name every input a render consumes in one digest, the render input key, record i
 
 ### Requirement: The render input key names what a render is a function of
 
-The operator SHALL compute a render input key for a ModuleInstance or a ModulePackage from six parts:
+The controller SHALL compute a render input key for a ModuleInstance or a ModulePackage from six parts:
 
 - the source digest: for a ModuleInstance the digest of `spec.module.path@spec.module.version`, for a ModulePackage the resolved Flux artifact digest;
 - the config digest: the digest of `spec.values` for a ModuleInstance, the digest of empty input for a ModulePackage;
 - the platform package identity, in the string form `Platform.status.packageIdentity` carries;
 - the catalog skew policy resolved from `Platform.spec.skewPolicy`, spelled as the API spells it (`Warn` when unset);
-- the operator version, as the operator publishes it to `Platform.status.operatorVersion`;
-- the library version the operator binary was built with.
+- the controller version, as the controller publishes it to `Platform.status.controllerVersion`;
+- the library version the controller binary was built with.
 
 The key's digest SHALL be `sha256:<hex>` over a fixed, versioned encoding of the parts in a fixed order, so the same parts always give the same digest and any change to a part gives a different one. A key with an empty part is incomplete: it SHALL never be recorded and never match.
 
-Source: owner decision g3 of the kernel-plan walkthrough (2026-10-02): "Skip render when a pre-render input key (source, values, platform identity, operator/library version, skew) matches."
+Source: owner decision g3 of the kernel-plan walkthrough (2026-10-02): "Skip render when a pre-render input key (source, values, platform identity, controller/library version, skew) matches."
 
 #### Scenario: Any part changes the digest
 
@@ -65,7 +65,7 @@ An attempt that fails, is refused, panics, or skips its render SHALL leave the f
 
 ### Requirement: A reconcile skips its render when its inputs are unchanged
 
-Before rendering, a ModuleInstance or ModulePackage reconcile SHALL compute the key from the object (for a ModulePackage, after resolving its source), `Platform.status.packageIdentity`, the resolved `Platform.spec.skewPolicy` of the `cluster` Platform, and the running operator and library versions. It SHALL skip the render when, and only when, all of these hold:
+Before rendering, a ModuleInstance or ModulePackage reconcile SHALL compute the key from the object (for a ModulePackage, after resolving its source), `Platform.status.packageIdentity`, the resolved `Platform.spec.skewPolicy` of the `cluster` Platform, and the running controller and library versions. It SHALL skip the render when, and only when, all of these hold:
 
 - the drift render interval is greater than zero;
 - `status.lastAppliedInputs` is set and its `renderedAt` is less than the drift render interval ago and not in the future;
@@ -137,29 +137,29 @@ Source: owner decision g3 of the kernel-plan walkthrough (2026-10-02): "drift vi
 - **WHEN** the manager starts with `--drift-render-interval=-1m`
 - **THEN** it exits with an error naming `--drift-render-interval`
 
-### Requirement: An operator or library upgrade renders every object once
+### Requirement: A controller or library upgrade renders every object once
 
-Because the operator and library versions are key parts, the first reconcile of each object after either version changes SHALL render. The rule rests on every operator release changing `version.Version`; a development image built without a version bump keeps its key. A change to how the operator computes a stored digest (`lastApplied*` digests, `status.inventory.digest`) SHALL ship with an operator version change or a library version change, so that render finds the stored digests out of date and applies once. Starting the same operator and library again (a restart) SHALL NOT by itself make an object render while its key matches and the interval has not passed.
+Because the controller and library versions are key parts, the first reconcile of each object after either version changes SHALL render. The rule rests on every controller release changing `version.Version`; a development image built without a version bump keeps its key. A change to how the controller computes a stored digest (`lastApplied*` digests, `status.inventory.digest`) SHALL ship with a controller version change or a library version change, so that render finds the stored digests out of date and applies once. Starting the same controller and library again (a restart) SHALL NOT by itself make an object render while its key matches and the interval has not passed.
 
-#### Scenario: A newer operator renders and applies once
+#### Scenario: A newer controller renders and applies once
 
-- **WHEN** an instance's key was recorded by operator `v1.0.0-beta.9`, the running operator is `v1.0.0-beta.10`, and the render digest the new operator computes differs from `lastAppliedRenderDigest`
+- **WHEN** an instance's key was recorded by controller `v1.0.0-beta.9`, the running controller is `v1.0.0-beta.10`, and the render digest the new controller computes differs from `lastAppliedRenderDigest`
 - **THEN** the reconcile renders and applies
-- **AND** `status.lastAppliedInputs` then carries the new operator's key
+- **AND** `status.lastAppliedInputs` then carries the new controller's key
 
 #### Scenario: A restart does not render unchanged objects
 
-- **WHEN** the operator restarts, the platform store is still empty, and an instance's key matches and was recorded 10 minutes ago
+- **WHEN** the controller restarts, the platform store is still empty, and an instance's key matches and was recorded 10 minutes ago
 - **THEN** the instance is not rendered and stays `Ready=True`, without passing through `PlatformNotReady`
 
 #### Scenario: The library inventory digests apply once and then converge
 
-- **WHEN** an instance or package whose `status.inventory.digest` and `lastAppliedRenderDigest` were written in the earlier operator's encoding, with a key recorded by operator `v1.0.0-test`, is reconciled by operator `v1.0.1-test` that computes them with `opm/k8s/inventory`
+- **WHEN** an instance or package whose `status.inventory.digest` and `lastAppliedRenderDigest` were written in the earlier controller's encoding, with a key recorded by controller `v1.0.0-test`, is reconciled by controller `v1.0.1-test` that computes them with `opm/k8s/inventory`
 - **THEN** the reconcile renders once and applies once, and the stored digests become the library's digests of the same entries and render
 - **AND** the next reconcile under `v1.0.1-test` skips the render, and a render after the interval ends `NoOp` without a second apply
 
 #### Scenario: A key recorded by the same version keeps the old digests until the interval
 
-- **WHEN** an instance holds digests in the earlier encoding and a key recorded by the running operator version
+- **WHEN** an instance holds digests in the earlier encoding and a key recorded by the running controller version
 - **THEN** the reconcile skips its render, because the key holds no digest
 - **AND** the first render after the interval applies once and records the new digests

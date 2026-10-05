@@ -67,5 +67,5 @@ The render digest the reconcilers record (`lastAttemptedRenderDigest`, `lastAppl
 - **THEN** their render digests are equal
 
 #### Scenario: The stored render digest changes once on upgrade
-- **WHEN** an instance whose `lastAppliedRenderDigest` was written by an earlier operator renders the same objects under this operator
+- **WHEN** an instance whose `lastAppliedRenderDigest` was written by an earlier controller renders the same objects under this controller
 - **THEN** the new render digest differs from the stored value, and the reconcile is not a no-op

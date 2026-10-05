@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The live verification tier for the operator's Flux-facing and deployed-controller surfaces: a real source-controller at the pinned distribution version, a real artifact round-trip, and lifecycle/prune/orphan assertions against the running controller. (Test-infrastructure capability; product behavior is specified elsewhere — precedent: `test-registry-lifecycle`, `example-test-modules`.)
+The live verification tier for the controller's Flux-facing and deployed-controller surfaces: a real source-controller at the pinned distribution version, a real artifact round-trip, and lifecycle/prune/orphan assertions against the running controller. (Test-infrastructure capability; product behavior is specified elsewhere — precedent: `test-registry-lifecycle`, `example-test-modules`.)
 
 ## Requirements
 
@@ -22,7 +22,7 @@ The e2e environment SHALL install Flux's source-controller (and only source-cont
 
 ### Requirement: Live artifact pipeline proof
 
-The e2e suite SHALL push the podinfo modulepackage fixture as a real OCI artifact (`flux push artifact` to the local registry), apply the fixture's `OCIRepository` and `ModulePackage`, and assert: the real source-controller reports an `Artifact` with revision and digest; the operator fetches and extracts that artifact; the `ModulePackage` reaches `Ready: True`; the rendered Deployment becomes Ready; and the artifact revision propagates into the `ModulePackage` status.
+The e2e suite SHALL push the podinfo modulepackage fixture as a real OCI artifact (`flux push artifact` to the local registry), apply the fixture's `OCIRepository` and `ModulePackage`, and assert: the real source-controller reports an `Artifact` with revision and digest; the controller fetches and extracts that artifact; the `ModulePackage` reaches `Ready: True`; the rendered Deployment becomes Ready; and the artifact revision propagates into the `ModulePackage` status.
 
 #### Scenario: Real artifact renders to a Ready workload
 
@@ -64,14 +64,14 @@ Against the deployed controller, the e2e suite SHALL drive a claim rendered by a
 
 The suite SHALL then cover the `v`-prefixed spelling. It suspends the provider instance, so the controller does not re-apply the rendered claim, and sets the live claim's `spec.version` to the same build with a `v` prefix. The suite SHALL assert that the claim is re-judged at its new generation: `status.observedGeneration` equals `metadata.generation`, the claim stays accepted and active, and its Ready condition is `True` with reason `Accepted` and a message naming the `v`-prefixed version. A deferred reconcile also sets `observedGeneration` and leaves `accepted` and `active` from the earlier verdict, so the Ready reason and message are what prove a new verdict. Only after that verdict SHALL the suite assert that the Platform's `status.registry` entry for the backup catalog names the same build (in either spelling, since the entry today records the claim's own spelling), under another new package identity that stays stable on a second read, and that the Platform reports `Ready=True` with reason `Generated`. The package identity is a function of the claims' coordinates, so its move is what shows the platform was regenerated for the edited claim.
 
-The spec SHALL deploy and tear down its own controller. It SHALL need no registry credentials when the fixtures are on the public default registry, and it SHALL use the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do. Its last ordered step SHALL delete the provider instance and assert that the claim is pruned with its guard released. Teardown SHALL then remove any claim still present, with a bounded wait and a finalizer strip, before it removes the applier RBAC and the Platform and before it undeploys the controller and uninstalls the CRDs.
+The spec SHALL deploy and tear down its own controller. It SHALL need no registry credentials when the fixtures are on the public default registry, and it SHALL use the `LOCAL_REGISTRY` and `CONTROLLER_DOCKER_CONFIG` overrides as the other deployed-controller specs do. Its last ordered step SHALL delete the provider instance and assert that the claim is pruned with its guard released. Teardown SHALL then remove any claim still present, with a bounded wait and a finalizer strip, before it removes the applier RBAC and the Platform and before it undeploys the controller and uninstalls the CRDs.
 
 #### Scenario: A bare-version claim is accepted, activated and built
 
 - **WHEN** the sample Platform is Ready and the `backup_provider` ModuleInstance is applied
 - **THEN** the claim `default.backup-provider` SHALL carry the backup catalog fixture's bare version in `spec.version`
 - **AND** the claim SHALL report `accepted: true`, `Ready=True` with reason `Accepted` and, once the provider is Ready, `active: true`
-- **AND** the Platform's `status.registry` SHALL list `testing.opmodel.dev/catalogs/operator/backup@v0` with `source: Registration` at the claim's bare version, under a new `status.packageIdentity`
+- **AND** the Platform's `status.registry` SHALL list `testing.opmodel.dev/catalogs/controller/backup@v0` with `source: Registration` at the claim's bare version, under a new `status.packageIdentity`
 - **AND** the Platform SHALL report `Ready=True` with reason `Generated`
 
 #### Scenario: A v-prefixed claim is accepted and built

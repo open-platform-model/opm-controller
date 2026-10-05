@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator's reconcile loops for ModuleInstance and ModulePackage
+Define how the controller's reconcile loops for ModuleInstance and ModulePackage
 run their phases in order, classify each attempt's outcome, and always commit
 an honest status for it, including an attempt that ends in a recovered panic,
 so that Ready, the counters, the history and the inventory describe what the
@@ -81,7 +81,7 @@ demands, which a reconcile can observe as changed without any digest changing â€
 a regenerated platform re-enqueues every instance, and the render that follows
 may be a no-op for apply while being the only evidence that the demand moved.
 Bounding it out of the `NoOp` patch would leave the field describing a render
-the operator has already superseded.
+the controller has already superseded.
 
 `lastAppliedVersion` is in the `NoOp` set because a `NoOp` re-proves it. A
 `NoOp` means the source digest equals the last apply's, and the source digest
@@ -176,9 +176,9 @@ A reconcile that does not render SHALL leave the field at its previous value. Th
 
 ### Requirement: A rendered resource may be withheld from apply
 
-The reconciler SHALL evaluate the rendered resources before applying them and MAY withhold an individual resource whose application would break a guarantee the operator holds. A withheld resource SHALL NOT be applied, and every other rendered resource SHALL be applied as usual, so one refused object does not strand the rest of the module.
+The reconciler SHALL evaluate the rendered resources before applying them and MAY withhold an individual resource whose application would break a guarantee the controller holds. A withheld resource SHALL NOT be applied, and every other rendered resource SHALL be applied as usual, so one refused object does not strand the rest of the module.
 
-Withholding SHALL NOT change the inventory. The inventory records which resources the instance owns, and the operator still owns a resource it declined to update; removing it would mark it stale and prune the very object the refusal exists to protect.
+Withholding SHALL NOT change the inventory. The inventory records which resources the instance owns, and the controller still owns a resource it declined to update; removing it would mark it stale and prune the very object the refusal exists to protect.
 
 A reconcile that withheld a resource SHALL NOT report ready and SHALL NOT be treated as a no-op, because the cluster does not hold what the render produced.
 
@@ -211,14 +211,14 @@ When a ModuleInstance or ModulePackage reconcile panics after its deferred statu
 - `lastAttempted*` set for this attempt, and a failure history entry carrying the same message.
 - `failureCounters.reconcile` incremented, as for any `FailedTransient` outcome.
 - The drift, apply and prune failure counters left as they were. A phase that was in flight when the panic hit did not succeed, so a panicking attempt never resets a phase counter.
-- `nextRetryAt` cleared, because the retry is scheduled by the controller runtime's rate limiter, not by the operator's backoff.
+- `nextRetryAt` cleared, because the retry is scheduled by the controller runtime's rate limiter, not by the controller's backoff.
 - `lastApplied*` and `inventory` left as they were.
 
 Fields the attempt already wrote on the object before the panic (`requiredContracts`, `instanceUUID`, the `Drifted` condition, a ModulePackage's `status.source`) are committed as on any other failed attempt.
 
 A panicking attempt is counted as `FailedTransient` for failure counters, history and reconcile metrics only. It returns no `ctrl.Result`: the requeue scenarios of "Outcome classification" and the `nextRetryAt` rule of the reconcile-backoff capability do not apply to it.
 
-The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The operator SHOULD log the panic value with the object's name and namespace before it re-panics.
+The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The controller SHOULD log the panic value with the object's name and namespace before it re-panics.
 
 #### Scenario: A panicking render does not mark a ready instance Ready
 
@@ -248,7 +248,7 @@ The reconciler MUST then re-panic with the original panic value, so the controll
 
 The ModuleInstance and ModulePackage reconcilers SHALL record on `status.lastAppliedVersion` the version of the module whose render they last applied, as plain text beside the `lastApplied*` digests. The value SHALL be the version the rendered instance's source module declares in its `metadata.version` (bare SemVer, for example `0.1.0`), read the same way on both kinds; for a ModuleInstance it is not copied from `spec.module.version`.
 
-The field SHALL be written together with the other `lastApplied*` fields, on an attempt whose apply (and prune, when enabled) succeeded. An attempt that fails, panics, is suspended, belongs to a CLI-owned instance, or is the operator's own instance (refused) SHALL leave it as it was.
+The field SHALL be written together with the other `lastApplied*` fields, on an attempt whose apply (and prune, when enabled) succeeded. An attempt that fails, panics, is suspended, belongs to a CLI-owned instance, or is the controller's own instance (refused) SHALL leave it as it was.
 
 When the outcome is `NoOp` and the attempt rendered, the reconciler SHALL set it to the version that render reported, whatever the field held: a `NoOp` means every digest equals the last apply's, and the source digest pins the module version, so the rendered version is the applied one. This fills the field on an object applied before it existed and corrects it after an ownership handback, where the cli moved the digests without touching this field. A reconcile that did not render (for example one that skips the render because its inputs are unchanged) SHALL leave the field as it was.
 
@@ -256,7 +256,7 @@ A version that cannot be read as a concrete string SHALL NOT fail the reconcile.
 
 The version SHALL NOT be an input to no-op detection; the source digest already covers it.
 
-Source: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Operator adds an additive status.lastAppliedVersion (plain text) next to the digest." The ADR-008 amendment (library#167) carries only j5's deletion half.
+Source: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Controller adds an additive status.lastAppliedVersion (plain text) next to the digest." The ADR-008 amendment (library#167) carries only j5's deletion half.
 
 #### Scenario: A successful apply records the module version
 

@@ -7,7 +7,7 @@ Report, in a `Healthy` condition separate from `Ready`, whether the objects a Mo
 
 ### Requirement: A Healthy condition reports whether the applied objects have rolled out
 
-The operator SHALL write a `Healthy` condition on a ModuleInstance and on a ModulePackage. It reports whether the objects in `status.inventory` have rolled out, as judged by the library's `opm/k8s/health`. It SHALL be one of:
+The controller SHALL write a `Healthy` condition on a ModuleInstance and on a ModulePackage. It reports whether the objects in `status.inventory` have rolled out, as judged by the library's `opm/k8s/health`. It SHALL be one of:
 
 - `True` with reason `RolledOut`: every inventory object was read and `health.IsHealthy` holds for its `health.Evaluate` status;
 - `False` with reason `ProgressDeadlineExceeded`: at least one object is a Deployment for which `health.ProgressDeadlineExceeded` holds;

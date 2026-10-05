@@ -12,6 +12,12 @@
 
 **Migration**: See the requirement "The controller uses the library's inventory package and keeps no copy" in this capability.
 
+### Requirement: The operator judges the health of inventory objects only through the library's health package
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "The controller judges the health of inventory objects only through the library's health package" in this capability.
+
 ## ADDED Requirements
 
 ### Requirement: The controller uses the library's object and label packages and keeps no copy
@@ -41,3 +47,12 @@ The controller SHALL compute the inventory stale set, the inventory digest and t
 
 - **WHEN** a function is exported from `internal/inventory` beyond `Current`, `FromEntries`, `FromEntry`, `ToEntries` and `ToEntry`
 - **THEN** the package's closed-surface test fails
+
+### Requirement: The controller judges the health of inventory objects only through the library's health package
+
+The controller SHALL judge the readiness of an object in `status.inventory` only with the library's `opm/k8s/health` (`Evaluate`, `IsHealthy`, `Aggregate`, `ProgressDeadlineExceeded`). The code that computes the `Healthy` condition SHALL read no status field of a fetched object and SHALL declare no readiness rule of its own for any Kubernetes kind: no rollout, replica-count, Job, PersistentVolumeClaim or `Ready`-condition check, and no alias to the library's. The controller fetches each object with its own client and passes it in, because the library reads no cluster. This requirement covers applied inventory objects only; the controller's own resources (a `dependsOn` ModulePackage, a TransformerRegistration's provider, the `cluster` Platform) keep their own condition checks. Source: 0012:D3:R6.
+
+#### Scenario: No local evaluator
+
+- **WHEN** the non-test files of `internal/reconcile` are parsed by the package's unit test
+- **THEN** none calls an `unstructured.Nested*` accessor and `health.go` holds no `"status"` string literal, so every verdict comes from `health.Evaluate`, `health.IsHealthy`, `health.Aggregate` and `health.ProgressDeadlineExceeded`

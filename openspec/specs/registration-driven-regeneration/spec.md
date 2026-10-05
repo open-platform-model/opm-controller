@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define what the operator-generated platform package is a function of once claims can be active, what wakes it, how it is identified, and how long a generated package remains readable. Enhancement 0015 D13 states the function and the triggers; D17 states the unit the operator holds.
+Define what the controller-generated platform package is a function of once claims can be active, what wakes it, how it is identified, and how long a generated package remains readable. Enhancement 0015 D13 states the function and the triggers; D17 states the unit the controller holds.
 
 Judging a claim is not part of this capability. Acceptance and activation decide `status.accepted` and `status.active`; this capability consumes the result.
 
@@ -10,7 +10,7 @@ Judging a claim is not part of this capability. Acceptance and activation decide
 
 ### Requirement: The generated package is a function of the platform spec and the active-claim set
 
-The operator SHALL generate the platform package from exactly two inputs: the `Platform` CR's spec, and the set of claims that are both accepted and active. Generation SHALL compute from the current state of both, never from the content of the event that woke it, so that repeated or reordered events yield the same package. A platform with no active claims SHALL generate the package it would have generated from its spec alone.
+The controller SHALL generate the platform package from exactly two inputs: the `Platform` CR's spec, and the set of claims that are both accepted and active. Generation SHALL compute from the current state of both, never from the content of the event that woke it, so that repeated or reordered events yield the same package. A platform with no active claims SHALL generate the package it would have generated from its spec alone.
 
 A claim whose deletion is blocked SHALL remain in the active set until the block releases. A deletion timestamp alone SHALL NOT remove a claim's catalog from the generated package: while the block holds, the claim's dependents are still rendering against that catalog, and dropping it would abandon them through the very door the block exists to close. Once the block releases the claim leaves the active set as any deleted claim does.
 
@@ -41,7 +41,7 @@ A claim whose deletion is blocked SHALL remain in the active set until the block
 
 ### Requirement: Regeneration is edge-triggered by every input
 
-The operator SHALL wake regeneration when the `Platform` CR changes and when any `TransformerRegistration` changes, so a claim activating does not wait for an unrelated reconcile. Bursts SHALL coalesce: several claims becoming active together SHALL converge in one or a few regenerations rather than one per claim.
+The controller SHALL wake regeneration when the `Platform` CR changes and when any `TransformerRegistration` changes, so a claim activating does not wait for an unrelated reconcile. Bursts SHALL coalesce: several claims becoming active together SHALL converge in one or a few regenerations rather than one per claim.
 
 #### Scenario: Activating a claim wakes regeneration
 

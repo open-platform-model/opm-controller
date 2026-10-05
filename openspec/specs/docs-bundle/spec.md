@@ -1,18 +1,18 @@
 # docs-bundle Specification
 
 ## Purpose
-The operator's docs bundle, `docs/opm-operator`: the authored pages under `docs/site/` and the resource reference that docs-kit generates from the CRDs and samples, checked on every pull request, published as `edge` from `main` and as a signed bundle on every release, with its docs-kit release pinned in one place per form.
+The controller's docs bundle, `docs/opm-controller`: the authored pages under `docs/site/` and the resource reference that docs-kit generates from the CRDs and samples, checked on every pull request, published as `edge` from `main` and as a signed bundle on every release, with its docs-kit release pinned in one place per form.
 
 ## Requirements
 
-### Requirement: The operator publishes one docs bundle
+### Requirement: The controller publishes one docs bundle
 
-The repository SHALL declare one docs-kit project, `opm-operator`, in `docs-kit.cue`: placed in a site version's `/docs/` tree, owning `reference/operator/`, versioned from tags with the prefix `v`, built from a `markdown` source over `docs/site` and a `crd` source over `config/crd/bases` with samples from `config/samples` (picked by kubebuilder file name, those referencing `testing.opmodel.dev` hidden, the two kubebuilder scaffold labels stripped) in the section layout at `reference/operator/`, the section weight 7, one `reconciledBy` entry per kind, and decision citations turned into links. The bundle SHALL carry the authored pages under `docs/site/` and the generated resource reference together (docs-kit DESIGN decision 20). `task docs:bundle` SHALL build it into `out/opm-operator/` and `task docs:bundle:check` SHALL build and lint it without publishing.
+The repository SHALL declare one docs-kit project, `opm-controller`, in `docs-kit.cue`: placed in a site version's `/docs/` tree, owning `reference/controller/`, versioned from tags with the prefix `v`, built from a `markdown` source over `docs/site` and a `crd` source over `config/crd/bases` with samples from `config/samples` (picked by kubebuilder file name, those referencing `testing.opmodel.dev` hidden, the two kubebuilder scaffold labels stripped) in the section layout at `reference/controller/`, the section weight 7, one `reconciledBy` entry per kind, and decision citations turned into links. The bundle SHALL carry the authored pages under `docs/site/` and the generated resource reference together (docs-kit DESIGN decision 20). `task docs:bundle` SHALL build it into `out/opm-controller/` and `task docs:bundle:check` SHALL build and lint it without publishing.
 
 #### Scenario: The bundle holds both kinds of page
 
 - **WHEN** `task docs:bundle` runs on a clean checkout
-- **THEN** `out/opm-operator/content/` holds the authored pages under `start/`, `operating/` and `diagnostics/`, and under `reference/operator/` the index `_index.md` and one page for each of the four kinds
+- **THEN** `out/opm-controller/content/` holds the authored pages under `start/`, `operating/` and `diagnostics/`, and under `reference/controller/` the index `_index.md` and one page for each of the four kinds
 
 #### Scenario: The test fixture is not shown as an example
 
@@ -29,23 +29,23 @@ The repository SHALL declare one docs-kit project, `opm-operator`, in `docs-kit.
 - **WHEN** a file in `config/crd/bases` holds a document of another kind
 - **THEN** `task docs:bundle:check` fails, naming the file
 
-### Requirement: Every operator release publishes its docs bundle
+### Requirement: Every controller release publishes its docs bundle
 
-`release.yml` SHALL run a `publish-docs` job that calls docs-kit's `publish.yml` with `project: opm-operator`, `mode: release` and the operator release's tag, in the workflow run of the push that merged the operator's release PR, only when the operator package `"."` created a release and only after `image-release` succeeded. A release created only by the operator module's package SHALL NOT run it. `publish-release` SHALL NOT wait for it.
+`release.yml` SHALL run a `publish-docs` job that calls docs-kit's `publish.yml` with `project: opm-controller`, `mode: release` and the controller release's tag, in the workflow run of the push that merged the controller's release PR, only when the controller package `"."` created a release and only after `image-release` succeeded. A release created only by the controller module's package SHALL NOT run it. `publish-release` SHALL NOT wait for it.
 
 #### Scenario: A release publishes its bundle
 
 - **WHEN** the release PR for `v1.0.0-beta.5` merges and `image-release` succeeds
-- **THEN** `publish-docs` publishes `ghcr.io/open-platform-model/docs/opm-operator` for `1.0.0-beta.5`, signed by the operator's workflow
+- **THEN** `publish-docs` publishes `ghcr.io/open-platform-model/docs/opm-controller` for `1.0.0-beta.5`, signed by the controller's workflow
 
 #### Scenario: A failed image publishes no docs
 
 - **WHEN** `image-release` fails
 - **THEN** `publish-docs` is skipped, and `docs.yml` dispatched with `mode: release` and the tag recovers the bundle once the release is fixed
 
-#### Scenario: A module release publishes no operator bundle
+#### Scenario: A module release publishes no controller bundle
 
-- **WHEN** only `opm_operator-v0.2.0` is created
+- **WHEN** only `opm_controller-v0.2.0` is created
 - **THEN** `publish-docs` is skipped
 
 ### Requirement: Pull requests check the bundle and main publishes edge
@@ -60,7 +60,7 @@ The repository SHALL declare one docs-kit project, `opm-operator`, in `docs-kit.
 #### Scenario: A merge to main publishes edge
 
 - **WHEN** a commit lands on `main`
-- **THEN** the `edge` job publishes that commit as the `edge` build of `docs/opm-operator`
+- **THEN** the `edge` job publishes that commit as the `edge` build of `docs/opm-controller`
 
 ### Requirement: The docs-kit release is pinned once per form and the forms agree
 

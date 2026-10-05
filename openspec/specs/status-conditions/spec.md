@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the condition types and reason constants the operator writes on its
+Define the condition types and reason constants the controller writes on its
 custom resources, and the helpers that set them, so every reconciler reports
 Ready, Reconciling, Stalled and source readiness in one shared vocabulary.
 

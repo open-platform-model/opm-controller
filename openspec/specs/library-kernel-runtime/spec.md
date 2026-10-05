@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator constructs and shares the `open-platform-model/library`
+Define how the controller constructs and shares the `open-platform-model/library`
 Kernel as a single long-lived, process-wide runtime. The Kernel owns the schema
 cache and core-schema resolution, is configured from inputs the process already
 accepts, is verified at startup, and is injected into reconcilers as the seam
@@ -11,7 +11,7 @@ reconcile behavior.
 
 ### Requirement: Single long-lived library Kernel
 
-The manager SHALL construct one library Kernel for the process lifetime and share it across controllers. The Kernel is safe for concurrent use across its methods: every kernel call (module acquisition, instance synthesis, on-disk instance acquisition, the platform build and the single-build render) evaluates in a context the library creates for that call and releases with it, so the operator SHALL NOT serialise any kernel call behind a mutex or other correctness gate of its own. No lock or ordering gate SHALL be held across a kernel call: a render holds its platform lease and one render slot from the process-wide pool sized by `--max-concurrent-renders`, and neither orders or excludes particular calls; the slot bounds memory only. Concurrency is bounded by that pool on the render paths, and to one platform generation at a time by the Platform reconciler's construction.
+The manager SHALL construct one library Kernel for the process lifetime and share it across controllers. The Kernel is safe for concurrent use across its methods: every kernel call (module acquisition, instance synthesis, on-disk instance acquisition, the platform build and the single-build render) evaluates in a context the library creates for that call and releases with it, so the controller SHALL NOT serialise any kernel call behind a mutex or other correctness gate of its own. No lock or ordering gate SHALL be held across a kernel call: a render holds its platform lease and one render slot from the process-wide pool sized by `--max-concurrent-renders`, and neither orders or excludes particular calls; the slot bounds memory only. Concurrency is bounded by that pool on the render paths, and to one platform generation at a time by the Platform reconciler's construction.
 
 #### Scenario: Two renders overlap
 
@@ -35,22 +35,22 @@ The manager SHALL construct one library Kernel for the process lifetime and shar
 
 ### Requirement: Kernel configured from existing inputs
 
-The operator SHALL configure the Kernel from inputs the process already accepts:
+The controller SHALL configure the Kernel from inputs the process already accepts:
 the registry mapping from the `--registry` flag (falling back to `OPM_REGISTRY`)
 via `kernel.WithRegistry`, and a logger bridged to the controller's logging
 backend via `kernel.WithLogger`. The Kernel SHALL use the default OCI-backed
-schema loader resolving `opmodel.dev/core@v2`. The operator MUST NOT introduce a
+schema loader resolving `opmodel.dev/core@v2`. The controller MUST NOT introduce a
 new flag or environment variable for Kernel configuration in this change.
 
 #### Scenario: Registry sourced from existing flag
 
-- **WHEN** the operator is started with `--registry` set (or `OPM_REGISTRY` in the environment)
+- **WHEN** the controller is started with `--registry` set (or `OPM_REGISTRY` in the environment)
 - **THEN** that same value configures the Kernel's registry mapping
 - **AND** no additional registry flag or env var is introduced
 
 ### Requirement: Core-schema resolution verified at startup
 
-The operator SHALL verify that the Kernel can resolve the OPM core schema during
+The controller SHALL verify that the Kernel can resolve the OPM core schema during
 startup, before the manager begins serving. On success it SHALL log the resolved
 core schema version. On failure it SHALL fail startup with a clear error rather
 than deferring the failure to the first reconcile.
@@ -59,17 +59,17 @@ than deferring the failure to the first reconcile.
 
 - **WHEN** the Kernel is constructed against a reachable registry holding `opmodel.dev/core@v2`
 - **THEN** startup completes
-- **AND** the operator logs the resolved core schema version
+- **AND** the controller logs the resolved core schema version
 
 #### Scenario: Schema unreachable fails fast
 
 - **WHEN** the Kernel cannot resolve the core schema at startup (unreachable or misconfigured registry)
-- **THEN** the operator fails startup with an error naming the schema-resolution failure
+- **THEN** the controller fails startup with an error naming the schema-resolution failure
 - **AND** the manager does not begin reconciling
 
 ### Requirement: Kernel injected as render-path seam
 
-The operator SHALL pass the constructed Kernel into the reconcilers as a struct
+The controller SHALL pass the constructed Kernel into the reconcilers as a struct
 field, establishing the injection point that later enhancement-0001 slices
 consume. In this change the field is wired but the legacy render path is
 unchanged; reconciliation behavior MUST remain identical to before this change.
@@ -82,11 +82,11 @@ unchanged; reconciliation behavior MUST remain identical to before this change.
 
 ### Requirement: Embedded kernel line and compile semantics
 
-The operator SHALL embed the library release in which the single-build render is the sole render path (the `library-render-cutover` release or later). Rendering semantics (fail-closed on unresolved demands, matching inside the build, the promoted dependency list) are the kernel's; the operator SHALL NOT reimplement matching or dependency resolution.
+The controller SHALL embed the library release in which the single-build render is the sole render path (the `library-render-cutover` release or later). Rendering semantics (fail-closed on unresolved demands, matching inside the build, the promoted dependency list) are the kernel's; the controller SHALL NOT reimplement matching or dependency resolution.
 
 #### Scenario: No old-path symbol remains
 
-- **WHEN** the operator builds against the embedded library
+- **WHEN** the controller builds against the embedded library
 - **THEN** no code path references materialization, platform synthesis or the two-phase compile
 
 #### Scenario: Unresolved demand stalls the instance
@@ -111,7 +111,7 @@ The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHA
 #### Scenario: Default keeps reconciles serial
 
 - **WHEN** the manager starts without the flag
-- **THEN** the ModuleInstance and ModulePackage controllers each reconcile one object at a time, and at most one render is in flight across both
+- **THEN** the ModuleInstance and ModulePackage reconcilers each reconcile one object at a time, and at most one render is in flight across both
 
 #### Scenario: Raising the bound allows overlap
 
@@ -161,7 +161,7 @@ The shipped manager Deployment (`config/manager/manager.yaml`, and so `dist/inst
 - **WHEN** `dist/install.yaml` is rendered from `config/default`
 - **THEN** the manager container has `limits.memory: 4Gi` and the environment variable `GOMEMLIMIT=3276MiB`
 
-### Requirement: A render is bounded by a manager timeout that keeps its slot
+### Requirement: A manager timeout bounds a render, which keeps its slot
 
 The manager SHALL accept `--render-timeout` (a duration, default `10m`) and SHALL refuse a negative value at startup. While a ModuleInstance or ModulePackage reconcile holds its render slot, the renderer call (platform lease, acquisition, synthesis, the render build) and the export of the result for apply SHALL run under a context whose deadline is that timeout. The wait for a slot SHALL NOT count against it, and the reconcile's own context, which the status patch, events, apply and prune use, SHALL carry no such deadline. A value of `0` SHALL disable the deadline, and the render then runs on the reconcile's context as before.
 
@@ -169,7 +169,7 @@ When the deadline passes before the render returns, the reconcile SHALL stop wai
 
 While a timed-out render of an object is still running, a reconcile of that object SHALL NOT start another render and SHALL NOT take a slot: it SHALL record the attempt as a render timeout whose message says the previous render is still running. One object whose render hangs therefore holds at most one slot, whatever `--max-concurrent-renders` is.
 
-A panic in the render before its deadline SHALL be logged at error level with its value and the stack of the panicking frame, and SHALL then reach the reconcile with its original value, after the slot is free, so it is recorded as `ReconcilePanic`. A panic after the reconcile stopped waiting SHALL be logged at error level with its value and stack, SHALL free the slot, and SHALL NOT stop the process. The operator SHALL log a timed-out render with its timeout, and SHALL log when an abandoned render returns, with how long it ran. The flag's help SHALL state that the slot stays held until the render returns and that `0` disables the deadline.
+A panic in the render before its deadline SHALL be logged at error level with its value and the stack of the panicking frame, and SHALL then reach the reconcile with its original value, after the slot is free, so it is recorded as `ReconcilePanic`. A panic after the reconcile stopped waiting SHALL be logged at error level with its value and stack, SHALL free the slot, and SHALL NOT stop the process. The controller SHALL log a timed-out render with its timeout, and SHALL log when an abandoned render returns, with how long it ran. The flag's help SHALL state that the slot stays held until the render returns and that `0` disables the deadline.
 
 #### Scenario: Default timeout
 
@@ -224,9 +224,9 @@ A panic in the render before its deadline SHALL be logged at error level with it
 
 - **GIVEN** a render timeout above zero
 - **WHEN** the render panics before its deadline
-- **THEN** the operator logs `Render panicked` with the stack of the panicking frame, the slot is free, and the object records `ReconcilePanic`
+- **THEN** the controller logs `Render panicked` with the stack of the panicking frame, the slot is free, and the object records `ReconcilePanic`
 
-#### Scenario: A panic after the deadline does not stop the operator
+#### Scenario: A panic after the deadline does not stop the controller
 
 - **WHEN** an abandoned render panics after its reconcile has returned
-- **THEN** the operator logs the panic with its stack, the slot is free again, and the process keeps running
+- **THEN** the controller logs the panic with its stack, the slot is free again, and the process keeps running

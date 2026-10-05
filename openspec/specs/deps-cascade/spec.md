@@ -1,12 +1,12 @@
 # deps-cascade Specification
 
 ## Purpose
-The operator's `task deps:cascade`: how it moves the repo's upstream pins (library, the opm catalog and core with fixtures and consumers, and the opm CLI) to the newest published versions, which pins it leaves alone, how it reports by exit code, and how it is tested.
+The controller's `task deps:cascade`: how it moves the repo's upstream pins (library, the opm catalog and core with fixtures and consumers, and the opm CLI) to the newest published versions, which pins it leaves alone, how it reports by exit code, and how it is tested.
 
 ## Requirements
 
 ### Requirement: deps:cascade moves upstream pins and reports by exit code
-The repo SHALL provide `task deps:cascade`, which moves opm-operator's upstream pins to the newest published versions in the working tree only. It SHALL NOT commit, push or create a branch. Run as `task -x deps:cascade`, it SHALL exit 0 when the working tree changed, 3 when there was nothing to do, and any other code on error, and it SHALL never turn a failure into 0 or 3. Every version decision SHALL come from the shared cascade resolver of `open-platform-model/.github` (workspace RELEASING.md, section "The cascade"). The resolver is found through the absolute path in `CASCADE_RESOLVER`, or otherwise at `../.github/.github/scripts/cascade/cascade-resolve.sh` beside the main checkout. When the resolver is missing, the task SHALL fail with a message naming both options.
+The repo SHALL provide `task deps:cascade`, which moves opm-controller's upstream pins to the newest published versions in the working tree only. It SHALL NOT commit, push or create a branch. Run as `task -x deps:cascade`, it SHALL exit 0 when the working tree changed, 3 when there was nothing to do, and any other code on error, and it SHALL never turn a failure into 0 or 3. Every version decision SHALL come from the shared cascade resolver of `open-platform-model/.github` (workspace RELEASING.md, section "The cascade"). The resolver is found through the absolute path in `CASCADE_RESOLVER`, or otherwise at `../.github/.github/scripts/cascade/cascade-resolve.sh` beside the main checkout. When the resolver is missing, the task SHALL fail with a message naming both options.
 
 #### Scenario: Up-to-date tree
 - **WHEN** every pin already equals the newest published version the resolver reports
@@ -50,7 +50,7 @@ The task SHALL move exactly these pins:
   A file whose catalog is above `K` SHALL NOT be lowered.
 - **Core.** It moves core in those modules and in `test/fixtures/catalogs/provider/cue.mod/module.cue` to the version that the file's catalog after the move pins (the higher of the file's catalog and `K`; `K` for the provider fixture), and only when that is greater than the file's own core. Core SHALL never come from the newest published core directly.
 - **The opm CLI.** It writes `.opm-cli-version` last.
-- **No regenerated reference.** It SHALL NOT edit `docs/site/reference/operator/_index.md`: the docs bundle generates the resource reference from `config/samples` when it is built.
+- **No regenerated reference.** It SHALL NOT edit `docs/site/reference/controller/_index.md`: the docs bundle generates the resource reference from `config/samples` when it is built.
 
 `cue mod get` SHALL name only `opmodel.dev/*` and `testing.opmodel.dev/*` modules, each with an exact version, and SHALL run, followed by one `cue mod tidy`, only in a module where a pin moved. Third-party pins SHALL never be named. A third-party pin that `tidy` raises, adds or removes, a change to `go.mod`'s `go` or `toolchain` directive, and a dep a fixture module gains that its modulepackage lacks SHALL each be reported as a warning. The task SHALL never edit an import path or a `@vN` key; a new major SHALL appear only as the resolver's warning.
 
@@ -68,7 +68,7 @@ The task SHALL move exactly these pins:
 
 #### Scenario: Sample Platform moved
 - **WHEN** the task moves the catalog `version:` in the sample Platform
-- **THEN** `docs/site/reference/operator/_index.md` is unchanged, and `task docs:bundle` on the resulting tree shows the moved version in the example of `reference/operator/platform.md`
+- **THEN** `docs/site/reference/controller/_index.md` is unchanged, and `task docs:bundle` on the resulting tree shows the moved version in the example of `reference/controller/platform.md`
 
 #### Scenario: Tidy adds a dependency
 - **WHEN** `go mod tidy` or `cue mod tidy` adds or removes a third-party dependency, or `go get` raises the `go` or `toolchain` directive
@@ -120,7 +120,7 @@ The version SHALL be written with `opm module version set` or `opm catalog versi
 - **WHEN** a fixture changed against the merge-base and its merge-base version is not yet published
 - **THEN** the declared version stays at the merge-base version
 
-### Requirement: deps:cascade never touches release, workflow or shared files
+### Requirement: deps:cascade leaves release, workflow and shared files alone
 The task SHALL NOT modify:
 - `.cascade-frozen` or `.cascade-hold`;
 - `.release-please-manifest.json`, `release-please-config.json` or `CHANGELOG.md`;
@@ -129,20 +129,20 @@ The task SHALL NOT modify:
 - `hack/fixtures.sh` or `.tasks/examples.yaml`;
 - any CUE `language.version`;
 - the Jellyfin sample or `ocirepository.yaml`;
-- anything under the operator module's directory `modules/opm_operator/`, whose pins `deps:cascade:module` moves in a PR of its own.
+- anything under the controller module's directory `modules/opm_controller/`, whose pins `deps:cascade:module` moves in a PR of its own.
 
-It SHALL only read from registries and SHALL never publish or seed. When an upstream's `language.version` is newer than the `CUE_VERSION` in `.github/workflows/test.yml`, it SHALL warn. When the example output in `docs/site/start/install-the-operator.md` names a catalog other than the sample Platform's, or a core other than `test/fixtures/modules/hello`'s, it SHALL warn and SHALL NOT edit that page.
+It SHALL only read from registries and SHALL never publish or seed. When an upstream's `language.version` is newer than the `CUE_VERSION` in `.github/workflows/test.yml`, it SHALL warn. When the example output in `docs/site/start/install-the-controller.md` names a catalog other than the sample Platform's, or a core other than `test/fixtures/modules/hello`'s, it SHALL warn and SHALL NOT edit that page.
 
 #### Scenario: Release files untouched
 - **WHEN** the task moves every pin
 - **THEN** `git diff --name-only` names no path under `.github/`, no release-please file and no `.cascade-*` file
 
-#### Scenario: The operator module is left to its own task
-- **WHEN** the newest published catalog is newer than the one the operator module pins
-- **THEN** `task deps:cascade` leaves every file under `modules/opm_operator/` unchanged
+#### Scenario: The controller module is left to its own task
+- **WHEN** the newest published catalog is newer than the one the controller module pins
+- **THEN** `task deps:cascade` leaves every file under `modules/opm_controller/` unchanged
 
 #### Scenario: Install page example output drifted
-- **WHEN** `docs/site/start/install-the-operator.md` prints a catalog or core version the tree no longer pins
+- **WHEN** `docs/site/start/install-the-controller.md` prints a catalog or core version the tree no longer pins
 - **THEN** the task writes a warning naming the page and both versions, and leaves the page unchanged
 
 #### Scenario: Newer CUE language warned
@@ -166,7 +166,7 @@ It SHALL only read from registries and SHALL never publish or seed. When an upst
 
 ### Requirement: Title and body come from the shared resolver and the contract's path classes
 `task deps:cascade:title` and `task deps:cascade:body` SHALL call the resolver's `title` and `body` subcommands with `.tasks/cascade/classes` and `.tasks/cascade/pins.sh`.
-- **`classes`** SHALL classify `.opm-cli-version` as release-tool and `config/samples/`, `test/`, any `testdata/` directory and `*_test.go` as test, the contract's opm-operator block and nothing more. Any other path, including `go.mod` and `go.sum`, SHALL be shipped.
+- **`classes`** SHALL classify `.opm-cli-version` as release-tool and `config/samples/`, `test/`, any `testdata/` directory and `*_test.go` as test, the contract's opm-controller block and nothing more. Any other path, including `go.mod` and `go.sum`, SHALL be shipped.
 - **`pins.sh <ref>`** SHALL print one row per logical pin for the working tree (`WORKTREE`) or a git ref, as `<pin-key>`, `<display>`, `<class>`, `<v-prefixed version>`, `<labels>` separated by tabs. The rows are library (shipped), the opm catalog (test, from the sample Platform), core (test, from `test/fixtures/modules/hello`) and the opm CLI (release-tool).
 
 #### Scenario: Library and catalog moved
@@ -189,11 +189,11 @@ It SHALL only read from registries and SHALL never publish or seed. When an upst
 - **WHEN** the tree is clean
 - **THEN** `pins.sh WORKTREE` and `pins.sh HEAD` print the same rows
 
-### Requirement: deps:cascade:module moves only the operator module's catalog and core
-`task deps:cascade:module` SHALL move the operator module's pins in `modules/opm_operator/cue.mod/module.cue` and nothing else, with the rules `deps:cascade` applies to a fixture module: the opm catalog `opmodel.dev/catalogs/opm@v4` to the newest published catalog `K` when it is below `K`, and core `opmodel.dev/core@v2` to the core the module's catalog pins after the move when that is greater. The module's pins are shipped pins: every user who installs the module receives them. Holds and frozen paths SHALL apply under the same pin keys, `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, so a hold on either holds the module too, and a `.cascade-frozen` entry for `modules/opm_operator` freezes only the module. It SHALL report by the same exit codes as `deps:cascade` (0 changed, 3 nothing to do). It SHALL NOT edit any file outside `modules/opm_operator/`, nor the module's `operator/operator.cue`, its `identity.Version`, its generated CRD and RBAC files, its `CHANGELOG.md` or its `RELEASE`: the image moves only through the image-bump PR, the version only through the identity advance, the generated files only through the generator, and the release files only through release-please. The offline test set SHALL cover it.
+### Requirement: deps:cascade:module moves only the controller module's catalog and core
+`task deps:cascade:module` SHALL move the controller module's pins in `modules/opm_controller/cue.mod/module.cue` and nothing else, with the rules `deps:cascade` applies to a fixture module: the opm catalog `opmodel.dev/catalogs/opm@v4` to the newest published catalog `K` when it is below `K`, and core `opmodel.dev/core@v2` to the core the module's catalog pins after the move when that is greater. The module's pins are shipped pins: every user who installs the module receives them. Holds and frozen paths SHALL apply under the same pin keys, `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, so a hold on either holds the module too, and a `.cascade-frozen` entry for `modules/opm_controller` freezes only the module. It SHALL report by the same exit codes as `deps:cascade` (0 changed, 3 nothing to do). It SHALL NOT edit any file outside `modules/opm_controller/`, nor the module's `controller/controller.cue`, its `identity.Version`, its generated CRD and RBAC files, its `CHANGELOG.md` or its `RELEASE`: the image moves only through the image-bump PR, the version only through the identity advance, the generated files only through the generator, and the release files only through release-please. The offline test set SHALL cover it.
 
 #### Scenario: Module pins move, image and version stay
-- **WHEN** the newest published catalog is newer than the operator module's
+- **WHEN** the newest published catalog is newer than the controller module's
 - **THEN** the module's `cue.mod/module.cue` names the new catalog and the core it pins, `git diff --name-only` names only that file and the module's `cue.mod` files `tidy` writes, and the module's image reference, `identity.Version`, generated files, `CHANGELOG.md` and `RELEASE` are unchanged
 
 #### Scenario: Catalog hold holds the module
@@ -204,12 +204,12 @@ It SHALL only read from registries and SHALL never publish or seed. When an upst
 - **WHEN** the module already pins the newest catalog and the core it pins
 - **THEN** the task exits 3 and the tree is unchanged
 
-### Requirement: The operator module's pin move opens its own pull request
-`.github/workflows/module-deps.yml` SHALL run `task -x deps:cascade:module` on `repository_dispatch` of type `upstream-released` and on `workflow_dispatch`. When the task changed the tree, it SHALL push the branch `module/deps` with the release App's token and open or update one pull request from it, so the PR's CI runs; while the branch carries only bot commits a later run SHALL rebuild it from `main`, and once a human commit is on it a run SHALL add its own commit and never rewrite the branch. Its title and body SHALL come from the resolver's `title` and `body` with `.tasks/cascade/module-classes`, which classifies every path under `modules/opm_operator/` as shipped, and `.tasks/cascade/module-pins.sh`, which prints two rows keyed `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, displayed as the operator module's opm catalog and core. Because that report is its own, each key appears once. The PR SHALL change no file outside `modules/opm_operator/`, so its squash commit proposes a module release and no operator release. While the repository variable `CASCADE_DRY_RUN` is not exactly `false`, the run SHALL write the diff to the job summary and push nothing.
+### Requirement: The controller module's pin move opens its own pull request
+`.github/workflows/module-deps.yml` SHALL run `task -x deps:cascade:module` on `repository_dispatch` of type `upstream-released` and on `workflow_dispatch`. When the task changed the tree, it SHALL push the branch `module/deps` with the release App's token and open or update one pull request from it, so the PR's CI runs; while the branch carries only bot commits a later run SHALL rebuild it from `main`, and once a human commit is on it a run SHALL add its own commit and never rewrite the branch. Its title and body SHALL come from the resolver's `title` and `body` with `.tasks/cascade/module-classes`, which classifies every path under `modules/opm_controller/` as shipped, and `.tasks/cascade/module-pins.sh`, which prints two rows keyed `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, displayed as the controller module's opm catalog and core. Because that report is its own, each key appears once. The PR SHALL change no file outside `modules/opm_controller/`, so its squash commit proposes a module release and no controller release. While the repository variable `CASCADE_DRY_RUN` is not exactly `false`, the run SHALL write the diff to the job summary and push nothing.
 
 #### Scenario: Catalog published
 - **WHEN** this repository receives `upstream-released` for catalog `opm-v4.6.0`, `CASCADE_DRY_RUN` is `false`, and the module pins `v4.5.2`
-- **THEN** a PR from `module/deps` moves the module to `v4.6.0` and the core it pins, titled `fix(deps): bump the operator module's opm catalog to v4.6.0 and core to <v>`, and merging it proposes a module release and no operator release
+- **THEN** a PR from `module/deps` moves the module to `v4.6.0` and the core it pins, titled `fix(deps): bump the controller module's opm catalog to v4.6.0 and core to <v>`, and merging it proposes a module release and no controller release
 
 #### Scenario: Dry run
 - **WHEN** `CASCADE_DRY_RUN` is unset

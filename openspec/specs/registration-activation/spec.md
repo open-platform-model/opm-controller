@@ -6,7 +6,7 @@ Define when an accepted `TransformerRegistration` becomes active, what keeps it 
 
 ### Requirement: An accepted claim activates when its provider is ready
 
-An accepted claim SHALL become active when the `ModuleInstance` named by `spec.providerRef` reports `Ready=True`, and SHALL remain inactive until then. The operator SHALL watch provider readiness so activation does not wait for an unrelated reconcile. A claim that is not accepted SHALL NOT activate, whatever its provider reports.
+An accepted claim SHALL become active when the `ModuleInstance` named by `spec.providerRef` reports `Ready=True`, and SHALL remain inactive until then. The controller SHALL watch provider readiness so activation does not wait for an unrelated reconcile. A claim that is not accepted SHALL NOT activate, whatever its provider reports.
 
 #### Scenario: A claim activates when its provider becomes ready
 

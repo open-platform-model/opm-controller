@@ -1,10 +1,10 @@
 ## Purpose
 
-Define a `KernelModuleRenderer` that implements the operator's `ModuleRenderer`
+Define a `KernelModuleRenderer` that implements the controller's `ModuleRenderer`
 interface and renders a `ModuleInstance` entirely through the library kernel. It
 leases the generated platform record from the platform store, acquires the
 target module, synthesizes the instance, renders it through the kernel's
-single-build render, and adapts the compiled output into operator resources.
+single-build render, and adapts the compiled output into controller resources.
 The renderer is gated on a generated platform and is wired into the reconcilers
 in production (see `platform-gated-rendering`).
 
@@ -14,7 +14,7 @@ in production (see `platform-gated-rendering`).
 
 `KernelModuleRenderer` SHALL acquire the module from the registry, synthesize the instance (source-carrying) with the supplied values, and render it through the single-build render with the leased platform record and the record's skew policy. Every kernel call SHALL share nothing: acquisition, synthesis and the build each evaluate in a context of their own, so renders of different objects overlap with no gate.
 
-Values SHALL reach synthesis as a stack of values sources, each carrying an origin that identifies where the operator read it from, so a values error names that origin rather than an anonymous filename. No acquisition or synthesis call SHALL pass a per-call registry or load-options argument: the registry mapping is the one the shared Kernel was constructed with.
+Values SHALL reach synthesis as a stack of values sources, each carrying an origin that identifies where the controller read it from, so a values error names that origin rather than an anonymous filename. No acquisition or synthesis call SHALL pass a per-call registry or load-options argument: the registry mapping is the one the shared Kernel was constructed with.
 
 #### Scenario: Renders resources from a generated platform
 
@@ -30,7 +30,7 @@ Values SHALL reach synthesis as a stack of values sources, each carrying an orig
 #### Scenario: A values error names its origin
 
 - **WHEN** the supplied raw values violate the module's `#config` schema
-- **THEN** the render fails with an error naming the origin the operator gave that source, not an anonymous filename
+- **THEN** the render fails with an error naming the origin the controller gave that source, not an anonymous filename
 
 ### Requirement: Gate rendering on a generated platform
 
@@ -41,7 +41,7 @@ Values SHALL reach synthesis as a stack of values sources, each carrying an orig
 - **WHEN** `RenderModule` is called while the store holds no record
 - **THEN** it returns `ErrPlatformNotReady` without acquiring the module
 
-### Requirement: Adapt compiled output to operator resources
+### Requirement: Adapt compiled output to controller resources
 
 The renderer SHALL adapt the single-build render's compiled objects — the kernel's own compiled-output type, declared beside the render verb — to the library's Kubernetes object resources (`opm/k8s/object`) exactly as before, after first refusing a render whose compiled objects share one Kubernetes apply identity (apiVersion, kind, namespace and name). The refusal SHALL use the library's duplicate-identity check and SHALL carry its error unchanged, naming each shared identity once and every component and transformer that produced it; when it fires, the renderer SHALL build no resource, so nothing of that render can reach apply (0015:D15: a second registration in one module is refused before apply naming both carrying components, and 0015:D12 gives both the same instance-derived name).
 
@@ -55,13 +55,13 @@ The render SHALL report no message strings. The renderer SHALL compose the resul
 
 #### Scenario: One compiled-output type
 
-- **WHEN** the operator's adapter names the type it converts from
-- **THEN** it SHALL be the type the kernel package declares, converted by the library's `object.Resources`, and the operator SHALL NOT declare a resource type of its own for it
+- **WHEN** the controller's adapter names the type it converts from
+- **THEN** it SHALL be the type the kernel package declares, converted by the library's `object.Resources`, and the controller SHALL NOT declare a resource type of its own for it
 
 #### Scenario: Warnings reach the reconciler
 
 - **WHEN** the render reports an unhandled optional trait, or a path whose resolved-versions row is marked newer under the `Warn` policy
-- **THEN** the render result carries one operator-composed warning naming that fact, and the render result carries no library-authored message string
+- **THEN** the render result carries one controller-composed warning naming that fact, and the render result carries no library-authored message string
 
 #### Scenario: Two registrations in one module are refused before apply
 
@@ -106,9 +106,9 @@ Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPacka
 - **WHEN** a ModulePackage renders against a platform record whose skew policy is `Refuse`
 - **THEN** the result's `SkewPolicy` is `Refuse`
 
-### Requirement: The render reports the instance's contract demand from the kernel
+### Requirement: The render reads the instance's contract demand from the kernel
 
-Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics: every `#resources` and `#traits` key of every component of the instance, sorted and deduplicated. The operator SHALL NOT compute the demand itself by reading the instance's components. An empty demand SHALL be reported as an empty, non-nil list. Source: 0013:D24.
+Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics: every `#resources` and `#traits` key of every component of the instance, sorted and deduplicated. The controller SHALL NOT compute the demand itself by reading the instance's components. An empty demand SHALL be reported as an empty, non-nil list. Source: 0013:D24.
 
 The demand is read only from a successful render; this requirement does not change when the reconciler writes it (see `reconcile-loop-assembly`, "The instance's contract demand is recorded on its status").
 
@@ -127,7 +127,7 @@ The demand is read only from a successful render; this requirement does not chan
 - **WHEN** the kernel's render reports no contracts, or reports the list as absent
 - **THEN** the result's `RequiredContracts` is an empty, non-nil list
 
-#### Scenario: No operator walk of the components
+#### Scenario: No controller walk of the components
 
-- **WHEN** the operator's render package is searched for a reader of a component's `#resources` or `#traits`
+- **WHEN** the controller's render package is searched for a reader of a component's `#resources` or `#traits`
 - **THEN** none exists; the demand comes from the kernel's render diagnostics only

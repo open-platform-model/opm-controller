@@ -74,7 +74,7 @@ If the SSA dry-run API call fails, the controller MUST increment `status.failure
 
 Drift detection SHALL skip a resource the reconcile withheld from apply, and its difference from live state SHALL NOT set the `Drifted` condition.
 
-Drift reports that the cluster diverged from what the operator asserts. A withheld resource is one the operator is deliberately not asserting, so reporting it as drift would name a difference the operator created on purpose and intends not to close — a condition that never clears, and one that would bury real drift on the same instance behind it. The refusal that withheld the resource carries that signal instead.
+Drift reports that the cluster diverged from what the controller asserts. A withheld resource is one the controller is deliberately not asserting, so reporting it as drift would name a difference the controller created on purpose and intends not to close — a condition that never clears, and one that would bury real drift on the same instance behind it. The refusal that withheld the resource carries that signal instead.
 
 #### Scenario: A withheld resource does not set Drifted
 

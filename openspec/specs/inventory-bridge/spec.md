@@ -1,6 +1,6 @@
 ## Purpose
 
-The boundary between the API's inventory entry (`v1alpha1.InventoryEntry`, the shape `status.inventory` stores) and the library's `opm/k8s/inventory`, which owns the entry, the stale set and the inventory digest. The operator converts between the two entry types and builds its entries from its one export of a render.
+The boundary between the API's inventory entry (`v1alpha1.InventoryEntry`, the shape `status.inventory` stores) and the library's `opm/k8s/inventory`, which owns the entry, the stale set and the inventory digest. The controller converts between the two entry types and builds its entries from its one export of a render.
 
 ## Requirements
 
@@ -62,7 +62,7 @@ The ModuleInstance and ModulePackage reconcilers MUST compute the stale set with
 - **THEN** the digest differs
 
 #### Scenario: The stored digest changes once on upgrade
-- **WHEN** an instance whose `status.inventory.digest` was written by an earlier operator is applied by this operator with the same entries
+- **WHEN** an instance whose `status.inventory.digest` was written by an earlier controller is applied by this controller with the same entries
 - **THEN** the new `status.inventory.digest` equals `inventory.Digest` of those entries and differs from the stored value
 
 ### Requirement: Inventory entries come from the one export
