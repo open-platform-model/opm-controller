@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: manager
     app.kubernetes.io/name: opm-controller
     app.kubernetes.io/managed-by: kustomize
   name: manager-metrics-monitor
@@ -23,5 +23,5 @@ spec:
         insecureSkipVerify: true
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: manager
       app.kubernetes.io/name: opm-controller

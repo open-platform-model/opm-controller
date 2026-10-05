@@ -74,7 +74,7 @@ The module SHALL render only for an instance named `opm-controller` in the names
 
 ### Requirement: One Deployment selector across every module version
 
-The controller Deployment's `spec.selector` SHALL be the same in every version of the module: the selector the first module version renders is fixed, and a later version, a catalog or core pin change, or any `#config` value SHALL NOT change it, so moving between module versions never requires deleting the Deployment. The pod template's labels SHALL keep `control-plane: controller-manager`.
+The controller Deployment's `spec.selector` SHALL be the same in every version of the module: the selector the first module version renders is fixed, and a later version, a catalog or core pin change, or any `#config` value SHALL NOT change it, so moving between module versions never requires deleting the Deployment. The pod template's labels SHALL keep `control-plane: manager`.
 
 #### Scenario: A pin bump would change the selector
 

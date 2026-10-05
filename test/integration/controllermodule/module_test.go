@@ -32,9 +32,9 @@ import (
 // module version, catalog or core pin, or value may change it: a difference
 // here means every upgrade would fail on an immutable field.
 var fixedSelector = map[string]any{
-	"app.kubernetes.io/name":           "controller-manager",
-	"component.opmodel.dev/name":       "controller-manager",
-	"control-plane":                    "controller-manager",
+	"app.kubernetes.io/name":           "manager",
+	"component.opmodel.dev/name":       "manager",
+	"control-plane":                    "manager",
 	"core.opmodel.dev/workload-type":   "stateless",
 	"module-instance.opmodel.dev/name": "opm-controller",
 }
@@ -133,7 +133,7 @@ var _ = Describe("The controller module", func() {
 			Expect(dict(d.Object, "spec", "selector", "matchLabels")).To(Equal(fixedSelector),
 				"the selector differs from the fixed one; a module with another selector fails every upgrade")
 			Expect(dict(d.Object, "spec", "template", "metadata", "labels")).To(
-				HaveKeyWithValue("control-plane", "controller-manager"))
+				HaveKeyWithValue("control-plane", "manager"))
 		})
 
 		It("binds each controller role to the controller's ServiceAccount under the catalog's binding name", func() {

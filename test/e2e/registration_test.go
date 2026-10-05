@@ -106,9 +106,9 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 		_, err = utils.Run(exec.Command("task", "controller:crds"))
 		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
 
-		By("deploying the controller-manager")
+		By("deploying the manager")
 		_, err = utils.Run(exec.Command("task", "controller:deploy", fmt.Sprintf("IMG=%s", managerImage)))
-		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the manager")
 
 		// Local-dev override: resolve the catalogs and the fixtures from the
 		// in-cluster registry instead of the GHCR default.
@@ -154,13 +154,13 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 			Expect(err).NotTo(HaveOccurred(), "Failed to mount GHCR credentials")
 		}
 
-		By("waiting for the controller-manager rollout to settle")
+		By("waiting for the manager rollout to settle")
 		// A patched deployment rolls a new pod; settle on one leader before
 		// the Platform is applied, so its first build is not raced by a
 		// leader handoff.
 		_, err = kubectl("-n", namespace, "rollout", "status",
 			"deployment/opm-controller-manager", "--timeout=180s")
-		Expect(err).NotTo(HaveOccurred(), "controller-manager rollout did not settle")
+		Expect(err).NotTo(HaveOccurred(), "manager rollout did not settle")
 
 		By("applying the cluster Platform")
 		_, err = kubectl("apply", "-f", filepath.Join(projectDir, "config/samples/opmodel.dev_v1alpha1_platform.yaml"))
@@ -188,7 +188,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 			{"get", "transformerregistration", claimName, "-o", "yaml"},
 			{"get", "platform", "cluster", "-o", "yaml"},
 			{"-n", providerNamespace, "get", "moduleinstance", providerName, "-o", "yaml"},
-			{"-n", namespace, "logs", "-l", "control-plane=controller-manager", "--tail=300"},
+			{"-n", namespace, "logs", "-l", "control-plane=manager", "--tail=300"},
 		} {
 			if out, err := kubectl(args...); err == nil {
 				_, _ = fmt.Fprintf(GinkgoWriter, "--- kubectl %s ---\n%s\n", strings.Join(args, " "), out)
@@ -228,7 +228,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 		_, _ = kubectl("delete", "--ignore-not-found", "--wait=false", "-f",
 			filepath.Join(projectDir, "config/samples/opmodel.dev_v1alpha1_platform.yaml"))
 
-		By("undeploying the controller-manager")
+		By("undeploying the manager")
 		_, _ = utils.Run(exec.Command("task", "controller:uninstall", "IGNORE_NOT_FOUND=true"))
 
 		By("uninstalling CRDs")

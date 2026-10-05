@@ -57,7 +57,7 @@ let adminRoles = [
 	}
 
 	// The controller Deployment, its ServiceAccount and the metrics Service.
-	"controller-manager": {
+	"manager": {
 		bp.#StatelessWorkload
 		res.#ServiceAccount
 		res.#Volumes
@@ -71,7 +71,7 @@ let adminRoles = [
 
 		// Lands in the selector and the pod labels; the e2e suite selects the
 		// controller's pods by it.
-		metadata: labels: "control-plane": "controller-manager"
+		metadata: labels: "control-plane": "manager"
 
 		spec: {
 			statelessWorkload: {
