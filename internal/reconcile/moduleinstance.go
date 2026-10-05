@@ -906,14 +906,13 @@ func handleCLIOwned(
 }
 
 // handleOwnInstance refuses the controller's own instance when its owner is
-// absent or controller. It never renders, applies or prunes, and it releases
-// any cleanup finalizer the instance carries, without pruning, so neither
-// uninstall nor a reinstall of the controller waits on a finalizer only a
-// running controller could clear. On a live instance it
-// records Ready=False and Stalled=True (SelfManagementRefused) with the
-// observed generation, so a client waiting on that generation reads a final
-// verdict; it leaves inventory, digests, instanceUUID and history alone. No
-// requeue: the refusal is re-evaluated when the instance changes.
+// absent or controller. It never renders, applies or prunes, and the gate runs
+// before finalizer registration, so the instance never carries the cleanup
+// finalizer. On a live instance it records Ready=False and Stalled=True
+// (SelfManagementRefused) with the observed generation, so a client waiting on
+// that generation reads a final verdict; it leaves inventory, digests,
+// instanceUUID and history alone. No requeue: the refusal is re-evaluated when
+// the instance changes.
 func handleOwnInstance(
 	ctx context.Context,
 	params *ModuleInstanceParams,
@@ -921,17 +920,6 @@ func handleOwnInstance(
 	signal string,
 ) error {
 	log := logf.FromContext(ctx)
-
-	if controllerutil.ContainsFinalizer(mi, FinalizerName) {
-		log.Info("Releasing the cleanup finalizer from the controller's own instance without pruning")
-		if err := removeFinalizer(ctx, params.Client, mi); err != nil {
-			if apierrors.IsNotFound(err) {
-				params.Warnings.Forget(keyOf(mi))
-				return nil
-			}
-			return fmt.Errorf("removing finalizer: %w", err)
-		}
-	}
 
 	if !mi.DeletionTimestamp.IsZero() {
 		params.Warnings.Forget(keyOf(mi))

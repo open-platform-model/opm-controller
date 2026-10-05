@@ -38,9 +38,9 @@
 
 ### Requirement: The operator releases its finalizer from its own instance without pruning
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The guard only cleared a cleanup finalizer that an opm-operator release could have left on the instance that deploys it, and no such install is carried over: the rename has no migration and no install under the former names (0032:D1:R6). The owner decided on 2026-10-06 to delete it with the rename rather than restate it under the controller's name. The refusal before finalizer registration (the requirement "The controller never reconciles its own instance") keeps the finalizer off the controller's own instance.
 
-**Migration**: See the requirement "The controller releases its finalizer from its own instance without pruning" in this capability.
+**Migration**: None. An own instance never receives the finalizer, so there is nothing to release.
 
 ## ADDED Requirements
 
@@ -233,28 +233,3 @@ Rationale: the controller is the one workload whose failure stops every other in
 - **GIVEN** a refused own instance
 - **WHEN** its `spec.owner` is set to `cli`
 - **THEN** the next reconcile acknowledges it with `Ready=Unknown` reason `ManagedExternally` and removes `Stalled`
-
-### Requirement: The controller releases its finalizer from its own instance without pruning
-
-When the controller's own instance with `spec.owner` absent or `controller` carries the `opmodel.dev/cleanup` finalizer, the controller MUST remove that finalizer and MUST NOT delete any object in the instance's inventory, whether or not the instance is being deleted, whatever its `spec.prune`. On an own instance being deleted, the controller MUST write no status. An own instance with `spec.owner: cli` is left to the owner-skip gate, which changes no finalizer.
-
-Rationale: a finalizer only a running controller can clear would block the uninstall and the reinstall of the controller, which is the controller's one recovery path.
-
-#### Scenario: Deleting an own instance with a leftover finalizer prunes nothing
-
-- **GIVEN** the controller's own instance with `spec.owner: controller`, `spec.prune: true`, a non-empty `status.inventory`, the `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
-- **WHEN** the controller reconciles it
-- **THEN** the finalizer is removed
-- **AND** every object in the inventory still exists
-
-#### Scenario: A live own instance loses a leftover finalizer
-
-- **GIVEN** the controller's own instance with `spec.owner: controller` and the `opmodel.dev/cleanup` finalizer, not being deleted
-- **WHEN** the controller reconciles it
-- **THEN** the finalizer is removed and the instance is refused with reason `SelfManagementRefused`
-
-#### Scenario: A CLI-owned own instance is left alone
-
-- **GIVEN** the controller's own instance with `spec.owner: cli` and the `opmodel.dev/cleanup` finalizer
-- **WHEN** the controller reconciles it
-- **THEN** the finalizer stays, nothing is pruned, and the instance is acknowledged with `ManagedExternally`
