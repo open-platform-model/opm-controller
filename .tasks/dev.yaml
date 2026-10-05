@@ -30,13 +30,13 @@ tasks:
       - '"{{.GOLANGCI_LINT}}" config verify'
 
   manifests:
-    desc: Generate the CRD, RBAC and webhook manifests in config/, then the operator module's data from them
+    desc: Generate the CRD, RBAC and webhook manifests in config/, then the controller module's data from them
     cmds:
       - task: manifests:config
-      - task: :operator-module:generate
+      - task: :controller-module:generate
 
   # config/ alone, with no cue CLI needed: what builds, tests and deploys
-  # depend on, and what operator-module:drift compares config/ against (it must
+  # depend on, and what controller-module:drift compares config/ against (it must
   # not regenerate the module it then checks).
   manifests:config:
     internal: true
@@ -55,8 +55,8 @@ tasks:
     deps: [manifests:config, generate, fmt, vet, ":tool:setup-envtest", ":tool:kustomize"]
     env:
       CUE_REGISTRY: '{{.TEST_CUE_REGISTRY | default .GHCR_CUE_REGISTRY}}'
-      # The operator module's parity spec builds config/default with it
-      # (test/integration/operatormodule).
+      # The controller module's parity spec builds config/default with it
+      # (test/integration/controllermodule).
       KUSTOMIZE: '{{.KUSTOMIZE}}'
       # Seeded vars win, the caller's process env passes through otherwise. A
       # task-level env block does NOT reach a `task:` sub-invocation, so
@@ -87,8 +87,8 @@ tasks:
     deps: [manifests:config, generate, fmt, vet, ":tool:setup-envtest", ":tool:kustomize"]
     env:
       CUE_REGISTRY: '{{.CUE_REGISTRY}}'
-      # The operator module's parity spec builds config/default with it
-      # (test/integration/operatormodule).
+      # The controller module's parity spec builds config/default with it
+      # (test/integration/controllermodule).
       KUSTOMIZE: '{{.KUSTOMIZE}}'
     cmds:
       - |

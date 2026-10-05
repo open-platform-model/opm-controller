@@ -31,7 +31,7 @@ jobs:
   # The only job here that holds packages: write. It publishes the fixtures
   # under a per-commit pre-release tag and runs nothing else, and it runs only
   # on a push to main or a same-repo PR whose head is not deps/cascade,
-  # release-please--*, module/* (the operator module's bot heads) or
+  # release-please--*, module/* (the controller module's bot heads) or
   # dependabot/*: code on those heads has had no human
   # review yet (a Dependabot head can carry a new upstream action release), and
   # fork PRs get a read-only token. The test job below never holds a write
@@ -179,12 +179,12 @@ jobs:
         run: |
           # An explicit docker config.json (inline auth, no cred helper) holding
           # this job's packages: read token. The controller mounts this exact
-          # file (OPERATOR_DOCKER_CONFIG).
+          # file (CONTROLLER_DOCKER_CONFIG).
           mkdir -p "$RUNNER_TEMP/ghcr"
           auth=$(printf '%s' "${ACTOR}:${TOKEN}" | base64 -w0)
           printf '{"auths":{"%s":{"auth":"%s"}}}\n' "$REGISTRY" "$auth" > "$RUNNER_TEMP/ghcr/config.json"
           echo "DOCKER_CONFIG=$RUNNER_TEMP/ghcr" >> "$GITHUB_ENV"
-          echo "OPERATOR_DOCKER_CONFIG=$RUNNER_TEMP/ghcr/config.json" >> "$GITHUB_ENV"
+          echo "CONTROLLER_DOCKER_CONFIG=$RUNNER_TEMP/ghcr/config.json" >> "$GITHUB_ENV"
 
       - name: Install opm
         run: |

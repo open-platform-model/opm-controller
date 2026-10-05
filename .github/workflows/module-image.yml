@@ -1,17 +1,17 @@
-name: Operator module image PR
+name: Controller module image PR
 
-# Opens or updates the PR on module/operator-image that moves the operator
-# module to a published operator release (operator-module-release, "An
-# operator release opens the PR that moves the module's image"). release.yml's
-# module-image-pr job calls it after every operator release; dispatch it by
+# Opens or updates the PR on module/controller-image that moves the controller
+# module to a published controller release (controller-module-release, "An
+# controller release opens the PR that moves the module's image"). release.yml's
+# module-image-pr job calls it after every controller release; dispatch it by
 # hand with the release tag to recover a missed or failed run:
 #
-#   gh workflow run module-image.yml --repo open-platform-model/opm-operator -f tag=v1.0.0-beta.7
+#   gh workflow run module-image.yml --repo open-platform-model/opm-controller -f tag=v1.0.0-beta.7
 #
 # Two jobs, as the cascade receiver splits its work: compute runs
-# hack/operator-module/image.sh with no App token and hands the changed module
+# hack/controller-module/image.sh with no App token and hands the changed module
 # file on as an artifact; publish mints the release App token and only runs
-# hack/operator-module/bot-pr.sh, which pushes the branch and opens the PR. A
+# hack/controller-module/bot-pr.sh, which pushes the branch and opens the PR. A
 # PR opened with the App's token runs its CI on its own. publish reads the
 # key from the main-only Environment release.
 
@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: A published operator release tag, such as v1.0.0-beta.7
+        description: A published controller release tag, such as v1.0.0-beta.7
         required: true
         type: string
   workflow_call:
@@ -39,7 +39,7 @@ defaults:
 
 jobs:
   compute:
-    name: Point the module at the operator release
+    name: Point the module at the controller release
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -48,18 +48,18 @@ jobs:
       changed: ${{ steps.image.outputs.changed }}
       title: ${{ steps.image.outputs.title }}
     steps:
-      - name: Refuse anything but an operator release tag
+      - name: Refuse anything but a controller release tag
         env:
           TAG: ${{ inputs.tag }}
         run: |
           [[ ${TAG} =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] \
-            || { echo "::error::'${TAG}' is not an operator release tag"; exit 1; }
+            || { echo "::error::'${TAG}' is not a controller release tag"; exit 1; }
 
       - name: Clone main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
-          # image.sh reads config/ and CHANGELOG.md at the operator tags.
+          # image.sh reads config/ and CHANGELOG.md at the controller tags.
           fetch-depth: 0
           persist-credentials: false
 
@@ -69,7 +69,7 @@ jobs:
         with:
           version: v0.17.1
 
-      - name: Write the operator release into the module
+      - name: Write the controller release into the module
         id: image
         env:
           TAG: ${{ inputs.tag }}
@@ -77,7 +77,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           MAIN_REF: origin/main
         run: |
-          hack/operator-module/image.sh set "${TAG}" | tee -a "${GITHUB_OUTPUT}"
+          hack/controller-module/image.sh set "${TAG}" | tee -a "${GITHUB_OUTPUT}"
 
       - name: Package the module change
         if: steps.image.outputs.changed == 'true'
@@ -88,10 +88,10 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/change"
           git diff --name-only | tar -cf "${RUNNER_TEMP}/change/module.tar" -T -
           {
-            echo "Moves the operator module to the operator release [${TAG}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}), by tag and the digest GHCR serves under it. Only \`modules/opm_operator/operator/operator.cue\` changes, so merging this proposes a module release and no operator release."
+            echo "Moves the controller module to the controller release [${TAG}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}), by tag and the digest GHCR serves under it. Only \`modules/opm_controller/controller/controller.cue\` changes, so merging this proposes a module release and no controller release."
             echo
             if [ "${BREAKING}" = 1 ]; then
-              echo "Breaking: the operator CHANGELOG since the module's previous operator lists a breaking change, or a CRD stops serving a version. The module's next release raises its minor."
+              echo "Breaking: the controller CHANGELOG since the module's previous controller lists a breaking change, or a CRD stops serving a version. The module's next release raises its minor."
             else
               echo "Not breaking: the module's next release raises its patch."
             fi
@@ -118,7 +118,7 @@ jobs:
     permissions:
       contents: read
     concurrency:
-      group: module-operator-image-pr
+      group: module-controller-image-pr
       cancel-in-progress: false
     steps:
       - name: Mint the release App token
@@ -141,7 +141,7 @@ jobs:
           name: module-image-change
           path: ${{ runner.temp }}/change
 
-      - name: Push module/operator-image and open or update its PR
+      - name: Push module/controller-image and open or update its PR
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GH_REPO: ${{ github.repository }}
@@ -150,9 +150,9 @@ jobs:
         run: |
           # Only the module may ride the PR: refuse any other member (a .git/
           # hook or config would never show in git status) before extracting.
-          bad=$(tar -tf "${RUNNER_TEMP}/change/module.tar" | grep -vE '^modules/opm_operator/' | head -n5 || true)
+          bad=$(tar -tf "${RUNNER_TEMP}/change/module.tar" | grep -vE '^modules/opm_controller/' | head -n5 || true)
           bad+=$(tar -tf "${RUNNER_TEMP}/change/module.tar" | grep -E '(^|/)\.\.(/|$)' | head -n5 || true)
-          [ -z "${bad}" ] || { echo "::error::the handed-over change holds paths outside modules/opm_operator/: ${bad}"; exit 1; }
+          [ -z "${bad}" ] || { echo "::error::the handed-over change holds paths outside modules/opm_controller/: ${bad}"; exit 1; }
           # Plain files and directories only: a symlink or hard link member
           # would point the commit at another file, such as .git/config.
           bad=$(tar -tvf "${RUNNER_TEMP}/change/module.tar" | grep -v '^[-d]' | head -n5 || true)
@@ -160,4 +160,4 @@ jobs:
           tar -xf "${RUNNER_TEMP}/change/module.tar" --no-same-owner
           id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
           BOT_NAME="${APP_SLUG}[bot]" BOT_EMAIL="${id}+${APP_SLUG}[bot]@users.noreply.github.com" \
-            hack/operator-module/bot-pr.sh module/operator-image "${TITLE}" "${RUNNER_TEMP}/change/body.md"
+            hack/controller-module/bot-pr.sh module/controller-image "${TITLE}" "${RUNNER_TEMP}/change/body.md"

@@ -26,7 +26,7 @@ vars:
       v=$(go list -m -f '{{`{{if .Replace}}{{.Replace.Version}}{{else}}{{.Version}}{{end}}`}}' k8s.io/api 2>/dev/null)
       [ -n "$v" ] || { echo "Set ENVTEST_K8S_VERSION manually (k8s.io/api replace has no tag)" >&2; exit 1; }
       printf '%s\n' "$v" | sed -E 's/^v?[0-9]+\.([0-9]+).*/1.\1/'
-  KIND_CLUSTER: '{{.KIND_CLUSTER | default "opm-operator-test-e2e"}}'
+  KIND_CLUSTER: '{{.KIND_CLUSTER | default "opm-controller-test-e2e"}}'
   REGISTRY_CONTAINER: '{{.REGISTRY_CONTAINER | default "opm-registry"}}'
   REGISTRY_PORT: '{{.REGISTRY_PORT | default "5000"}}'
   REGISTRY_IMAGE: '{{.REGISTRY_IMAGE | default "registry:2"}}'
@@ -62,8 +62,8 @@ includes:
       KIND_CLUSTER: '{{.KIND_CLUSTER}}'
       KIND_CUE_REGISTRY: '{{.KIND_CUE_REGISTRY}}'
 
-  operator:
-    taskfile: ./.tasks/operator.yaml
+  controller:
+    taskfile: ./.tasks/controller.yaml
     vars:
       KUSTOMIZE: '{{.KUSTOMIZE}}'
       IMG: '{{.IMG}}'
@@ -117,8 +117,8 @@ includes:
   deps:
     taskfile: ./.tasks/deps.yaml
 
-  operator-module:
-    taskfile: ./.tasks/operator-module.yaml
+  controller-module:
+    taskfile: ./.tasks/controller-module.yaml
 
   examples:
     taskfile: ./.tasks/examples.yaml
@@ -150,7 +150,7 @@ tasks:
 
   ## Docs bundle
   #
-  # docs-kit.cue declares one docs bundle, opm-operator: the authored pages
+  # docs-kit.cue declares one docs bundle, opm-controller: the authored pages
   # under docs/site/ plus the resource reference opm-docs generates from
   # config/crd/bases and config/samples. CI builds, signs and publishes it
   # through docs-kit's publish.yml (docs.yml, release.yml). These tasks run the
@@ -165,10 +165,10 @@ tasks:
       - bash .tasks/opm-docs.sh install
 
   docs:bundle:
-    desc: Build the opm-operator docs bundle of the work tree into out/opm-operator/ (a local preview of edge)
+    desc: Build the opm-controller docs bundle of the work tree into out/opm-controller/ (a local preview of edge)
     deps: [tools:opm-docs]
     cmds:
-      - .bin/opm-docs build --project opm-operator --out out
+      - .bin/opm-docs build --project opm-controller --out out
 
   docs:pins:check:
     desc: Refuse a docs-kit publish.yml ref under .github/workflows/ that names another release than .opm-docs-version (offline)
@@ -181,8 +181,8 @@ tasks:
       - bash .tasks/cascade/wiring-check.sh
 
   docs:bundle:check:
-    desc: Check the docs-kit pins agree, then build and lint the opm-operator docs bundle into a temporary directory
+    desc: Check the docs-kit pins agree, then build and lint the opm-controller docs bundle into a temporary directory
     deps: [tools:opm-docs]
     cmds:
       - task: docs:pins:check
-      - .bin/opm-docs check --project opm-operator
+      - .bin/opm-docs check --project opm-controller

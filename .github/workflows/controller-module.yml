@@ -1,23 +1,23 @@
-name: Operator module
+name: Controller module
 
-# The operator module's install manifest on a fresh cluster
-# (operator-module-release, "Every module release publishes the install
+# The controller module's install manifest on a fresh cluster
+# (controller-module-release, "Every module release publishes the install
 # manifest rendered from it", scenario "Fresh cluster"). It renders the PR's
 # module directory exactly as module-publish renders a published version: as
-# opm-operator in opm-operator-system, at hack/operator-module/defaults.cue
+# opm-controller in opm-controller-system, at hack/controller-module/defaults.cue
 # (the #config defaults, never debugValues), with no cluster. Then it checks
-# the order and the operator image (the tag and digest the module names),
+# the order and the controller image (the tag and digest the module names),
 # applies the manifest server-side to an empty kind cluster and waits for the
-# operator's rollout. Nothing is published.
+# controller's rollout. Nothing is published.
 
 on:
   pull_request:
     paths:
-      - 'modules/opm_operator/**'
-      - 'hack/operator-module/**'
+      - 'modules/opm_controller/**'
+      - 'hack/controller-module/**'
       # The cli pin decides the render.
       - '.opm-cli-version'
-      - '.github/workflows/operator-module.yml'
+      - '.github/workflows/controller-module.yml'
   workflow_dispatch:
 
 permissions:
@@ -55,22 +55,22 @@ jobs:
           KUBECONFIG: /nonexistent
         run: |
           mkdir -p "${RUNNER_TEMP}/module"
-          (cd modules/opm_operator && opm module build . --name opm-operator -n opm-operator-system \
-            -f ../../hack/operator-module/defaults.cue) > "${RUNNER_TEMP}/module/install.yaml"
-          hack/operator-module/manifest-order.sh "${RUNNER_TEMP}/module/install.yaml"
-          hack/operator-module/manifest-image.sh "${RUNNER_TEMP}/module/install.yaml"
+          (cd modules/opm_controller && opm module build . --name opm-controller -n opm-controller-system \
+            -f ../../hack/controller-module/defaults.cue) > "${RUNNER_TEMP}/module/install.yaml"
+          hack/controller-module/manifest-order.sh "${RUNNER_TEMP}/module/install.yaml"
+          hack/controller-module/manifest-image.sh "${RUNNER_TEMP}/module/install.yaml"
 
       - name: Create an empty kind cluster
-        run: kind create cluster --name operator-module --wait 120s
+        run: kind create cluster --name controller-module --wait 120s
 
-      - name: Apply the manifest and wait for the operator
+      - name: Apply the manifest and wait for the controller
         run: |
           kubectl apply --server-side -f "${RUNNER_TEMP}/module/install.yaml"
-          kubectl -n opm-operator-system rollout status deployment/opm-operator-controller-manager --timeout=300s
+          kubectl -n opm-controller-system rollout status deployment/opm-controller-manager --timeout=300s
 
-      - name: Show the operator on failure
+      - name: Show the controller on failure
         if: failure()
         run: |
-          kubectl -n opm-operator-system get all -o wide || true
-          kubectl -n opm-operator-system describe deployment/opm-operator-controller-manager || true
-          kubectl -n opm-operator-system logs deployment/opm-operator-controller-manager --all-containers --tail=200 || true
+          kubectl -n opm-controller-system get all -o wide || true
+          kubectl -n opm-controller-system describe deployment/opm-controller-manager || true
+          kubectl -n opm-controller-system logs deployment/opm-controller-manager --all-containers --tail=200 || true

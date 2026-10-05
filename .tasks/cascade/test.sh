@@ -5,7 +5,7 @@
 # otherwise. Nothing touches the real checkout.
 #
 # CASCADE_TEST_SET=offline runs the pre-checks and S1, S3, S3b, S6 to S9, S11 and S12, and the
-# operator module cases M1 to M4 (no GHCR or proxy access beyond a warm Go module cache).
+# controller module cases M1 to M4 (no GHCR or proxy access beyond a warm Go module cache).
 # CASCADE_TEST_SET=all (the default) adds S2, S4, S10 and M5, and S5 and M5's title check when
 # CASCADE_RESOLVER_REAL names the real resolver.
 set -euo pipefail
@@ -360,9 +360,9 @@ else
   pass S12
 fi
 
-# --- The operator module (modules/opm_operator): its own task, its own pins ---------------------
+# --- The controller module (modules/opm_controller): its own task, its own pins ---------------------
 
-OPMOD=modules/opm_operator
+OPMOD=modules/opm_controller
 OPMOD_MF=$OPMOD/cue.mod/module.cue
 (cd "$PRE" && .tasks/cascade/module-pins.sh WORKTREE) >"$TMP/module-pins"
 MOD_CAT=$(awk -F'\t' -v k="$CATKEY" '$1 == k { print $4 }' "$TMP/module-pins")
@@ -391,7 +391,7 @@ if [ "$rc" != 3 ]; then
 elif [ "$(cd "$D" && find "$OPMOD" -type f -print0 | sort -z | xargs -0 sha256sum)" != "$before" ]; then
   fail M1 "a file under $OPMOD changed" "$TMP/m1.log"
 else
-  pass "M1 the operator module is left to its own task"
+  pass "M1 the controller module is left to its own task"
 fi
 
 # M2: nothing to move.
@@ -448,7 +448,7 @@ fi
 D=$(sandbox m5)
 lower_module "$D"
 setup=$(commit_setup "$D")
-keep=$(cd "$D" && sha256sum "$OPMOD/operator/operator.cue" "$OPMOD/identity/identity.cue" \
+keep=$(cd "$D" && sha256sum "$OPMOD/controller/controller.cue" "$OPMOD/identity/identity.cue" \
   "$OPMOD"/zz_generated_*.cue "$OPMOD/RELEASE")
 rc=$(run_module_task "$D" "$setup" "$MOD_TABLE" "$TMP/m5.log")
 m5_changed=$(cd "$D" && { git diff --name-only; git ls-files --others --exclude-standard; } | LC_ALL=C sort -u)
@@ -459,13 +459,13 @@ elif [ "$m5_changed" != "$OPMOD_MF" ]; then
   fail M5 "changed more than $OPMOD_MF" "$TMP/m5.changed"
 elif [ "$(cue_pin "$D/$OPMOD_MF" "$CATKEY")" != "$MOD_CAT" ] || [ "$(cue_pin "$D/$OPMOD_MF" "$COREKEY")" != "$MOD_CORE" ]; then
   fail M5 "the module does not pin $MOD_CAT and $MOD_CORE" "$TMP/m5.log"
-elif [ "$(cd "$D" && sha256sum "$OPMOD/operator/operator.cue" "$OPMOD/identity/identity.cue" "$OPMOD"/zz_generated_*.cue "$OPMOD/RELEASE")" != "$keep" ]; then
+elif [ "$(cd "$D" && sha256sum "$OPMOD/controller/controller.cue" "$OPMOD/identity/identity.cue" "$OPMOD"/zz_generated_*.cue "$OPMOD/RELEASE")" != "$keep" ]; then
   fail M5 "the image, version, generated or release files changed" "$TMP/m5.log"
 else
   if [ -n "${CASCADE_RESOLVER_REAL:-}" ]; then
     m5_title=$( (cd "$D" && CASCADE_RESOLVER="$CASCADE_RESOLVER_REAL" CASCADE_BASE="$setup" \
       task -x deps:cascade:module:title) 2>"$TMP/m5.title.err") || m5_title="(exit $?)"
-    want="fix(deps): bump the operator module's opm catalog to $MOD_CAT and core to $MOD_CORE"
+    want="fix(deps): bump the controller module's opm catalog to $MOD_CAT and core to $MOD_CORE"
     if [ "$m5_title" != "$want" ]; then
       fail M5 "title '$m5_title', want '$want'" "$TMP/m5.title.err"
     else

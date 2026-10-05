@@ -53,7 +53,7 @@ tasks:
       - '"$CASCADE_RESOLVER" body --classes .tasks/cascade/classes --pins .tasks/cascade/pins.sh'
 
   cascade:module:
-    desc: 'Move only the operator module''s opm catalog and core (modules/opm_operator/cue.mod) to the newest published versions, under the same holds and frozen paths, in the working tree. Never touches its image, identity.Version, generated files or release files, or any path outside the module. Exit 0 changed, 3 nothing to do, other on error; run with task -x.'
+    desc: 'Move only the controller module''s opm catalog and core (modules/opm_controller/cue.mod) to the newest published versions, under the same holds and frozen paths, in the working tree. Never touches its image, identity.Version, generated files or release files, or any path outside the module. Exit 0 changed, 3 nothing to do, other on error; run with task -x.'
     vars: *cascade_resolver
     env:
       CASCADE_RESOLVER: '{{.CASCADE_RESOLVER_PATH}}'
@@ -63,7 +63,7 @@ tasks:
       - .tasks/cascade/cascade.sh
 
   cascade:module:title:
-    desc: 'Print the operator module cascade PR title for the working tree against CASCADE_BASE (default origin/main); exit 3 when nothing changed. Run with task -x.'
+    desc: 'Print the controller module cascade PR title for the working tree against CASCADE_BASE (default origin/main); exit 3 when nothing changed. Run with task -x.'
     vars: *cascade_resolver
     env:
       CASCADE_RESOLVER: '{{.CASCADE_RESOLVER_PATH}}'
@@ -72,7 +72,7 @@ tasks:
       - '"$CASCADE_RESOLVER" title --classes .tasks/cascade/module-classes --pins .tasks/cascade/module-pins.sh'
 
   cascade:module:body:
-    desc: 'Print the operator module cascade PR body for the working tree against CASCADE_BASE (default origin/main). Run with task -x.'
+    desc: 'Print the controller module cascade PR body for the working tree against CASCADE_BASE (default origin/main). Run with task -x.'
     vars: *cascade_resolver
     env:
       CASCADE_RESOLVER: '{{.CASCADE_RESOLVER_PATH}}'

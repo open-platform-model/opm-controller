@@ -12,7 +12,7 @@
 #
 #   image-tag-guard.sh digest REF
 #     Read-only: prints the manifest (list) digest REF resolves to, or fails.
-#     The operator module's release check and image PR name the image by it.
+#     The controller module's release check and image PR name the image by it.
 #
 # The output is GITHUB_OUTPUT-shaped (key=value lines on stdout).
 set -euo pipefail

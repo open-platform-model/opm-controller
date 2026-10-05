@@ -40,18 +40,24 @@ tasks:
         out="$("{{.KUSTOMIZE}}" build config/crd 2>/dev/null || true)"
         if [ -n "$out" ]; then echo "$out" | "{{.KUBECTL}}" delete --ignore-not-found={{.IGNORE_NOT_FOUND}} -f -; else echo "No CRDs to delete; skipping."; fi
 
-  controller:install:
+  deploy:
+    desc: Apply config/default with IMG as the manager image and nothing else (no image build or load, no registry patch, no rollout wait); the e2e suite's deploy
+    deps: [":dev:manifests:config", ":tool:kustomize"]
+    cmds:
+      - 'hack/render-config.sh "{{.KUSTOMIZE}}" "{{.IMG}}" config/default | "{{.KUBECTL}}" apply -f -'
+
+  install:
     desc: Deploy the controller manager
     deps: [":dev:manifests:config", ":tool:kustomize", ":kind:load", "crds"]
     cmds:
       - 'hack/render-config.sh "{{.KUSTOMIZE}}" "{{.IMG}}" config/default | "{{.KUBECTL}}" apply -f -'
       - |
-        {{.KUBECTL}} -n opm-operator-system patch deployment opm-operator-controller-manager \
+        {{.KUBECTL}} -n opm-controller-system patch deployment opm-controller-manager \
           --type=json \
           -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry={{.KIND_CUE_REGISTRY}}"}]'
-      - '{{.KUBECTL}} -n opm-operator-system rollout status deployment/opm-operator-controller-manager --timeout=120s'
+      - '{{.KUBECTL}} -n opm-controller-system rollout status deployment/opm-controller-manager --timeout=120s'
 
-  controller:uninstall:
+  uninstall:
     desc: Remove the controller manager
     deps: [":tool:kustomize"]
     cmds:

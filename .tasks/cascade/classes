@@ -1,4 +1,4 @@
-# Path classes for the cascade PR title (Phase 2 cascade contract §5.3, opm-operator block).
+# Path classes for the cascade PR title (Phase 2 cascade contract §5.3, opm-controller block).
 release-tool .opm-cli-version
 test config/samples/
 test test/

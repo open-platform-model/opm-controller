@@ -1,15 +1,15 @@
 name: Docs
 
-# The opm-operator docs bundle (docs-kit.cue): the authored pages under
+# The opm-controller docs bundle (docs-kit.cue): the authored pages under
 # docs/site/ plus the resource reference generated from config/crd/bases and
 # config/samples, built, signed and published by docs-kit's reusable
 # publish.yml (docs-kit docs/contracts.md C5). opmodel.dev's /docs/ tree pulls
-# it from ghcr.io/open-platform-model/docs/opm-operator.
+# it from ghcr.io/open-platform-model/docs/opm-controller.
 #
 #   pull_request       check: build and lint, publish nothing
 #   push to main       edge: publish the commit as the edge build
 #   workflow_dispatch  release: the recovery when release.yml's publish-docs
-#                      job did not run for an operator release, and the
+#                      job did not run for a controller release, and the
 #                      backfill of a release cut before this repository gained
 #                      docs-kit.cue: main's config meets the tag's tree. The
 #                      floor is v1.0.0-beta.4 (its tree has the four CRDs,
@@ -44,7 +44,7 @@ on:
         default: release
         required: true
       tag:
-        description: The operator release tag (vX.Y.Z)
+        description: The controller release tag (vX.Y.Z)
         type: string
         required: true
       # Required by publish.yml in revision mode, which refuses anything but
@@ -65,7 +65,7 @@ jobs:
       packages: read
     uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.0
     with:
-      project: opm-operator
+      project: opm-controller
       mode: check
 
   edge:
@@ -76,7 +76,7 @@ jobs:
       id-token: write
     uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.0
     with:
-      project: opm-operator
+      project: opm-controller
       mode: edge
 
   dispatch:
@@ -87,7 +87,7 @@ jobs:
       id-token: write
     uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.0
     with:
-      project: opm-operator
+      project: opm-controller
       mode: ${{ inputs.mode }}
       tag: ${{ inputs.tag }}
       fix: ${{ inputs.fix }}

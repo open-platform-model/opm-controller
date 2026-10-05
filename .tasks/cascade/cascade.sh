@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# cascade.sh: task deps:cascade. Moves opm-operator's upstream pins to the newest published
+# cascade.sh: task deps:cascade. Moves opm-controller's upstream pins to the newest published
 # versions in the working tree only (no commit, no push, no branch), following the Phase 2
 # cascade contract §5.2 and §6.3 and workspace RELEASING.md, sections "The cascade" and
 # "What each repo's task moves".
@@ -12,11 +12,11 @@
 # CLI from the unmodified tree when a fixture version may be set, C edits.
 #
 # Two scopes. CASCADE_SCOPE=repo (the default, task deps:cascade) moves everything above
-# and never touches the operator module, modules/opm_operator. CASCADE_SCOPE=module (task
+# and never touches the controller module, modules/opm_controller. CASCADE_SCOPE=module (task
 # deps:cascade:module) moves only that module's opm catalog and core, with the same rules,
 # holds and frozen paths a fixture module gets, and nothing else: not its image, its
 # identity.Version, its generated files or its release files. Its PR changes nothing
-# outside the module, so it releases the module and not the operator.
+# outside the module, so it releases the module and not the controller.
 set -euo pipefail
 here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck source-path=SCRIPTDIR source=lib.sh
@@ -52,7 +52,7 @@ SAMPLE_MI=config/samples/opmodel.dev_v1alpha1_moduleinstance.yaml
 CATALOG_GO=test/fixtures/catalog.go
 PROVIDER=test/fixtures/catalogs/provider
 CUE_VERSION_FILE=.github/workflows/test.yml
-OPMOD=modules/opm_operator
+OPMOD=modules/opm_controller
 SCOPE=${CASCADE_SCOPE:-repo}
 case $SCOPE in repo | module) ;; *) die "CASCADE_SCOPE must be repo or module, not '$SCOPE'" ;; esac
 
@@ -401,7 +401,7 @@ plan_cue_module() {
 
 # MODULE_DIRS: the fixture modules (consumers follow them). PLAN_DIRS: every cue module
 # whose catalog and core move. ADV_DIRS: every cue module whose version advances. The
-# module scope plans the operator module alone and advances nothing: its version moves
+# module scope plans the controller module alone and advances nothing: its version moves
 # only through its release PR.
 MODULE_DIRS=() PLAN_DIRS=() ADV_DIRS=()
 if [ "$SCOPE" = repo ]; then
@@ -545,7 +545,7 @@ for e in "${TEXT_EDITS[@]}"; do
   fi
 done
 
-# 3. Fixture modules and the provider catalog (or, in the module scope, the operator
+# 3. Fixture modules and the provider catalog (or, in the module scope, the controller
 # module): cue mod get with exact versions, then tidy.
 for d in "${PLAN_DIRS[@]}"; do
   [ -n "${GETS[$d]:-}" ] || continue

@@ -18,8 +18,8 @@ vars:
   PKG: '{{.PKG | default "hello"}}'
   PKGS: '{{.PKGS | default "hello hello_web podinfo redis"}}'
   RELEASE_DIR: '{{.RELEASE_DIR | default (printf "test/fixtures/modulepackages/%s" .PKG)}}'
-  RELEASE_REPO: '{{.RELEASE_REPO | default (printf "oci://localhost:5000/testing.opmodel.dev/releases/operator/%s" .PKG)}}'
-  RELEASE_GHCR_REPO: '{{.RELEASE_GHCR_REPO | default (printf "oci://ghcr.io/open-platform-model/testing.opmodel.dev/releases/operator/%s" .PKG)}}'
+  RELEASE_REPO: '{{.RELEASE_REPO | default (printf "oci://localhost:5000/testing.opmodel.dev/releases/controller/%s" .PKG)}}'
+  RELEASE_GHCR_REPO: '{{.RELEASE_GHCR_REPO | default (printf "oci://ghcr.io/open-platform-model/testing.opmodel.dev/releases/controller/%s" .PKG)}}'
   RELEASE_TAG: '{{.RELEASE_TAG | default "v0.0.1"}}'
 
 tasks:
@@ -32,7 +32,7 @@ tasks:
       - |
         {{.FLUX}} push artifact {{.RELEASE_REPO}}:{{.RELEASE_TAG}} \
           --path={{.RELEASE_DIR}} \
-          --source="opm-operator/test/fixtures" \
+          --source="opm-controller/test/fixtures" \
           --revision="{{.RELEASE_TAG}}"
 
   publish:all:
@@ -52,7 +52,7 @@ tasks:
       - |
         {{.FLUX}} push artifact {{.RELEASE_GHCR_REPO}}:{{.RELEASE_TAG}} \
           --path={{.RELEASE_DIR}} \
-          --source="opm-operator/test/fixtures" \
+          --source="opm-controller/test/fixtures" \
           --revision="{{.RELEASE_TAG}}"
 
   apply:

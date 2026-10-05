@@ -1,21 +1,21 @@
-name: Operator module deps
+name: Controller module deps
 
-# The operator module's own cascade PR (deps-cascade, "The operator module's
+# The controller module's own cascade PR (deps-cascade, "The controller module's
 # pin move opens its own pull request"). The repository's cascade
-# (deps-cascade.yml, task deps:cascade) never touches modules/opm_operator; this
+# (deps-cascade.yml, task deps:cascade) never touches modules/opm_controller; this
 # workflow moves only the module's opm catalog and core with
 # `task -x deps:cascade:module` and opens the move as its own fix(deps) PR on
 # module/deps, which changes nothing outside the module, so its squash commit
-# releases the module and not the operator.
+# releases the module and not the controller.
 #
 # It runs on the same upstream-released dispatch the receiver takes, and by
-# hand (gh workflow run module-deps.yml --repo open-platform-model/opm-operator
+# hand (gh workflow run module-deps.yml --repo open-platform-model/opm-controller
 # -f dry_run=true). It is a dry run unless the repo variable CASCADE_DRY_RUN is
 # exactly false: the diff goes to the job summary and nothing is pushed.
 #
 # Two jobs, as the receiver splits its work: compute runs the task with no
 # token and hands the change on as an artifact; publish mints the release App
-# token and only runs hack/operator-module/bot-pr.sh. The resolver checkout
+# token and only runs hack/controller-module/bot-pr.sh. The resolver checkout
 # names the one pinned .github SHA; task cascade:wiring:check lists it.
 
 on:
@@ -44,7 +44,7 @@ env:
 
 jobs:
   compute:
-    name: Move the operator module's catalog and core
+    name: Move the controller module's catalog and core
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -132,7 +132,7 @@ jobs:
           TITLE: ${{ steps.text.outputs.title }}
         run: |
           {
-            echo "## ${TITLE:-operator module pin move}"
+            echo "## ${TITLE:-controller module pin move}"
             echo
             echo '```diff'
             git diff
@@ -155,7 +155,7 @@ jobs:
           retention-days: 3
 
   publish:
-    name: Open or update the operator module deps PR
+    name: Open or update the controller module deps PR
     needs: compute
     if: >-
       needs.compute.outputs.changed == 'true'
@@ -197,9 +197,9 @@ jobs:
         run: |
           # Only the module may ride the PR: refuse any other member (a .git/
           # hook or config would never show in git status) before extracting.
-          bad=$(tar -tf "${RUNNER_TEMP}/change/module.tar" | grep -vE '^modules/opm_operator/' | head -n5 || true)
+          bad=$(tar -tf "${RUNNER_TEMP}/change/module.tar" | grep -vE '^modules/opm_controller/' | head -n5 || true)
           bad+=$(tar -tf "${RUNNER_TEMP}/change/module.tar" | grep -E '(^|/)\.\.(/|$)' | head -n5 || true)
-          [ -z "${bad}" ] || { echo "::error::the handed-over change holds paths outside modules/opm_operator/: ${bad}"; exit 1; }
+          [ -z "${bad}" ] || { echo "::error::the handed-over change holds paths outside modules/opm_controller/: ${bad}"; exit 1; }
           # Plain files and directories only: a symlink or hard link member
           # would point the commit at another file, such as .git/config.
           bad=$(tar -tvf "${RUNNER_TEMP}/change/module.tar" | grep -v '^[-d]' | head -n5 || true)
@@ -207,4 +207,4 @@ jobs:
           tar -xf "${RUNNER_TEMP}/change/module.tar" --no-same-owner
           id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
           BOT_NAME="${APP_SLUG}[bot]" BOT_EMAIL="${id}+${APP_SLUG}[bot]@users.noreply.github.com" \
-            hack/operator-module/bot-pr.sh module/deps "${TITLE}" "${RUNNER_TEMP}/change/body.md"
+            hack/controller-module/bot-pr.sh module/deps "${TITLE}" "${RUNNER_TEMP}/change/body.md"

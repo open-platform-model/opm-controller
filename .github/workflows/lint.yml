@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  # The operator module's release check runs cue; kept equal to test.yml's.
+  # The controller module's release check runs cue; kept equal to test.yml's.
   CUE_VERSION: 'v0.17.1'
 
 jobs:
@@ -23,8 +23,8 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The operator module's release check reads the operator tags
-          # (minimum operator version, config/ at the deployed tag).
+          # The controller module's release check reads the controller tags
+          # (minimum controller version, config/ at the deployed tag).
           fetch-depth: 0
 
       - name: Setup Go
@@ -52,44 +52,44 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash .tasks/cascade/wiring-check.sh --pin-on-main
 
-      # The operator's release PRs only: the operator module's release PR
+      # The controller's release PRs only: the controller module's release PR
       # ships none of go.mod or the fixtures, and its own pins are checked by
       # the module release gate below.
       - name: Release-pin gate (G1, release PRs only)
         if: >-
           startsWith(github.head_ref || github.ref_name, 'release-please--')
-          && (github.head_ref || github.ref_name) != 'release-please--branches--main--components--opm_operator'
+          && (github.head_ref || github.ref_name) != 'release-please--branches--main--components--opm_controller'
         run: task deps:release-check
 
-      # The operator module's release gate (operator-module-release, "Module
+      # The controller module's release gate (controller-module-release, "Module
       # release gate"), on its own release PR only. A step, not a job: a
       # skipped job reports as passing, a failing step fails Lint.
-      - name: Operator module release gate (module release PR only)
-        if: (github.head_ref || github.ref_name) == 'release-please--branches--main--components--opm_operator'
+      - name: Controller module release gate (module release PR only)
+        if: (github.head_ref || github.ref_name) == 'release-please--branches--main--components--opm_controller'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          v=$(jq -r '.["modules/opm_operator"] // empty' .release-please-manifest.json)
+          v=$(jq -r '.["modules/opm_controller"] // empty' .release-please-manifest.json)
           [[ $v =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-            || { echo "::error file=.release-please-manifest.json::no proposed operator module version: '$v'"; exit 1; }
-          task operator-module:release-check VERSION="$v"
+            || { echo "::error file=.release-please-manifest.json::no proposed controller module version: '$v'"; exit 1; }
+          task controller-module:release-check VERSION="$v"
 
       # The release gate's checks that need no network, over fixture trees.
-      - name: Operator module release gate (offline test)
-        run: task operator-module:release-check:test
+      - name: Controller module release gate (offline test)
+        run: task controller-module:release-check:test
 
       # The publish script's GHCR and job-local references and its once-only
       # and reuse rules, against stub opm and crane (offline).
-      - name: Operator module publish script (offline test)
-        run: task operator-module:publish:test
+      - name: Controller module publish script (offline test)
+        run: task controller-module:publish:test
 
       # The image PR's title, breaking and refusal rules, and the bot branch's
       # create, rebuild and extend rules (offline).
-      - name: Operator module image PR scripts (offline tests)
+      - name: Controller module image PR scripts (offline tests)
         run: |
-          task operator-module:image:test
-          task operator-module:bot-pr:test
+          task controller-module:image:test
+          task controller-module:bot-pr:test
 
       # task deps:cascade against the stub resolver, offline scenarios only
       # (.tasks/cascade/test.sh). The network scenarios run in cascade-task.yml.

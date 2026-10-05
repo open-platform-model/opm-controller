@@ -6,7 +6,7 @@ version: '3'
 #   - Local registry running: `task registry:start`
 #   - The fixture's deps published to the local registry: `test/fixtures/modules/hello`
 #     pins `opmodel.dev/core@v2` and `opmodel.dev/catalogs/opm@v4` in its
-#     `cue.mod/module.cue`, and the operator's generated platform module pins
+#     `cue.mod/module.cue`, and the controller's generated platform module pins
 #     exactly one build per subscribed catalog (the Platform CR's version), so
 #     every pinned build must be present at the same coordinates:
 #       * core:    from the `core/` repo —        `CUE_REGISTRY='opmodel.dev=localhost:5000+insecure' task publish VERSION=<pinned>`
@@ -23,7 +23,7 @@ version: '3'
 vars:
   MODULE_DIR: '{{.MODULE_DIR | default "test/fixtures/modules/hello"}}'
   # Force the mapping used for publishing regardless of shell env. The fixture
-  # lives under `testing.opmodel.dev/modules/operator/...` and its deps (core,
+  # lives under `testing.opmodel.dev/modules/controller/...` and its deps (core,
   # catalogs) under `opmodel.dev/...`; a shell-exported CUE_REGISTRY missing
   # either falls through to registry.cue.works and fails with 401. Deps resolve
   # from the local registry too, since this task exists for the fully-local flow.

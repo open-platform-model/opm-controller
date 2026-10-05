@@ -1,8 +1,8 @@
 name: Tests
 
 # Unit + integration tier. The registry-backed integration specs resolve the
-# fixture fleet (testing.opmodel.dev/modules/operator/* and the test catalog
-# testing.opmodel.dev/catalogs/operator/*) from a job-local
+# fixture fleet (testing.opmodel.dev/modules/controller/* and the test catalog
+# testing.opmodel.dev/catalogs/controller/*) from a job-local
 # registry seeded from THIS tree (hack/fixtures.sh seed), while core and the
 # catalogs still come from GHCR. A fixture bump and every consumer of its
 # version therefore land in ONE PR; publish-fixtures.yml publishes the same
@@ -59,10 +59,10 @@ jobs:
         with:
           version: 3.54.0 # exact, never a floating 3.x
 
-      - name: Operator module data follow config/
-        # config/ must match `task dev:manifests`, then modules/opm_operator's
-        # generated CRD and RBAC data must match config/ (hack/operator-module).
-        run: task operator-module:drift
+      - name: Controller module data follow config/
+        # config/ must match `task dev:manifests`, then modules/opm_controller's
+        # generated CRD and RBAC data must match config/ (hack/controller-module).
+        run: task controller-module:drift
 
       - name: Install opm
         run: |
