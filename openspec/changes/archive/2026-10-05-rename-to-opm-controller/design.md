@@ -12,7 +12,7 @@ The owner decided on 2026-10-05 to rename opm-operator to opm-controller across 
 
 **Non-Goals:**
 
-- Rewriting history: CHANGELOG entries, `openspec/changes/archive/**` and git tags stay as written (the owner's 2026-10-05 decision to rename dated material but keep changelogs, archived changes and tags).
+- Rewriting history: CHANGELOG entries, `openspec/changes/archive/**` and git tags stay as written (the owner's 2026-10-05 decision to rename dated material but keep changelogs, archived changes and tags). Recorded run results keep the names they were captured under (the owner's 2026-10-06 decision): the `hack/kind-opm-dev-test/FINDINGS.md` header and the sign-off of `TEST-PLAN-kernel-hidden-field-fix.md`.
 - The cli, `.github`, the site and every other consumer (their own changes).
 - The annotation `opm.dev/force-delete-orphan`.
 
@@ -32,9 +32,13 @@ const (
 
 The API enum is a hard rename: `+kubebuilder:validation:Enum=cli;controller`. An absent owner still means controller-managed.
 
+### No finalizer release on the controller's own instance
+
+The own-instance gate used to remove an `opmodel.dev/cleanup` finalizer from the controller's own instance without pruning. Only an opm-operator release could have added it, and no install carries over (0032:D1:R6), so the owner decided on 2026-10-06 to delete the guard with the rename. `handleOwnInstance` keeps the refusal, which runs before finalizer registration, so the controller never puts the finalizer there. The requirement leaves `module-instance-ownership` as REMOVED with no successor.
+
 ### Base name `manager`
 
-`config/manager/manager.yaml` and `config/rbac/service_account.yaml` name the Deployment and ServiceAccount `manager`, so the prefix `opm-controller-` gives `opm-controller-manager`; the module derives `"\(P)-manager"`. The pod label `control-plane: controller-manager` and the module's component key stay, so the e2e selectors and the module's fixed Deployment selector keep their shape.
+`config/manager/manager.yaml` and `config/rbac/service_account.yaml` name the Deployment and ServiceAccount `manager`, so the prefix `opm-controller-` gives `opm-controller-manager`; the module derives `"\(P)-manager"`. The pod label `control-plane` and the module's component key follow the base name (the owner's 2026-10-06 decision): `control-plane: manager` in `config/` and the e2e selectors, and the component `manager`, so the module's fixed Deployment selector is `control-plane`, `app.kubernetes.io/name` and `component.opmodel.dev/name` all `manager`, with `module-instance.opmodel.dev/name: opm-controller` and the workload type. The selector is immutable once module 0.1.0 publishes it, so it changes now or never.
 
 ### Release-please
 

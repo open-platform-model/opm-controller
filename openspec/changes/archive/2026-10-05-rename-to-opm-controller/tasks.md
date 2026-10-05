@@ -50,3 +50,11 @@ Built in the worktree `opm-operator/.claude/worktrees/rename-opm-controller` on 
 - [x] 7.1 Recreate `operator-module`, `operator-module-release`, `operator-resource-reference` and `operator-version-identity` as `controller-*`; REMOVED + ADDED retitles and MODIFIED wording in every other spec that names the operator; fold the still-valid deltas of `stop-operator-install-manifest` and remove that change.
 - [x] 7.2 `openspec validate rename-to-opm-controller --strict` and `openspec validate --all --strict` (no new failures) green, the residue search clean apart from history and the generic word; then commit `docs(openspec): propose rename-to-opm-controller`.
 - [x] 7.3 Verify the change against its artifacts, archive it with `retire_capabilities`, restore the requirement order and Purpose wording in the touched main specs, and commit `docs(openspec): archive rename-to-opm-controller`.
+
+## 8. Owner decisions of 2026-10-06 (folded after the archive)
+
+- [x] 8.1 Rebase onto main after `add-healthy-condition`: rename its product words, imports and `testControllerVersion`, regenerate, move its rows into `controller-conditions.md`, re-derive the archived `module-instance-ownership`, `reconcile-loop-assembly` and `render-input-key` deltas from the new main specs, and add the `kubernetes-tier-adoption` retitle and the `instance-health` delta.
+- [x] 8.2 Delete the own-instance finalizer release: the finalizer stripping in `handleOwnInstance`, its three tests, its docs sentences, and the requirement (REMOVED with no successor); commit `refactor(reconcile)!: delete the own-instance finalizer guard`.
+- [x] 8.3 Select the controller's pods by `manager`: `control-plane: manager` in `config/`, the module component key `manager`, the fixed selector in `test/integration/controllermodule`, the e2e selectors, the `controller-module` spec and ADR-019; regenerate `dist/install.yaml`; commit `refactor(module)!: select the controller's pods by manager`.
+- [x] 8.4 Restore the recorded run results in `hack/kind-opm-dev-test` to their recorded wording, with a note that they predate the rename.
+- [x] 8.5 Each spec edit is made in the archived delta and the main spec alike; every ADDED or MODIFIED block of the archived deltas equals its main-spec block, and no REMOVED title is left in a main spec.
