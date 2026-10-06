@@ -32,9 +32,15 @@ const (
 
 The API enum is a hard rename: `+kubebuilder:validation:Enum=cli;controller`. An absent owner still means controller-managed.
 
-### No finalizer release on the controller's own instance
+### Finalizer release only on a deleting own instance
 
-The own-instance gate used to remove an `opmodel.dev/cleanup` finalizer from the controller's own instance without pruning. Only an opm-operator release could have added it, and no install carries over (0032:D1:R6), so the owner decided on 2026-10-06 to delete the guard with the rename. `handleOwnInstance` keeps the refusal, which runs before finalizer registration, so the controller never puts the finalizer there. The requirement leaves `module-instance-ownership` as REMOVED with no successor.
+The own-instance gate used to remove an `opmodel.dev/cleanup` finalizer from the controller's own instance without pruning, live or deleting. On 2026-10-06 the owner first decided to delete that release on the premise that only an opm-operator release could have added the finalizer, then narrowed the decision the same day once that premise proved false. The refusal runs before finalizer registration, so an instance recognised as the controller's own before its first reconcile never gets the finalizer. An instance recognised only after a normal reconcile already has it: a renamed or forked copy of the controller module, recognised once its inventory records a controller CRD, or an instance whose `spec.module.path` is later edited to the controller module. Without a release, deleting such an instance hangs, because the controller refuses to run its deletion cleanup.
+
+So `handleOwnInstance` now does this:
+- On a live own instance it leaves the finalizer and refuses as before.
+- On a deleting own instance that carries the finalizer it removes it, prunes nothing, writes no status, and emits a Warning event with reason `SelfManagementRefused`.
+
+The requirement is restated under a new title, "The controller releases its finalizer from a deleting own instance without pruning", and not framed as legacy handling. A CLI-owned own instance still goes to the owner-skip gate, which changes no finalizer.
 
 ### Base name `manager`
 
