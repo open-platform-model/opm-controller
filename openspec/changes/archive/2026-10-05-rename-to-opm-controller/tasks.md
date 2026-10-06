@@ -1,6 +1,6 @@
 # Tasks: rename-to-opm-controller
 
-Built in the worktree `opm-operator/.claude/worktrees/rename-opm-controller` on the branch `refactor/rename-to-opm-controller`, and merged at the rename cutover as one PR titled `refactor!:`. Cutover steps that need artifacts which do not exist yet (the first `opm-controller` release, its module image PR, module 0.1.0) are listed in the rename plan's cutover notes, not here.
+Built on the branch `refactor/rename-to-opm-controller`, and merged together with the other repositories' rename changes as one PR titled `refactor!:`. Steps that need artifacts which do not exist until after the merge (the first `opm-controller` release, its module image PR, module 0.1.0) are follow-ups outside this change; design.md, "Image pin of the module", describes them.
 
 ## 1. Go module path
 

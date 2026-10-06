@@ -64,7 +64,7 @@ The module key leaves `.release-please-manifest.json`, so release-please treats 
 
 ### Capability rename mechanics
 **Context**: OpenSpec 1.12 has no capability rename; a delta to a missing spec accepts only ADDED, and MODIFIED refuses to drop a scenario.
-**Explored**: INVENTORY "OpenSpec mechanics" and gap report `gap-r2-openspec-capability-rename` (rename plan directory).
+**Explored**: OpenSpec 1.12's archive rules for a delta against a missing spec and for a MODIFIED that drops a scenario; it offers no rename operation.
 **Decision**: Recreate each `operator-*` capability as `controller-*` (Purpose + ADDED) with the old one REMOVED and `retire_capabilities: true`; a requirement whose title or scenario names the operator is REMOVED + ADDED under a new title; a body-only change is MODIFIED.
 **Rationale**: The canonical recipe keeps an archive trail and is what the archive engine accepts.
 
