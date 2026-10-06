@@ -38,9 +38,9 @@ The own-instance gate used to remove an `opmodel.dev/cleanup` finalizer from the
 
 So `handleOwnInstance` now does this:
 - On a live own instance it leaves the finalizer and refuses as before.
-- On a deleting own instance that carries the finalizer it removes it, prunes nothing, writes no status, and emits a Warning event with reason `SelfManagementRefused`.
+- On a deleting own instance that carries the finalizer, whatever its `spec.owner`, it removes it, prunes nothing, writes no status, and emits a Warning event with reason `SelfManagementRefused`.
 
-The requirement is restated under a new title, "The controller releases its finalizer from a deleting own instance without pruning", and not framed as legacy handling. A CLI-owned own instance still goes to the owner-skip gate, which changes no finalizer.
+The requirement is restated under a new title, "The controller releases its finalizer from a deleting own instance without pruning", and not framed as legacy handling. The release runs before the owner-skip gate and ignores `spec.owner`. The refusal tells the user to set `spec.owner` to `cli`; if a CLI-owned own instance went to the owner-skip gate, which changes no finalizer, deleting it after following that advice would hang. On main before this change the hang could not happen, because the gate stripped the finalizer on the first refused reconcile.
 
 ### Base name `manager`
 

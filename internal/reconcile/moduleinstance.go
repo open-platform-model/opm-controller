@@ -840,13 +840,24 @@ func inventoryDigest(inv *releasesv1alpha1.Inventory) string {
 	return inv.Digest
 }
 
-// handleNotReconciled runs the two gates that keep the controller away from an
+// handleNotReconciled runs the gates that keep the controller away from an
 // instance, in order, and reports whether one of them handled it.
 func handleNotReconciled(
 	ctx context.Context,
 	params *ModuleInstanceParams,
 	mi *releasesv1alpha1.ModuleInstance,
 ) (bool, error) {
+	// A deleting own instance is released before the owner-skip gate, whatever
+	// its owner says. An own instance recognised only after a normal reconcile
+	// already carries the cleanup finalizer, and the refusal tells the user to
+	// set spec.owner to cli; if the owner-skip gate ran first, deleting it after
+	// that flip would wait forever on a cleanup nobody runs.
+	if !mi.DeletionTimestamp.IsZero() {
+		if signal, own := isOwnInstance(mi); own {
+			return true, handleOwnInstance(ctx, params, mi, signal)
+		}
+	}
+
 	// Owner-skip gate: CLI-owned instances are managed externally. The controller
 	// stays entirely hands-off — no render, apply, prune, deletion cleanup, and
 	// crucially no finalizer. The check sits before finalizer registration so a
@@ -906,7 +917,8 @@ func handleCLIOwned(
 }
 
 // handleOwnInstance refuses the controller's own instance when its owner is
-// absent or controller. It never renders, applies or prunes. The gate runs
+// absent or controller, and releases a deleting own instance whatever its
+// owner. It never renders, applies or prunes. The gate runs
 // before finalizer registration, so an instance recognised before its first
 // reconcile never gets the cleanup finalizer. An instance recognised only after
 // a normal reconcile (by its recorded inventory, or after its module path was

@@ -969,6 +969,85 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			deleteAndExpectReleased(ctx, nn, cm)
 		})
 
+		It("releases the finalizer without pruning when a refused own instance is handed to the cli and then deleted", func() {
+			ctx := context.Background()
+			cm := newManagedConfigMap(ctx, "own-cli-flip-kept")
+
+			// A forked copy that a normal reconcile already finalized. A second
+			// finalizer keeps the object readable after the release, so the
+			// spec can check that the deleting reconcile writes no status.
+			const hold = "test.opmodel.dev/hold"
+			mi := &releasesv1alpha1.ModuleInstance{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       "own-cli-flip-mi",
+					Namespace:  namespace,
+					Finalizers: []string{opmreconcile.FinalizerName, hold},
+				},
+				Spec: releasesv1alpha1.ModuleInstanceSpec{
+					Owner:  releasesv1alpha1.OwnerController,
+					Prune:  true,
+					Module: releasesv1alpha1.ModuleReference{Path: "example.com/forks/controller@v0", Version: "v0.1.0"},
+				},
+			}
+			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
+			nn := client.ObjectKeyFromObject(mi)
+
+			var current releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			current.Status.Inventory = &releasesv1alpha1.Inventory{
+				Revision: 1,
+				Count:    2,
+				Entries: []releasesv1alpha1.InventoryEntry{
+					{Group: "apiextensions.k8s.io", Kind: "CustomResourceDefinition", Name: "moduleinstances.opmodel.dev", Version: "v1"},
+					{Kind: "ConfigMap", Name: cm.Name, Namespace: namespace, Version: "v1"},
+				},
+			}
+			Expect(k8sClient.Status().Update(ctx, &current)).To(Succeed())
+
+			// Refused while live; the refusal tells the user to set spec.owner to cli.
+			_, err := newReconciler(events.NewFakeRecorder(10)).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			ready := apimeta.FindStatusCondition(current.Status.Conditions, status.ReadyCondition)
+			Expect(ready).NotTo(BeNil())
+			Expect(ready.Reason).To(Equal(status.SelfManagementRefusedReason))
+			Expect(ready.Message).To(ContainSubstring("Set spec.owner to cli"))
+
+			// The user follows the message, then deletes the instance.
+			current.Spec.Owner = releasesv1alpha1.OwnerCLI
+			Expect(k8sClient.Update(ctx, &current)).To(Succeed())
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			before := current.Status.DeepCopy()
+			Expect(k8sClient.Delete(ctx, &current)).To(Succeed())
+
+			recorder := events.NewFakeRecorder(10)
+			result, err := newReconciler(recorder).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(reconcile.Result{}))
+
+			var released releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &released)).To(Succeed())
+			Expect(controllerutil.ContainsFinalizer(&released, opmreconcile.FinalizerName)).To(BeFalse())
+			Expect(released.Finalizers).To(ConsistOf(hold))
+			Expect(released.Status).To(Equal(*before))
+
+			var event string
+			Eventually(recorder.Events).Should(Receive(&event))
+			Expect(event).To(ContainSubstring(status.SelfManagementRefusedReason))
+			Expect(event).To(ContainSubstring("without pruning"))
+
+			var kept corev1.ConfigMap
+			Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(cm), &kept)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, &kept)).To(Succeed())
+
+			released.Finalizers = nil
+			Expect(k8sClient.Update(ctx, &released)).To(Succeed())
+			Eventually(func() bool {
+				var gone releasesv1alpha1.ModuleInstance
+				return k8sClient.Get(ctx, nn, &gone) != nil
+			}, 5*time.Second, 100*time.Millisecond).Should(BeTrue())
+		})
+
 		It("releases the finalizer without pruning when an instance's module path was edited to the controller module", func() {
 			ctx := context.Background()
 			cm := newManagedConfigMap(ctx, "own-path-edit-kept")
