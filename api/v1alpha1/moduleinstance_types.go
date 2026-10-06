@@ -56,8 +56,9 @@ type ModuleInstanceSpec struct {
 	// module, or one whose inventory records the controller's own
 	// CustomResourceDefinitions. With an absent or "controller" value such an
 	// instance is refused (Ready=False, Stalled=True, reason
-	// SelfManagementRefused) and never gets the cleanup finalizer, so
-	// re-running the install can always repair the controller. Keep it "cli".
+	// SelfManagementRefused) and is never given the cleanup finalizer; one it
+	// already carries is removed on delete, without pruning. Re-running the
+	// install can always repair the controller. Keep it "cli".
 	// +kubebuilder:validation:Enum=cli;controller
 	// +optional
 	Owner OwnerType `json:"owner,omitempty"`

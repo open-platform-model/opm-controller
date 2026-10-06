@@ -910,12 +910,15 @@ func handleCLIOwned(
 // before finalizer registration, so an instance recognised before its first
 // reconcile never gets the cleanup finalizer. An instance recognised only after
 // a normal reconcile (by its recorded inventory, or after its module path was
-// edited to the controller module) already carries it, and this function does
-// not remove it. On a live instance it records Ready=False and Stalled=True
+// edited to the controller module) already carries it. On a live instance the
+// finalizer stays and the function records Ready=False and Stalled=True
 // (SelfManagementRefused) with the observed generation, so a client waiting on
 // that generation reads a final verdict; it leaves inventory, digests,
-// instanceUUID and history alone. No requeue: the refusal is re-evaluated when
-// the instance changes.
+// instanceUUID and history alone. On a deleting instance it removes the
+// finalizer without pruning anything, emits a SelfManagementRefused event and
+// writes no status, so deleting the instance never waits on a cleanup the
+// controller refuses to run. No requeue: the refusal is re-evaluated when the
+// instance changes.
 func handleOwnInstance(
 	ctx context.Context,
 	params *ModuleInstanceParams,
@@ -926,6 +929,19 @@ func handleOwnInstance(
 
 	if !mi.DeletionTimestamp.IsZero() {
 		params.Warnings.Forget(keyOf(mi))
+		if !controllerutil.ContainsFinalizer(mi, FinalizerName) {
+			return nil
+		}
+		log.Info("Releasing the cleanup finalizer from the controller's own instance without pruning", "signal", signal)
+		if err := removeFinalizer(ctx, params.Client, mi); err != nil {
+			if apierrors.IsNotFound(err) {
+				return nil
+			}
+			return fmt.Errorf("removing finalizer: %w", err)
+		}
+		params.EventRecorder.Eventf(mi, nil, corev1.EventTypeWarning,
+			status.SelfManagementRefusedReason, "Delete",
+			"this ModuleInstance deploys the controller (%s); released the cleanup finalizer without pruning", signal)
 		return nil
 	}
 

@@ -874,6 +874,150 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			Expect(k8sClient.Delete(ctx, &refused)).To(Succeed())
 		})
 
+		// newManagedConfigMap creates an OPM-managed ConfigMap, which the normal
+		// deletion path would prune.
+		newManagedConfigMap := func(ctx context.Context, name string) *corev1.ConfigMap {
+			GinkgoHelper()
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace,
+					Labels:    map[string]string{labels.ManagedBy: labels.ManagedByController},
+				},
+				Data: map[string]string{"k": "v"},
+			}
+			Expect(k8sClient.Create(ctx, cm)).To(Succeed())
+			return cm
+		}
+
+		// deleteAndExpectReleased deletes an own instance that carries the
+		// cleanup finalizer, reconciles it once and checks that the instance is
+		// gone, the ConfigMap in its inventory still exists and a
+		// SelfManagementRefused event was emitted.
+		deleteAndExpectReleased := func(ctx context.Context, nn types.NamespacedName, cm *corev1.ConfigMap) {
+			GinkgoHelper()
+			var current releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			Expect(controllerutil.ContainsFinalizer(&current, opmreconcile.FinalizerName)).To(BeTrue())
+			Expect(k8sClient.Delete(ctx, &current)).To(Succeed())
+
+			recorder := events.NewFakeRecorder(10)
+			result, err := newReconciler(recorder).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(reconcile.Result{}))
+
+			Eventually(func() bool {
+				var gone releasesv1alpha1.ModuleInstance
+				return k8sClient.Get(ctx, nn, &gone) != nil
+			}, 5*time.Second, 100*time.Millisecond).Should(BeTrue())
+
+			var event string
+			Eventually(recorder.Events).Should(Receive(&event))
+			Expect(event).To(ContainSubstring("Warning"))
+			Expect(event).To(ContainSubstring(status.SelfManagementRefusedReason))
+			Expect(event).To(ContainSubstring("without pruning"))
+
+			var kept corev1.ConfigMap
+			Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(cm), &kept)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, &kept)).To(Succeed())
+		}
+
+		It("keeps the finalizer on a live instance recognised by its inventory and releases it on delete without pruning", func() {
+			ctx := context.Background()
+			cm := newManagedConfigMap(ctx, "own-inventory-kept")
+
+			// A renamed copy of the controller module that a normal reconcile
+			// already finalized: only its recorded inventory gives it away.
+			mi := &releasesv1alpha1.ModuleInstance{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       "own-inventory-mi",
+					Namespace:  namespace,
+					Finalizers: []string{opmreconcile.FinalizerName},
+				},
+				Spec: releasesv1alpha1.ModuleInstanceSpec{
+					Owner:  releasesv1alpha1.OwnerController,
+					Prune:  true,
+					Module: releasesv1alpha1.ModuleReference{Path: "example.com/forks/controller@v0", Version: "v0.1.0"},
+				},
+			}
+			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
+			nn := client.ObjectKeyFromObject(mi)
+
+			var current releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			current.Status.Inventory = &releasesv1alpha1.Inventory{
+				Revision: 1,
+				Count:    2,
+				Entries: []releasesv1alpha1.InventoryEntry{
+					{Group: "apiextensions.k8s.io", Kind: "CustomResourceDefinition", Name: "moduleinstances.opmodel.dev", Version: "v1"},
+					{Kind: "ConfigMap", Name: cm.Name, Namespace: namespace, Version: "v1"},
+				},
+			}
+			Expect(k8sClient.Status().Update(ctx, &current)).To(Succeed())
+
+			// Live: refused as before, and the finalizer stays.
+			_, err := newReconciler(events.NewFakeRecorder(10)).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
+			Expect(err).NotTo(HaveOccurred())
+			var refused releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &refused)).To(Succeed())
+			ready := apimeta.FindStatusCondition(refused.Status.Conditions, status.ReadyCondition)
+			Expect(ready).NotTo(BeNil())
+			Expect(ready.Reason).To(Equal(status.SelfManagementRefusedReason))
+			Expect(ready.Message).To(ContainSubstring("inventory records CustomResourceDefinition moduleinstances.opmodel.dev"))
+			Expect(controllerutil.ContainsFinalizer(&refused, opmreconcile.FinalizerName)).To(BeTrue())
+
+			deleteAndExpectReleased(ctx, nn, cm)
+		})
+
+		It("releases the finalizer without pruning when an instance's module path was edited to the controller module", func() {
+			ctx := context.Background()
+			cm := newManagedConfigMap(ctx, "own-path-edit-kept")
+
+			mi := &releasesv1alpha1.ModuleInstance{
+				ObjectMeta: metav1.ObjectMeta{Name: "own-path-edit-mi", Namespace: namespace},
+				Spec: releasesv1alpha1.ModuleInstanceSpec{
+					Owner:  releasesv1alpha1.OwnerController,
+					Prune:  true,
+					Module: releasesv1alpha1.ModuleReference{Path: "opmodel.dev/test/module", Version: "v0.1.0"},
+				},
+			}
+			Expect(k8sClient.Create(ctx, mi)).To(Succeed())
+			nn := client.ObjectKeyFromObject(mi)
+
+			// An ordinary instance: the first reconcile registers the finalizer.
+			result, err := newReconciler(events.NewFakeRecorder(10)).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+
+			var current releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			Expect(controllerutil.ContainsFinalizer(&current, opmreconcile.FinalizerName)).To(BeTrue())
+			current.Status.Inventory = &releasesv1alpha1.Inventory{
+				Revision: 1,
+				Count:    1,
+				Entries: []releasesv1alpha1.InventoryEntry{
+					{Kind: "ConfigMap", Name: cm.Name, Namespace: namespace, Version: "v1"},
+				},
+			}
+			Expect(k8sClient.Status().Update(ctx, &current)).To(Succeed())
+
+			// The module path is edited to the controller module.
+			Expect(k8sClient.Get(ctx, nn, &current)).To(Succeed())
+			current.Spec.Module.Path = ownModulePath
+			Expect(k8sClient.Update(ctx, &current)).To(Succeed())
+
+			_, err = newReconciler(events.NewFakeRecorder(10)).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
+			Expect(err).NotTo(HaveOccurred())
+			var refused releasesv1alpha1.ModuleInstance
+			Expect(k8sClient.Get(ctx, nn, &refused)).To(Succeed())
+			ready := apimeta.FindStatusCondition(refused.Status.Conditions, status.ReadyCondition)
+			Expect(ready).NotTo(BeNil())
+			Expect(ready.Reason).To(Equal(status.SelfManagementRefusedReason))
+			Expect(controllerutil.ContainsFinalizer(&refused, opmreconcile.FinalizerName)).To(BeTrue())
+
+			deleteAndExpectReleased(ctx, nn, cm)
+		})
+
 		It("removes conditions left by an earlier adoption and leaves CLI-written status alone", func() {
 			ctx := context.Background()
 			mi := newOwnInstance("own-adopted-mi", releasesv1alpha1.OwnerController)
