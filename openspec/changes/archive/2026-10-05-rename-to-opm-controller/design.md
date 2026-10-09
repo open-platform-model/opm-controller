@@ -32,15 +32,11 @@ const (
 
 The API enum is a hard rename: `+kubebuilder:validation:Enum=cli;controller`. An absent owner still means controller-managed.
 
-### Finalizer release only on a deleting own instance
+### The own-instance finalizer release is unchanged
 
-The own-instance gate used to remove an `opmodel.dev/cleanup` finalizer from the controller's own instance without pruning, live or deleting. On 2026-10-06 the owner first decided to delete that release on the premise that only an opm-operator release could have added the finalizer, then narrowed the decision the same day once that premise proved false. The refusal runs before finalizer registration, so an instance recognised as the controller's own before its first reconcile never gets the finalizer. An instance recognised only after a normal reconcile already has it: a renamed or forked copy of the controller module, recognised once its inventory records a controller CRD, or an instance whose `spec.module.path` is later edited to the controller module. Without a release, deleting such an instance hangs, because the controller refuses to run its deletion cleanup.
+The own-instance gate removes an `opmodel.dev/cleanup` finalizer from the controller's own instance without pruning, live or deleting, on the first reconcile that recognises the instance. This change keeps that behaviour and only renames it.
 
-So `handleOwnInstance` now does this:
-- On a live own instance it leaves the finalizer and refuses as before.
-- On a deleting own instance that carries the finalizer, whatever its `spec.owner`, it removes it, prunes nothing, writes no status, and emits a Warning event with reason `SelfManagementRefused`.
-
-The requirement is restated under a new title, "The controller releases its finalizer from a deleting own instance without pruning", and not framed as legacy handling. The release runs before the owner-skip gate and ignores `spec.owner`. The refusal tells the user to set `spec.owner` to `cli`; if a CLI-owned own instance went to the owner-skip gate, which changes no finalizer, deleting it after following that advice would hang. On main before this change the hang could not happen, because the gate stripped the finalizer on the first refused reconcile.
+History: on 2026-10-06 the owner first decided to delete the release, on the premise that only an opm-operator release could have added the finalizer, and narrowed the decision the same day to "release on delete only" once the premise proved false. Both decisions were built on this branch. On 2026-10-09 the owner withdrew both: the behaviour of main stands. The reason is the uninstall. A finalizer on a live own instance blocks `opm controller uninstall`, which refuses while any ModuleInstance carries the finalizer, and with no controller running nothing could clear it. The requirement keeps its text under the title "The controller releases its finalizer from its own instance without pruning".
 
 ### Base name `manager`
 

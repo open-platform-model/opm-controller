@@ -1207,24 +1207,13 @@ func inventoryDigest(inv *releasesv1alpha1.Inventory) string {
 	return inv.Digest
 }
 
-// handleNotReconciled runs the gates that keep the controller away from an
+// handleNotReconciled runs the two gates that keep the controller away from an
 // instance, in order, and reports whether one of them handled it.
 func handleNotReconciled(
 	ctx context.Context,
 	params *ModuleInstanceParams,
 	mi *releasesv1alpha1.ModuleInstance,
 ) (bool, error) {
-	// A deleting own instance is released before the owner-skip gate, whatever
-	// its owner says. An own instance recognised only after a normal reconcile
-	// already carries the cleanup finalizer, and the refusal tells the user to
-	// set spec.owner to cli; if the owner-skip gate ran first, deleting it after
-	// that flip would wait forever on a cleanup nobody runs.
-	if !mi.DeletionTimestamp.IsZero() {
-		if signal, own := isOwnInstance(mi); own {
-			return true, handleOwnInstance(ctx, params, mi, signal)
-		}
-	}
-
 	// Owner-skip gate: CLI-owned instances are managed externally. The controller
 	// stays entirely hands-off — no render, apply, prune, deletion cleanup, and
 	// crucially no finalizer. The check sits before finalizer registration so
@@ -1296,20 +1285,14 @@ func handleCLIOwned(
 }
 
 // handleOwnInstance refuses the controller's own instance when its owner is
-// absent or controller, and releases a deleting own instance whatever its
-// owner. It never renders, applies or prunes. The gate runs
-// before finalizer registration, so an instance recognised before its first
-// reconcile never gets the cleanup finalizer. An instance recognised only after
-// a normal reconcile (by its recorded inventory, or after its module path was
-// edited to the controller module) already carries it. On a live instance the
-// finalizer stays and the function records Ready=False and Stalled=True
-// (SelfManagementRefused) with the observed generation, so a client waiting on
-// that generation reads a final verdict; it leaves inventory, digests,
-// instanceUUID and history alone. On a deleting instance it removes the
-// finalizer without pruning anything, emits a SelfManagementRefused event and
-// writes no status, so deleting the instance never waits on a cleanup the
-// controller refuses to run. No requeue: the refusal is re-evaluated when the
-// instance changes.
+// absent or controller. It never renders, applies or prunes, and it releases a
+// cleanup finalizer an earlier controller release may have added, without
+// pruning, so neither uninstall nor a reinstall of the controller waits on a
+// finalizer only a running controller could clear. On a live instance it
+// records Ready=False and Stalled=True (SelfManagementRefused) with the
+// observed generation, so a client waiting on that generation reads a final
+// verdict; it leaves inventory, digests, instanceUUID and history alone. No
+// requeue: the refusal is re-evaluated when the instance changes.
 func handleOwnInstance(
 	ctx context.Context,
 	params *ModuleInstanceParams,
@@ -1318,21 +1301,19 @@ func handleOwnInstance(
 ) error {
 	log := logf.FromContext(ctx)
 
-	if !mi.DeletionTimestamp.IsZero() {
-		params.Warnings.Forget(keyOf(mi))
-		if !controllerutil.ContainsFinalizer(mi, FinalizerName) {
-			return nil
-		}
-		log.Info("Releasing the cleanup finalizer from the controller's own instance without pruning", "signal", signal)
+	if controllerutil.ContainsFinalizer(mi, FinalizerName) {
+		log.Info("Releasing the cleanup finalizer from the controller's own instance without pruning")
 		if err := removeFinalizer(ctx, params.Client, mi); err != nil {
 			if apierrors.IsNotFound(err) {
+				params.Warnings.Forget(keyOf(mi))
 				return nil
 			}
 			return fmt.Errorf("removing finalizer: %w", err)
 		}
-		params.EventRecorder.Eventf(mi, nil, corev1.EventTypeWarning,
-			status.SelfManagementRefusedReason, "Delete",
-			"this ModuleInstance deploys the controller (%s); released the cleanup finalizer without pruning", signal)
+	}
+
+	if !mi.DeletionTimestamp.IsZero() {
+		params.Warnings.Forget(keyOf(mi))
 		return nil
 	}
 
