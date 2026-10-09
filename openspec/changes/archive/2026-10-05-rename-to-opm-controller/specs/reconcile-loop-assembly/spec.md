@@ -1,3 +1,11 @@
+## REMOVED Requirements
+
+### Requirement: A healthy ModuleInstance is reconciled periodically
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "A healthy ModuleInstance is reconciled again on a fixed interval" in this capability.
+
 ## MODIFIED Requirements
 
 ### Requirement: Status always patched
@@ -9,8 +17,10 @@ history, failure counters, and `nextRetryAt`. On `NoOp`, the patch is bounded
 to: drift condition (`Drifted`), the `Healthy` condition (`instance-health`),
 failure counter deltas (incl. drift counter), `nextRetryAt` clearing,
 `requiredContracts`, and `lastAppliedVersion` and `lastAppliedInputs` when the
-attempt rendered. `lastAttempted*`, `inventory`,
-and history MUST NOT be modified on `NoOp` — those fields describe meaningful
+attempt rendered, and the removal of expired Job entries from
+`inventory.entries` (`drift-detection`, "A missing object is restored").
+`lastAttempted*` and history MUST NOT be modified on `NoOp`, and `inventory`
+MUST NOT be modified in any other way: those fields describe meaningful
 reconcile outcomes.
 
 A reconcile that skips its render because its inputs are unchanged
@@ -25,7 +35,7 @@ was.
 
 `requiredContracts` is in the `NoOp` set deliberately, and it is the one field
 there that does not describe an outcome. It describes what the instance
-demands, which a reconcile can observe as changed without any digest changing —
+demands, which a reconcile can observe as changed without any digest changing:
 a regenerated platform re-enqueues every instance, and the render that follows
 may be a no-op for apply while being the only evidence that the demand moved.
 Bounding it out of the `NoOp` patch would leave the field describing a render
@@ -60,8 +70,17 @@ on the controller. Status subresource patches do not bump
 - **AND** `status.failureCounters` reflects phase counter deltas
   (incl. `drift` counter increment on dry-run failure)
 - **AND** `status.nextRetryAt` is cleared
-- **AND** `status.lastAttempted*`, `status.inventory`, and `status.history`
-  are NOT modified
+- **AND** `status.lastAttempted*` and `status.history` are NOT modified
+- **AND** `status.inventory` is NOT modified, except that an expired Job entry
+  is removed
+
+#### Scenario: NoOp removes an expired Job entry
+- **WHEN** the outcome is `NoOp` and a rendered Job that sets
+  `ttlSecondsAfterFinished` does not exist on the cluster
+- **THEN** the patch removes that Job from `status.inventory.entries` and sets
+  `status.inventory.count` to the number of entries left
+- **AND** `status.inventory.digest` and `status.inventory.revision` keep their
+  values
 
 #### Scenario: NoOp refreshes the demand the render just reported
 - **WHEN** the outcome is `NoOp` and the render that preceded it reported a
@@ -203,3 +222,111 @@ Source: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Controll
 
 - **WHEN** an instance that recorded `lastAppliedVersion` `0.1.0` renders a changed set whose module version cannot be read, and the apply succeeds
 - **THEN** `status.lastAppliedVersion` is absent from the object
+
+### Requirement: The instance identities are stored before the first write of an apply
+A ModuleInstance and a ModulePackage MUST carry in `status.instanceUUID` the identity of the instance the controller last rendered and began to apply, and in the optional field `status.previousInstanceUUID` the identity it had before, for as long as a change of identity is not settled. Source: owner decision of 2026-10-08 (the status holds the earlier and the new identity until the prune of that reconcile succeeded; then the earlier one is cleared).
+
+When a render's identity differs from `status.instanceUUID`, the reconciler MUST store the new state in the object's status before it applies any object, and MUST NOT apply when that write fails:
+
+- `status.instanceUUID` empty: it becomes the render's identity and `status.previousInstanceUUID` stays empty.
+- `status.instanceUUID` is `A`, `status.previousInstanceUUID` is empty and the render carries `B`: `status.instanceUUID` becomes `B` and `status.previousInstanceUUID` becomes `A`.
+- `status.instanceUUID` is `B`, `status.previousInstanceUUID` is `A` and the render carries `A`: the two values swap.
+
+`status.previousInstanceUUID` MUST be cleared in the status commit of a reconcile whose apply and prune succeeded, together with the new inventory, and MUST NOT be cleared by any other outcome: a failed or refused apply, a failed prune, a reconcile that applies nothing, or a recovered panic. A reconcile that applies nothing MUST write `status.instanceUUID` when it is empty and MUST leave both fields alone otherwise.
+
+While `status.previousInstanceUUID` is set, or a render is about to set it, a reconcile MUST NOT end as one that applies nothing, also when the render equals what was last applied: it MUST apply and prune, so that the objects an unsettled apply relabelled are relabelled back and the change is settled.
+
+#### Scenario: First reconcile records the identity
+- **GIVEN** a new ModuleInstance whose render carries identity `A`
+- **WHEN** the reconcile applies with success
+- **THEN** `status.instanceUUID` is `A` and `status.previousInstanceUUID` is empty
+
+#### Scenario: Both identities are stored before the apply
+- **GIVEN** a ModuleInstance with `status.instanceUUID` `A` whose `spec.module.path` changes, so that its render carries identity `B`
+- **WHEN** the apply fails
+- **THEN** the stored object has `status.instanceUUID` `B` and `status.previousInstanceUUID` `A`
+- **AND** `status.inventory` is unchanged
+
+#### Scenario: A refused apply keeps both identities
+- **GIVEN** the same change of identity, and an apply that succeeds while the reconcile is refused afterwards because dependents remain
+- **WHEN** the reconcile ends
+- **THEN** `status.instanceUUID` is `B` and `status.previousInstanceUUID` is `A`
+
+#### Scenario: A panic keeps both identities
+- **GIVEN** the same change of identity, and a reconcile that panics after the identities were stored
+- **WHEN** the panic was recorded as a failed attempt
+- **THEN** `status.instanceUUID` is `B` and `status.previousInstanceUUID` is `A`
+
+#### Scenario: Full success settles the change
+- **GIVEN** a ModuleInstance with `status.instanceUUID` `B` and `status.previousInstanceUUID` `A`
+- **WHEN** a reconcile applies and prunes with success
+- **THEN** `status.previousInstanceUUID` is empty and `status.instanceUUID` is `B`
+
+#### Scenario: Going back before the change is settled
+- **GIVEN** a ModuleInstance with `status.instanceUUID` `B` and `status.previousInstanceUUID` `A`, whose `spec.module.path` is set back so that its render carries `A`
+- **WHEN** the apply starts
+- **THEN** `status.instanceUUID` is `A` and `status.previousInstanceUUID` is `B`
+
+#### Scenario: Going back renders what was last applied
+- **GIVEN** a ModuleInstance whose last successful apply carried identity `A`, with `status.instanceUUID` `B` and `status.previousInstanceUUID` `A` after an apply of `B` whose prune failed, and whose `spec.module.path` is set back so that its render equals what was last applied
+- **WHEN** the controller reconciles
+- **THEN** the render is applied, and the objects that carry `B` carry `A` again
+- **AND** after the reconcile `status.instanceUUID` is `A`, `status.previousInstanceUUID` is empty and `Ready` is `True`
+
+#### Scenario: An object without the field gains it without an apply
+- **GIVEN** a ModuleInstance with an inventory and an empty `status.instanceUUID`, whose render equals what was applied
+- **WHEN** the controller reconciles and applies nothing
+- **THEN** `status.instanceUUID` holds the render's identity and `status.previousInstanceUUID` is empty
+
+#### Scenario: The identities cannot be stored
+- **GIVEN** a change of identity, and an API server that refuses the status write
+- **WHEN** the controller reconciles
+- **THEN** no object of the render is applied and the reconcile is retried
+
+## ADDED Requirements
+
+### Requirement: A healthy ModuleInstance is reconciled again on a fixed interval
+
+The controller SHALL take an instance reconcile interval from the flag `--instance-reconcile-interval` (default 10 minutes). When a ModuleInstance reconcile ends with outcome `NoOp`, `Applied` or `AppliedAndPruned`, or skips its render because its inputs are unchanged, and the health judgement asks for no requeue, the reconcile SHALL requeue after the interval plus a random addition of at most 10 percent of it. When the health judgement asks for a requeue, that requeue SHALL apply unchanged. The periodic requeue SHALL NOT set `status.nextRetryAt` and SHALL NOT count as a failure.
+
+An interval of `0` SHALL disable the periodic requeue. The controller MUST refuse to start with a negative interval. The interval is controller-wide: the ModuleInstance API SHALL NOT gain a field for it.
+
+A suspended ModuleInstance, a CLI-owned ModuleInstance and the controller's own instance SHALL NOT be requeued by the interval. A failed reconcile SHALL keep the requeue of its failure class.
+
+The periodic reconcile of an instance whose inputs and objects are unchanged SHALL end as a skipped render or as a `NoOp`: it sends no apply, records no history entry and changes no condition.
+
+#### Scenario: A rolled-out instance requeues on the interval
+
+- **WHEN** a controller-owned ModuleInstance reconcile ends `Applied` with `Healthy=True` and the interval is 10 minutes
+- **THEN** the reconcile requeues after at least 10 and at most 11 minutes
+- **AND** `status.nextRetryAt` is unset
+
+#### Scenario: A NoOp and a skipped render requeue on the interval
+
+- **WHEN** a later reconcile of the same unchanged instance ends as a `NoOp` or skips its render
+- **THEN** it requeues after at least 10 and at most 11 minutes
+
+#### Scenario: A skipped periodic reconcile writes nothing
+
+- **WHEN** the periodic reconcile of an unchanged, rolled-out instance skips its render
+- **THEN** no patch and no status patch is sent for the instance
+
+#### Scenario: A suspended instance is not requeued
+
+- **WHEN** a ModuleInstance has `spec.suspend: true` and the interval is 10 minutes
+- **THEN** its reconcile returns without a requeue
+
+#### Scenario: A CLI-owned instance is not requeued
+
+- **WHEN** a ModuleInstance has `spec.owner: cli` and the interval is 10 minutes
+- **THEN** its reconcile returns without a requeue
+
+#### Scenario: The interval is disabled
+
+- **WHEN** the interval is `0` and a ModuleInstance reconcile ends rolled out
+- **THEN** the reconcile returns without a requeue
+
+#### Scenario: A negative interval stops the controller
+
+- **WHEN** the controller starts with `--instance-reconcile-interval=-1s`
+- **THEN** it logs the invalid value and exits with a non-zero status

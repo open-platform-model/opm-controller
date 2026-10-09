@@ -22,7 +22,7 @@ The controller SHALL reconcile every `TransformerRegistration`, recording the ou
 
 ### Requirement: The claimed artifact must be a catalog
 
-Acceptance SHALL acquire the artifact named by `spec.catalog` at `spec.version` and SHALL refuse the claim unless that artifact is a `#Catalog` (enhancement 0015 D10). The refusal SHALL be structural (the kind gate the acquisition applies) rather than a rule this repo maintains. An artifact that cannot be resolved at all SHALL be refused distinguishably from one that resolves and is the wrong kind, since the first is a registry or coordinate problem and the second is an authoring one. One case is not a refusal: an accepted claim whose acquisition fails with a transient registry failure keeps its verdict, as the requirement "An accepted claim keeps its verdict through a transient registry failure" states.
+Acceptance SHALL acquire the artifact named by `spec.catalog` at `spec.version` and SHALL refuse the claim unless that artifact is a `#Catalog` (enhancement 0015 D10). The refusal SHALL be structural (the kind gate the acquisition applies) rather than a rule this repo maintains. An artifact that cannot be resolved at all SHALL be refused distinguishably from one that resolves and is the wrong kind, since the first is a registry or coordinate problem and the second is an authoring one. One case is not a refusal: an accepted claim whose acquisition fails with a transient registry failure keeps its verdict, as the requirement "An accepted claim keeps its verdict while the registry fails transiently" states.
 
 #### Scenario: A module artifact is refused
 
@@ -201,7 +201,7 @@ Acceptance SHALL reach the same verdict for a claim whether the library derives 
 - **WHEN** the `backup` catalog fixture's core pin is moved to `ProvidesSince` or later, or the library's `ProvidesSince` names a core that does not derive `provides`
 - **THEN** the spec whose path premise no longer holds fails, naming that premise, instead of passing on the other path
 
-### Requirement: An accepted claim keeps its verdict through a transient registry failure
+### Requirement: An accepted claim keeps its verdict while the registry fails transiently
 
 When the acquisition of the claimed catalog fails with a transient registry failure, a claim whose `status.accepted` is true and whose `status.observedGeneration` equals its `metadata.generation` SHALL keep its verdict: `status.accepted`, `status.active`, the `Active` condition and a `Ready` condition that reports the acceptance SHALL stay as they were. A `Ready` condition that is not `True` reports no verdict (an earlier reconcile deferred it, as the first reconcile after a controller restart does); it SHALL become `Unknown` with reason `CatalogUnresolved`, so it names the current cause. A transient registry failure is the one the library classifies as transient (the registry gave no HTTP response, or it answered with a 5xx status), or a 429 answer, which the controller reads from the status of the library's typed fetch failure. The controller SHALL NOT classify by message text.
 

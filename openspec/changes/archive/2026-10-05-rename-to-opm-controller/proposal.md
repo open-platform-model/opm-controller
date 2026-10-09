@@ -37,7 +37,7 @@ Out of scope: the cli (`opm controller`, its own change), the `.github` cascade 
 - `release-automation`: a controller release requires only `opm-examples.tar.gz`; requirements whose scenario named the operator are restated under new titles.
 - `module-instance-ownership`: the requirement "The operator releases its finalizer from its own instance without pruning" is removed and narrowed to the new requirement "The controller releases its finalizer from a deleting own instance without pruning".
 - `instance-health`: the `Healthy` requirement's body names the controller.
-- `module-instance-ownership`, `platform-crd`, `render-input-key`, `workflow-hardening`, `cascade-receiver`, `docs-bundle`, `deps-cascade`, `example-module-publishing`, `kernel-module-renderer`, `kubernetes-tier-adoption`, `library-kernel-runtime`, `modulepackage-kernel-rendering`, `platform-gated-rendering`, `platform-reconciler`, `viewer-roles`: requirements or scenarios that named the operator are removed and restated under new titles; body-only wording moves in these and the remaining specs that name the operator.
+- `module-instance-ownership`, `platform-crd`, `render-input-key`, `workflow-hardening`, `cascade-receiver`, `docs-bundle`, `deps-cascade`, `example-module-publishing`, `kernel-module-renderer`, `kubernetes-tier-adoption`, `library-kernel-runtime`, `modulepackage-kernel-rendering`, `platform-gated-rendering`, `platform-reconciler`, `prune-stale-resources`, `reconcile-loop-assembly`, `registration-acceptance`, `viewer-roles`: requirements or scenarios that named the operator are removed and restated under new titles; body-only wording moves in these and the remaining specs that name the operator.
 
 ## Impact
 

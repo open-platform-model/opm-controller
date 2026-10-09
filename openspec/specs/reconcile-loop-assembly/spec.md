@@ -325,7 +325,7 @@ Source: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Controll
 - **WHEN** an instance that recorded `lastAppliedVersion` `0.1.0` renders a changed set whose module version cannot be read, and the apply succeeds
 - **THEN** `status.lastAppliedVersion` is absent from the object
 
-### Requirement: A healthy ModuleInstance is reconciled periodically
+### Requirement: A healthy ModuleInstance is reconciled again on a fixed interval
 
 The controller SHALL take an instance reconcile interval from the flag `--instance-reconcile-interval` (default 10 minutes). When a ModuleInstance reconcile ends with outcome `NoOp`, `Applied` or `AppliedAndPruned`, or skips its render because its inputs are unchanged, and the health judgement asks for no requeue, the reconcile SHALL requeue after the interval plus a random addition of at most 10 percent of it. When the health judgement asks for a requeue, that requeue SHALL apply unchanged. The periodic requeue SHALL NOT set `status.nextRetryAt` and SHALL NOT count as a failure.
 

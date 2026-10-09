@@ -98,7 +98,7 @@ Only the kind `PersistentVolumeClaim` in the core group is kept. A PersistentVol
 - **WHEN** the controller prunes the stale set with no `spec.dataPolicy`
 - **THEN** the resource is deleted
 
-### Requirement: The opt-out is an optional field that changes no other field
+### Requirement: The opt-out field is optional and changes no other field
 `ModuleInstance` and `ModulePackage` MUST accept an optional field `spec.dataPolicy` with exactly two values, `Keep` and `Delete`. An absent value MUST mean `Keep`. The API server MUST refuse any other value. The CRD MUST NOT set a default, and an object stored before the field existed MUST be valid unchanged.
 
 For pruning and deletion, `spec.dataPolicy` MUST have no effect unless `spec.prune` is true, and the pair `dataPolicy: Delete` without `spec.prune` MUST be admitted, with a field description that says so: with `spec.prune` false or absent the controller prunes nothing, as before. `spec.prune` MUST keep its meaning for every kind other than PersistentVolumeClaim.
