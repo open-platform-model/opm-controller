@@ -74,7 +74,13 @@ type RolloutSpec struct {
 	// +optional
 	Strategy string `json:"strategy,omitempty"`
 
-	// ForceConflicts enables SSA force ownership when desired.
+	// ForceConflicts lets the controller delete and create again an object
+	// whose update the API server refuses, such as an object with a changed
+	// immutable field. A PersistentVolumeClaim is recreated this way only
+	// when spec.dataPolicy is Delete; otherwise the claim is kept and the
+	// apply reports the reason ClaimConflict. The field does not change
+	// field ownership: the controller always takes ownership of the fields it
+	// applies.
 	// +optional
 	ForceConflicts bool `json:"forceConflicts,omitempty"`
 }
@@ -125,6 +131,26 @@ type FailureCounters struct {
 
 	// +optional
 	Drift int64 `json:"drift,omitempty"`
+}
+
+// DataPolicy says what the controller does with PersistentVolumeClaims.
+type DataPolicy string
+
+const (
+	// DataPolicyKeep keeps PersistentVolumeClaims. An absent value means the
+	// same.
+	DataPolicyKeep DataPolicy = "Keep"
+	// DataPolicyDelete lets the controller delete PersistentVolumeClaims under
+	// spec.prune, and delete and recreate one under
+	// spec.rollout.forceConflicts.
+	DataPolicyDelete DataPolicy = "Delete"
+)
+
+// DeletesClaims reports whether the policy lets the controller delete
+// PersistentVolumeClaims. Only Delete does: an absent value, Keep, and any
+// value this controller does not know all keep them.
+func (p DataPolicy) DeletesClaims() bool {
+	return p == DataPolicyDelete
 }
 
 // InventoryEntry identifies one owned Kubernetes resource.

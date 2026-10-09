@@ -2,19 +2,19 @@
 
 ### Requirement: The operator uses the library's object and label packages and keeps no copy
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller uses the library's object and label packages and keeps no copy" in this capability.
 
 ### Requirement: The operator uses the library's inventory package and keeps no copy
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller uses the library's inventory package and keeps no copy" in this capability.
 
 ### Requirement: The operator judges the health of inventory objects only through the library's health package
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller judges the health of inventory objects only through the library's health package" in this capability.
 

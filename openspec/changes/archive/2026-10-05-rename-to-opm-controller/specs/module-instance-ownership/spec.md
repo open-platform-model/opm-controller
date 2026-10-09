@@ -2,43 +2,43 @@
 
 ### Requirement: ModuleInstance carries an ownership marker
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "A ModuleInstance carries an ownership marker" in this capability.
 
 ### Requirement: The operator skips CLI-owned instances before registering a finalizer
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller skips CLI-owned instances before registering a finalizer" in this capability.
 
 ### Requirement: The operator acknowledges a CLI-owned instance with a single condition
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller acknowledges a CLI-owned instance with a single condition" in this capability.
 
 ### Requirement: Ownership handoff falls through to a normal reconcile
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "An ownership handoff falls through to a normal reconcile" in this capability.
 
 ### Requirement: The operator recognises the instance that deploys it
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller recognises the instance that deploys it" in this capability.
 
 ### Requirement: The operator never reconciles its own instance
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller never reconciles its own instance" in this capability.
 
 ### Requirement: The operator releases its finalizer from its own instance without pruning
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019), and the owner narrowed the requirement on 2026-10-06. The finalizer is no longer stripped from a live own instance: there it stays and the refusal runs as before. It is released only when the own instance is being deleted, because an instance recognised as the controller's own only after a normal reconcile (by its recorded inventory, or after its module path was edited to the controller module) already carries it, and would otherwise stay terminating.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021), and the owner narrowed the requirement on 2026-10-06. The finalizer is no longer stripped from a live own instance: there it stays and the refusal runs as before. It is released only when the own instance is being deleted, because an instance recognised as the controller's own only after a normal reconcile (by its recorded inventory, or after its module path was edited to the controller module) already carries it, and would otherwise stay terminating.
 
 **Migration**: See the requirement "The controller releases its finalizer from a deleting own instance without pruning" in this capability.
 
@@ -144,7 +144,7 @@ When a `ModuleInstance`'s `spec.owner` changes from `cli` to `controller`, the n
 
 The controller SHALL treat a `ModuleInstance` as the controller's own instance when any one of these holds, each read from the object as stored, without rendering the module:
 
-- its `metadata.name` is `opm-controller` and its `metadata.namespace` is `opm-controller-system`;
+- its `metadata.name` is `opm-controller` and its `metadata.namespace` is `opm-system`;
 - its `spec.module.path`, with any `@<major>` suffix removed, is `opmodel.dev/modules/opm_controller`;
 - its `status.inventory.entries` holds an entry of group `apiextensions.k8s.io` and kind `CustomResourceDefinition` whose name, after its first `.`, is the controller's own API group `opmodel.dev`.
 
@@ -152,7 +152,7 @@ The coordinates are the ones every CLI install records the controller's instance
 
 #### Scenario: Fixed coordinates identify the instance
 
-- **GIVEN** a `ModuleInstance` named `opm-controller` in namespace `opm-controller-system` whose module path is any value
+- **GIVEN** a `ModuleInstance` named `opm-controller` in namespace `opm-system` whose module path is any value
 - **WHEN** the controller reconciles it
 - **THEN** the controller treats it as the controller's own instance
 

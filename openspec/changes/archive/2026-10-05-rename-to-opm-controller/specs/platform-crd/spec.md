@@ -86,7 +86,7 @@ reconciliation and no cluster mutations.
 
 ### Requirement: PlatformStatus carries conditions and observedGeneration
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The Platform status carries conditions and observedGeneration" in this capability.
 

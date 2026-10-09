@@ -66,6 +66,7 @@ func deploymentRenderResult() *render.RenderResult {
 		labels: {
 			%q: %q
 			%q: %q
+			%q: %q
 		}
 	}
 	spec: {
@@ -79,6 +80,7 @@ func deploymentRenderResult() *render.RenderResult {
 }`, healthDeploymentName, namespace,
 		labels.ManagedBy, labels.ManagedByController,
 		labels.ModuleInstanceNamespace, namespace,
+		labels.ModuleInstanceUUID, stubRenderUUID,
 		healthDeploymentName, healthDeploymentName))
 	if dep.Err() != nil {
 		panic(fmt.Sprintf("compiling stub Deployment: %v", dep.Err()))
@@ -303,9 +305,11 @@ var _ = Describe("ModuleInstance Healthy condition", func() {
 		Expect(res.RequeueAfter).To(BeNumerically("<=", 2*time.Minute))
 	})
 
-	It("reports an object deleted out of band as Missing, across a NoOp", func() {
+	// A reconcile that renders creates the object again (restore_missing_test.go);
+	// one that skips its render has nothing to restore from and reports it.
+	It("reports an object deleted out of band as Missing while the render is skipped", func() {
 		ctx := context.Background()
-		r := newReconciler(&stubRenderer{}, 0)
+		r := newReconciler(&stubRenderer{}, interval)
 		nn := newInstance(ctx, "health-missing-mi", r)
 		reconcileOnce(ctx, r, nn)
 		Expect(healthy(get(ctx, nn)).Reason).To(Equal(status.RolledOutReason))
@@ -317,7 +321,7 @@ var _ = Describe("ModuleInstance Healthy condition", func() {
 		reconcileOnce(ctx, r, nn)
 
 		after := get(ctx, nn)
-		Expect(after.Status.History).To(HaveLen(historyBefore), "the render ended NoOp and re-applied nothing")
+		Expect(after.Status.History).To(HaveLen(historyBefore), "the skipped render applied nothing")
 		h := healthy(after)
 		Expect(h.Status).To(Equal(metav1.ConditionFalse))
 		Expect(h.Reason).To(Equal(status.NotRolledOutReason))

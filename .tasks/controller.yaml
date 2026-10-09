@@ -52,10 +52,10 @@ tasks:
     cmds:
       - 'hack/render-config.sh "{{.KUSTOMIZE}}" "{{.IMG}}" config/default | "{{.KUBECTL}}" apply -f -'
       - |
-        {{.KUBECTL}} -n opm-controller-system patch deployment opm-controller-manager \
+        {{.KUBECTL}} -n opm-system patch deployment opm-controller-manager \
           --type=json \
           -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry={{.KIND_CUE_REGISTRY}}"}]'
-      - '{{.KUBECTL}} -n opm-controller-system rollout status deployment/opm-controller-manager --timeout=120s'
+      - '{{.KUBECTL}} -n opm-system rollout status deployment/opm-controller-manager --timeout=120s'
 
   uninstall:
     desc: Remove the controller manager

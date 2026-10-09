@@ -18,13 +18,13 @@
 
 ### Requirement: The operator publishes one docs bundle
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller publishes one docs bundle" in this capability.
 
 ### Requirement: Every operator release publishes its docs bundle
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "Every controller release publishes its docs bundle" in this capability.
 

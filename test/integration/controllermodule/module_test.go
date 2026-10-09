@@ -107,7 +107,7 @@ var _ = Describe("The controller module", func() {
 				key{"CustomResourceDefinition", "", "modulepackages.opmodel.dev"},
 				key{"CustomResourceDefinition", "", "platforms.opmodel.dev"},
 				key{"CustomResourceDefinition", "", "transformerregistrations.opmodel.dev"},
-				key{"Namespace", "", "opm-controller-system"},
+				key{"Namespace", "", "opm-system"},
 				key{"ServiceAccount", ns, "opm-controller-manager"},
 				key{"Deployment", ns, "opm-controller-manager"},
 				key{"Service", ns, "opm-controller-manager-metrics-service"},

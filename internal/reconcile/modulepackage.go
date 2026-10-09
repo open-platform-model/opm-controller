@@ -16,6 +16,7 @@ import (
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/events"
@@ -86,6 +87,10 @@ type ModulePackageParams struct {
 	// of the key on a NoOp.
 	DriftRenderInterval time.Duration
 
+	// DeletionWait tunes the wait of a deletion cleanup for its deleted
+	// objects. The zero value is the production setting; tests set its clock.
+	DeletionWait DeletionWait
+
 	// convert exports a render result for apply. Nil, as in production,
 	// means convertRender; tests in this package set it to observe the
 	// conversion, for example that it runs while the render slot is held.
@@ -152,10 +157,7 @@ func ReconcileModulePackage(
 		return ctrl.Result{}, nil
 	}
 
-	if ready := apimeta.FindStatusCondition(pkg.Status.Conditions, status.ReadyCondition); ready != nil && ready.Reason == status.SuspendedReason {
-		log.Info("Reconciliation resumed")
-		params.EventRecorder.Eventf(&pkg, nil, corev1.EventTypeNormal, status.ResumedReason, "Resume", "Reconciliation resumed")
-	}
+	reportPackageResume(ctx, params.EventRecorder, &pkg)
 
 	// Check dependsOn before any other work.
 	if blocker, checkErr := checkDependsOn(ctx, params.Client, &pkg); checkErr != nil {
@@ -205,6 +207,11 @@ func ReconcileModulePackage(
 		// nil until a render result is in hand. A success or a NoOp records
 		// it as lastAppliedInputs; a failure or a panic does not.
 		renderedInputs *status.RenderInputKey
+
+		// adopted is the number of rendered objects the apply verdict let go
+		// in this attempt (adopted by another instance). The message of
+		// Ready=True states it.
+		adopted int
 	)
 
 	// A panic is recovered first: the outcome is still its zero value, NoOp,
@@ -224,7 +231,7 @@ func ReconcileModulePackage(
 		pkg.Status.ObservedGeneration = pkg.Generation
 
 		if outcome == NoOp {
-			status.MarkReady(&pkg, "Reconciliation succeeded")
+			status.MarkReady(&pkg, "%s", status.ReadyMessage(readySucceeded, adopted))
 			updateModulePackageFailureCounters(&pkg.Status, outcome, phases)
 			pkg.Status.NextRetryAt = nil
 			recordNoOpVersion(&pkg.Status.LastAppliedVersion, renderedVersion)
@@ -251,7 +258,14 @@ func ReconcileModulePackage(
 			pkg.Status.LastAppliedRenderDigest = digests.Render
 			recordInputs(&pkg.Status.LastAppliedInputs, renderedInputs, now)
 
+			// The digest stays that of the rendered set: the entries leave
+			// out the objects another instance adopted, and the next no-op
+			// check compares this digest with the next render.
 			pkg.Status.Inventory = nextInventory(pkg.Status.Inventory, newEntries)
+			pkg.Status.Inventory.Digest = digests.Inventory
+			// The apply and the prune succeeded: no object of the earlier
+			// identity is left to judge. The only place that clears it.
+			pkg.Status.PreviousInstanceUUID = ""
 			digests.Inventory = pkg.Status.Inventory.Digest
 
 			status.RecordModulePackageHistory(&pkg.Status, status.NewSuccessEntry(reconcileAction, "complete", digests, int64(len(newEntries))))
@@ -338,23 +352,58 @@ func ReconcileModulePackage(
 	key := renderedKey(digests.Source, digests.Config, converted.result, params.ControllerVersion, params.LibraryVersion)
 	renderedInputs = &key
 
+	// Decide what this render's identity means for the recorded ones, as a
+	// ModuleInstance does. A third identity while an earlier change is not
+	// settled is refused before anything is applied or pruned.
+	renderedUUID := extractInstanceUUID(converted.resources)
+	identities := planIdentities(pkg.Status.InstanceUUID, pkg.Status.PreviousInstanceUUID, renderedUUID, true)
+	if identities.Refused {
+		already := readyAlreadyStalledWith(conditionsAtStart, status.IdentityChangeUnsettledReason)
+		msg := refuseIdentityChange(params.EventRecorder, &pkg, already,
+			pkg.Status.InstanceUUID, pkg.Status.PreviousInstanceUUID, renderedUUID)
+		applyFail(&phaseFail{FailedStalled, msg, StalledRecheckInterval})
+		return ctrl.Result{RequeueAfter: retryAfter}, nil
+	}
+
 	lastApplied := status.DigestSet{
 		Source:    pkg.Status.LastAppliedSourceDigest,
 		Config:    pkg.Status.LastAppliedConfigDigest,
 		Render:    pkg.Status.LastAppliedRenderDigest,
 		Inventory: inventoryDigestModulePackage(pkg.Status.Inventory),
 	}
-	if status.IsNoOp(digests, lastApplied) {
+	// An identity change that is not settled is never a NoOp.
+	digestsUnchanged := identities.keepsNoOp(status.IsNoOp(digests, lastApplied))
+
+	// The apply guard (0012:D8:R1, R4), before the no-op decision and before
+	// the first write: a package has no drift check to carry a verdict that
+	// could not be asked, so a reconcile that renders and cannot judge its
+	// objects fails, also when every digest matches.
+	guarded, fail := guardModulePackageApply(ctx, params, &pkg, converted.resources,
+		identities.InstanceUUID, adoptedBefore(conditionsAtStart), digestsUnchanged, &phases)
+	if fail != nil {
+		applyFail(fail)
+		return ctrl.Result{RequeueAfter: retryAfter}, nil
+	}
+	guard := guarded.guard
+	adopted = guard.adopted
+
+	// Matching digests are a no-op unless the verdict changes what the
+	// package holds: an object to take in, or an inventoried object another
+	// instance adopted. Then the reconcile applies what the verdict allows
+	// and records the inventory.
+	if digestsUnchanged && !guard.changesInventory() {
 		log.Info("No changes detected, skipping apply")
 		params.EventRecorder.Eventf(&pkg, nil, corev1.EventTypeNormal, status.NoOpReason, "Reconcile", "No changes detected")
 		outcome = NoOp
+		identities.fillEmpty(&pkg.Status.InstanceUUID)
+		reportAdoptedElsewhere(params.EventRecorder, &pkg, guard.letGo, adoptedBefore(conditionsAtStart))
 		// Judged before the deferred NoOp commit, which patches it.
 		v := judgePackageHealth(ctx, params, &pkg, inventoryEntries(pkg.Status.Inventory))
 		applyHealth(&pkg, v)
 		return ctrl.Result{RequeueAfter: packageRequeue(healthRequeue(v, pkg.Status.LastAppliedAt, time.Now()), interval)}, nil
 	}
 
-	applyedResult, fail := applyAndPruneModulePackage(ctx, params, &pkg, converted, &phases)
+	applyedResult, fail := applyAndPruneModulePackage(ctx, params, patcher, &pkg, converted, identities, guarded, &phases)
 	if fail != nil {
 		applyFail(fail)
 		return ctrl.Result{RequeueAfter: retryAfter}, nil
@@ -363,8 +412,9 @@ func ReconcileModulePackage(
 	outcome = applyedResult.outcome
 	newEntries = applyedResult.entries
 	reconciled = true
-	status.MarkReady(&pkg, "Reconciliation succeeded")
-	params.EventRecorder.Eventf(&pkg, nil, corev1.EventTypeNormal, status.ReconciliationSucceededReason, "Reconcile", "Reconciliation succeeded")
+	status.MarkReady(&pkg, "%s", status.ReadyMessage(readySucceeded, adopted))
+	params.EventRecorder.Eventf(&pkg, nil, corev1.EventTypeNormal, status.ReconciliationSucceededReason, "Reconcile", readySucceeded)
+	reportAdoptedElsewhere(params.EventRecorder, &pkg, guard.letGo, adoptedBefore(conditionsAtStart))
 	log.Info("Reconciliation complete", "outcome", outcome.String())
 
 	// Judge health after the apply and prune returned, through the identity
@@ -666,7 +716,7 @@ func renderModulePackage(
 		}
 		reason := renderErrorReason(err)
 		status.MarkStalled(pkg, reason, "%s", err)
-		params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning, reason, "Render", "%s", err)
+		params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning, reason, "Render", "%s", render.EventNote(err))
 		return nil, &phaseFail{FailedStalled, err.Error(), StalledRecheckInterval}, nil
 	}
 	if kind != render.KindModuleInstance {
@@ -708,15 +758,20 @@ type applyPruneResult struct {
 func applyAndPruneModulePackage(
 	ctx context.Context,
 	params *ModulePackageParams,
+	patcher *patch.SerialPatcher,
 	pkg *releasesv1alpha1.ModulePackage,
 	converted *convertedRender,
+	identities identityPlan,
+	guarded *packageApply,
 	phases *phaseOutcomes,
 ) (*applyPruneResult, *phaseFail) {
 	log := logf.FromContext(ctx)
 
-	// The resources were converted under the render slot, and the CUE
-	// values that pinned the build are already gone.
-	resources := converted.resources
+	// The apply list is what the apply verdict allows of the rendered set.
+	// The stale set below is computed from the full render, so an object
+	// another instance adopted is never pruned.
+	guard := guarded.guard
+	resources := guard.allowed
 
 	var previousEntries []releasesv1alpha1.InventoryEntry
 	if pkg.Status.Inventory != nil {
@@ -724,21 +779,32 @@ func applyAndPruneModulePackage(
 	}
 	staleSet := staleEntries(previousEntries, converted.entries)
 
-	applyRM, applyClient, impErr := buildModulePackageApplyClient(ctx, params, pkg)
-	if impErr != nil {
-		status.MarkStalled(pkg, status.ImpersonationFailedReason, "%s", impErr)
-		return nil, &phaseFail{FailedStalled, impErr.Error(), StalledRecheckInterval}
+	applyRM, applyClient := guarded.rm, guarded.client
+
+	// A changed identity is stored before the first write of the apply: no
+	// apply without the record.
+	if err := identities.store(&pkg.Status.InstanceUUID, &pkg.Status.PreviousInstanceUUID,
+		func() error { return patchModulePackageIdentityStatus(ctx, patcher, pkg) }); err != nil {
+		status.MarkNotReady(pkg, status.ApplyFailedReason, "%s", err)
+		return nil, &phaseFail{FailedTransient, err.Error(), modulePackageBackoff(pkg)}
 	}
 
 	// Apply.
 	phases.applyRan = true
-	force := pkg.Spec.Rollout != nil && pkg.Spec.Rollout.ForceConflicts
-	applyResult, err := apply.Apply(ctx, applyRM, resources, force)
+	applyResult, err := apply.Apply(ctx, applyRM, resources, apply.ApplyOptions{
+		Force:      forcesConflicts(pkg.Spec.Rollout),
+		DeleteData: pkg.Spec.DataPolicy.DeletesClaims(),
+		TakenIn:    guard.pins,
+	})
 	if err != nil {
 		phases.applyFailed = true
-		params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning, status.ApplyFailedReason, "Apply", "%s", err)
-		status.MarkNotReady(pkg, status.ApplyFailedReason, "%s", err)
-		return nil, &phaseFail{FailedTransient, err.Error(), modulePackageBackoff(pkg)}
+		reason, msg := status.ApplyFailedReason, err.Error()
+		if note, kept := claimConflictNote(err); kept {
+			reason, msg = status.ClaimConflictReason, note
+		}
+		params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning, reason, "Apply", "%s", msg)
+		status.MarkNotReady(pkg, reason, "%s", msg)
+		return nil, &phaseFail{FailedTransient, msg, modulePackageBackoff(pkg)}
 	}
 	total := applyResult.Created + applyResult.Updated + applyResult.Unchanged
 	params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeNormal, status.AppliedReason, "Apply",
@@ -752,9 +818,8 @@ func applyAndPruneModulePackage(
 	phases.pruneRan = true
 	outcome := Applied
 	if pkg.Spec.Prune && len(staleSet) > 0 {
-		// ModulePackage does not persist an instance UUID on Status; pass empty and rely
-		// on the managed-by check in the prune guard.
-		pruneResult, pruneErr := apply.Prune(ctx, applyClient, "", staleSet)
+		pruneResult, pruneErr := apply.Prune(ctx, applyClient, identities.Prune, staleSet,
+			apply.PruneOptions{DeleteData: pkg.Spec.DataPolicy.DeletesClaims()})
 		if pruneErr != nil {
 			phases.pruneFailed = true
 			params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning, status.PruneFailedReason, "Prune", "%s", pruneErr)
@@ -765,12 +830,101 @@ func applyAndPruneModulePackage(
 			params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeNormal, status.PrunedReason, "Prune",
 				"Pruned %d stale resources", pruneResult.Deleted)
 		}
-		outcome = AppliedAndPruned
+		reportKeptClaims(params.EventRecorder, pkg, "Prune", pruneResult.Kept)
+		reportLeftBehind(params.EventRecorder, pkg, "Prune", pruneResult.Left)
+		outcome = pruneOutcome(pruneResult)
 	}
 
 	sa, _ := resolveEffectiveSA(pkg.Spec.ServiceAccountName, params.DefaultServiceAccount)
 	reader := appliedReader(sa, applyClient, params.APIReader, params.Client)
-	return &applyPruneResult{outcome: outcome, entries: converted.entries, healthReader: reader}, nil
+	// An object another instance adopted is in no inventory this package
+	// records (0012:D8:R8); it stays in the cluster.
+	entries := withoutEntries(converted.entries, judgedObjects(guard.letGo))
+	return &applyPruneResult{outcome: outcome, entries: entries, healthReader: reader}, nil
+}
+
+// reportPackageResume logs and emits the Resumed event when pkg was suspended
+// until this reconcile.
+func reportPackageResume(ctx context.Context, recorder events.EventRecorder, pkg *releasesv1alpha1.ModulePackage) {
+	ready := apimeta.FindStatusCondition(pkg.Status.Conditions, status.ReadyCondition)
+	if ready == nil || ready.Reason != status.SuspendedReason {
+		return
+	}
+	logf.FromContext(ctx).Info("Reconciliation resumed")
+	recorder.Eventf(pkg, nil, corev1.EventTypeNormal, status.ResumedReason, "Resume", "Reconciliation resumed")
+}
+
+// packageApply is the client that applies a ModulePackage and what the apply
+// guard judged through it.
+type packageApply struct {
+	rm     *fluxssa.ResourceManager
+	client client.Client
+	guard  guardedApply
+}
+
+// guardModulePackageApply builds the client that applies pkg and runs the
+// apply guard over the rendered resources with identity, the instance's own
+// (guardApply). It returns a failure, with nothing written, when:
+//
+//   - the client cannot be built: Stalled with ImpersonationFailed;
+//   - an object cannot be read, or there is no identity to ask with: Stalled
+//     with ImpersonationFailed when the read is Forbidden under an effective
+//     ServiceAccount, Ready=False with ApplyFailed on the backoff otherwise;
+//   - the verdict refuses an object the reconcile would write, or one that
+//     exists outside the inventory: Ready=False with ApplyRefused, not
+//     stalled, on the backoff. A package writes every rendered object unless
+//     the reconcile is a no-op.
+//
+// The last two count as a failed apply.
+func guardModulePackageApply(
+	ctx context.Context,
+	params *ModulePackageParams,
+	pkg *releasesv1alpha1.ModulePackage,
+	resources []*unstructured.Unstructured,
+	identity string,
+	adoptedAtStart int,
+	digestsUnchanged bool,
+	phases *phaseOutcomes,
+) (*packageApply, *phaseFail) {
+	applyRM, applyClient, impErr := buildModulePackageApplyClient(ctx, params, pkg)
+	if impErr != nil {
+		status.MarkStalled(pkg, status.ImpersonationFailedReason, "%s", impErr)
+		return nil, &phaseFail{FailedStalled, impErr.Error(), StalledRecheckInterval}
+	}
+	sa, _ := resolveEffectiveSA(pkg.Spec.ServiceAccountName, params.DefaultServiceAccount)
+	guard := guardApply(ctx, nil, appliedReader(sa, applyClient, params.APIReader, params.Client),
+		resources, inventoryEntries(pkg.Status.Inventory), identity, adoptedAtStart)
+
+	if guard.err != nil {
+		phases.applyRan, phases.applyFailed = true, true
+		params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning, status.ApplyFailedReason, "Apply", "%s", guard.err)
+		if sa != "" && isForbidden(guard.err) {
+			status.MarkStalled(pkg, status.ImpersonationFailedReason, "%s", guard.err)
+			return nil, &phaseFail{FailedStalled, guard.err.Error(), StalledRecheckInterval}
+		}
+		status.MarkNotReady(pkg, status.ApplyFailedReason, "%s", guard.err)
+		return nil, &phaseFail{FailedTransient, guard.err.Error(), modulePackageBackoff(pkg)}
+	}
+	// A package that applies on matching digests (it takes an object in, or
+	// lets an inventoried one go) applies the rendered set: it has no restore
+	// step that would leave its inventoried objects alone. So it would write
+	// an inventoried object that is being deleted, and that refuses it. Only
+	// a reconcile that stays a no-op writes nothing over such an object.
+	writesNothing := digestsUnchanged && !guard.changesInventory()
+	if refusing := refusedToWrite(guard.refused, writesNothing); len(refusing) > 0 {
+		phases.applyRan, phases.applyFailed = true, true
+		msg := refuseApply(ctx, params.EventRecorder, pkg, refusing)
+		return nil, &phaseFail{FailedTransient, msg, modulePackageBackoff(pkg)}
+	}
+	return &packageApply{rm: applyRM, client: applyClient, guard: guard}, nil
+}
+
+// patchModulePackageIdentityStatus commits the two identity fields before an
+// apply, without marking the generation as observed.
+func patchModulePackageIdentityStatus(
+	ctx context.Context, patcher *patch.SerialPatcher, pkg *releasesv1alpha1.ModulePackage,
+) error {
+	return patchModulePackageDeletionStatus(ctx, patcher, pkg)
 }
 
 func modulePackageBackoff(pkg *releasesv1alpha1.ModulePackage) time.Duration {
@@ -904,129 +1058,32 @@ func removeModulePackageFinalizer(ctx context.Context, c client.Client, pkg *rel
 	return c.Patch(ctx, pkg, mergePatch)
 }
 
-// handleModulePackageDeletion runs the deletion cleanup path. Mirrors
-// handleDeletion in moduleinstance.go — both share the same SA-missing-at-delete
-// bug class and are kept symmetric on purpose. See that function's doc and
-// design.md (deletion-sa-missing-stall) for the stall/orphan branches.
+// handleModulePackageDeletion runs the deletion cleanup of a ModulePackage:
+// the one cleanup of both kinds, runDeletionCleanup, which documents every
+// branch.
 func handleModulePackageDeletion(ctx context.Context, params *ModulePackageParams, pkg *releasesv1alpha1.ModulePackage) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
-	log.Info("Running deletion cleanup for ModulePackage")
-
 	patcher := patch.NewSerialPatcher(pkg, params.Client)
-
-	if !pkg.Spec.Prune || pkg.Status.Inventory == nil || len(pkg.Status.Inventory.Entries) == 0 {
-		if !pkg.Spec.Prune {
-			log.Info("Prune disabled, orphaning managed resources on deletion")
-		}
-		if err := removeModulePackageFinalizer(ctx, params.Client, pkg); err != nil {
-			return ctrl.Result{}, fmt.Errorf("removing finalizer: %w", err)
-		}
-		log.Info("Finalizer removed, deletion can proceed")
-		return ctrl.Result{}, nil
-	}
-
-	effectiveSA, source := resolveEffectiveSA(pkg.Spec.ServiceAccountName, params.DefaultServiceAccount)
-	deleteClient := params.Client
-	if effectiveSA != "" && params.RestConfig != nil {
-		impClient, impErr := apply.NewImpersonatedClient(ctx, params.RestConfig, params.APIReader, params.Client.Scheme(), pkg.Namespace, effectiveSA)
-		if impErr != nil {
-			return handleModulePackageDeletionImpersonationFailure(ctx, params, patcher, pkg, effectiveSA, source, impErr)
-		}
-		deleteClient = impClient
-	}
-
-	pruneResult, err := apply.Prune(ctx, deleteClient, "", pkg.Status.Inventory.Entries)
-	if err != nil {
-		if effectiveSA != "" && isForbidden(err) {
-			log.Error(err, "Impersonation denied during deletion cleanup",
-				"serviceAccount", effectiveSA,
-				"serviceAccountSource", source)
-			emit := !readyAlreadyStalledWith(pkg.Status.Conditions, status.ImpersonationFailedReason)
-			status.MarkStalled(pkg, status.ImpersonationFailedReason, "%s", err)
-			if emit {
-				params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning,
-					status.ImpersonationFailedReason, "Delete", "%s", err)
-			}
-			if patchErr := patchModulePackageDeletionStatus(ctx, patcher, pkg); patchErr != nil {
-				log.Error(patchErr, "Failed to patch ModulePackage status on Forbidden deletion prune")
-			}
-			return ctrl.Result{RequeueAfter: StalledRecheckInterval}, nil
-		}
-		log.Error(err, "Partial failure during deletion cleanup, retaining finalizer")
-		return ctrl.Result{}, err
-	}
-	log.Info("Deletion cleanup pruned resources",
-		"deleted", pruneResult.Deleted, "skipped", pruneResult.Skipped)
-
-	if err := removeModulePackageFinalizer(ctx, params.Client, pkg); err != nil {
-		return ctrl.Result{}, fmt.Errorf("removing finalizer: %w", err)
-	}
-	log.Info("Finalizer removed, deletion can proceed")
-	return ctrl.Result{}, nil
-}
-
-func handleModulePackageDeletionImpersonationFailure(
-	ctx context.Context,
-	params *ModulePackageParams,
-	patcher *patch.SerialPatcher,
-	pkg *releasesv1alpha1.ModulePackage,
-	effectiveSA, source string,
-	impErr error,
-) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
-
-	if apply.IsServiceAccountNotFound(impErr) {
-		if pkg.GetAnnotations()[releasesv1alpha1.AnnotationForceDeleteOrphan] == "true" {
-			orphanCount := int64(len(pkg.Status.Inventory.Entries))
-			log.Info("Orphaning inventory and removing finalizer at operator request",
-				"serviceAccount", effectiveSA,
-				"serviceAccountSource", source,
-				"inventoryCount", orphanCount)
-			params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning,
-				status.OrphanedOnDeletionReason, "Delete",
-				"Orphaned %d managed resources; ServiceAccount %q missing and %s annotation set",
-				orphanCount, effectiveSA, releasesv1alpha1.AnnotationForceDeleteOrphan)
-			pkg.Status.Inventory = nil
-			if err := patchModulePackageDeletionStatus(ctx, patcher, pkg); err != nil {
-				log.Error(err, "Failed to patch ModulePackage status on orphan-exit")
-			}
-			if err := removeModulePackageFinalizer(ctx, params.Client, pkg); err != nil {
-				return ctrl.Result{}, fmt.Errorf("removing finalizer: %w", err)
-			}
-			log.Info("Finalizer removed, deletion can proceed")
-			return ctrl.Result{}, nil
-		}
-
-		log.Error(impErr, "Impersonation ServiceAccount missing during deletion; ModulePackage stalled pending operator action",
-			"serviceAccount", effectiveSA,
-			"serviceAccountSource", source,
-			"annotation", releasesv1alpha1.AnnotationForceDeleteOrphan)
-		msg := deletionSAMissingMessage(pkg.Namespace, effectiveSA)
-		emit := !readyAlreadyStalledWith(pkg.Status.Conditions, status.DeletionSAMissingReason)
-		status.MarkStalled(pkg, status.DeletionSAMissingReason, "%s", msg)
-		if emit {
-			params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning,
-				status.DeletionSAMissingReason, "Delete", "%s", msg)
-		}
-		if err := patchModulePackageDeletionStatus(ctx, patcher, pkg); err != nil {
-			log.Error(err, "Failed to patch ModulePackage status on DeletionSAMissing stall")
-		}
-		return ctrl.Result{RequeueAfter: StalledRecheckInterval}, nil
-	}
-
-	log.Error(impErr, "Impersonation failed during deletion cleanup",
-		"serviceAccount", effectiveSA,
-		"serviceAccountSource", source)
-	emit := !readyAlreadyStalledWith(pkg.Status.Conditions, status.ImpersonationFailedReason)
-	status.MarkStalled(pkg, status.ImpersonationFailedReason, "%s", impErr)
-	if emit {
-		params.EventRecorder.Eventf(pkg, nil, corev1.EventTypeWarning,
-			status.ImpersonationFailedReason, "Delete", "%s", impErr)
-	}
-	if err := patchModulePackageDeletionStatus(ctx, patcher, pkg); err != nil {
-		log.Error(err, "Failed to patch ModulePackage status on ImpersonationFailed stall")
-	}
-	return ctrl.Result{RequeueAfter: StalledRecheckInterval}, nil
+	return runDeletionCleanup(ctx, deletionEnv{
+		client:                params.Client,
+		apiReader:             params.APIReader,
+		restConfig:            params.RestConfig,
+		recorder:              params.EventRecorder,
+		defaultServiceAccount: params.DefaultServiceAccount,
+		wait:                  params.DeletionWait,
+	}, deletionTarget{
+		obj:            pkg,
+		kind:           "ModulePackage",
+		prune:          pkg.Spec.Prune,
+		deleteData:     pkg.Spec.DataPolicy.DeletesClaims(),
+		serviceAccount: pkg.Spec.ServiceAccountName,
+		entries:        inventoryEntries(pkg.Status.Inventory),
+		// An object that carries either recorded identity is the package's
+		// own. With none recorded the verdict is asked with no identity.
+		identities:      recordedIdentities(pkg.Status.InstanceUUID, pkg.Status.PreviousInstanceUUID),
+		clearInventory:  func() { pkg.Status.Inventory = nil },
+		patchStatus:     func(ctx context.Context) error { return patchModulePackageDeletionStatus(ctx, patcher, pkg) },
+		removeFinalizer: func(ctx context.Context) error { return removeModulePackageFinalizer(ctx, params.Client, pkg) },
+	})
 }
 
 func patchModulePackageDeletionStatus(ctx context.Context, patcher *patch.SerialPatcher, pkg *releasesv1alpha1.ModulePackage) error {

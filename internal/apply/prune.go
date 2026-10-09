@@ -7,138 +7,254 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/open-platform-model/library/opm/k8s/labels"
+	"github.com/open-platform-model/library/opm/k8s/lifecycle"
+	"github.com/open-platform-model/library/opm/k8s/ownership"
 
 	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
-// PruneResult carries counts of prune outcomes.
+// LeftBehind is one object a prune did not delete because the delete verdict
+// skipped it, with the library's reason and message.
+type LeftBehind struct {
+	Entry   releasesv1alpha1.InventoryEntry
+	Reason  ownership.SkipReason
+	Message string
+}
+
+// PruneResult carries the outcomes of one prune run.
 type PruneResult struct {
 	// Deleted is the number of stale resources successfully deleted.
 	Deleted int
 
-	// Skipped is the number of stale resources skipped due to safety exclusions.
+	// Skipped is the number of resources the delete verdict left in the
+	// cluster: len(Left).
 	Skipped int
+
+	// Left names every resource the delete verdict skipped, a kind OPM never
+	// deletes included. A resource that was already gone and a kept
+	// PersistentVolumeClaim are not listed.
+	Left []LeftBehind
+
+	// Kept lists the PersistentVolumeClaims the run left in the cluster
+	// because PruneOptions.DeleteData is false. A kept claim is not an error
+	// and is not counted in Skipped.
+	Kept []releasesv1alpha1.InventoryEntry
 }
 
-// Prune deletes stale resources from the cluster.
-// Uses direct client.Delete per resource rather than Flux's DeleteAll to allow
-// per-resource error control and safety exclusion logic (design decision 1).
+// PruneOptions tunes one prune run. The zero value protects data.
+type PruneOptions struct {
+	// DeleteData allows the deletion of PersistentVolumeClaims. The
+	// reconcilers set it from spec.dataPolicy; when false, every claim that
+	// would be deleted is kept and listed in PruneResult.Kept.
+	DeleteData bool
+}
+
+// ErrReplaced reports a DELETE the API server refused on the UID
+// precondition: the object was replaced since it was read. It is never
+// counted as deleted. Recognised by the API status, never by message text.
+var ErrReplaced = errors.New("object was replaced since it was read")
+
+// Prune deletes stale resources through the library's deletion plan
+// (opm/k8s/lifecycle), which judges every object with the library's delete
+// verdict (0012:D4:R1, 0012:D8:R8). It decides ownership with no comparison
+// of its own, and it deletes nothing itself: the plan runner sends each
+// delete the plan names, in the plan's order (descending kind weight), with
+// the plan's Foreground propagation and UID precondition.
 //
-// Safety exclusions (design decision 3: hard-coded, not configurable):
-//   - Namespace: never auto-deleted (cascades to all resources inside)
-//   - CustomResourceDefinition: never auto-deleted (deletes all instances globally)
+// identities are the instance identities to judge with, most recent first. An
+// object counts as the instance's own when the verdict says proceed for one
+// of them: there is one plan per identity, and the entries a plan skips as
+// another instance's, or as adopted by another instance, are asked again with
+// the next identity (RunDeletion). An empty list asks once with no identity,
+// which compares no UUID label and leaves every object that carries an adopt
+// annotation.
 //
-// Live-state ownership guard (defense-in-depth): before each delete, Prune
-// GETs the live object and skips the delete if the live object is not
-// OPM-managed (missing/unrecognized app.kubernetes.io/managed-by label) or
-// carries a module-instance.opmodel.dev/uuid label that disagrees with
-// ownerUUID. An empty live UUID label is tolerated (legacy resources predate
-// UUID stamping). An empty ownerUUID disables the UUID comparison — callers
-// that cannot supply a UUID (e.g. the ModulePackage reconciler, or a freshly-created
-// ModuleInstance whose Status.InstanceUUID is not yet persisted) fall back to
-// the managed-by check alone.
+// For each entry:
 //
-// Skipped resources are logged as warnings and counted in PruneResult.Skipped.
+//   - A kind OPM never deletes (a core Namespace, a CustomResourceDefinition
+//     of apiextensions.k8s.io, matched on group and kind) is left without a
+//     read.
+//   - The live object is read with c, the client that would delete it. An
+//     object that is already gone is done.
+//   - An object the verdict skips for every identity is left in the cluster
+//     and named in PruneResult.Left with the reason and message of the first
+//     verdict. That is not an error.
+//   - A PersistentVolumeClaim of the core API group is deleted only when
+//     opts.DeleteData is true, because deleting a claim deletes the data on
+//     its volume. Otherwise it never enters the plan: a claim the verdict
+//     would let the instance delete is left in place and listed in
+//     PruneResult.Kept, and a claim that cannot be read is kept without an
+//     error (ClassifyKeptClaims).
+//   - The DELETE carries a precondition on the UID of the object that was
+//     judged. A DELETE the API server refuses on it returns ErrReplaced for
+//     the entry: the object that now holds the name is not deleted.
 //
-// If a stale resource is already gone (NotFound), it is treated as success.
-// Individual failures (Get or Delete) are collected and returned as a joined
-// error; remaining entries continue (design decision 2: continue-on-error /
-// fail-slow).
+// A failed read or DELETE fails its entry, not the run: the remaining entries
+// are still attempted and the failures are returned as one joined error.
 //
-// The caller is responsible for:
-//   - Computing the stale set with the library's opm/k8s/inventory.StaleSet
-//   - Checking spec.prune before calling this function
-//   - Ensuring apply succeeded before calling prune
-//   - Supplying ownerUUID from the freshly-rendered resources or
-//     ModuleInstanceStatus.InstanceUUID
+// A delete the API server accepted counts as deleted. With Foreground
+// propagation the object can stay, terminating, until its dependents are
+// gone; Prune does not wait for that.
+//
+// The caller computes the stale set, checks spec.prune, and calls Prune only
+// after the apply succeeded. Apply protects claims in the same way on a
+// forced recreate (ApplyOptions).
 func Prune(
 	ctx context.Context,
 	c client.Client,
-	ownerUUID string,
+	identities []string,
 	stale []releasesv1alpha1.InventoryEntry,
+	opts PruneOptions,
 ) (*PruneResult, error) {
-	log := logf.FromContext(ctx)
-	result := &PruneResult{}
-
-	var errs []error
-	for _, entry := range stale {
-		if !isSafeToDelete(entry) {
-			log.Info("Skipping safety-excluded resource from pruning",
-				"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name)
-			result.Skipped++
-			continue
-		}
-
-		live := &unstructured.Unstructured{}
-		live.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   entry.Group,
-			Version: entry.Version,
-			Kind:    entry.Kind,
-		})
-		getErr := c.Get(ctx, types.NamespacedName{
-			Namespace: entry.Namespace,
-			Name:      entry.Name,
-		}, live)
-		if getErr != nil {
-			if apierrors.IsNotFound(getErr) {
-				log.V(1).Info("Stale resource already deleted",
-					"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name)
-				continue
-			}
-			errs = append(errs, fmt.Errorf("failed to get %s/%s %s: %w",
-				entry.Namespace, entry.Name, entry.Kind, getErr))
-			continue
-		}
-
-		liveLabels := live.GetLabels()
-		if !labels.IsOPMManagedBy(liveLabels[labels.ManagedBy]) {
-			log.Info("Skipping prune: live resource is not OPM-managed",
-				"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name,
-				"managedBy", liveLabels[labels.ManagedBy])
-			result.Skipped++
-			continue
-		}
-
-		liveUUID := liveLabels[labels.ModuleInstanceUUID]
-		if ownerUUID != "" && liveUUID != "" && liveUUID != ownerUUID {
-			log.Info("Skipping prune: live resource instance UUID does not match owner",
-				"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name,
-				"ownerUUID", ownerUUID, "liveUUID", liveUUID)
-			result.Skipped++
-			continue
-		}
-
-		if err := c.Delete(ctx, live); err != nil {
-			if apierrors.IsNotFound(err) {
-				log.V(1).Info("Stale resource already deleted",
-					"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name)
-				continue
-			}
-			errs = append(errs, fmt.Errorf("failed to delete %s/%s %s: %w",
-				entry.Namespace, entry.Name, entry.Kind, err))
-			continue
-		}
-
-		log.Info("Pruned stale resource",
-			"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name)
-		result.Deleted++
+	// The caller checked spec.prune, so the plan always prunes.
+	cleanup, err := RunCleanup(ctx, c, identities, stale, lifecycle.Policy{Prune: true}, opts)
+	if err != nil {
+		return cleanup.Report, err
 	}
-
-	return result, errors.Join(errs...)
+	return cleanup.Report, cleanup.Failed
 }
 
-// isSafeToDelete returns false for Namespace and CustomResourceDefinition kinds.
-func isSafeToDelete(entry releasesv1alpha1.InventoryEntry) bool {
-	switch entry.Kind {
-	case "Namespace", "CustomResourceDefinition":
-		return false
-	default:
-		return true
+// Cleanup is one deletion of a set of inventory entries: the plans that ran
+// and what they did, worded for a report.
+type Cleanup struct {
+	// Deletion holds the plans, for the hold verdict of a deletion cleanup.
+	Deletion Deletion
+
+	// Report counts and names what was deleted, left behind and kept. Left is
+	// in plan order (descending kind weight), with left-behind claims last.
+	// The order is deterministic and is not a contract.
+	Report *PruneResult
+
+	// Failed joins the errors of the steps that failed; nil when none did.
+	Failed error
+}
+
+// RunCleanup deletes entries through the library's deletion plan as Prune
+// documents, with the given policy, and returns the plans next to the report.
+// The PersistentVolumeClaims that opts keeps never enter a plan: they are
+// read and classified for the report only. With a policy that does not prune
+// nothing is read, also no claim.
+//
+// The returned error is the library's refusal of a plan state, which a run
+// from the zero State never meets; a failed read or delete is in Failed.
+func RunCleanup(
+	ctx context.Context,
+	c client.Client,
+	identities []string,
+	entries []releasesv1alpha1.InventoryEntry,
+	policy lifecycle.Policy,
+	opts PruneOptions,
+) (Cleanup, error) {
+	log := logf.FromContext(ctx)
+	result := &PruneResult{}
+	cleanup := Cleanup{Report: result}
+
+	planned, claims := SplitKeptClaims(entries, opts.DeleteData)
+	deletion, err := RunDeletion(ctx, c, planned, identities, policy)
+	cleanup.Deletion = deletion
+	if err != nil || !policy.Prune {
+		return cleanup, err
 	}
+
+	var errs []error
+	for _, step := range deletion.Results() {
+		entry := step.Entry
+		switch step.Outcome.Result {
+		case lifecycle.ResultDeleted:
+			log.Info("Pruned stale resource",
+				"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name)
+			result.Deleted++
+		case lifecycle.ResultSkipped:
+			if step.Outcome.Skip == ownership.SkipAlreadyAbsent {
+				log.V(1).Info("Stale resource already deleted",
+					"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name)
+				continue
+			}
+			result.leave(ctx, LeftBehind{Entry: entry, Reason: step.Outcome.Skip, Message: step.Outcome.Message})
+		case lifecycle.ResultFailed:
+			errs = append(errs, stepError(step))
+		}
+	}
+
+	kept, left := ClassifyKeptClaims(ctx, c, identities, claims)
+	result.Kept = kept
+	for _, l := range left {
+		result.leave(ctx, l)
+	}
+
+	cleanup.Failed = errors.Join(errs...)
+	return cleanup, nil
+}
+
+// stepError words a failed step as the prune's error for its entry, keeping
+// the API status of the failed read or delete.
+func stepError(step StepResult) error {
+	entry := step.Entry
+	verb := "get"
+	if step.Failed == lifecycle.ActionDelete {
+		verb = "delete"
+	}
+	cause := step.Err
+	if cause == nil {
+		// A read that returned another object than the entry's has no API
+		// error: the library's message says what was read.
+		cause = errors.New(step.Outcome.Message)
+	}
+	return fmt.Errorf("failed to %s %s/%s %s: %w", verb, entry.Namespace, entry.Name, entry.Kind, cause)
+}
+
+// leave records an entry the delete verdict skipped.
+func (r *PruneResult) leave(ctx context.Context, left LeftBehind) {
+	entry := left.Entry
+	logf.FromContext(ctx).Info("Leaving resource in place on prune",
+		"kind", entry.Kind, "namespace", entry.Namespace, "name", entry.Name,
+		"reason", string(left.Reason), "message", left.Message)
+	r.Left = append(r.Left, left)
+	r.Skipped = len(r.Left)
+}
+
+// judgeDelete asks the library's delete verdict for one live object with each
+// identity in turn, and returns the first verdict that says proceed. It is
+// for the report on a kept claim only: no delete follows its answer, since
+// every delete is judged inside the deletion plan. It asks
+// with the next identity only while the answer is that the object is another
+// instance's or adopted by another instance, the two answers that depend on
+// the identity. When no identity lets the delete proceed it returns the first
+// verdict. An empty list asks once with no identity.
+func judgeDelete(obj ownership.Object, live *unstructured.Unstructured, identities []string) ownership.DeleteVerdict {
+	if len(identities) == 0 {
+		identities = []string{""}
+	}
+	first := ownership.CanDelete(ownership.DeleteInput{Object: obj, Live: live, InstanceUUID: identities[0]})
+	verdict := first
+	for _, id := range identities[1:] {
+		if verdict.Skip != ownership.SkipOwnerMismatch && verdict.Skip != ownership.SkipAdoptedElsewhere {
+			break
+		}
+		verdict = ownership.CanDelete(ownership.DeleteInput{Object: obj, Live: live, InstanceUUID: id})
+	}
+	if verdict.Proceed() {
+		return verdict
+	}
+	return first
+}
+
+// replacedError marks err with ErrReplaced when it is the API server's
+// refusal of a DELETE on its UID precondition. The API server answers a
+// failed precondition with a Conflict status, and a DELETE that carries only
+// a UID precondition has no other cause of one.
+func replacedError(err error, uidPrecondition bool) error {
+	if uidPrecondition && apierrors.IsConflict(err) {
+		return fmt.Errorf("%w: %w", ErrReplaced, err)
+	}
+	return err
+}
+
+// isDataClaim reports whether entry is a PersistentVolumeClaim of the core
+// API group, the one kind whose deletion also deletes user data.
+func isDataClaim(entry releasesv1alpha1.InventoryEntry) bool {
+	return isCoreClaim(entry.Group, entry.Kind)
 }

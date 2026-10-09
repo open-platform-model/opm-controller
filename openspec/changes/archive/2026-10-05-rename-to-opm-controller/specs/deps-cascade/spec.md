@@ -91,19 +91,19 @@ The task SHALL move exactly these pins:
 
 ### Requirement: deps:cascade never touches release, workflow or shared files
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "deps:cascade leaves release, workflow and shared files alone" in this capability.
 
 ### Requirement: deps:cascade:module moves only the operator module's catalog and core
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "deps:cascade:module moves only the controller module's catalog and core" in this capability.
 
 ### Requirement: The operator module's pin move opens its own pull request
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller module's pin move opens its own pull request" in this capability.
 

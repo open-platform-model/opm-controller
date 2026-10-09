@@ -18,17 +18,12 @@ package opm_controller
 			]
 		}, {
 			apiGroups: [""]
-			resources: [
-				"groups",
-				"users",
-			]
-			verbs: ["impersonate"]
-		}, {
-			apiGroups: [""]
 			resources: ["serviceaccounts"]
 			verbs: [
 				"get",
 				"impersonate",
+				"list",
+				"watch",
 			]
 		}, {
 			apiGroups: ["events.k8s.io"]

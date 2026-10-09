@@ -12,6 +12,8 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -19,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/fluxcd/pkg/runtime/patch"
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
@@ -83,6 +86,15 @@ type ModuleInstanceParams struct {
 	// of the key on a NoOp.
 	DriftRenderInterval time.Duration
 
+	// ReconcileInterval is the manager's --instance-reconcile-interval: how
+	// long after a reconcile that ended well, and whose health asks for no
+	// requeue, the instance is reconciled again. Zero disables that requeue.
+	ReconcileInterval time.Duration
+
+	// DeletionWait tunes the wait of a deletion cleanup for its deleted
+	// objects. The zero value is the production setting; tests set its clock.
+	DeletionWait DeletionWait
+
 	// convert exports a render result for apply. Nil, as in production,
 	// means convertRender; tests in this package set it to observe the
 	// conversion, for example that it runs while the render slot is held.
@@ -101,10 +113,12 @@ func (p *ModuleInstanceParams) convertFn() func(*render.RenderResult) (*converte
 // commitNoOpStatus is the deferred status commit of a NoOp reconcile. Drift
 // detection ran and may have set or cleared the Drifted condition, and phase
 // counters may need an increment or reset, so they are persisted through a
-// bounded patch; lastAttempted, history and inventory are not touched. A
+// bounded patch; lastAttempted, history and inventory are not touched, except
+// that the entries of expired Jobs leave the inventory (forgetExpiredJobs). A
 // non-nil renderedInputs is recorded as lastAppliedInputs: the NoOp re-proves
 // that the cluster holds what those inputs produce. The caller passes nil
-// when the skip is disabled (noOpInputs).
+// when the skip is disabled (noOpInputs). adopted is the number of rendered
+// objects another instance adopted, which the Ready message states.
 //
 // NoOp implies the digests match LastApplied (a previous reconcile applied
 // successfully), so Ready=True is the correct state. MarkReconciling at the
@@ -117,9 +131,10 @@ func commitNoOpStatus(
 	phases phaseOutcomes,
 	renderedVersion *string,
 	renderedInputs *status.RenderInputKey,
+	adopted int,
 	reconcileStart time.Time,
 ) {
-	status.MarkReady(mi, "Reconciliation succeeded")
+	status.MarkReady(mi, "%s", status.ReadyMessage(readySucceeded, adopted))
 	updateFailureCounters(&mi.Status, NoOp, phases)
 	mi.Status.NextRetryAt = nil
 	recordNoOpVersion(&mi.Status.LastAppliedVersion, renderedVersion)
@@ -260,8 +275,11 @@ func ReconcileModuleInstance(
 	// deferred status commit is armed: a skip is not an attempt, emits no
 	// event and records no reconcile metric. It judges health, so a requeue
 	// waiting for a rollout can observe it, and patches that one condition.
-	if instanceRenderSkippable(ctx, params, &mi) {
-		return judgeSkippedInstance(ctx, params, patcher, &mi), nil
+	//
+	// One judgement cannot be finished without a render: an inventory Job
+	// that is absent. Then the reconcile renders after all.
+	if res, skipped := skipInstanceRender(ctx, params, patcher, &mi); skipped {
+		return res, nil
 	}
 
 	// Track digests and outcome across phases for deferred status commit.
@@ -292,6 +310,11 @@ func ReconcileModuleInstance(
 		// nil until a render result is in hand. A success or a NoOp records
 		// it as lastAppliedInputs; a failure, a refusal or a panic does not.
 		renderedInputs *status.RenderInputKey
+
+		// adopted is the number of rendered objects the apply verdict let go
+		// in this attempt (adopted by another instance). The message of
+		// Ready=True states it.
+		adopted int
 	)
 
 	// Deferred status commit — patches status on every reconcile attempt,
@@ -299,7 +322,8 @@ func ReconcileModuleInstance(
 	// failure counter deltas, clearing nextRetryAt, requiredContracts and,
 	// when this attempt rendered, lastAppliedVersion and (while the skip is
 	// enabled) lastAppliedInputs; lastAttempted/history/inventory are not
-	// touched (they describe meaningful outcomes).
+	// touched (they describe meaningful outcomes), except that the entries
+	// of expired Jobs leave the inventory (forgetExpiredJobs).
 	// Storm-safe: GenerationChangedPredicate on the controller's event filter
 	// prevents status-only patches from triggering watch-driven reconciles.
 	//
@@ -318,7 +342,7 @@ func ReconcileModuleInstance(
 		}
 		if outcome == NoOp {
 			commitNoOpStatus(ctx, patcher, &mi, phases, renderedVersion,
-				noOpInputs(params.DriftRenderInterval, renderedInputs), reconcileStart)
+				noOpInputs(params.DriftRenderInterval, renderedInputs), adopted, reconcileStart)
 			return
 		}
 
@@ -340,8 +364,14 @@ func ReconcileModuleInstance(
 			mi.Status.LastAppliedRenderDigest = digests.Render
 			recordInputs(&mi.Status.LastAppliedInputs, renderedInputs, now)
 
+			// The digest stays that of the rendered set: a restore leaves
+			// expired Jobs out of newEntries, and the next no-op check
+			// compares this digest with the next render.
 			mi.Status.Inventory = nextInventory(mi.Status.Inventory, newEntries)
-			digests.Inventory = mi.Status.Inventory.Digest
+			mi.Status.Inventory.Digest = digests.Inventory
+			// The apply and the prune succeeded: no object of the earlier
+			// identity is left to judge. The only place that clears it.
+			mi.Status.PreviousInstanceUUID = ""
 
 			entry := status.NewSuccessEntry(reconcileAction, "complete", digests, int64(len(newEntries)))
 			status.RecordHistory(&mi.Status, entry)
@@ -381,6 +411,13 @@ func ReconcileModuleInstance(
 			log.Error(patchErr, "Failed to patch ModuleInstance status")
 		}
 	}()
+
+	// Read before MarkReconciling resets Ready: a refusal that Ready already
+	// carries is not reported by a second event.
+	alreadyUnsettled := readyAlreadyStalledWith(mi.Status.Conditions, status.IdentityChangeUnsettledReason)
+	// Read here for the same reason: the number of let-go objects the Ready
+	// message stated decides whether this reconcile reports them by an event.
+	adoptedAtStart := adoptedBefore(mi.Status.Conditions)
 
 	// Mark reconciling at the start.
 	status.MarkReconciling(&mi, "Progressing", "Reconciliation in progress")
@@ -465,13 +502,13 @@ func ReconcileModuleInstance(
 	// later phase uses is derived from it.
 	resources := converted.resources
 
-	// Persist the rendered instance UUID on Status. All rendered resources
-	// carry the same UUID (stamped by the CUE catalog's moduleLabels merge);
-	// reading the first non-empty one is sufficient. Consumed by the prune
-	// ownership guard in both apply→prune and deletion paths.
-	if uuid := extractInstanceUUID(resources); uuid != "" {
-		mi.Status.InstanceUUID = uuid
-	}
+	// Decide what this render's identity means for the recorded ones. All
+	// rendered resources carry the same UUID (stamped by the CUE catalog's
+	// moduleLabels merge); reading the first non-empty one is sufficient.
+	// Nothing is written here: the apply path stores a changed identity
+	// before its first write, and a NoOp fills an empty field.
+	renderedUUID := extractInstanceUUID(resources)
+	identities := planIdentities(mi.Status.InstanceUUID, mi.Status.PreviousInstanceUUID, renderedUUID, false)
 
 	// Persist the contracts this instance's components demand (enhancement
 	// 0015:D3/D16), as the kernel's render reported them. Written here
@@ -486,6 +523,16 @@ func ReconcileModuleInstance(
 	// which over-reports demand and so blocks a claim deletion that could
 	// have proceeded. That is the direction a guard should fail in.
 	mi.Status.RequiredContracts = renderResult.RequiredContracts
+
+	// A third identity while an earlier change is not settled is refused
+	// before anything is applied or pruned: the one earlier identity the
+	// status keeps could not cover the objects of both earlier ones.
+	if identities.Refused {
+		msg := refuseIdentityChange(params.EventRecorder, &mi, alreadyUnsettled,
+			mi.Status.InstanceUUID, mi.Status.PreviousInstanceUUID, renderedUUID)
+		outcome, errMsg, retryAfter = FailedStalled, msg, StalledRecheckInterval
+		return ctrl.Result{RequeueAfter: retryAfter}, nil
+	}
 
 	// Phase 4a: judge the rendered claims before anything reaches the cluster
 	// (0015:D16). A provider upgrade whose re-rendered
@@ -515,7 +562,8 @@ func ReconcileModuleInstance(
 		Inventory: inventoryDigest(mi.Status.Inventory),
 	}
 
-	isNoOp := noOp(digests, lastApplied, refused)
+	// An identity change that is not settled is never a NoOp.
+	isNoOp := identities.keepsNoOp(noOp(digests, lastApplied, refused))
 
 	// Drift detection runs on every reconcile, including no-ops.
 	// Uses SSA dry-run to compare desired state against live cluster state.
@@ -528,17 +576,91 @@ func ReconcileModuleInstance(
 	// never clears, burying real drift on the same instance behind it. The
 	// refusal carries that signal instead. A resource that stops being
 	// withheld re-enters the apply list and is compared again from then on.
+	//
+	// The dry-run is sent by the client that applies: the impersonated
+	// ServiceAccount when one is effective, the controller's own otherwise.
+	// It is built once, here, and the health reads of a NoOp, the apply and
+	// the prune below reuse it. A client that cannot be built is reported by
+	// drift detection and does not end the reconcile: with unchanged digests
+	// there is nothing to apply. The apply phase stalls on the same error.
+	applyRM, applyClient, impErr := buildApplyClient(ctx, params, &mi)
+	effectiveSA, _ := resolveEffectiveSA(mi.Spec.ServiceAccountName, params.DefaultServiceAccount)
+
+	// Phase 4b: the apply guard (0012:D8:R1). Every object of the apply list
+	// is read once, live and as the identity that applies, and judged by the
+	// library's apply verdict with the instance's identity: the render's, or
+	// the recorded one. Never the earlier identity of an unsettled change,
+	// which another record can render, and never the list the prune judges
+	// with. It runs before drift detection, which reuses its reads, and
+	// before the first write.
+	//
+	// Without the client that applies there is no reader, so no guard runs:
+	// drift detection reports the error and the apply phase stalls on it.
+	guard := guardApply(ctx, impErr, appliedReader(effectiveSA, applyClient, params.APIReader, params.Client),
+		applyList, inventoryEntries(mi.Status.Inventory), identities.InstanceUUID, adoptedAtStart)
+	// A reconcile whose guard failed writes nothing. With changed digests,
+	// or with no identity to ask with, it fails as a failed apply. With
+	// unchanged digests the failed read is reported as a failed drift check
+	// below, and nothing is restored, taken in or let go.
+	if guard.failsApply(isNoOp) {
+		phases.applyRan, phases.applyFailed = true, true
+		outcome, errMsg = reportApplyFailure(params.EventRecorder, &mi, guard.err, effectiveSA)
+		retryAfter = retryIntervalFor(outcome, reconcileFailureCount(mi.Status.FailureCounters))
+		return ctrl.Result{RequeueAfter: retryAfter}, nil
+	}
+
+	// What the verdict allows is the apply list from here on. An object it
+	// lets go (adopted by another instance) is in no list: not applied, not
+	// compared, not restored. An object that is taken in (it exists outside
+	// the inventory) is applied by this reconcile, so it is left out of the
+	// dry-run diff: the difference is about to be closed and is not drift.
+	applyList, adopted = guard.allowed, guard.adopted
+
 	phases.driftRan = true
-	phases.driftFailed = detectDrift(ctx, params.ResourceManager, &mi, applyList)
+	var missing []*unstructured.Unstructured
+	missing, phases.driftFailed = detectDrift(ctx, applyRM, impErr, guard.err, &mi, withoutObjects(applyList, guard.takenIn))
+
+	// The same dry-run names the rendered objects the cluster lacks. With
+	// unchanged digests they, and the objects taken in, are the only thing
+	// to do: restoring applies them and nothing else, so an object that
+	// exists and is in the inventory is never rewritten and the drift just
+	// computed stays reported, not corrected (ADR-012, ADR-019).
+	//
+	// A missing Job with a TTL is not restored: it counts as finished, and
+	// it leaves the inventory so that no health judgement reads it as
+	// Missing.
+	digestsUnchanged := isNoOp
+	expired := expiredJobs(isNoOp, missing)
+	applyList, isNoOp, restoring := planRestore(ctx, isNoOp, missing, guard.takenIn, applyList)
+
+	// A refusal of the verdict refuses the whole reconcile, before the
+	// identity is stored and before any write (0012:D8:R1, R5): nothing is
+	// applied and nothing is pruned, so the cluster never holds half of a
+	// render and the retry judges the same state again. Not stalled: the
+	// remedy is on another object and no watch reports it, so the bounded
+	// backoff finds it. The inventory, the digests and both identities keep
+	// their values.
+	if refusing := refusedToWrite(guard.refused, digestsUnchanged); len(refusing) > 0 {
+		phases.applyRan, phases.applyFailed = true, true
+		errMsg = refuseApply(ctx, params.EventRecorder, &mi, refusing)
+		outcome = FailedTransient
+		retryAfter = ComputeBackoff(reconcileFailureCount(mi.Status.FailureCounters) + 1)
+		return ctrl.Result{RequeueAfter: retryAfter}, nil
+	}
+	letGo := guard.letGo
 
 	if isNoOp {
 		log.Info("No changes detected, skipping apply")
 		params.EventRecorder.Eventf(&mi, nil, corev1.EventTypeNormal, status.NoOpReason, "Reconcile", "No changes detected")
 		outcome = NoOp
+		identities.fillEmpty(&mi.Status.InstanceUUID)
+		forgetExpiredJobs(ctx, &mi, expired)
+		forgetLetGo(ctx, &mi, judgedObjects(letGo))
+		reportAdoptedElsewhere(params.EventRecorder, &mi, letGo, adoptedAtStart)
 		// Judged before the deferred NoOp commit, which patches it.
-		v := judgeInstanceHealth(ctx, params, &mi, inventoryEntries(mi.Status.Inventory))
+		v := judgeHealthAs(ctx, params, &mi, applyClient, impErr, inventoryEntries(mi.Status.Inventory))
 		applyHealth(&mi, v)
-		return ctrl.Result{RequeueAfter: healthRequeue(v, mi.Status.LastAppliedAt, time.Now())}, nil
+		return ctrl.Result{RequeueAfter: instanceRequeue(healthRequeue(v, mi.Status.LastAppliedAt, time.Now()), params.ReconcileInterval)}, nil
 	}
 
 	var previousEntries []releasesv1alpha1.InventoryEntry
@@ -547,9 +669,8 @@ func ReconcileModuleInstance(
 	}
 	staleSet := staleEntries(previousEntries, converted.entries)
 
-	// Build impersonated client and resource manager if serviceAccountName is set.
-	// Apply and prune use the impersonated identity; all other phases use the controller's own client.
-	applyRM, applyClient, impErr := buildApplyClient(ctx, params, &mi)
+	// Apply and prune use the identity built for drift detection above. An
+	// identity that could not be built stalls here, where it is needed.
 	if impErr != nil {
 		status.MarkStalled(&mi, status.ImpersonationFailedReason, "%s", impErr)
 		outcome = FailedStalled
@@ -560,14 +681,11 @@ func ReconcileModuleInstance(
 
 	// Phase 5: Apply resources.
 	phases.applyRan = true
-	force := mi.Spec.Rollout != nil && mi.Spec.Rollout.ForceConflicts
-	effectiveSA, _ := resolveEffectiveSA(mi.Spec.ServiceAccountName, params.DefaultServiceAccount)
-	applyResult, err := apply.Apply(ctx, applyRM, applyList, force)
+	applyResult, err := applyInstance(ctx, patcher, &mi, identities, applyRM, applyList,
+		apply.ApplyOptions{Force: forcesConflicts(mi.Spec.Rollout), DeleteData: mi.Spec.DataPolicy.DeletesClaims(), TakenIn: guard.pins})
 	if err != nil {
 		phases.applyFailed = true
-		params.EventRecorder.Eventf(&mi, nil, corev1.EventTypeWarning, status.ApplyFailedReason, "Apply", "%s", err)
-		outcome = markApplyFailure(&mi, err, effectiveSA)
-		errMsg = err.Error()
+		outcome, errMsg = reportApplyFailure(params.EventRecorder, &mi, err, effectiveSA)
 		retryAfter = retryIntervalFor(outcome, reconcileFailureCount(mi.Status.FailureCounters))
 		return ctrl.Result{RequeueAfter: retryAfter}, nil
 	}
@@ -615,24 +733,22 @@ func ReconcileModuleInstance(
 		return ctrl.Result{RequeueAfter: retryAfter}, nil
 	}
 
-	// Successful apply resolves any drift.
-	status.ClearDrifted(&mi)
+	// A successful apply of the rendered set resolves any drift. A restore
+	// applied only what was missing, so what drift detection found stands.
+	clearDriftAfterApply(&mi, restoring)
 
-	newEntries = converted.entries
+	// Only a restore has expired Jobs: it records the rendered inventory
+	// without them. An object another instance adopted is in no inventory
+	// this instance records (0012:D8:R8); it stays in the cluster.
+	newEntries = withoutEntries(withoutEntries(converted.entries, expired), judgedObjects(letGo))
 
 	// Phase 6: Prune stale resources (only if spec.prune=true and apply succeeded).
 	phases.pruneRan = true
 	var pruneDeleted int
-	outcome, reconciled, pruneDeleted, err = pruneStaleResources(ctx, &mi, applyClient, staleSet, effectiveSA, params.EventRecorder)
-	if err != nil {
+	outcome, reconciled, pruneDeleted, err = pruneStaleResources(ctx, &mi, applyClient, identities.Prune, staleSet, effectiveSA, params.EventRecorder)
+	if retry, msg, failed := pruneFailure(err, reconciled, reconcileFailureCount(mi.Status.FailureCounters)); failed {
 		phases.pruneFailed = true
-		errMsg = err.Error()
-		retryAfter = ComputeBackoff(reconcileFailureCount(mi.Status.FailureCounters) + 1)
-		return ctrl.Result{RequeueAfter: retryAfter}, nil
-	}
-	if !reconciled {
-		phases.pruneFailed = true
-		retryAfter = StalledRecheckInterval
+		errMsg, retryAfter = msg, retry
 		return ctrl.Result{RequeueAfter: retryAfter}, nil
 	}
 
@@ -640,8 +756,9 @@ func ReconcileModuleInstance(
 	opmmetrics.RecordPrune(mi.Name, mi.Namespace, pruneDeleted)
 
 	// Phase 7: Commit status (handled by deferred function).
-	status.MarkReady(&mi, "Reconciliation succeeded")
-	params.EventRecorder.Eventf(&mi, nil, corev1.EventTypeNormal, status.ReconciliationSucceededReason, "Reconcile", "Reconciliation succeeded")
+	status.MarkReady(&mi, "%s", status.ReadyMessage(readySucceeded, adopted))
+	params.EventRecorder.Eventf(&mi, nil, corev1.EventTypeNormal, status.ReconciliationSucceededReason, "Reconcile", readySucceeded)
+	reportAdoptedElsewhere(params.EventRecorder, &mi, letGo, adoptedAtStart)
 	log.Info("Reconciliation complete", "outcome", outcome.String())
 
 	// Judge health after the apply and prune returned, through the identity
@@ -650,7 +767,27 @@ func ReconcileModuleInstance(
 	v := judgeHealth(ctx, appliedReader(effectiveSA, applyClient, params.APIReader, params.Client), newEntries)
 	applyHealth(&mi, v)
 	now := metav1.Now()
-	return ctrl.Result{RequeueAfter: healthRequeue(v, &now, now.Time)}, nil
+	return ctrl.Result{RequeueAfter: instanceRequeue(healthRequeue(v, &now, now.Time), params.ReconcileInterval)}, nil
+}
+
+// forcesConflicts reports whether rollout asks for a forced recreate
+// (spec.rollout.forceConflicts).
+func forcesConflicts(rollout *releasesv1alpha1.RolloutSpec) bool {
+	return rollout != nil && rollout.ForceConflicts
+}
+
+// pruneFailure classifies how the prune phase ended. A prune error is
+// transient and retried on the backoff, with its message for the history; a
+// prune that was stalled (it marked the instance itself) waits for the long
+// recheck. It reports false when the prune succeeded.
+func pruneFailure(err error, reconciled bool, failures int64) (retryAfter time.Duration, msg string, failed bool) {
+	switch {
+	case err != nil:
+		return ComputeBackoff(failures + 1), err.Error(), true
+	case !reconciled:
+		return StalledRecheckInterval, "", true
+	}
+	return 0, "", false
 }
 
 // judgeInstanceHealth judges entries through the reader of the identity that
@@ -663,14 +800,42 @@ func judgeInstanceHealth(
 	mi *releasesv1alpha1.ModuleInstance,
 	entries []releasesv1alpha1.InventoryEntry,
 ) healthVerdict {
-	if sa, _ := resolveEffectiveSA(mi.Spec.ServiceAccountName, params.DefaultServiceAccount); sa == "" {
-		return judgeHealth(ctx, managerReader(params.APIReader, params.Client), entries)
-	}
 	_, impClient, err := buildApplyClient(ctx, params, mi)
-	if err != nil {
-		return unreadableVerdict(entries, err)
+	return judgeHealthAs(ctx, params, mi, impClient, err, entries)
+}
+
+// judgeHealthAs judges entries through an apply client that buildApplyClient
+// already returned for mi, with the error it returned. The reader is the one
+// of the identity that applies: that client when a ServiceAccount is
+// effective, the manager's uncached reader otherwise.
+func judgeHealthAs(
+	ctx context.Context,
+	params *ModuleInstanceParams,
+	mi *releasesv1alpha1.ModuleInstance,
+	applyClient client.Client,
+	buildErr error,
+	entries []releasesv1alpha1.InventoryEntry,
+) healthVerdict {
+	if buildErr != nil {
+		return unreadableVerdict(entries, buildErr)
 	}
-	return judgeHealth(ctx, impClient, entries)
+	effectiveSA, _ := resolveEffectiveSA(mi.Spec.ServiceAccountName, params.DefaultServiceAccount)
+	return judgeHealth(ctx, appliedReader(effectiveSA, applyClient, params.APIReader, params.Client), entries)
+}
+
+// skipInstanceRender skips the render of mi when its inputs are unchanged
+// (instanceRenderSkippable) and the health judgement can be finished without
+// one (judgeSkippedInstance). It reports whether the reconcile is done.
+func skipInstanceRender(
+	ctx context.Context,
+	params *ModuleInstanceParams,
+	patcher *patch.SerialPatcher,
+	mi *releasesv1alpha1.ModuleInstance,
+) (ctrl.Result, bool) {
+	if !instanceRenderSkippable(ctx, params, mi) {
+		return ctrl.Result{}, false
+	}
+	return judgeSkippedInstance(ctx, params, patcher, mi)
 }
 
 // judgeSkippedInstance judges the health of a ModuleInstance whose render was
@@ -678,20 +843,51 @@ func judgeInstanceHealth(
 // the judgement did not change it. Nothing else is written: no
 // observedGeneration, no lastAttempted*, no history, no event. A failed
 // patch is logged, and the health requeue is returned either way.
+//
+// It returns false, with nothing written, when the judgement read an
+// inventory Job as absent: the inventory does not say whether the Job sets a
+// TTL, so the caller renders, and the render removes an expired Job from the
+// inventory or restores a deleted one. After either, the next skip finds no
+// absent Job, so this costs one render per Job. While the last drift
+// detection failed a render cannot classify the Job (the missing set is
+// unknown), so the skip stands and the Job is reported Missing; without that
+// bound a failing dry-run would render on every health requeue.
 func judgeSkippedInstance(
 	ctx context.Context,
 	params *ModuleInstanceParams,
 	patcher *patch.SerialPatcher,
 	mi *releasesv1alpha1.ModuleInstance,
-) ctrl.Result {
+) (ctrl.Result, bool) {
 	v := judgeInstanceHealth(ctx, params, mi, inventoryEntries(mi.Status.Inventory))
+	if v.absentJob && driftFailureCount(mi.Status.FailureCounters) == 0 {
+		logf.FromContext(ctx).Info("An inventory Job is absent, rendering to classify it")
+		return ctrl.Result{}, false
+	}
 	applyHealth(mi, v)
 	if err := patcher.Patch(ctx, mi,
 		patch.WithOwnedConditions{Conditions: []string{status.HealthyCondition}},
 	); err != nil {
 		logf.FromContext(ctx).Error(err, "Failed to patch the Healthy condition of a skipped render")
 	}
-	return ctrl.Result{RequeueAfter: healthRequeue(v, mi.Status.LastAppliedAt, time.Now())}
+	return ctrl.Result{RequeueAfter: instanceRequeue(healthRequeue(v, mi.Status.LastAppliedAt, time.Now()), params.ReconcileInterval)}, true
+}
+
+// requeueJitter is the largest share of the instance reconcile interval that
+// is added to it at random, so instances that reconciled in one burst (an
+// controller start, a Platform change) do not come due together for ever.
+const requeueJitter = 0.1
+
+// instanceRequeue is a ModuleInstance's requeue after a reconcile that ended
+// well: the health requeue when health asks for one, otherwise the instance
+// reconcile interval with up to requeueJitter of it added. A zero or negative
+// interval disables the periodic requeue. Nothing watches the objects an
+// instance applied, so this requeue is what keeps Healthy and Drifted current
+// and lets a deleted object be found (ADR-019).
+func instanceRequeue(healthAfter, interval time.Duration) time.Duration {
+	if healthAfter > 0 || interval <= 0 {
+		return healthAfter
+	}
+	return wait.Jitter(interval, requeueJitter)
 }
 
 // markApplyFailure records a failed apply on the instance and returns the
@@ -707,6 +903,39 @@ func markApplyFailure(mi *releasesv1alpha1.ModuleInstance, err error, effectiveS
 	}
 	status.MarkNotReady(mi, status.ApplyFailedReason, "%s", err)
 	return FailedTransient
+}
+
+// reportApplyFailure records a failed apply on the instance, emits its
+// Warning event, and returns the outcome and the message to report.
+//
+// An apply that kept a PersistentVolumeClaim is reported under its own reason
+// and is transient, not stalled: deleting or changing the claim by hand
+// resolves it without a change to this object, and no watch reports that.
+// The backoff finds it.
+func reportApplyFailure(
+	recorder events.EventRecorder, mi *releasesv1alpha1.ModuleInstance, err error, effectiveSA string,
+) (Outcome, string) {
+	if note, kept := claimConflictNote(err); kept {
+		recorder.Eventf(mi, nil, corev1.EventTypeWarning, status.ClaimConflictReason, "Apply", "%s", note)
+		status.MarkNotReady(mi, status.ClaimConflictReason, "%s", note)
+		return FailedTransient, note
+	}
+	recorder.Eventf(mi, nil, corev1.EventTypeWarning, status.ApplyFailedReason, "Apply", "%s", err)
+	return markApplyFailure(mi, err, effectiveSA), err.Error()
+}
+
+// claimConflictNote returns the message to report when err says that an
+// apply kept a PersistentVolumeClaim a forced recreate would have deleted.
+func claimConflictNote(err error) (string, bool) {
+	conflict, ok := errors.AsType[*apply.ClaimConflictError](err)
+	if !ok {
+		return "", false
+	}
+	refusal := ""
+	if conflict.Cause != nil {
+		refusal = conflict.Cause.Error()
+	}
+	return status.ClaimConflictNote(conflict.Namespace, conflict.Name, conflict.Fields, refusal), true
 }
 
 // retryIntervalFor maps a failed outcome to the interval it should be retried
@@ -782,22 +1011,48 @@ func updateFailureCounters(
 	}
 }
 
-// detectDrift runs SSA dry-run drift detection and updates status accordingly.
-// Returns true if drift detection failed (API error).
+// detectDrift runs SSA dry-run drift detection through rm, the resource
+// manager of the identity that applies mi, and updates status accordingly.
+// identityErr is the error of building that identity: when it is set no
+// dry-run is sent, by any identity, and Drifted is Unknown with
+// ImpersonationFailed. guardErr is the failed read of the apply guard, whose
+// reads drift detection relies on: no dry-run is sent either. That read or a
+// dry-run the API server refuses as Forbidden sets Drifted to Unknown with
+// DriftCheckForbidden. All count as a failure. resources are the objects the
+// guard allowed, without the ones this reconcile takes in.
+// It returns the resources that do not exist on the cluster, and true if
+// drift detection failed (API error); a failure leaves the missing set
+// unknown, so it returns none.
 // On drift: sets Drifted=True. On no drift: clears Drifted condition.
 // Counter updates are deferred to Phase 7 based on the returned bool.
 // Drift detection failure is non-blocking.
 func detectDrift(
 	ctx context.Context,
 	rm *fluxssa.ResourceManager,
+	identityErr, guardErr error,
 	mi *releasesv1alpha1.ModuleInstance,
 	resources []*unstructured.Unstructured,
-) bool {
+) (missing []*unstructured.Unstructured, failed bool) {
 	log := logf.FromContext(ctx)
+	if identityErr != nil {
+		log.Error(identityErr, "Drift detection did not run, the identity that applies could not be built")
+		status.MarkDriftUnknown(mi, status.ImpersonationFailedReason, "drift detection did not run: %s", identityErr)
+		return nil, true
+	}
+	if guardErr != nil {
+		log.Error(guardErr, "Drift detection did not run, an object could not be read")
+		if isForbidden(guardErr) {
+			status.MarkDriftUnknown(mi, status.DriftCheckForbiddenReason, "%s", guardErr)
+		}
+		return nil, true
+	}
 	driftResult, err := apply.DetectDrift(ctx, rm, resources)
 	if err != nil {
 		log.Error(err, "Drift detection failed, continuing reconcile")
-		return true
+		if isForbidden(err) {
+			status.MarkDriftUnknown(mi, status.DriftCheckForbiddenReason, "%s", err)
+		}
+		return nil, true
 	}
 	if driftResult.Drifted {
 		log.Info("Drift detected", "driftedResources", len(driftResult.Resources))
@@ -805,7 +1060,119 @@ func detectDrift(
 	} else {
 		status.ClearDrifted(mi)
 	}
-	return false
+	return driftResult.Missing, false
+}
+
+// planRestore turns a reconcile with unchanged digests into a restore when
+// rendered resources are missing from the cluster or are taken in (they
+// exist outside the inventory and the apply verdict allows them). It returns
+// the list to apply, whether the reconcile is still a no-op, and whether it
+// restores: a restore applies the restorable missing resources
+// (apply.Restorable) and the taken-in ones, and nothing else. A reconcile
+// that was not a no-op, or that has neither, is returned as it came.
+func planRestore(
+	ctx context.Context,
+	isNoOp bool,
+	missing, takenIn, applyList []*unstructured.Unstructured,
+) (toApply []*unstructured.Unstructured, noOp, restoring bool) {
+	if !isNoOp {
+		return applyList, false, false
+	}
+	restorable := apply.Restorable(missing)
+	if len(restorable) == 0 && len(takenIn) == 0 {
+		return applyList, true, false
+	}
+	logf.FromContext(ctx).Info("Restoring missing resources and taking in adopted ones",
+		"missing", len(restorable), "takenIn", len(takenIn))
+	restore := make([]*unstructured.Unstructured, 0, len(restorable)+len(takenIn))
+	restore = append(restore, restorable...)
+	return append(restore, takenIn...), false, true
+}
+
+// expiredJobs returns the missing Jobs that count as finished
+// (apply.Expired) on a reconcile with unchanged digests. With changed digests
+// there are none: the apply creates every rendered object.
+func expiredJobs(digestsUnchanged bool, missing []*unstructured.Unstructured) []*unstructured.Unstructured {
+	if !digestsUnchanged {
+		return nil
+	}
+	return apply.Expired(missing)
+}
+
+// withoutEntries returns entries without those that name one of objs, in
+// order. It returns entries itself when objs is empty.
+func withoutEntries(entries []releasesv1alpha1.InventoryEntry, objs []*unstructured.Unstructured) []releasesv1alpha1.InventoryEntry {
+	if len(objs) == 0 {
+		return entries
+	}
+	type key struct{ group, kind, namespace, name string }
+	drop := make(map[key]struct{}, len(objs))
+	for _, obj := range objs {
+		e := entryOf(obj)
+		drop[key{e.Group, e.Kind, e.Namespace, e.Name}] = struct{}{}
+	}
+	kept := make([]releasesv1alpha1.InventoryEntry, 0, len(entries))
+	for _, e := range entries {
+		if _, ok := drop[key{e.Group, e.Kind, e.Namespace, e.Name}]; !ok {
+			kept = append(kept, e)
+		}
+	}
+	return kept
+}
+
+// forgetExpiredJobs removes the expired Jobs from the entries of mi's
+// inventory on a NoOp, so that no later health judgement reads them as
+// Missing. The digest and the revision stay: the digest is that of the
+// rendered set, which the next no-op check compares with the next render, and
+// nothing was applied.
+func forgetExpiredJobs(ctx context.Context, mi *releasesv1alpha1.ModuleInstance, expired []*unstructured.Unstructured) {
+	inv := mi.Status.Inventory
+	if inv == nil {
+		return
+	}
+	kept := withoutEntries(inv.Entries, expired)
+	if len(kept) == len(inv.Entries) {
+		return
+	}
+	logf.FromContext(ctx).Info("Removing finished Jobs from the inventory", "jobs", len(inv.Entries)-len(kept))
+	inv.Entries = kept
+	inv.Count = int64(len(kept))
+}
+
+// forgetLetGo removes from the entries of mi's inventory, on a NoOp, the
+// objects the apply verdict let go: another instance adopted them, so this
+// instance no longer holds them (0012:D8:R8). They stay in the cluster. The
+// digest and the revision stay, as in forgetExpiredJobs.
+func forgetLetGo(ctx context.Context, mi *releasesv1alpha1.ModuleInstance, letGo []*unstructured.Unstructured) {
+	inv := mi.Status.Inventory
+	if inv == nil {
+		return
+	}
+	kept := withoutEntries(inv.Entries, letGo)
+	if len(kept) == len(inv.Entries) {
+		return
+	}
+	logf.FromContext(ctx).Info("Removing objects adopted by another instance from the inventory",
+		"objects", len(inv.Entries)-len(kept))
+	inv.Entries = kept
+	inv.Count = int64(len(kept))
+}
+
+// driftFailureCount returns the current drift failure count, or 0 if counters are nil.
+func driftFailureCount(counters *releasesv1alpha1.FailureCounters) int64 {
+	if counters == nil {
+		return 0
+	}
+	return counters.Drift
+}
+
+// clearDriftAfterApply clears the Drifted condition after a successful apply
+// of the rendered set. A restore leaves it: the drifted resources were not
+// applied.
+func clearDriftAfterApply(mi *releasesv1alpha1.ModuleInstance, restoring bool) {
+	if !restoring {
+		status.ClearDrifted(mi)
+	}
 }
 
 // reconcileFailureCount returns the current reconcile failure count, or 0 if counters are nil.
@@ -860,11 +1227,12 @@ func handleNotReconciled(
 
 	// Owner-skip gate: CLI-owned instances are managed externally. The controller
 	// stays entirely hands-off — no render, apply, prune, deletion cleanup, and
-	// crucially no finalizer. The check sits before finalizer registration so a
-	// CLI-owned CR never carries opmodel.dev/cleanup (whose deletion path would
-	// prune resources the CLI owns). Only an explicit owner == cli skips; absent,
-	// empty, and controller all fall through to the normal controller-managed path,
-	// except on the controller's own instance, which is refused below.
+	// crucially no finalizer. The check sits before finalizer registration so
+	// the controller never adds opmodel.dev/cleanup to a CLI-owned CR (its
+	// deletion path would prune resources the CLI owns). Only an explicit
+	// owner == cli skips; absent, empty, and controller all fall through to the
+	// normal controller-managed path, except on the controller's own instance,
+	// which is refused below.
 	if mi.Spec.Owner == releasesv1alpha1.OwnerCLI {
 		return true, handleCLIOwned(ctx, params, mi)
 	}
@@ -878,9 +1246,12 @@ func handleNotReconciled(
 }
 
 // handleCLIOwned implements the owner-skip gate for CLI-owned instances. The
-// controller is hands-off: no render, apply, prune, deletion cleanup, or
-// finalizer. For a deleting instance it returns immediately — no finalizer was
-// ever added, so there is nothing to clean up or unblock. Otherwise it records
+// controller is hands-off: no render, apply, prune or deletion cleanup, and it
+// adds no finalizer. A deleting instance can still carry the cleanup
+// finalizer, from a time when the controller owned it (spec.owner is mutable).
+// Nothing else would ever remove it, so the gate releases it, without pruning
+// and without a status write: the objects belong to the CLI. A live instance
+// keeps such a finalizer. On a live instance the gate records
 // a single Ready=Unknown/ManagedExternally acknowledgement and nothing else: no
 // observedGeneration (no reconcile happened) and no CLI-written status
 // (inventory, lastApplied*, instanceUUID). The patcher snapshots the object
@@ -895,6 +1266,14 @@ func handleCLIOwned(
 	log := logf.FromContext(ctx)
 
 	if !mi.DeletionTimestamp.IsZero() {
+		params.Warnings.Forget(keyOf(mi))
+		if !controllerutil.ContainsFinalizer(mi, FinalizerName) {
+			return nil
+		}
+		log.Info("Releasing the cleanup finalizer from a deleting CLI-owned instance without pruning")
+		if err := removeFinalizer(ctx, params.Client, mi); err != nil && !apierrors.IsNotFound(err) {
+			return fmt.Errorf("removing finalizer: %w", err)
+		}
 		return nil
 	}
 
@@ -1021,143 +1400,35 @@ func handleSuspend(
 	return nil
 }
 
-// handleDeletion runs the deletion cleanup path.
-// If spec.prune is true, all inventory entries are pruned (respecting safety exclusions).
-// On success (or prune disabled), the finalizer is removed.
-// On partial failure, the finalizer is retained and the error is returned for requeue.
-//
-// If the impersonation ServiceAccount is missing, the instance stalls with
-// DeletionSAMissingReason and the finalizer is retained until either the SA
-// is restored or the orphan annotation
-// (v1alpha1.AnnotationForceDeleteOrphan = "true") is set to release it.
+// handleDeletion runs the deletion cleanup of a ModuleInstance: the one
+// cleanup of both kinds, runDeletionCleanup, which documents every branch.
 func handleDeletion(
 	ctx context.Context,
 	params *ModuleInstanceParams,
 	mi *releasesv1alpha1.ModuleInstance,
 ) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
-	log.Info("Running deletion cleanup for ModuleInstance")
-
 	patcher := patch.NewSerialPatcher(mi, params.Client)
-
-	if !mi.Spec.Prune || mi.Status.Inventory == nil || len(mi.Status.Inventory.Entries) == 0 {
-		if !mi.Spec.Prune {
-			log.Info("Prune disabled, orphaning managed resources on deletion")
-		}
-		if err := removeFinalizer(ctx, params.Client, mi); err != nil {
-			return ctrl.Result{}, fmt.Errorf("removing finalizer: %w", err)
-		}
-		log.Info("Finalizer removed, deletion can proceed")
-		return ctrl.Result{}, nil
-	}
-
-	effectiveSA, source := resolveEffectiveSA(mi.Spec.ServiceAccountName, params.DefaultServiceAccount)
-	deleteClient := params.Client
-	if effectiveSA != "" && params.RestConfig != nil {
-		impClient, impErr := apply.NewImpersonatedClient(ctx, params.RestConfig, params.APIReader, params.Client.Scheme(), mi.Namespace, effectiveSA)
-		if impErr != nil {
-			return handleDeletionImpersonationFailure(ctx, params, patcher, mi, effectiveSA, source, impErr)
-		}
-		deleteClient = impClient
-	}
-
-	pruneResult, err := apply.Prune(ctx, deleteClient, mi.Status.InstanceUUID, mi.Status.Inventory.Entries)
-	if err != nil {
-		if effectiveSA != "" && isForbidden(err) {
-			log.Error(err, "Impersonation denied during deletion cleanup",
-				"serviceAccount", effectiveSA,
-				"serviceAccountSource", source)
-			emit := !readyAlreadyStalledWith(mi.Status.Conditions, status.ImpersonationFailedReason)
-			status.MarkStalled(mi, status.ImpersonationFailedReason, "%s", err)
-			if emit {
-				params.EventRecorder.Eventf(mi, nil, corev1.EventTypeWarning,
-					status.ImpersonationFailedReason, "Delete", "%s", err)
-			}
-			if patchErr := patchDeletionStatus(ctx, patcher, mi); patchErr != nil {
-				log.Error(patchErr, "Failed to patch ModuleInstance status on Forbidden deletion prune")
-			}
-			return ctrl.Result{RequeueAfter: StalledRecheckInterval}, nil
-		}
-		log.Error(err, "Partial failure during deletion cleanup, retaining finalizer")
-		return ctrl.Result{}, err
-	}
-	log.Info("Deletion cleanup pruned resources",
-		"deleted", pruneResult.Deleted, "skipped", pruneResult.Skipped)
-
-	if err := removeFinalizer(ctx, params.Client, mi); err != nil {
-		return ctrl.Result{}, fmt.Errorf("removing finalizer: %w", err)
-	}
-	log.Info("Finalizer removed, deletion can proceed")
-
-	return ctrl.Result{}, nil
-}
-
-// handleDeletionImpersonationFailure branches on the impersonation error type:
-//   - SA NotFound + orphan annotation set: clear inventory, emit event, remove finalizer.
-//   - SA NotFound, no annotation: stall with DeletionSAMissingReason, retain finalizer.
-//   - Other impersonation error: stall with the generic ImpersonationFailedReason.
-func handleDeletionImpersonationFailure(
-	ctx context.Context,
-	params *ModuleInstanceParams,
-	patcher *patch.SerialPatcher,
-	mi *releasesv1alpha1.ModuleInstance,
-	effectiveSA, source string,
-	impErr error,
-) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
-
-	if apply.IsServiceAccountNotFound(impErr) {
-		if mi.GetAnnotations()[releasesv1alpha1.AnnotationForceDeleteOrphan] == "true" {
-			orphanCount := int64(len(mi.Status.Inventory.Entries))
-			log.Info("Orphaning inventory and removing finalizer at operator request",
-				"serviceAccount", effectiveSA,
-				"serviceAccountSource", source,
-				"inventoryCount", orphanCount)
-			params.EventRecorder.Eventf(mi, nil, corev1.EventTypeWarning,
-				status.OrphanedOnDeletionReason, "Delete",
-				"Orphaned %d managed resources; ServiceAccount %q missing and %s annotation set",
-				orphanCount, effectiveSA, releasesv1alpha1.AnnotationForceDeleteOrphan)
-			mi.Status.Inventory = nil
-			if err := patchDeletionStatus(ctx, patcher, mi); err != nil {
-				log.Error(err, "Failed to patch ModuleInstance status on orphan-exit")
-			}
-			if err := removeFinalizer(ctx, params.Client, mi); err != nil {
-				return ctrl.Result{}, fmt.Errorf("removing finalizer: %w", err)
-			}
-			log.Info("Finalizer removed, deletion can proceed")
-			return ctrl.Result{}, nil
-		}
-
-		log.Error(impErr, "Impersonation ServiceAccount missing during deletion; release stalled pending operator action",
-			"serviceAccount", effectiveSA,
-			"serviceAccountSource", source,
-			"annotation", releasesv1alpha1.AnnotationForceDeleteOrphan)
-		msg := deletionSAMissingMessage(mi.Namespace, effectiveSA)
-		emit := !readyAlreadyStalledWith(mi.Status.Conditions, status.DeletionSAMissingReason)
-		status.MarkStalled(mi, status.DeletionSAMissingReason, "%s", msg)
-		if emit {
-			params.EventRecorder.Eventf(mi, nil, corev1.EventTypeWarning,
-				status.DeletionSAMissingReason, "Delete", "%s", msg)
-		}
-		if err := patchDeletionStatus(ctx, patcher, mi); err != nil {
-			log.Error(err, "Failed to patch ModuleInstance status on DeletionSAMissing stall")
-		}
-		return ctrl.Result{RequeueAfter: StalledRecheckInterval}, nil
-	}
-
-	log.Error(impErr, "Impersonation failed during deletion cleanup",
-		"serviceAccount", effectiveSA,
-		"serviceAccountSource", source)
-	emit := !readyAlreadyStalledWith(mi.Status.Conditions, status.ImpersonationFailedReason)
-	status.MarkStalled(mi, status.ImpersonationFailedReason, "%s", impErr)
-	if emit {
-		params.EventRecorder.Eventf(mi, nil, corev1.EventTypeWarning,
-			status.ImpersonationFailedReason, "Delete", "%s", impErr)
-	}
-	if err := patchDeletionStatus(ctx, patcher, mi); err != nil {
-		log.Error(err, "Failed to patch ModuleInstance status on ImpersonationFailed stall")
-	}
-	return ctrl.Result{RequeueAfter: StalledRecheckInterval}, nil
+	return runDeletionCleanup(ctx, deletionEnv{
+		client:                params.Client,
+		apiReader:             params.APIReader,
+		restConfig:            params.RestConfig,
+		recorder:              params.EventRecorder,
+		defaultServiceAccount: params.DefaultServiceAccount,
+		wait:                  params.DeletionWait,
+	}, deletionTarget{
+		obj:            mi,
+		kind:           "ModuleInstance",
+		prune:          mi.Spec.Prune,
+		deleteData:     mi.Spec.DataPolicy.DeletesClaims(),
+		serviceAccount: mi.Spec.ServiceAccountName,
+		entries:        inventoryEntries(mi.Status.Inventory),
+		// An object that carries either recorded identity is the instance's
+		// own. With none recorded the verdict is asked with no identity.
+		identities:      recordedIdentities(mi.Status.InstanceUUID, mi.Status.PreviousInstanceUUID),
+		clearInventory:  func() { mi.Status.Inventory = nil },
+		patchStatus:     func(ctx context.Context) error { return patchDeletionStatus(ctx, patcher, mi) },
+		removeFinalizer: func(ctx context.Context) error { return removeFinalizer(ctx, params.Client, mi) },
+	})
 }
 
 // deletionSAMissingMessage formats the stall-condition message shown to
@@ -1219,12 +1490,14 @@ func removeFinalizer(ctx context.Context, c client.Client, mi *releasesv1alpha1.
 }
 
 // pruneStaleResources runs Phase 6: prune stale resources if spec.prune is true and stale resources exist.
-// Emits prune events via the provided recorder. Returns the outcome, whether reconcile succeeded,
+// identities are the ones the status held when the apply started, most recent
+// first (identityPlan.Prune). Emits prune events via the provided recorder. Returns the outcome, whether reconcile succeeded,
 // the number of resources deleted, and any error.
 func pruneStaleResources(
 	ctx context.Context,
 	mi *releasesv1alpha1.ModuleInstance,
 	c client.Client,
+	identities []string,
 	staleSet []releasesv1alpha1.InventoryEntry,
 	effectiveSA string,
 	recorder events.EventRecorder,
@@ -1233,7 +1506,8 @@ func pruneStaleResources(
 		return Applied, true, 0, nil
 	}
 	log := logf.FromContext(ctx)
-	pruneResult, err := apply.Prune(ctx, c, mi.Status.InstanceUUID, staleSet)
+	pruneResult, err := apply.Prune(ctx, c, identities, staleSet,
+		apply.PruneOptions{DeleteData: mi.Spec.DataPolicy.DeletesClaims()})
 	if err != nil {
 		recorder.Eventf(mi, nil, corev1.EventTypeWarning, status.PruneFailedReason, "Prune", "%s", err)
 		if effectiveSA != "" && isForbidden(err) {
@@ -1247,8 +1521,90 @@ func pruneStaleResources(
 		recorder.Eventf(mi, nil, corev1.EventTypeNormal, status.PrunedReason, "Prune",
 			"Pruned %d stale resources", pruneResult.Deleted)
 	}
-	log.Info("Pruned stale resources", "deleted", pruneResult.Deleted, "skipped", pruneResult.Skipped)
-	return AppliedAndPruned, true, pruneResult.Deleted, nil
+	reportKeptClaims(recorder, mi, "Prune", pruneResult.Kept)
+	reportLeftBehind(recorder, mi, "Prune", pruneResult.Left)
+	log.Info("Pruned stale resources",
+		"deleted", pruneResult.Deleted, "skipped", pruneResult.Skipped, "keptClaims", len(pruneResult.Kept))
+	return pruneOutcome(pruneResult), true, pruneResult.Deleted, nil
+}
+
+// pruneOutcome is the outcome of a reconcile whose prune succeeded. A prune
+// that only kept PersistentVolumeClaims deleted nothing, so the reconcile
+// applied and did not prune.
+func pruneOutcome(result *apply.PruneResult) Outcome {
+	if result.Deleted == 0 && len(result.Kept) > 0 {
+		return Applied
+	}
+	return AppliedAndPruned
+}
+
+// reportKeptClaims emits the one ClaimsKept event of a prune (action Prune)
+// or a deletion cleanup (action Delete) that kept PersistentVolumeClaims. It
+// emits nothing when none was kept.
+func reportKeptClaims(recorder events.EventRecorder, obj runtime.Object, action string, kept []releasesv1alpha1.InventoryEntry) {
+	if len(kept) == 0 {
+		return
+	}
+	recorder.Eventf(obj, nil, corev1.EventTypeNormal, status.ClaimsKeptReason, action, "%s", status.ClaimsKeptNote(kept))
+}
+
+// patchIdentityStatus commits the two identity fields before an apply. It
+// sends what the deletion path sends: the status as it stands, without
+// marking the generation as observed, which only the end of the attempt does.
+func patchIdentityStatus(ctx context.Context, patcher *patch.SerialPatcher, mi *releasesv1alpha1.ModuleInstance) error {
+	return patchDeletionStatus(ctx, patcher, mi)
+}
+
+// applyInstance is the apply phase of a ModuleInstance: it stores a changed
+// identity in the status, and applies only when that write succeeded.
+func applyInstance(
+	ctx context.Context,
+	patcher *patch.SerialPatcher,
+	mi *releasesv1alpha1.ModuleInstance,
+	identities identityPlan,
+	rm *fluxssa.ResourceManager,
+	resources []*unstructured.Unstructured,
+	opts apply.ApplyOptions,
+) (*apply.ApplyResult, error) {
+	if err := identities.store(&mi.Status.InstanceUUID, &mi.Status.PreviousInstanceUUID,
+		func() error { return patchIdentityStatus(ctx, patcher, mi) }); err != nil {
+		return nil, err
+	}
+	return apply.Apply(ctx, rm, resources, opts)
+}
+
+// reportLeftBehind emits the one LeftBehind event of a prune (action Prune) or
+// a deletion cleanup (action Delete) that left objects in the cluster because
+// the delete verdict skipped them: Normal when every one is of a kind OPM
+// never deletes, Warning otherwise. It emits nothing when none was left. The
+// caller calls it only for a run that returned no error: a failed run judges
+// the same entries again on its retry.
+func reportLeftBehind(recorder events.EventRecorder, obj runtime.Object, action string, left []apply.LeftBehind) {
+	if len(left) == 0 {
+		return
+	}
+	objects := make([]status.LeftObject, 0, len(left))
+	for _, l := range left {
+		objects = append(objects, status.LeftObject{Reason: l.Reason, Message: l.Message})
+	}
+	recorder.Eventf(obj, nil, status.LeftBehindEventType(objects), status.LeftBehindReason, action,
+		"%s", status.LeftBehindNote(objects))
+}
+
+// refuseIdentityChange records the refusal of a render that carries a third
+// identity while an earlier identity change is not settled: Ready=False and
+// Stalled=True with reason IdentityChangeUnsettled, and one Warning event
+// unless Ready already carried the reason when the reconcile started. It
+// returns the message.
+func refuseIdentityChange(
+	recorder events.EventRecorder, obj conditions.Setter, already bool, current, previous, rendered string,
+) string {
+	msg := status.IdentityChangeUnsettledNote(current, previous, rendered)
+	status.MarkStalled(obj, status.IdentityChangeUnsettledReason, "%s", msg)
+	if !already {
+		recorder.Eventf(obj, nil, corev1.EventTypeWarning, status.IdentityChangeUnsettledReason, "Reconcile", "%s", msg)
+	}
+	return msg
 }
 
 // classifyRenderError maps a render error to its status condition and event,
@@ -1288,7 +1644,7 @@ func classifyRenderError(
 		return FailedTransient, err.Error()
 	}
 	reason := renderFailureReason(err)
-	recorder.Eventf(mi, nil, corev1.EventTypeWarning, reason, "Render", "%s", err)
+	recorder.Eventf(mi, nil, corev1.EventTypeWarning, reason, "Render", "%s", render.EventNote(err))
 	status.MarkStalled(mi, reason, "%s", err)
 	return FailedStalled, err.Error()
 }
@@ -1342,6 +1698,15 @@ func resolveEffectiveSA(specSA, defaultSA string) (string, string) {
 		return defaultSA, "default"
 	}
 	return "", ""
+}
+
+// EffectiveServiceAccount is the name of the ServiceAccount an instance
+// impersonates: spec.serviceAccountName, else the manager's
+// --default-service-account, else none. The controller's ServiceAccount watch
+// maps through it, so the watch and the reconcile cannot disagree.
+func EffectiveServiceAccount(specSA, defaultSA string) string {
+	name, _ := resolveEffectiveSA(specSA, defaultSA)
+	return name
 }
 
 // recordReconcileMetrics records outcome, duration, and inventory size metrics.

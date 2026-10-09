@@ -151,12 +151,12 @@ When release-please creates a module release, the module publish job SHALL check
 
 ### Requirement: Every module release publishes the install manifest rendered from it
 
-The module publish job SHALL render the published module version from the registry at its default values, as the instance `opm-controller` in the namespace `opm-controller-system`, against the platform generated from the module's own pins and with no cluster. It SHALL write the result to `install.yaml`, with the Namespace and the CRDs before every namespaced object, and attach it to the module's draft release. The render and the upload SHALL run in a job apart from the publish, so re-running them never re-enters the publish. The manifest SHALL name the controller image by the tag and digest the module names, and the job SHALL check that before the upload. Applying it with `kubectl apply --server-side` on a cluster with no controller SHALL yield a running controller. A pull request that changes `modules/opm_controller/` or the scripts that render the manifest SHALL prove this on a kind cluster.
+The module publish job SHALL render the published module version from the registry at its default values, as the instance `opm-controller` in the namespace `opm-system`, against the platform generated from the module's own pins and with no cluster. It SHALL write the result to `install.yaml`, with the Namespace and the CRDs before every namespaced object, and attach it to the module's draft release. The render and the upload SHALL run in a job apart from the publish, so re-running them never re-enters the publish. The manifest SHALL name the controller image by the tag and digest the module names, and the job SHALL check that before the upload. Applying it with `kubectl apply --server-side` on a cluster with no controller SHALL yield a running controller. A pull request that changes `modules/opm_controller/` or the scripts that render the manifest SHALL prove this on a kind cluster.
 
 #### Scenario: Manifest equals the module's render
 
 - **WHEN** the module release `opm_controller-v0.2.0` completes
-- **THEN** its GitHub Release carries `install.yaml`, and rendering `opmodel.dev/modules/opm_controller` version `0.2.0` with no values as `opm-controller` in `opm-controller-system` yields the same objects
+- **THEN** its GitHub Release carries `install.yaml`, and rendering `opmodel.dev/modules/opm_controller` version `0.2.0` with no values as `opm-controller` in `opm-system` yields the same objects
 
 #### Scenario: Module debug values are not used
 
@@ -166,7 +166,7 @@ The module publish job SHALL render the published module version from the regist
 #### Scenario: Namespace first
 
 - **WHEN** `install.yaml` is read top to bottom
-- **THEN** the Namespace `opm-controller-system` and the four CRDs come before every namespaced object
+- **THEN** the Namespace `opm-system` and the four CRDs come before every namespaced object
 
 #### Scenario: Upload fails after the publish
 

@@ -2,7 +2,7 @@
 
 Status: **operator verified end-to-end; container-render blocker ROOT-CAUSED + FIXED (catalog).**
 Date: 2026-06-13. Cluster: `kind-opm-dev` (kind name `opm-dev`). Operator: `opm-operator` v0.7.0 on `library v0.5.0`.
-(The run record keeps the names then in use; the project was renamed opm-controller afterwards, ADR-019.)
+(The run record keeps the names then in use; the project was renamed opm-controller afterwards, ADR-021.)
 
 > **RESOLUTION (see §3a).** The non-concrete-container blocker is fixed in `catalog_opm`
 > (branch `fix/container-non-concrete-marshal`, published locally as `opmodel.dev/catalogs/opm@v0.5.7`).

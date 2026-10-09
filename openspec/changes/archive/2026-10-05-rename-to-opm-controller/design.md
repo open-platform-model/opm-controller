@@ -25,7 +25,7 @@ None beyond names. Source, Render, Apply and Prune behave as before. Status writ
 ```go
 const (
 	ownInstanceName       = "opm-controller"
-	ownInstanceNamespace  = "opm-controller-system"
+	ownInstanceNamespace  = "opm-system"
 	ownInstanceModulePath = "opmodel.dev/modules/opm_controller"
 )
 ```

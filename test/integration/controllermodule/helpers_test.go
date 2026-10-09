@@ -49,7 +49,7 @@ const (
 
 	// The only instance coordinates the module renders for.
 	instanceName      = "opm-controller"
-	instanceNamespace = "opm-controller-system"
+	instanceNamespace = "opm-system"
 
 	// catalogPath is the catalog the module pins; the generated platform
 	// subscribes to exactly the build the module's cue.mod names.

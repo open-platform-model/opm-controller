@@ -26,7 +26,7 @@ import (
 // under, and the module path the controller module is published under.
 const (
 	ownInstanceName       = "opm-controller"
-	ownInstanceNamespace  = "opm-controller-system"
+	ownInstanceNamespace  = "opm-system"
 	ownInstanceModulePath = "opmodel.dev/modules/opm_controller"
 )
 
@@ -36,7 +36,7 @@ const (
 // registered. Signals are tried in order and the first match names the
 // instance in the refusal message:
 //
-//  1. the fixed coordinates opm-controller in opm-controller-system;
+//  1. the fixed coordinates opm-controller in opm-system;
 //  2. a module path of the controller module, in any major;
 //  3. a recorded inventory holding a CustomResourceDefinition of the
 //     controller's own API group, which catches a renamed or forked copy

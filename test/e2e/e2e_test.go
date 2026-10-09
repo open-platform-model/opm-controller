@@ -34,7 +34,7 @@ import (
 )
 
 // namespace where the project is deployed in
-const namespace = "opm-controller-system"
+const namespace = "opm-system"
 
 // serviceAccountName created for the project
 const serviceAccountName = "opm-controller-manager"

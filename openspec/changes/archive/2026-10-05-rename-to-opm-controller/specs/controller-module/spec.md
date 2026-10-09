@@ -33,7 +33,7 @@ The module SHALL render the controller's CRDs, its Namespace, the controller Dep
 
 #### Scenario: The render contains the whole install shape
 
-- **WHEN** the module is rendered with default values for the instance `opm-controller` in `opm-controller-system`
+- **WHEN** the module is rendered with default values for the instance `opm-controller` in `opm-system`
 - **THEN** the result holds 22 objects: 4 CRDs, 1 Namespace, 1 ServiceAccount, 1 Role, 10 ClusterRoles, 1 RoleBinding, 2 ClusterRoleBindings, 1 Service and 1 Deployment
 
 #### Scenario: Raw objects only for the administrator roles
@@ -48,28 +48,28 @@ The module SHALL render the controller's CRDs, its Namespace, the controller Dep
 
 ### Requirement: The module renders the fixed names
 
-The module SHALL render the Namespace `opm-controller-system`, the Deployment `opm-controller-manager`, the ServiceAccount `opm-controller-manager`, the Service `opm-controller-manager-metrics-service`, the Role `opm-controller-leader-election-role`, the ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, `opm-controller-metrics-reader`, `opm-controller-moduleinstance-admin-role`, `opm-controller-moduleinstance-editor-role`, `opm-controller-moduleinstance-viewer-role`, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`, and the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev`, the names `config/` gives them under the prefix `opm-controller-`. Only a role binding MAY take the name the catalog derives from its role.
+The module SHALL render the Namespace `opm-system`, the Deployment `opm-controller-manager`, the ServiceAccount `opm-controller-manager`, the Service `opm-controller-manager-metrics-service`, the Role `opm-controller-leader-election-role`, the ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, `opm-controller-metrics-reader`, `opm-controller-moduleinstance-admin-role`, `opm-controller-moduleinstance-editor-role`, `opm-controller-moduleinstance-viewer-role`, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`, and the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev`, the names `config/` gives them under the prefix `opm-controller-`. Only a role binding MAY take the name the catalog derives from its role.
 
 Source: 0032:D1:R5.
 
 #### Scenario: The fixed names render
 
 - **WHEN** the module is rendered with default values
-- **THEN** every name above appears with its kind, and every namespaced object is in `opm-controller-system`
+- **THEN** every name above appears with its kind, and every namespaced object is in `opm-system`
 
 #### Scenario: Bindings take catalog names
 
 - **WHEN** the module is rendered
-- **THEN** the three bindings are named by the catalog from their roles, and each binds its role to the ServiceAccount `opm-controller-manager` in `opm-controller-system`
+- **THEN** the three bindings are named by the catalog from their roles, and each binds its role to the ServiceAccount `opm-controller-manager` in `opm-system`
 
 ### Requirement: The module renders only for the controller's fixed instance coordinates
 
-The module SHALL render only for an instance named `opm-controller` in the namespace `opm-controller-system`, and SHALL refuse any other name or namespace with an error naming the expected coordinates, so a cluster holds at most one controller and no instance of the module renders the controller's objects under other names or records them from another namespace.
+The module SHALL render only for an instance named `opm-controller` in the namespace `opm-system`, and SHALL refuse any other name or namespace with an error naming the expected coordinates, so a cluster holds at most one controller and no instance of the module renders the controller's objects under other names or records them from another namespace.
 
 #### Scenario: Another instance name is refused
 
 - **WHEN** the module is rendered for an instance named `opm` in `opm-system`
-- **THEN** the render fails, naming `opm-controller` and `opm-controller-system`, and produces no objects
+- **THEN** the render fails, naming `opm-controller` and `opm-system`, and produces no objects
 
 ### Requirement: One Deployment selector across every module version
 

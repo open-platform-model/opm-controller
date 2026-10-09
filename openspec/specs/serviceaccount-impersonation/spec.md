@@ -1,7 +1,11 @@
+## Purpose
+
+Define how the controller applies, prunes and deletes as the ServiceAccount a release names: which ServiceAccount is effective, what the controller's own role may do with ServiceAccounts, and how a missing or unauthorised ServiceAccount stalls and recovers.
+
 ## Requirements
 
 ### Requirement: Impersonated client for apply and prune
-When `spec.serviceAccountName` is set, the controller MUST use an impersonated client for apply (Phase 5) and prune (Phase 6) operations.
+When `spec.serviceAccountName` is set, the controller MUST use an impersonated client for apply (Phase 5) and prune (Phase 6) operations, and for the dry-run of drift detection (Phase 4) of a ModuleInstance. One reconcile MUST use one client for the three.
 
 #### Scenario: Apply with impersonation
 - **GIVEN** a ModuleRelease with `spec.serviceAccountName=deploy-sa` in namespace `team-a`
@@ -13,6 +17,12 @@ When `spec.serviceAccountName` is set, the controller MUST use an impersonated c
 - **GIVEN** a ModuleRelease with `spec.serviceAccountName=deploy-sa` and stale resources to prune
 - **WHEN** the controller runs Phase 6 (Prune)
 - **THEN** delete operations use the impersonated identity
+
+#### Scenario: Drift detection with impersonation
+- **GIVEN** a ModuleInstance with `spec.serviceAccountName=deploy-sa` in namespace `team-a`
+- **WHEN** the controller runs drift detection in Phase 4
+- **THEN** the dry-run uses the identity `system:serviceaccount:team-a:deploy-sa`
+- **AND** the controller's own identity sends no dry-run for that instance
 
 ### Requirement: Default behavior without serviceAccountName
 When `spec.serviceAccountName` is empty, the effective impersonation target MUST be determined by the manager's `--default-service-account` flag:
@@ -33,7 +43,7 @@ When `spec.serviceAccountName` is empty, the effective impersonation target MUST
 - **AND** a ServiceAccount `opm-deployer` exists in namespace `team-a`
 - **WHEN** the controller reconciles
 - **THEN** apply and prune operations impersonate `system:serviceaccount:team-a:opm-deployer`
-- **AND** the impersonation config carries the standard SA groups (`system:serviceaccounts`, `system:serviceaccounts:team-a`, `system:authenticated`)
+- **AND** the impersonated identity is a member of the standard SA groups (`system:serviceaccounts`, `system:serviceaccounts:team-a`, `system:authenticated`)
 
 ### Requirement: Missing ServiceAccount stalls reconcile
 If the specified ServiceAccount does not exist, the reconcile MUST fail with a stalled condition.
@@ -61,22 +71,20 @@ The ServiceAccount MUST be in the same namespace as the ModuleRelease.
 - **WHEN** the controller builds the impersonated client
 - **THEN** it impersonates `system:serviceaccount:team-a:deploy-sa` (same namespace)
 
-### Requirement: Impersonation includes standard SA group set
-The impersonated client MUST be configured with both `UserName` and `Groups` on the `rest.ImpersonationConfig`. The Kubernetes apiserver does not derive group membership from the impersonated `UserName`; it reads `Impersonate-Group` headers independently. Without explicit groups, the impersonated identity belongs to no groups, and any RBAC binding whose subject targets a group (`system:serviceaccounts`, `system:serviceaccounts:<namespace>`, or `system:authenticated`) silently fails — even though the same SA succeeds when authenticating with its own token.
+### Requirement: Impersonated identity has the ServiceAccount's groups
+An impersonated request MUST reach the apiserver as the user `system:serviceaccount:<namespace>:<name>` with exactly the groups a token of that ServiceAccount carries: `system:serviceaccounts`, `system:serviceaccounts:<namespace>` and `system:authenticated`. The controller MUST NOT name a group on an impersonated request; the apiserver derives these groups from the ServiceAccount user name. An RBAC binding whose subject is one of these groups MUST authorise the impersonated request as it authorises the same ServiceAccount with its own token.
 
-The `Groups` slice MUST contain the standard set that the apiserver's `serviceaccount.TokenAuthenticator` would inject for an SA in the given namespace:
+#### Scenario: Identity seen by the apiserver
+- **GIVEN** a ServiceAccount `deploy-sa` in namespace `team-a`
+- **WHEN** the controller's impersonated client for it asks the apiserver who it is
+- **THEN** the user is `system:serviceaccount:team-a:deploy-sa`
+- **AND** the groups are exactly `system:serviceaccounts`, `system:serviceaccounts:team-a` and `system:authenticated`
 
-- `system:serviceaccounts`
-- `system:serviceaccounts:<namespace>` (where `<namespace>` is the SA's namespace)
-- `system:authenticated`
-
-This matches the behavior of Flux's `runtime/client/impersonation` and gives impersonated identity parity with token-based identity for the same SA.
-
-#### Scenario: Impersonation config carries standard groups
+#### Scenario: No group is sent
 - **GIVEN** a ModuleRelease in namespace `team-a` with `spec.serviceAccountName=deploy-sa`
 - **WHEN** the controller builds the impersonated client
-- **THEN** the underlying `rest.ImpersonationConfig.Groups` is exactly `["system:serviceaccounts", "system:serviceaccounts:team-a", "system:authenticated"]`
-- **AND** `rest.ImpersonationConfig.UserName` is `system:serviceaccount:team-a:deploy-sa`
+- **THEN** the impersonation config names the user `system:serviceaccount:team-a:deploy-sa`
+- **AND** it names no group
 
 #### Scenario: Group-subject RoleBinding authorizes apply
 - **GIVEN** a ModuleRelease in namespace `team-a` with `spec.serviceAccountName=deploy-sa` and a RoleBinding in `team-a` whose subjects are `[{Kind: "Group", Name: "system:serviceaccounts:team-a"}]` granting permissions on the resources to be applied
@@ -84,10 +92,34 @@ This matches the behavior of Flux's `runtime/client/impersonation` and gives imp
 - **THEN** the apply succeeds (the impersonated identity is recognized as a member of `system:serviceaccounts:team-a`)
 - **AND** `Ready=True` is set on the ModuleRelease
 
-#### Scenario: Authenticated-group binding authorizes read access
-- **GIVEN** a ClusterRoleBinding granting `view` on a CRD to the group `system:authenticated`
-- **WHEN** the controller's impersonated client lists instances of that CRD
-- **THEN** the request is authorized (the impersonated identity is a member of `system:authenticated`)
+#### Scenario: ServiceAccount without a binding is refused
+- **GIVEN** a ServiceAccount in namespace `team-a` that no RoleBinding names, directly or through a group
+- **WHEN** the controller applies a resource in `team-a` as that ServiceAccount
+- **THEN** the apiserver refuses the apply as forbidden
+- **AND** the resource is not created
+
+### Requirement: Controller may impersonate ServiceAccounts only
+The controller's own ClusterRole MUST grant the `impersonate` verb on `serviceaccounts` and on no other resource. It MUST NOT grant `impersonate` on `users` or on `groups`. This MUST hold in every form the role ships in: the kustomize role, the install manifest and the controller module's rendered RBAC. With that role alone the apply path MUST still work.
+
+#### Scenario: Shipped role names serviceaccounts only
+- **WHEN** the rules of the shipped manager ClusterRole are read
+- **THEN** the only resource with the `impersonate` verb is `serviceaccounts`
+
+#### Scenario: Apply works under the shipped role
+- **GIVEN** a controller identity that holds exactly the rules of the shipped manager ClusterRole
+- **AND** a ServiceAccount in namespace `team-a` that a RoleBinding allows to manage ConfigMaps
+- **WHEN** the controller applies a ConfigMap in `team-a` as that ServiceAccount
+- **THEN** the apply succeeds
+
+#### Scenario: Impersonating a user is refused
+- **GIVEN** a controller identity that holds exactly the rules of the shipped manager ClusterRole
+- **WHEN** it sends a request that impersonates the user `jane`, with or without a group
+- **THEN** the apiserver refuses the request as forbidden
+
+#### Scenario: Claiming a group is refused
+- **GIVEN** a controller identity that holds exactly the rules of the shipped manager ClusterRole
+- **WHEN** it sends a request that impersonates a ServiceAccount and names the group `system:masters`
+- **THEN** the apiserver refuses the request as forbidden
 
 ### Requirement: Explicit spec.serviceAccountName takes precedence over flag default
 When `spec.serviceAccountName` is non-empty, the controller MUST impersonate the named ServiceAccount regardless of the `--default-service-account` flag value. The flag is only a fallback for empty `spec.serviceAccountName`.
@@ -155,6 +187,8 @@ When the deletion cleanup path attempts to build an impersonated client and the 
 
 This behavior MUST apply symmetrically to both `ModuleRelease` and `Release` deletion paths.
 
+Two cases are not this stall, because the missing ServiceAccount has nothing left to do (capability `finalizer-and-deletion`): an inventory that holds nothing the cleanup would delete (it is empty, or holds only PersistentVolumeClaims that `spec.dataPolicy` keeps), and a cleanup that already sent every delete and only waits for the objects to be gone. In both the finalizer is removed, the controller's own client is still never used, and a `Warning` event with reason `DeletionUnconfirmed` says what could not be read.
+
 #### Scenario: SA deleted before finalizer can prune
 - **GIVEN** a ModuleRelease with `spec.serviceAccountName=hello-applier`, `spec.prune=true`, and a non-empty inventory
 - **AND** the ServiceAccount `hello-applier` has been deleted from the release's namespace
@@ -172,6 +206,18 @@ This behavior MUST apply symmetrically to both `ModuleRelease` and `Release` del
 - **THEN** the release stalls with reason `ImpersonationFailed` (the existing generic reason)
 - **AND** the reason is NOT `DeletionSAMissing`
 - **AND** the orphan annotation has no effect on this case
+
+#### Scenario: Only kept claims and no ServiceAccount
+- **GIVEN** a ModuleInstance with `spec.prune=true` and no `spec.dataPolicy` being deleted, whose inventory holds only PersistentVolumeClaims, and whose ServiceAccount does not exist
+- **WHEN** the controller reconciles it
+- **THEN** no object is read or deleted and the finalizer is removed
+- **AND** the reason `DeletionSAMissing` is never set
+- **AND** a `Warning` event with reason `DeletionUnconfirmed` says that the claims were left in place without a read
+
+#### Scenario: ServiceAccount removed while the cleanup waits
+- **GIVEN** a ModuleInstance being deleted whose `Ready` condition carries the reason `DeletionInProgress`
+- **WHEN** its ServiceAccount is deleted and the controller reconciles the instance
+- **THEN** the finalizer is removed and the reason `DeletionSAMissing` is never set
 
 ### Requirement: Orphan-exit annotation removes finalizer on SA-missing
 When a release is in the `DeletionSAMissing` stall state AND the annotation `opm.dev/force-delete-orphan` is set to `"true"` on the release, the controller MUST:
@@ -210,3 +256,46 @@ Any annotation value other than the literal string `"true"` MUST be treated as a
 - **THEN** the annotation is ignored
 - **AND** the release remains stalled with `DeletionSAMissing`
 - **AND** the finalizer is NOT removed
+
+### Requirement: A created ServiceAccount wakes the instances that impersonate it
+
+When a ServiceAccount is created, the controller MUST enqueue every `ModuleInstance` in that ServiceAccount's namespace whose effective ServiceAccount (`spec.serviceAccountName`, else the manager's `--default-service-account`) has that name and that is stalled on it: its `Ready` condition is `False` with reason `DeletionSAMissing` or `ImpersonationFailed`. Such an instance then recovers without waiting for its stalled recheck. This holds for an instance being deleted and for one stalled on the apply path.
+
+The controller MUST NOT enqueue an instance that is not stalled on its ServiceAccount, whatever ServiceAccount is created. A user who may create ServiceAccounts in a namespace, but no `ModuleInstance`, MUST NOT be able to make a healthy instance reconcile.
+
+The controller MUST NOT enqueue an instance the ServiceAccount cannot change: a CLI-owned instance, an instance that names another ServiceAccount, an instance in another namespace, and a suspended instance that is not being deleted. An update or a deletion of a ServiceAccount MUST NOT enqueue anything.
+
+The restore of a ServiceAccount's RBAC alone (a Role or a binding) is not a trigger; an instance stalled with `ImpersonationFailed` on a forbidden request still waits for its stalled recheck.
+
+#### Scenario: A created ServiceAccount enqueues the instances that name it
+
+- **GIVEN** instance `a` with `spec.serviceAccountName: deploy-sa` and instance `b` with `spec.serviceAccountName: other-sa`, both in namespace `team-a` and both stalled with reason `ImpersonationFailed`
+- **WHEN** the ServiceAccount `deploy-sa` is created in `team-a`
+- **THEN** instance `a` is enqueued and instance `b` is not
+
+#### Scenario: The flag default counts as the effective ServiceAccount
+
+- **GIVEN** a manager started with `--default-service-account=opm-deployer` and an instance in `team-a` with no `spec.serviceAccountName`, stalled with reason `ImpersonationFailed`
+- **WHEN** the ServiceAccount `opm-deployer` is created in `team-a`
+- **THEN** that instance is enqueued
+
+#### Scenario: Instances the ServiceAccount cannot change are not enqueued
+
+- **GIVEN** a CLI-owned instance, a suspended instance that is not being deleted, and an instance in namespace `team-b`, all with `spec.serviceAccountName: deploy-sa` and all stalled with reason `ImpersonationFailed`
+- **WHEN** the ServiceAccount `deploy-sa` is created in `team-a`
+- **THEN** none of them is enqueued
+
+#### Scenario: A healthy instance is not enqueued
+
+- **GIVEN** an instance in `team-a` with `spec.serviceAccountName: deploy-sa` whose `Ready` condition is `True`, and one that was never reconciled
+- **WHEN** the ServiceAccount `deploy-sa` is created in `team-a`, once or many times
+- **THEN** neither instance is enqueued
+
+### Requirement: Controller may list and watch ServiceAccounts
+
+The controller's own ClusterRole MUST grant `list` and `watch` on `serviceaccounts`, beside `get` and `impersonate`, in every form the role ships in: the kustomize role, the install manifest and the controller module's rendered RBAC. The controller MUST watch ServiceAccount metadata only. The role MUST NOT grant a write verb on `serviceaccounts`.
+
+#### Scenario: Shipped role lets the controller watch ServiceAccounts
+
+- **WHEN** the rules of the shipped manager ClusterRole are read
+- **THEN** the verbs on `serviceaccounts` are exactly `get`, `impersonate`, `list` and `watch`

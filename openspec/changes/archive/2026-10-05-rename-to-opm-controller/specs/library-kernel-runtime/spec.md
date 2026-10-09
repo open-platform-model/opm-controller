@@ -133,7 +133,7 @@ The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHA
 
 ### Requirement: A render is bounded by a manager timeout that keeps its slot
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "A manager timeout bounds a render, which keeps its slot" in this capability.
 

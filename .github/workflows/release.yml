@@ -756,7 +756,7 @@ jobs:
         run: |
           mkdir -p "${RUNNER_TEMP}/module"
           opm module build opmodel.dev/modules/opm_controller --version "${MODULE_VERSION}" \
-            --name opm-controller -n opm-controller-system \
+            --name opm-controller -n opm-system \
             -f hack/controller-module/defaults.cue > "${RUNNER_TEMP}/module/install.yaml"
           "${TOOLS}/hack/controller-module/manifest-order.sh" "${RUNNER_TEMP}/module/install.yaml"
           "${TOOLS}/hack/controller-module/manifest-image.sh" "${RUNNER_TEMP}/module/install.yaml"

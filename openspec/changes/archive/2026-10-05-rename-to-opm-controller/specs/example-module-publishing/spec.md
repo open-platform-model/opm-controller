@@ -35,7 +35,7 @@ The release SHALL attach the example `moduleinstance.yaml` manifests, each refer
 
 ### Requirement: Independent per-module versioning
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "Each example module versions on its own" in this capability.
 

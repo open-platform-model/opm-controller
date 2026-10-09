@@ -2,6 +2,7 @@ package apply
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
@@ -20,14 +21,31 @@ func IsServiceAccountNotFound(err error) bool {
 	return apierrors.IsNotFound(err)
 }
 
+// IsServiceAccountGone reports whether err is the API server's answer that
+// the ServiceAccount name does not exist: a NotFound status whose details
+// name the core resource serviceaccounts and that name. It reads the typed
+// status only, never the message, so a NotFound of another object, of a
+// resource of another group, or one that names nothing (a proxy's 404) is not
+// mistaken for it.
+func IsServiceAccountGone(err error, name string) bool {
+	var statusErr *apierrors.StatusError
+	if !errors.As(err, &statusErr) || !apierrors.IsNotFound(statusErr) {
+		return false
+	}
+	details := statusErr.Status().Details
+	return details != nil && details.Group == "" && details.Kind == "serviceaccounts" && details.Name == name
+}
+
 // NewImpersonatedClient builds a controller-runtime client that impersonates
 // the given ServiceAccount for all API calls. The SA must exist in the
 // specified namespace; if it does not, an error is returned so the caller
 // can stall the reconcile.
 //
 // reader is used only for the SA existence check. Pass an uncached reader
-// (e.g. manager.GetAPIReader()) so that a single Get does not provision a
-// cluster-wide ServiceAccount informer and thereby require list/watch RBAC.
+// (e.g. manager.GetAPIReader()): the check then reads the apiserver, so a
+// reconcile woken by the creation of the ServiceAccount cannot run ahead of a
+// cache, and a typed Get does not open a second, full-object ServiceAccount
+// informer beside the metadata-only one of the ModuleInstance controller.
 // scheme is used to build the impersonated client.
 //
 // The returned client is suitable for Apply and Prune operations scoped to
@@ -62,18 +80,14 @@ func NewImpersonatedClient(
 }
 
 // buildImpersonationConfig returns the ImpersonationConfig for a ServiceAccount
-// identity, matching what the apiserver's serviceaccount.TokenAuthenticator
-// would inject for a token authenticating as the same SA. Without Groups, RBAC
-// bindings whose subjects target system:serviceaccounts[:ns] or
-// system:authenticated silently fail under impersonation even though the same
-// SA succeeds with token auth.
+// identity. It names the user only. For a ServiceAccount user name with no
+// group sent, the apiserver itself adds the groups a token of that
+// ServiceAccount carries (system:serviceaccounts, system:serviceaccounts:<ns>,
+// system:authenticated), so RBAC bindings to those groups hold. Sending a
+// group would need the impersonate verb on groups, which cannot be limited to
+// a namespace's ServiceAccount group and so lets the holder claim any group.
 func buildImpersonationConfig(namespace, saName string) rest.ImpersonationConfig {
 	return rest.ImpersonationConfig{
 		UserName: fmt.Sprintf("system:serviceaccount:%s:%s", namespace, saName),
-		Groups: []string{
-			"system:serviceaccounts",
-			"system:serviceaccounts:" + namespace,
-			"system:authenticated",
-		},
 	}
 }

@@ -86,7 +86,7 @@ Rationale: a render is the most expensive step of a reconcile, and when every in
 
 ### Requirement: An operator or library upgrade renders every object once
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "A controller or library upgrade renders every object once" in this capability.
 

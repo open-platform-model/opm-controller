@@ -1,4 +1,4 @@
-# ADR-019: Rename opm-operator to opm-controller
+# ADR-021: Rename opm-operator to opm-controller
 
 ## Status
 
@@ -17,8 +17,8 @@ The second reason turned around once the controller became an OPM module of its 
 The project is renamed from `opm-operator` to `opm-controller` across every identifier that is not immutable history, with no migration, alias or compatibility path, because the controller has no production installations to carry over.
 
 - Repository `open-platform-model/opm-controller`, Go module `github.com/open-platform-model/opm-controller`, image `ghcr.io/open-platform-model/opm-controller`.
-- Namespace `opm-controller-system`, name prefix `opm-controller-`, `app.kubernetes.io/name: opm-controller`. The kubebuilder base name `controller-manager` becomes `manager`, so the Deployment and its ServiceAccount are `opm-controller-manager` rather than `opm-controller-controller-manager`. The pod label `control-plane` and the controller module's component key follow the base name, so the module's fixed Deployment selector reads `manager` (`control-plane`, `app.kubernetes.io/name`, `component.opmodel.dev/name`) before the module's first release fixes it.
-- The controller's own module is `opmodel.dev/modules/opm_controller@v0`, with the deployed release in the sub-package `controller`, on a new tag train `opm_controller-vX.Y.Z` that starts at 0.1.0. Its instance is `opm-controller` in `opm-controller-system`.
+- Namespace `opm-system`, name prefix `opm-controller-`, `app.kubernetes.io/name: opm-controller`. The kubebuilder base name `controller-manager` becomes `manager`, so the Deployment and its ServiceAccount are `opm-controller-manager` rather than `opm-controller-controller-manager`. The pod label `control-plane` and the controller module's component key follow the base name, so the module's fixed Deployment selector reads `manager` (`control-plane`, `app.kubernetes.io/name`, `component.opmodel.dev/name`) before the module's first release fixes it.
+- The controller's own module is `opmodel.dev/modules/opm_controller@v0`, with the deployed release in the sub-package `controller`, on a new tag train `opm_controller-vX.Y.Z` that starts at 0.1.0. Its instance is `opm-controller` in `opm-system`.
 - The API says controller: `spec.owner` takes `cli` or `controller`, `Platform.status.controllerVersion` replaces `operatorVersion`, and the Platform printer column is `Controller`. The value `operator` is rejected.
 - The docs bundle is `opm-controller`, with its reference section at `/docs/reference/controller/`.
 - The test fixtures move to `testing.opmodel.dev/{modules,releases,catalogs}/controller/*`.

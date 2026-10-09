@@ -26,13 +26,13 @@ Values SHALL reach synthesis as a stack of values sources, each carrying an orig
 
 ### Requirement: Adapt compiled output to operator resources
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "Adapt compiled output to controller resources" in this capability.
 
 ### Requirement: The render reports the instance's contract demand from the kernel
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The render reads the instance's contract demand from the kernel" in this capability.
 

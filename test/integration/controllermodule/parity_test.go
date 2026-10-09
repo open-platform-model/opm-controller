@@ -67,7 +67,7 @@ subjects:
 		diffs := objectSetDiffs(mustRender(moduleDir), kustomizeBuild(tree))
 		Expect(diffs).To(ConsistOf(
 			"only in config/: ClusterRoleBinding roleRef=ClusterRole/opm-controller-metrics-reader " +
-				"subjects=[ServiceAccount opm-controller-system/opm-controller-manager]"))
+				"subjects=[ServiceAccount opm-system/opm-controller-manager]"))
 	})
 
 	It("fails naming the field when the Deployment's replicas change in config/manager only", func() {

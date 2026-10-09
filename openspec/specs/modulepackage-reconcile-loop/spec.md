@@ -58,11 +58,23 @@ The `ReleaseReconciler` MUST skip reconciliation when `spec.suspend` is true.
 - **THEN** the controller emits a resume event and proceeds with normal reconciliation
 
 ### Requirement: No-op detection
-The `ReleaseReconciler` MUST detect no-op reconciliations when source artifact revision, config, render, and inventory digests all match the last applied values.
+The `ReleaseReconciler` MUST detect no-op reconciliations when source artifact revision, config, render, and inventory digests all match the last applied values. A reconcile whose digests match is not a no-op when a rendered object that the apply verdict allows exists outside `status.inventory`, or when an inventoried object is adopted by another instance: it then applies the objects the verdict allows and records the inventory without the adopted object. Such a reconcile applies the rendered set, so an inventoried object that is being deleted refuses it (`ssa-apply`, "An apply is judged by the ownership verdict before its first write"): nothing is written and `Ready` is `False` with reason `ApplyRefused` until that object is gone.
 
 #### Scenario: All digests match
 - **WHEN** source artifact digest, config digest, render digest, and inventory digest all match the last applied values
+- **AND** every rendered object that exists is in `status.inventory` and none is adopted by another instance
 - **THEN** the controller skips apply and prune, keeps `Ready=True`, and requeues with interval
+
+#### Scenario: Matching digests, an object to take in and an inventoried object being deleted
+- **GIVEN** a Ready ModulePackage with matching digests, a rendered ConfigMap that exists outside `status.inventory` with the package's adopt annotation, and an inventoried ConfigMap that carries a deletion timestamp
+- **WHEN** a reconcile renders
+- **THEN** nothing is written and the package reports `Ready=False` with reason `ApplyRefused`
+- **AND** once the inventoried ConfigMap is gone, the retry applies the render, creates it again and takes the other in
+
+#### Scenario: All digests match and an object was adopted by another instance
+- **GIVEN** a Ready ModulePackage and an inventoried ConfigMap that a user annotates `opmodel.dev/adopt` with another instance's UUID
+- **WHEN** a reconcile renders with matching digests
+- **THEN** the ConfigMap is not written, `status.inventory` no longer lists it and `Ready` stays `True`
 
 ### Requirement: Source digest from artifact metadata
 The Release reconciler MUST derive the source digest from the Flux source artifact's revision and digest, not from CUE module path/version.
@@ -107,3 +119,114 @@ The `ReleaseStatus` MUST include a `source` field reflecting the resolved Flux a
 #### Scenario: Source metadata recorded
 - **WHEN** a Flux source is resolved successfully
 - **THEN** `status.source` reflects the source reference, artifact revision, artifact digest, and artifact URL
+
+### Requirement: ModulePackage keeps PersistentVolumeClaims by default
+The ModulePackage reconciler MUST apply the same protection as the ModuleInstance reconciler: with `spec.prune` true it MUST keep core `PersistentVolumeClaim` resources on the prune of stale resources and on deletion cleanup, unless `spec.dataPolicy` on the ModulePackage is `Delete`. It MUST emit the same `ClaimsKept` event, a kept stale claim MUST leave `status.inventory`, and a kept claim MUST NOT hold the finalizer.
+
+#### Scenario: Stale claim of a ModulePackage kept
+- **GIVEN** a ModulePackage with `spec.prune=true` and no `spec.dataPolicy`, whose render drops a PersistentVolumeClaim it applied before
+- **WHEN** the controller reconciles
+- **THEN** the claim still exists in the cluster and is not in `status.inventory`
+- **AND** a `Normal` event with reason `ClaimsKept` is emitted
+
+#### Scenario: Deletion of a ModulePackage keeps its claims
+- **GIVEN** a ModulePackage with `spec.prune=true` and no `spec.dataPolicy` that is being deleted, with a PersistentVolumeClaim in its inventory
+- **WHEN** the controller reconciles
+- **THEN** the claim still exists, every other entry is deleted, and the finalizer is removed once those entries are gone
+
+#### Scenario: A ModulePackage that opts out deletes its claims
+- **GIVEN** a ModulePackage with `spec.prune=true` and `spec.dataPolicy=Delete` that is being deleted, with a PersistentVolumeClaim in its inventory
+- **WHEN** the controller reconciles
+- **THEN** the claim is deleted with the other entries
+
+### Requirement: A ModulePackage keeps claims on a forced recreate
+A ModulePackage reconcile MUST pass `spec.dataPolicy` to the apply as it does to the prune. With `spec.rollout.forceConflicts: true` and `spec.dataPolicy` `Keep` or absent, a PersistentVolumeClaim whose update the API server refuses MUST be kept, and the reconcile MUST report `Ready=False` with reason `ClaimConflict` and one `Warning` event with that reason, and retry on its backoff. With `spec.dataPolicy: Delete` the claim MUST be deleted and recreated.
+
+#### Scenario: A refused claim on a ModulePackage
+- **GIVEN** a ModulePackage with `spec.rollout.forceConflicts: true` and no `spec.dataPolicy`, whose render changes `storageClassName` of a live PersistentVolumeClaim
+- **WHEN** the controller reconciles
+- **THEN** the claim has the UID it had
+- **AND** `Ready` is `False` with reason `ClaimConflict`, and a `Warning` event with reason `ClaimConflict` names the claim
+
+#### Scenario: Delete recreates the claim of a ModulePackage
+- **GIVEN** a ModulePackage with `spec.rollout.forceConflicts: true` and `spec.dataPolicy: Delete`, whose render changes `storageClassName` of a live PersistentVolumeClaim
+- **WHEN** the controller reconciles
+- **THEN** the claim is deleted and created again, and `Ready` is `True`
+
+### Requirement: A ModulePackage records its instance identity
+A ModulePackage MUST carry the identity of the instance it renders in the optional status field `status.instanceUUID`, the UUID label value of its rendered objects, and the identity it had before an unsettled change in the optional field `status.previousInstanceUUID`. Both fields MUST be written, kept and cleared as on a ModuleInstance, and a second identity change before the first is settled MUST be refused as on a ModuleInstance. A ModulePackage stored before the fields existed MUST be valid unchanged and MUST gain `status.instanceUUID`, with no change to its spec, in its first reconcile that renders: before the apply when that reconcile applies, and in its status commit when it applies nothing. Source: 0012:D8:R4.
+
+The prune of stale resources and the deletion cleanup of a ModulePackage MUST judge with the recorded identities as a ModuleInstance's do. While no identity is recorded, a ModulePackage MUST delete what it deleted before the field existed, except an object that carries an adopt annotation naming another identity than the render's, and on deletion any object that carries an adopt annotation.
+
+#### Scenario: The identity is recorded
+- **GIVEN** a new ModulePackage that renders and applies with success
+- **WHEN** the status is committed
+- **THEN** `status.instanceUUID` holds the UUID label value of the rendered objects
+
+#### Scenario: An existing package gains the field
+- **GIVEN** a ModulePackage with an inventory and no `status.instanceUUID`, reconciled by an earlier controller release
+- **WHEN** the upgraded controller reconciles it with unchanged inputs
+- **THEN** `status.instanceUUID` is set, `status.previousInstanceUUID` is empty and nothing is applied
+
+#### Scenario: The first render after the upgrade also changes the identity
+- **GIVEN** a ModulePackage with an inventory and no `status.instanceUUID`, whose source now renders the instance under another module path, and a stale ConfigMap that is managed by OPM and carries the UUID label of the earlier identity
+- **WHEN** the upgraded controller reconciles it
+- **THEN** the stale ConfigMap is deleted, as before the field existed
+
+#### Scenario: A package does not delete another instance's object
+- **GIVEN** a ModulePackage with `status.instanceUUID` `A` and `spec.prune=true`, whose stale set holds a ConfigMap that is managed by OPM and carries the UUID label `B`
+- **WHEN** the controller prunes
+- **THEN** the ConfigMap still exists
+
+#### Scenario: Deletion of a package judges with the recorded identity
+- **GIVEN** a ModulePackage with `status.instanceUUID` `A` being deleted, whose inventory holds a ConfigMap with the UUID label `A` and a Secret with the UUID label `B`
+- **WHEN** the deletion cleanup runs
+- **THEN** the ConfigMap is deleted, the Secret still exists and the finalizer is removed once the ConfigMap is gone
+
+#### Scenario: A package that never rendered is deleted as before
+- **GIVEN** a suspended ModulePackage with an inventory and no `status.instanceUUID`
+- **WHEN** it is deleted with `spec.prune=true`
+- **THEN** every inventory object that is managed by OPM and has no adopt annotation is deleted, whatever its UUID label
+
+### Requirement: A ModulePackage guards every apply by ownership
+A ModulePackage reconcile that renders MUST judge every rendered object with the library's apply verdict before its first write, with the identity that capability `ssa-apply` defines (the instance's identity; never the earlier identity of an unsettled change and never an empty identity, also when the package has none recorded), exactly as a ModuleInstance reconcile does (`ssa-apply`, "An apply is judged by the ownership verdict before its first write"; `reconcile-loop-assembly`, "A reconcile the apply verdict refuses is retried and not stalled"). The read MUST be made by the client that applies. A reconcile that skips its render MUST NOT read the objects. Source: 0012:D8:R4.
+
+A ModulePackage has no drift check to report a verdict that could not be asked. So a reconcile that renders MUST fail, also when every digest matches, when the client that applies cannot be built or the read of a rendered object fails for a reason other than that the object does not exist: `Stalled=True` with reason `ImpersonationFailed` when the ServiceAccount is missing or the read is Forbidden under an effective ServiceAccount, `Ready=False` with reason `ApplyFailed` on the backoff otherwise. It MUST write nothing and MUST keep `status.inventory`.
+
+#### Scenario: A package is refused on another instance's object
+- **GIVEN** a ModulePackage whose render names a ConfigMap that a ModuleInstance holds and that is not in the package's inventory
+- **WHEN** the controller reconciles the package
+- **THEN** nothing is written, and the package reports `Ready=False` with reason `ApplyRefused` and no `Stalled` condition
+
+#### Scenario: A package adopts an annotated object
+- **GIVEN** the ConfigMap of the scenario above annotated `opmodel.dev/adopt` with the package's `status.instanceUUID`
+- **WHEN** the retry runs
+- **THEN** the render is applied and the ConfigMap is listed in the package's `status.inventory`
+
+#### Scenario: A skipped render reads nothing
+- **GIVEN** a ModulePackage whose render inputs are unchanged inside the drift render interval
+- **WHEN** the controller reconciles
+- **THEN** no rendered object is read for the verdict
+
+#### Scenario: Matching digests and an unreadable object
+- **GIVEN** a Ready ModulePackage with matching digests whose effective ServiceAccount may no longer get ConfigMaps
+- **WHEN** a reconcile renders
+- **THEN** nothing is written, `status.inventory` keeps its entries, and the package reports `Stalled=True` with reason `ImpersonationFailed`
+
+#### Scenario: Matching digests and a missing ServiceAccount
+- **GIVEN** a Ready ModulePackage with matching digests whose effective ServiceAccount was deleted
+- **WHEN** a reconcile renders
+- **THEN** the package reports `Stalled=True` with reason `ImpersonationFailed` and is not a `NoOp`
+
+### Requirement: A ModulePackage deletes and waits as a ModuleInstance does
+The deletion cleanup and the prune of stale resources of a ModulePackage MUST follow the same rules as a ModuleInstance's (capabilities `finalizer-and-deletion` and `prune-stale-resources`): the library's deletion plan, the hold verdict, the wait until deleted objects are gone, the reasons `DeletionInProgress` and `DeletionBlocked`, the release when the deleting identity is lost after every delete was sent, and the release of an inventory of kept claims only.
+
+#### Scenario: A terminating object holds the finalizer of a ModulePackage
+- **GIVEN** a ModulePackage with `spec.prune=true` being deleted, whose Deployment still exists with a `deletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** the finalizer is still present and `Ready` is False with reason `DeletionInProgress`
+
+#### Scenario: A ModulePackage is released when its ServiceAccount goes during the wait
+- **GIVEN** a ModulePackage being deleted with reason `DeletionInProgress`, whose ServiceAccount is deleted
+- **WHEN** the controller reconciles it
+- **THEN** the finalizer is removed and one `Warning` event with reason `DeletionUnconfirmed` is emitted

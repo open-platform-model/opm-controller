@@ -190,19 +190,19 @@ The `gomod` entry of `.github/dependabot.yml` SHALL ignore the dependencies `cue
 
 ### Requirement: Changelog generation
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The changelog is generated per package" in this capability.
 
 ### Requirement: Beta prerelease line
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller's beta prerelease line" in this capability.
 
 ### Requirement: The Release PR rewrites the install page's operator version
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The Release PR rewrites the install page's controller version" in this capability.
 

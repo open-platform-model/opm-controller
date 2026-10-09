@@ -2,7 +2,7 @@
 
 ### Requirement: Re-enqueue ModulePackages when the platform becomes ready
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "ModulePackages re-enqueue when the platform becomes ready" in this capability.
 

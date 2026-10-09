@@ -70,19 +70,17 @@ var _ = Describe("Prune", func() {
 			}}
 
 			By("pruning the stale set")
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(1))
 			Expect(result.Skipped).To(Equal(0))
 
 			By("verifying the ConfigMap no longer exists")
 			fetched := &corev1.ConfigMap{}
-			err = k8sClient.Get(ctx, types.NamespacedName{
+			expectGone(types.NamespacedName{
 				Namespace: "default",
 				Name:      "prune-test-cm",
 			}, fetched)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("not found"))
 		})
 	})
 
@@ -94,7 +92,7 @@ var _ = Describe("Prune", func() {
 				Name:    "prune-test-ns",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(0))
 			Expect(result.Skipped).To(Equal(1))
@@ -110,7 +108,7 @@ var _ = Describe("Prune", func() {
 				Name:      "prune-already-gone-cm",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(0))
 			Expect(result.Skipped).To(Equal(0))
@@ -119,7 +117,7 @@ var _ = Describe("Prune", func() {
 
 	Context("When stale set is empty", func() {
 		It("should be a no-op and return zero counts", func() {
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, nil)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, nil, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(0))
 			Expect(result.Skipped).To(Equal(0))
@@ -135,7 +133,7 @@ var _ = Describe("Prune", func() {
 				Name:    "prune-test-crd.example.com",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(0))
 			Expect(result.Skipped).To(Equal(1))
@@ -171,19 +169,17 @@ var _ = Describe("Prune", func() {
 			}
 
 			By("pruning the mixed stale set")
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(1))
 			Expect(result.Skipped).To(Equal(1))
 
 			By("verifying the ConfigMap no longer exists")
 			fetched := &corev1.ConfigMap{}
-			err = k8sClient.Get(ctx, types.NamespacedName{
+			expectGone(types.NamespacedName{
 				Namespace: "default",
 				Name:      "prune-mixed-cm",
 			}, fetched)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("not found"))
 		})
 	})
 
@@ -239,7 +235,7 @@ var _ = Describe("Prune", func() {
 			}
 
 			By("pruning with the failing client")
-			result, err := apply.Prune(ctx, failingClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, failingClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("injected delete failure"))
 			Expect(result.Deleted).To(Equal(1))
@@ -247,12 +243,10 @@ var _ = Describe("Prune", func() {
 
 			By("verifying the successful resource was deleted")
 			fetched := &corev1.ConfigMap{}
-			err = k8sClient.Get(ctx, types.NamespacedName{
+			expectGone(types.NamespacedName{
 				Namespace: "default",
 				Name:      "prune-failslow-ok",
 			}, fetched)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("not found"))
 
 			By("verifying the failed resource still exists")
 			fetched = &corev1.ConfigMap{}
@@ -281,7 +275,7 @@ var _ = Describe("Prune", func() {
 				Name:      "prune-foreign-cm",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(0))
 			Expect(result.Skipped).To(Equal(1))
@@ -321,7 +315,7 @@ var _ = Describe("Prune", func() {
 				Name:      "prune-cross-mr-cm",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(0))
 			Expect(result.Skipped).To(Equal(1))
@@ -357,19 +351,17 @@ var _ = Describe("Prune", func() {
 				Name:      "prune-owned-cm",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(1))
 			Expect(result.Skipped).To(Equal(0))
 
 			By("verifying the owned ConfigMap no longer exists")
 			fetched := &corev1.ConfigMap{}
-			err = k8sClient.Get(ctx, types.NamespacedName{
+			expectGone(types.NamespacedName{
 				Namespace: "default",
 				Name:      "prune-owned-cm",
 			}, fetched)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("not found"))
 		})
 	})
 
@@ -394,7 +386,7 @@ var _ = Describe("Prune", func() {
 				Name:      "prune-legacy-cm",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(1))
 			Expect(result.Skipped).To(Equal(0))
@@ -423,19 +415,17 @@ var _ = Describe("Prune", func() {
 				Name:      "prune-cli-handoff-cm",
 			}}
 
-			result, err := apply.Prune(ctx, k8sClient, testOwnerUUID, stale)
+			result, err := apply.Prune(ctx, k8sClient, []string{testOwnerUUID}, stale, apply.PruneOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(result.Deleted).To(Equal(1))
 			Expect(result.Skipped).To(Equal(0))
 
 			By("verifying the CLI-labeled ConfigMap no longer exists")
 			fetched := &corev1.ConfigMap{}
-			err = k8sClient.Get(ctx, types.NamespacedName{
+			expectGone(types.NamespacedName{
 				Namespace: "default",
 				Name:      "prune-cli-handoff-cm",
 			}, fetched)
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("not found"))
 		})
 	})
 })

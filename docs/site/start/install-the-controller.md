@@ -5,13 +5,13 @@ type: how-to
 weight: 16
 ---
 
-The OPM controller runs in the namespace `opm-controller-system`. It renders and applies every ModuleInstance whose `spec.owner` is absent or `controller`, such as the ones you create with kubectl or through GitOps, and every ModulePackage. Install it when the cluster should keep instances as declared without anyone running `opm`. A cluster where only the CLI deploys needs only the controller's resource definitions, which `opm controller install --crds-only` installs.
+The OPM controller runs in the namespace `opm-system`. It renders and applies every ModuleInstance whose `spec.owner` is absent or `controller`, such as the ones you create with kubectl or through GitOps, and every ModulePackage. Install it when the cluster should keep instances as declared without anyone running `opm`. A cluster where only the CLI deploys needs only the controller's resource definitions, which `opm controller install --crds-only` installs.
 
-The controller is itself an OPM module, `opmodel.dev/modules/opm_controller`, published to the registry on a version train of its own. A module version is not a controller version: each module version deploys one controller release. `opm controller install` pulls that module and deploys it as the ModuleInstance `opm-controller` in `opm-controller-system`, owned by the CLI. The controller never reconciles that instance, whatever its owner. So re-running the install repairs the controller, as long as the instance stays owned by the CLI. If its `spec.owner` is set to anything other than `cli`, the install refuses and prints the `kubectl patch` that sets it back. Without the CLI, `kubectl apply` installs the same objects from the `install.yaml` that each module release attaches.
+The controller is itself an OPM module, `opmodel.dev/modules/opm_controller`, published to the registry on a version train of its own. A module version is not a controller version: each module version deploys one controller release. `opm controller install` pulls that module and deploys it as the ModuleInstance `opm-controller` in `opm-system`, owned by the CLI. The controller never reconciles that instance, whatever its owner. So re-running the install repairs the controller, as long as the instance stays owned by the CLI. If its `spec.owner` is set to anything other than `cli`, the install refuses and prints the `kubectl patch` that sets it back. Without the CLI, `kubectl apply` installs the same objects from the `install.yaml` that each module release attaches.
 
 ## Before you begin
 
-- `kubectl` access with cluster-admin rights. The module renders the namespace `opm-controller-system`, four resource definitions under `opmodel.dev` (`moduleinstances`, `modulepackages`, `platforms` and `transformerregistrations`), and ClusterRoles and ClusterRoleBindings.
+- `kubectl` access with cluster-admin rights. The module renders the namespace `opm-system`, four resource definitions under `opmodel.dev` (`moduleinstances`, `modulepackages`, `platforms` and `transformerregistrations`), and ClusterRoles and ClusterRoleBindings.
 - To install with `opm`: the CLI, configured with `opm config init`. See [Install the CLI](/docs/start/install-the-cli/). The CLI pulls the controller module and the OPM modules it depends on from its configured registry, `ghcr.io/open-platform-model` by default, and looks up the newest catalog release there before it changes anything on the cluster. The module also depends on the Kubernetes schemas `cue.dev/x/k8s.io`, which the default configuration pulls from `registry.cue.works`, so the host that runs `opm` must reach both registries.
 - Network access from the cluster to `ghcr.io`. The nodes pull the controller image from it, and the controller resolves core, the catalogs and modules from `ghcr.io/open-platform-model`. It exits at startup when it cannot resolve core.
 - For an air-gapped cluster: a registry mirror that holds the controller module and every module it depends on, and an image mirror the nodes can pull from. Step 5 sets both.
@@ -49,7 +49,7 @@ The controller is itself an OPM module, `opmodel.dev/modules/opm_controller`, pu
    kubectl apply --server-side -f https://github.com/open-platform-model/opm-controller/releases/download/opm_controller-v0.1.0/install.yaml
    ```
 
-   The manifest is the module rendered with its default values for the instance `opm-controller` in `opm-controller-system`. It pins the controller image by tag and digest, `ghcr.io/open-platform-model/opm-controller:v1.0.0-beta.N@sha256:...`. To check the image's signature, run this with the digest the manifest names:
+   The manifest is the module rendered with its default values for the instance `opm-controller` in `opm-system`. It pins the controller image by tag and digest, `ghcr.io/open-platform-model/opm-controller:v1.0.0-beta.N@sha256:...`. To check the image's signature, run this with the digest the manifest names:
 
    ```sh
    cosign verify ghcr.io/open-platform-model/opm-controller@sha256:<digest> \
@@ -66,7 +66,7 @@ The controller is itself an OPM module, `opmodel.dev/modules/opm_controller`, pu
    `opm controller install` has already waited. If you applied the manifest with kubectl, run:
 
    ```sh
-   kubectl -n opm-controller-system rollout status deployment/opm-controller-manager --timeout=180s
+   kubectl -n opm-system rollout status deployment/opm-controller-manager --timeout=180s
    ```
 
    The output should look similar to this:
@@ -107,7 +107,7 @@ The controller is itself an OPM module, `opmodel.dev/modules/opm_controller`, pu
 
 4. Give the controller an identity to apply with.
 
-   The controller applies a module's resources as a ServiceAccount in the instance's own namespace, by impersonation. Its own ClusterRole, `opm-controller-manager-role`, grants nothing on workload kinds such as Deployments and Services. With no ServiceAccount named, the controller applies as itself, the apply is forbidden, and the instance reports reason `ApplyFailed`.
+   The controller applies a module's resources as a ServiceAccount in the instance's own namespace, by impersonation. Its own ClusterRole, `opm-controller-manager-role`, grants nothing on workload kinds such as Deployments and Services. With no ServiceAccount named, the controller applies as itself, the apply is forbidden, and the instance reports reason `ApplyFailed`. Drift detection runs as the same ServiceAccount, so its Role needs `get`, `create` and `patch` on every kind the module renders; without one of them the instance reports `Drifted` as `Unknown` with reason `DriftCheckForbidden`.
 
    In each namespace that holds instances, create a ServiceAccount and bind it to a role that covers what the modules render. Then name it in the `spec.serviceAccountName` of each ModuleInstance or ModulePackage. For example, the built-in `edit` ClusterRole, bound in one namespace, covers common namespaced kinds such as Deployments, StatefulSets, Services, ConfigMaps and Secrets:
 
@@ -225,7 +225,7 @@ cluster   kubernetes   True    Generated   v1.0.0-beta.8
 If you installed with `opm`, the controller's own instance is owned by the CLI:
 
 ```sh
-kubectl -n opm-controller-system get moduleinstance opm-controller -o jsonpath='{.spec.owner}{"\n"}'
+kubectl -n opm-system get moduleinstance opm-controller -o jsonpath='{.spec.owner}{"\n"}'
 ```
 
 The output should be:
@@ -237,7 +237,7 @@ cli
 To read the controller's log:
 
 ```sh
-kubectl -n opm-controller-system logs deploy/opm-controller-manager
+kubectl -n opm-system logs deploy/opm-controller-manager
 ```
 
 The first lines should look similar to this; the second names the core version it resolved:
@@ -256,7 +256,7 @@ INFO	setup	Starting manager
 The Flux line appears on a cluster without Flux. If you install Flux after the controller, restart the controller so that it watches Flux sources:
 
 ```sh
-kubectl -n opm-controller-system rollout restart deployment/opm-controller-manager
+kubectl -n opm-system rollout restart deployment/opm-controller-manager
 ```
 
 ## Related

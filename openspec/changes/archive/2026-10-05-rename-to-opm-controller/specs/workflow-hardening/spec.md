@@ -15,19 +15,19 @@
 
 ### Requirement: No Actions cache in a publishing job
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "A publishing job uses no Actions cache" in this capability.
 
 ### Requirement: Bot-head code never holds a write token or OIDC
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "Code on a bot head never holds a write token or OIDC" in this capability.
 
 ### Requirement: Operator module bot PRs commit plain files only
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "Controller module bot PRs commit plain files only" in this capability.
 

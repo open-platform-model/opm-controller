@@ -64,14 +64,25 @@ const (
 	// or renames a component.
 	DuplicateIdentitiesReason = "DuplicateIdentities"
 
-	ApplyFailedReason             = "ApplyFailed"
+	ApplyFailedReason = "ApplyFailed"
+	// ClaimConflictReason: Ready=False, not stalled, spec.rollout.forceConflicts
+	// is set and the API server refuses the update of a PersistentVolumeClaim.
+	// The controller does not delete and recreate the claim, because
+	// spec.dataPolicy is not Delete, and applies nothing. It retries on the
+	// backoff: the conflict can be resolved on the claim alone. Also the
+	// reason of the Warning event of that apply.
+	ClaimConflictReason           = "ClaimConflict"
 	PruneFailedReason             = "PruneFailed"
 	ImpersonationFailedReason     = "ImpersonationFailed"
 	DeletionSAMissingReason       = "DeletionSAMissing"
 	OrphanedOnDeletionReason      = "OrphanedOnDeletion"
 	ReconciliationSucceededReason = "ReconciliationSucceeded"
 	DriftDetectedReason           = "DriftDetected"
-	ManagedExternallyReason       = "ManagedExternally"
+	// DriftCheckForbiddenReason: Drifted=Unknown, the API server refused the
+	// dry-run of drift detection for the identity that applies the instance,
+	// so whether an object drifted is not known. Ready is not moved.
+	DriftCheckForbiddenReason = "DriftCheckForbidden"
+	ManagedExternallyReason   = "ManagedExternally"
 	// SelfManagementRefusedReason: Ready=False, Stalled=True, the instance
 	// deploys the controller itself and its owner is absent or controller. The
 	// controller never applies, prunes or finalizes the instance that deploys
@@ -264,8 +275,12 @@ const (
 	// Event-only reasons (no corresponding condition).
 	AppliedReason = "Applied"
 	PrunedReason  = "Pruned"
-	ResumedReason = "Resumed"
-	NoOpReason    = "NoOp"
+	// ClaimsKeptReason is the Normal event of a prune or a deletion cleanup
+	// that left PersistentVolumeClaims in the cluster because spec.dataPolicy
+	// is not Delete.
+	ClaimsKeptReason = "ClaimsKept"
+	ResumedReason    = "Resumed"
+	NoOpReason       = "NoOp"
 	// RenderWarningReason is the Warning event a successful render's advisory
 	// messages (catalog skew under Warn, unhandled optional traits) are
 	// emitted under, once per distinct message when the object's warning set
@@ -376,7 +391,17 @@ func MarkDrifted(obj conditions.Setter, count int) {
 		"%d resource(s) drifted from desired state", count)
 }
 
-// ClearDrifted removes the Drifted condition (drift resolved by successful apply).
+// MarkDriftUnknown sets Drifted=Unknown: drift detection could not give a
+// verdict. The reason is DriftCheckForbiddenReason when the dry-run was
+// refused, ImpersonationFailedReason when the identity that applies could not
+// be impersonated and no dry-run was sent. Informational, like MarkDrifted:
+// no other condition is touched.
+func MarkDriftUnknown(obj conditions.Setter, reason, messageFormat string, messageArgs ...any) {
+	conditions.MarkUnknown(obj, DriftedCondition, reason, messageFormat, messageArgs...)
+}
+
+// ClearDrifted removes the Drifted condition: drift detection found none, or
+// a successful apply resolved it.
 func ClearDrifted(obj conditions.Setter) {
 	conditions.Delete(obj, DriftedCondition)
 }

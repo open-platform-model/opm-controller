@@ -50,7 +50,7 @@ When closure derivation, generation or the build fails, the `PlatformReconciler`
 
 ### Requirement: Reconciler stamps status.operatorVersion on every outcome
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "Reconciler stamps status.controllerVersion on every outcome" in this capability.
 

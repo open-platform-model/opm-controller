@@ -22,7 +22,7 @@ No viewer role SHALL carry an `rbac.authorization.k8s.io/aggregate-to-view`, `ag
 
 ### Requirement: The operator ships a viewer role for every OPM kind
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The controller ships a viewer role for every OPM kind" in this capability.
 

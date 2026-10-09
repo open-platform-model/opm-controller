@@ -34,7 +34,13 @@ Source: 0032:D1:R1, 0032:D1:R6.
 
 ### Requirement: The controller skips CLI-owned instances before registering a finalizer
 
-When `spec.owner == cli`, the controller MUST return from `Reconcile` without rendering, applying, pruning, or running deletion cleanup, and MUST NOT add the `opmodel.dev/cleanup` finalizer. The owner check MUST occur before finalizer registration so that a CLI-owned instance never carries the controller's finalizer. The one exception runs before this gate: a deleting instance recognised as the controller's own that carries the finalizer is released as the requirement "The controller releases its finalizer from a deleting own instance without pruning" says, whatever its `spec.owner`.
+When `spec.owner == cli`, the controller MUST return from `Reconcile` without rendering, applying, pruning, or running deletion cleanup, and MUST NOT add the `opmodel.dev/cleanup` finalizer. The owner check MUST occur before finalizer registration so that an instance that has always been CLI-owned never carries the controller's finalizer.
+
+An instance that was controller-owned before its `spec.owner` became `cli` still carries the finalizer. When such an instance is being deleted, the controller MUST remove the `opmodel.dev/cleanup` finalizer, MUST NOT delete any object in the instance's inventory whatever its `spec.prune`, and MUST write no status. On a CLI-owned instance that is not being deleted the controller MUST NOT change the finalizers.
+
+The one exception runs before this gate: a deleting instance recognised as the controller's own that carries the finalizer is released as the requirement "The controller releases its finalizer from a deleting own instance without pruning" says, whatever its `spec.owner`.
+
+Rationale: only the controller removes its finalizer, and the owner-skip gate is the only code that runs for a CLI-owned instance. Without the release the delete never completes.
 
 #### Scenario: CLI-owned instance is not reconciled and gets no finalizer
 
@@ -46,10 +52,24 @@ When `spec.owner == cli`, the controller MUST return from `Reconcile` without re
 
 #### Scenario: Deleting a CLI-owned instance is a no-op for the controller
 
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, a non-zero `DeletionTimestamp` and no `opmodel.dev/cleanup` finalizer
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, no `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
 - **WHEN** the controller reconciles it
 - **THEN** the controller prunes no resources
 - **AND** the controller does not block deletion
+
+#### Scenario: Deleting a CLI-owned instance that carries the finalizer releases it
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, `spec.prune: true`, a non-empty `status.inventory`, the `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** the finalizer is removed and the apiserver deletes the instance
+- **AND** every object in the inventory still exists
+- **AND** the controller returns without requeueing
+
+#### Scenario: A live CLI-owned instance keeps a leftover finalizer
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, the `opmodel.dev/cleanup` finalizer and no `DeletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** the finalizer stays and the instance is acknowledged with `ManagedExternally`
 
 #### Scenario: Controller-managed instances are unaffected
 
@@ -104,7 +124,7 @@ When a `ModuleInstance`'s `spec.owner` changes from `cli` to `controller`, the n
 
 The controller SHALL treat a `ModuleInstance` as the controller's own instance when any one of these holds, each read from the object as stored, without rendering the module:
 
-- its `metadata.name` is `opm-controller` and its `metadata.namespace` is `opm-controller-system`;
+- its `metadata.name` is `opm-controller` and its `metadata.namespace` is `opm-system`;
 - its `spec.module.path`, with any `@<major>` suffix removed, is `opmodel.dev/modules/opm_controller`;
 - its `status.inventory.entries` holds an entry of group `apiextensions.k8s.io` and kind `CustomResourceDefinition` whose name, after its first `.`, is the controller's own API group `opmodel.dev`.
 
@@ -112,7 +132,7 @@ The coordinates are the ones every CLI install records the controller's instance
 
 #### Scenario: Fixed coordinates identify the instance
 
-- **GIVEN** a `ModuleInstance` named `opm-controller` in namespace `opm-controller-system` whose module path is any value
+- **GIVEN** a `ModuleInstance` named `opm-controller` in namespace `opm-system` whose module path is any value
 - **WHEN** the controller reconciles it
 - **THEN** the controller treats it as the controller's own instance
 

@@ -10,7 +10,7 @@ Built on the branch `refactor/rename-to-opm-controller`, and merged together wit
 ## 2. API, runtime names and install shape
 
 - [x] 2.1 `OwnerController` with `+kubebuilder:validation:Enum=cli;controller`; `Platform.status.controllerVersion` (`ControllerVersion`) with the printer column `Controller`; `RenderInputKey.ControllerVersion` and the reconciler fields; doc comments say controller.
-- [x] 2.2 Self-skip constants in `internal/reconcile/owninstance.go` (`opm-controller`, `opm-controller-system`, `opmodel.dev/modules/opm_controller`) and their tests, including the `opm_controller_dashboard` prefix traps; condition text names the controller.
+- [x] 2.2 Self-skip constants in `internal/reconcile/owninstance.go` (`opm-controller`, `opm-system`, `opmodel.dev/modules/opm_controller`) and their tests, including the `opm_controller_dashboard` prefix traps; condition text names the controller.
 - [x] 2.3 Registry `ClientType` and the startup log `Starting opm-controller`; per-kind loops called reconcilers in prose.
 - [x] 2.4 Kustomize namespace, `namePrefix`, `app.kubernetes.io/name` and placeholder image; base name `manager` for the Deployment, ServiceAccount, bindings, metrics Service and monitor.
 - [x] 2.5 Fixtures on `testing.opmodel.dev/{modules,releases,catalogs}/controller/*` in `test/fixtures`, `config/samples`, Go fixture strings and `hack/fixtures.sh`; `test/integration/controllermodule`; e2e constants and the e2e deploy through `task controller:*`.
@@ -41,7 +41,7 @@ Built on the branch `refactor/rename-to-opm-controller`, and merged together wit
 ## 6. Docs and ADRs
 
 - [x] 6.1 `docs/site` pages renamed to `start/install-the-controller`, `diagnostics/controller-conditions` and `reference/controller/`; product prose says controller, per-kind loops reconcilers; the install page drops the manifest-migration note and points kubectl at a module release.
-- [x] 6.2 ADR-019 "Rename opm-operator to opm-controller"; delete ADR-015; dated ADR bodies, `docs/RENDERING.md`, the design doc and the kind test plans follow the new names.
+- [x] 6.2 ADR-021 "Rename opm-operator to opm-controller"; delete ADR-015; dated ADR bodies, `docs/RENDERING.md`, the design doc and the kind test plans follow the new names.
 - [x] 6.3 README, AGENTS, CONSTITUTION and `openspec/config.yaml`.
 - [x] 6.4 `task docs:bundle:check` green; then commit `docs!: name the controller in the docs, ADRs and agent guides`.
 
@@ -55,7 +55,7 @@ Built on the branch `refactor/rename-to-opm-controller`, and merged together wit
 
 - [x] 8.1 Rebase onto main after `add-healthy-condition`: rename its product words, imports and `testControllerVersion`, regenerate, move its rows into `controller-conditions.md`, re-derive the archived `module-instance-ownership`, `reconcile-loop-assembly` and `render-input-key` deltas from the new main specs, and add the `kubernetes-tier-adoption` retitle and the `instance-health` delta.
 - [x] 8.2 Delete the own-instance finalizer release: the finalizer stripping in `handleOwnInstance`, its three tests, its docs sentences, and the requirement (REMOVED with no successor); commit `refactor(reconcile)!: delete the own-instance finalizer guard`. Narrowed by 8.6.
-- [x] 8.3 Select the controller's pods by `manager`: `control-plane: manager` in `config/`, the module component key `manager`, the fixed selector in `test/integration/controllermodule`, the e2e selectors, the `controller-module` spec and ADR-019; regenerate `dist/install.yaml`; commit `refactor(module)!: select the controller's pods by manager`.
+- [x] 8.3 Select the controller's pods by `manager`: `control-plane: manager` in `config/`, the module component key `manager`, the fixed selector in `test/integration/controllermodule`, the e2e selectors, the `controller-module` spec and ADR-021; regenerate `dist/install.yaml`; commit `refactor(module)!: select the controller's pods by manager`.
 - [x] 8.4 Restore the recorded run results in `hack/kind-opm-dev-test` to their recorded wording, with a note that they predate the rename.
 - [x] 8.5 Each spec edit is made in the archived delta and the main spec alike; every ADDED or MODIFIED block of the archived deltas equals its main-spec block, and no REMOVED title is left in a main spec.
 - [x] 8.6 Narrow the finalizer release instead of deleting it: `handleOwnInstance` removes the finalizer from a deleting own instance without pruning, writes no status and emits a `SelfManagementRefused` event; a live own instance keeps the finalizer and the refusal; tests for an instance recognised by its inventory and for a module-path edit; the requirement restated as "The controller releases its finalizer from a deleting own instance without pruning"; the refusal requirement no longer claims an own instance never carries the finalizer; the `controller-conditions.md` and `deletion-and-pruning.md` sentences; commit `fix(reconcile): release the finalizer from a deleting own instance`.

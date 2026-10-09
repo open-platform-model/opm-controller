@@ -47,7 +47,7 @@ Every reference to the cascade code SHALL name one full 40-character SHA of a co
 
 ### Requirement: The receiver runs the shared receive workflow on dispatch, sweep and demand
 
-**Reason**: The project is renamed from opm-operator to opm-controller (ADR-019); this requirement is restated under the controller's name.
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
 
 **Migration**: See the requirement "The receiver runs the shared receive workflow on a dispatch, the sweep and demand" in this capability.
 

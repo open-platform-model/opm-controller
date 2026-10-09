@@ -148,10 +148,10 @@ var _ = Describe("The controller module's #config", func() {
 			"resources.requests.cpu", `write 4, not "4"`),
 	)
 
-	It("refuses any instance but opm-controller in opm-controller-system, naming the expected coordinates", func() {
+	It("refuses any instance but opm-controller in opm-system, naming the expected coordinates", func() {
 		for _, c := range []struct{ name, namespace string }{
-			{"opm", "opm-system"},
-			{instanceName, "opm-system"},
+			{"opm", "kube-system"},
+			{instanceName, "kube-system"},
 			{"opm", instanceNamespace},
 		} {
 			_, err := render(moduleDir, c.name, c.namespace, "{}")

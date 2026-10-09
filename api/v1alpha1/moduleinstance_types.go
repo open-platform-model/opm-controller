@@ -52,7 +52,7 @@ type ModuleInstanceSpec struct {
 	//
 	// The controller never reconciles the instance that deploys the controller
 	// itself, whatever this field says: an instance named opm-controller in
-	// opm-controller-system, an instance of the opmodel.dev/modules/opm_controller
+	// opm-system, an instance of the opmodel.dev/modules/opm_controller
 	// module, or one whose inventory records the controller's own
 	// CustomResourceDefinitions. With an absent or "controller" value such an
 	// instance is refused (Ready=False, Stalled=True, reason
@@ -75,9 +75,36 @@ type ModuleInstanceSpec struct {
 	// and every applied object when the ModuleInstance is deleted. When false
 	// or absent, it leaves them in place: deleting the ModuleInstance leaves
 	// its applied objects running. Namespaces and CustomResourceDefinitions
-	// are never deleted.
+	// are never deleted, and PersistentVolumeClaims are kept unless
+	// spec.dataPolicy is Delete.
 	// +optional
 	Prune bool `json:"prune,omitempty"`
+
+	// DataPolicy says what the controller does with the PersistentVolumeClaims it
+	// would otherwise delete under spec.prune. With Keep, or when the field is
+	// absent, the controller does not delete a PersistentVolumeClaim when it
+	// prunes or when the ModuleInstance is deleted: a claim that a new render
+	// no longer produces stays in the cluster and is no longer tracked, and
+	// deleting the ModuleInstance leaves its claims in place. With
+	// Delete, claims are pruned and deleted like any other object, and the data
+	// on their volumes goes with them under the reclaim policy of the volume.
+	// For pruning and deletion the field has no effect unless spec.prune is
+	// true: Delete without spec.prune is accepted and prunes nothing. Claims
+	// that a StatefulSet creates from its volumeClaimTemplates are never
+	// tracked and never deleted by the controller, whatever this field says.
+	//
+	// The field also governs the forced recreate of
+	// spec.rollout.forceConflicts, with or without spec.prune. With Keep, or
+	// when the field is absent, the controller does not delete and recreate a
+	// PersistentVolumeClaim whose update the API server refuses, such as a
+	// change of storageClassName or accessModes: it leaves the claim as it
+	// is, applies nothing of that render, and reports Ready=False with the
+	// reason ClaimConflict until the conflict is resolved. With Delete, the
+	// claim is deleted and created again, and the data on its volume goes
+	// with it.
+	// +kubebuilder:validation:Enum=Keep;Delete
+	// +optional
+	DataPolicy DataPolicy `json:"dataPolicy,omitempty"`
 
 	// +optional
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
@@ -91,12 +118,20 @@ type ModuleInstanceStatus struct {
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
-	// InstanceUUID is the globally-unique identity of the rendered ModuleInstance,
-	// read from the `module-instance.opmodel.dev/uuid` label on rendered resources.
-	// Populated on the first successful render; consumed by the prune ownership
-	// guard (including the deletion path where a fresh render is not available).
+	// InstanceUUID is the identity of the instance the controller last rendered and
+	// began to apply: the value of the module-instance.opmodel.dev/uuid label on
+	// its objects. The prune and the deletion cleanup use it to tell the
+	// instance's own objects from another instance's.
 	// +optional
 	InstanceUUID string `json:"instanceUUID,omitempty"`
+
+	// PreviousInstanceUUID is the identity the instance had before its identity
+	// last changed. It is set only while that change is not settled: from the
+	// apply that starts to relabel the instance's objects until a reconcile has
+	// applied and pruned with success. While it is set, an object that carries
+	// either identity counts as the instance's own.
+	// +optional
+	PreviousInstanceUUID string `json:"previousInstanceUUID,omitempty"`
 
 	// conditions represent the current state of the ModuleInstance resource.
 	// Ready reports whether the controller applied the last render. Healthy

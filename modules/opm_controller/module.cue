@@ -11,7 +11,7 @@
 //
 // The controller is a cluster singleton, and the cli locates a controller by
 // its fixed names, so every name is a constant and the module renders only
-// for the instance opm-controller in opm-controller-system.
+// for the instance opm-controller in opm-system.
 package opm_controller
 
 import (
@@ -36,7 +36,7 @@ m.#Module
 _instanceGuard: "\(#ctx.instance.namespace)/\(#ctx.instance.name)" & "\(_namespace)/\(_instance)"
 
 _instance:  "opm-controller"
-_namespace: "opm-controller-system"
+_namespace: "opm-system"
 
 metadata: {
 	_segments:   strings.Split(strings.SplitN(id.ModulePath, "@", 2)[0], "/")

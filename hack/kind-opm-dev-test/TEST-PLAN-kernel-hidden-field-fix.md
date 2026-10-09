@@ -305,7 +305,7 @@ The kind cluster, registry, and published deps are left intact for reuse.
 **Executed 2026-06-14** on `kind-opm-dev` against `library` branch `fix/materialized-platform-composed`
 (commit `5490696` "fix(materialize): source transforms from open composed map").
 The results below are the record of that run and keep the names then in use; the project was renamed
-opm-controller afterwards (ADR-019).
+opm-controller afterwards (ADR-021).
 
 | Item | Result | Notes |
 | --- | --- | --- |

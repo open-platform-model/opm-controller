@@ -26,6 +26,26 @@ type ApplyResult struct {
 	Unchanged int
 }
 
+// ApplyOptions tunes one apply. The zero value protects data.
+type ApplyOptions struct {
+	// Force deletes and creates again an object the API server refuses to
+	// update, such as one with a changed immutable field. The reconcilers
+	// set it from spec.rollout.forceConflicts.
+	Force bool
+
+	// DeleteData lets Force delete and recreate a PersistentVolumeClaim. The
+	// reconcilers set it from spec.dataPolicy; when false, a claim the API
+	// server refuses to update is kept and Apply returns a
+	// *ClaimConflictError.
+	DeleteData bool
+
+	// TakenIn names the objects of the apply list that exist and that this
+	// apply brings under the instance (GuardResult.Pins). Apply writes the
+	// object that was read and no other of the same name, and never deletes
+	// one of them, with or without Force and DeleteData.
+	TakenIn []Pin
+}
+
 // The discovery retry's pacing. They are variables so the package's unit
 // tests can shorten them; tests that shorten these must not call t.Parallel.
 var (
@@ -57,9 +77,29 @@ type stagedApply func(ctx context.Context) (*fluxssa.ChangeSet, error)
 // retried; every other error returns at once. When the retry gives up, Apply
 // returns the last no-match error.
 //
-// When force is true, immutable field conflicts are resolved by recreating
-// the object (maps to ApplyOptions.Force, not SSA field-ownership conflicts —
-// Flux always applies with ForceOwnership).
+// With opts.Force, an object the API server refuses to update is deleted and
+// created again (maps to Flux's ApplyOptions.Force, not SSA field-ownership
+// conflicts: Flux always applies with ForceOwnership).
+//
+// Data protection: a PersistentVolumeClaim of the core API group is never
+// deleted and recreated unless opts.DeleteData is true, because deleting a
+// claim deletes the data on its volume. With Force and without DeleteData,
+// Apply first checks every claim of resources that exists in the cluster.
+// When the API server refuses the update of one, Apply returns a
+// *ClaimConflictError and applies nothing: Flux deletes the refused objects
+// of a stage before it applies any, so going on would delete other objects
+// of the stage and then fail on the claim. The resource manager's client
+// also refuses the delete itself (NewResourceManager), which covers a claim
+// that changes between the check and the staged apply.
+//
+// Taken-in objects: an object of opts.TakenIn is one a user handed over, so
+// it is never deleted and created again. Apply sends it with the UID the
+// guard read, so the API server refuses the write when another object took
+// the name since. With Force, Apply first sends the dry-run of each one, as
+// for a claim, and returns a *TakenInConflictError with nothing applied when
+// the API server refuses the update. The resource manager's client also
+// refuses the delete itself, which covers an object that changes between the
+// check and the staged apply.
 //
 // Returns an ApplyResult with counts, or an error on any apply failure. An
 // object counts by the first attempt that created or configured it.
@@ -67,13 +107,32 @@ func Apply(
 	ctx context.Context,
 	rm *fluxssa.ResourceManager,
 	resources []*unstructured.Unstructured,
-	force bool,
+	opts ApplyOptions,
 ) (*ApplyResult, error) {
-	opts := fluxssa.DefaultApplyOptions()
-	opts.Force = force
+	fluxOpts := fluxssa.DefaultApplyOptions()
+	fluxOpts.Force = opts.Force
+
+	if len(opts.TakenIn) > 0 {
+		resources = pinTakenIn(resources, opts.TakenIn)
+		ctx = keepTakenIn(ctx, opts.TakenIn)
+		if opts.Force {
+			if err := checkTakenIn(ctx, rm.Client(), resources, opts.TakenIn); err != nil {
+				return nil, fmt.Errorf("failed to apply resources: %w", err)
+			}
+		}
+	}
+
+	switch {
+	case opts.DeleteData:
+		ctx = allowClaimDeletion(ctx)
+	case opts.Force:
+		if err := checkClaims(ctx, rm.Client(), resources); err != nil {
+			return nil, fmt.Errorf("failed to apply resources: %w", err)
+		}
+	}
 
 	return applyWithDiscoveryRetry(ctx, func(ctx context.Context) (*fluxssa.ChangeSet, error) {
-		return rm.ApplyAllStaged(ctx, resources, opts)
+		return rm.ApplyAllStaged(ctx, resources, fluxOpts)
 	}, resources)
 }
 

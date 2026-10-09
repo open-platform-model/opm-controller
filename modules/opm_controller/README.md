@@ -6,11 +6,11 @@ Each module release, tagged `opm_controller-vX.Y.Z`, publishes the module to GHC
 
 ## What it renders
 
-19 objects, for the instance `opm-controller` in `opm-controller-system` only (any other name or namespace is refused, naming the expected coordinates):
+19 objects, for the instance `opm-controller` in `opm-system` only (any other name or namespace is refused, naming the expected coordinates):
 
 | Objects | Catalog resource |
 | --- | --- |
-| Namespace `opm-controller-system` | `resources/v1alpha1 #Namespaces` |
+| Namespace `opm-system` | `resources/v1alpha1 #Namespaces` |
 | The four `opmodel.dev` CRDs | `resources/v1beta1 #CRDs`, each generated `spec` embedded whole |
 | Deployment and ServiceAccount `opm-controller-manager`, Service `opm-controller-manager-metrics-service` | `blueprints/v1beta1 #StatelessWorkload` with `#ServiceAccount`, `#Volumes` and traits |
 | ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, Role `opm-controller-leader-election-role`, and a binding for each | `resources/v1beta1 #Role` |
@@ -25,8 +25,8 @@ Every name is a constant, the name `config/` gives the object with the prefix `o
 The cli names a module's synthetic instance `<name>-debug` in `default`, which this module refuses. Give it the module's coordinates (`module vet` takes `--instance-name`, `module build` takes `--name`):
 
 ```bash
-opm module vet . --instance-name opm-controller -n opm-controller-system
-opm module build . --name opm-controller -n opm-controller-system
+opm module vet . --instance-name opm-controller -n opm-system
+opm module build . --name opm-controller -n opm-system
 ```
 
 ## Values (`#config`)

@@ -46,10 +46,10 @@ func TestIsOwnInstance(t *testing.T) {
 		{
 			name:       "fixed coordinates with any module path",
 			objName:    "opm-controller",
-			namespace:  "opm-controller-system",
+			namespace:  "opm-system",
 			path:       "example.com/modules/anything@v3",
 			wantOwn:    true,
-			wantSignal: "name opm-controller in namespace opm-controller-system",
+			wantSignal: "name opm-controller in namespace opm-system",
 		},
 		{
 			name:       "controller module major v0 elsewhere",
@@ -90,11 +90,11 @@ func TestIsOwnInstance(t *testing.T) {
 		{
 			name:       "first matching signal wins",
 			objName:    "opm-controller",
-			namespace:  "opm-controller-system",
+			namespace:  "opm-system",
 			path:       "opmodel.dev/modules/opm_controller@v0",
 			entries:    []releasesv1alpha1.InventoryEntry{crdEntry("platforms.opmodel.dev")},
 			wantOwn:    true,
-			wantSignal: "name opm-controller in namespace opm-controller-system",
+			wantSignal: "name opm-controller in namespace opm-system",
 		},
 		{
 			name:      "similar names are not the controller's own instance",
@@ -110,7 +110,7 @@ func TestIsOwnInstance(t *testing.T) {
 		{
 			name:      "another name in the controller's namespace",
 			objName:   "something",
-			namespace: "opm-controller-system",
+			namespace: "opm-system",
 			path:      "example.com/modules/app@v0",
 			wantOwn:   false,
 		},
