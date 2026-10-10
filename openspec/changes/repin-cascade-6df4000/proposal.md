@@ -2,7 +2,7 @@
 
 `.github` main is now `6df4000f6cabbf460a5cad6431b6bc9044fa3027`. Since this repo's pin `0f9c6ac` it carries `.github` PR 20: the cascade maps in `wiring/lib.sh` (`notify_targets`, `receiver_sources`, `g3_upstreams`, `publish_paths`, `mirror_sources`, `changelog_source` and the others) accept the repo name `opm-controller` beside `opm-operator`, and the resolver accepts both module trains `opm_operator-v*` and `opm_controller-v*`. GitHub renames a repo in place and every cascade job derives the repo name from `GITHUB_REPOSITORY`, so the name a run sees flips the moment the rename happens, whatever `.github` commit the caller pins. The maps fail closed on a name they do not know. This repo still pins `0f9c6ac`, so after the rename its cascade would refuse to run.
 
-PR 20 changes `wiring/lib.sh`, which both `cascade-notify` and `cascade-publish` run, so the README's "Both actions" rule applies: the library moves first as the canary, then this repo and the cli.
+PR 20 changes `wiring/lib.sh`, which both `cascade-notify` and `cascade-publish` run, so the README's "Both actions" rule would make the library move first as the canary. The owner waived the canary rule (decision 37) once for this `.github` change, because no library release is pending. The library, this repo and the cli each move in their own pull request; the owner merges the library first.
 
 ## What Changes
 
