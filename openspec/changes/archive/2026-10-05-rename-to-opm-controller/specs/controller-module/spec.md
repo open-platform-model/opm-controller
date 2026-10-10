@@ -50,8 +50,6 @@ The module SHALL render the controller's CRDs, its Namespace, the controller Dep
 
 The module SHALL render the Namespace `opm-system`, the Deployment `opm-controller-manager`, the ServiceAccount `opm-controller-manager`, the Service `opm-controller-manager-metrics-service`, the Role `opm-controller-leader-election-role`, the ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, `opm-controller-metrics-reader`, `opm-controller-moduleinstance-admin-role`, `opm-controller-moduleinstance-editor-role`, `opm-controller-moduleinstance-viewer-role`, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`, and the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev`, the names `config/` gives them under the prefix `opm-controller-`. Only a role binding MAY take the name the catalog derives from its role.
 
-Source: 0032:D1:R5.
-
 #### Scenario: The fixed names render
 
 - **WHEN** the module is rendered with default values

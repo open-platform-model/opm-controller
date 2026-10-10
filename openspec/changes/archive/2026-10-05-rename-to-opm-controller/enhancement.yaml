@@ -1,23 +1,11 @@
 # Enhancement declaration, read by `task enhancements:delivery:log` at archive time.
 # See enhancements/schema.cue #ChangeDeclaration.
 #
-# 0032:D1 (the rename to opm-controller): this change delivers the controller
-# side: the owner enum without `operator` (R1), adoption on a handoff to owner
-# `controller` (R2's controller half; the cli writes the owner), and
-# `controllerVersion` on the Platform status (R3). It also delivers the image,
-# module and default install coordinates (R5), no former name accepted, read or
-# written (R6), and the product vocabulary in docs and condition messages (R7).
-# R4 (`opm controller`) is the cli's, whose rename change also declares D1;
-# both merge in one cutover.
-#
 # 0021:D4 (revised 2026-10-04): the install manifest is the module's render and
 # no artifact of the controller release. Folded from the withdrawn change
 # stop-operator-install-manifest (its task 1.7): a controller release no longer
 # attaches install.yaml; only the module release does.
 implements:
-  - enhancement: "0032"
-    decisions: [D1]
-    resolves: []
   - enhancement: "0021"
     decisions: [D4]
     resolves: []

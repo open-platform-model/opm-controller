@@ -1,12 +1,12 @@
 ## Context
 
-The owner decided on 2026-10-05 to rename opm-operator to opm-controller across the workspace (0032:D1). This change is the controller repository's part. It is built in a worktree now and merged in one cutover sitting with the other repositories' changes, after the GitHub repository is renamed.
+The owner decided on 2026-10-05 to rename opm-operator to opm-controller across the workspace. This change is the controller repository's part. It is built in a worktree now and merged in one cutover sitting with the other repositories' changes, after the GitHub repository is renamed.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- One name in every identifier that is not immutable history, with no alias, migration or warning (0032:D1:R6).
+- One name in every identifier that is not immutable history, with no alias, migration or warning.
 - The controller module starts clean on `opmodel.dev/modules/opm_controller@v0` at 0.1.0.
 - A controller release stops publishing an install manifest of its own (0021:D4, folded from `stop-operator-install-manifest` by the owner's 2026-10-05 decision).
 
@@ -67,5 +67,5 @@ The module key leaves `.release-please-manifest.json`, so release-please treats 
 ### Folding stop-operator-install-manifest
 **Context**: The blocked change waited on the cli, the resolver and the module release.
 **Explored**: cli `origin/main` installs from the module and resolves only the module pin; the `.github` resolver checks an asset only when a caller passes `--asset`, and no caller does for the controller.
-**Decision**: Fold its asset removal and its `controller-module` rewording; drop its install-page task (its text served an upgrade path, and 0032:D1:R6 leaves none) and its notify change (no module notification exists to replace it).
+**Decision**: Fold its asset removal and its `controller-module` rewording; drop its install-page task (its text served an upgrade path, and the rename leaves none) and its notify change (no module notification exists to replace it).
 **Rationale**: The gates hold, and the rename is the cheapest moment to drop an asset no consumer reads.
