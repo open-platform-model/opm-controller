@@ -873,7 +873,7 @@ func judgeSkippedInstance(
 }
 
 // requeueJitter is the largest share of the instance reconcile interval that
-// is added to it at random, so instances that reconciled in one burst (an
+// is added to it at random, so instances that reconciled in one burst (a
 // controller start, a Platform change) do not come due together for ever.
 const requeueJitter = 0.1
 
