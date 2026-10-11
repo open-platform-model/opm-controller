@@ -104,10 +104,12 @@ spec:
                   Provides lists every provider-fulfilled contract FQN the named catalog
                   claims to implement.
 
-                  Required but MAY be empty. A provider catalog implementing no
-                  provider-fulfilled contract is a claim acceptance refuses on its merits,
-                  naming the catalog it re-derived from, not a malformed object. The CRD
-                  is the wrong place to encode a rule the reconciler states better.
+                  Required but MAY be empty: the CRD sets no minimum on its length.
+                  Acceptance compares the list with the contracts re-derived from the
+                  catalog, for exact equality. An empty list therefore passes for a
+                  catalog that implements no provider-fulfilled contract, and is refused
+                  with reason ProvidesMismatch, naming both lists, for any other catalog.
+                  The CRD is the wrong place to encode a rule the reconciler states better.
                 items:
                   type: string
                 type: array
