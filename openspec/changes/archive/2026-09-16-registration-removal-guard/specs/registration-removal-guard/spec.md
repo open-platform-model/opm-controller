@@ -1,6 +1,6 @@
 ## Purpose
 
-Define what stops a provider abandoning its dependents: when a `TransformerRegistration` may not be deleted, and what the refusal tells the operator. Enhancement 0015 D3 and D16 treat deletion and shrinking as the same act through two doors; this capability governs the deletion door.
+Define what stops a provider abandoning its dependents: when a `TransformerRegistration` may not be deleted, and what the refusal tells the operator. Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost") treat deletion and shrinking as the same act through two doors; this capability governs the deletion door.
 
 **The shrinking door (D16) is deliberately not here.** It needs a refusal site that takes effect before the new spec replaces the accepted claim, and both candidates — a validating webhook, and D16's hold-last-good fallback — cost more than one section: a webhook changes the install surface this operator ships, and hold-last-good gives a claim two answers to what it provides. It is its own change, and the requirement lands in this capability when it does. Until then a shrinking `provides` is accepted, and this capability does not claim otherwise.
 

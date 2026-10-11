@@ -1,6 +1,6 @@
 ## Why
 
-`registration-acceptance` (alpha.19) gives every `TransformerRegistration` a verdict, but an accepted claim still does nothing: `status.active` is hard-coded false and no watch can flip it. Enhancement 0015 D3 defines three states — not yet judged, accepted but inactive, active — and only the first transition exists.
+`registration-acceptance` (alpha.19) gives every `TransformerRegistration` a verdict, but an accepted claim still does nothing: `status.active` is hard-coded false and no watch can flip it. Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines three states — not yet judged, accepted but inactive, active — and only the first transition exists.
 
 The missing transition is the one a static `spec.registry` subscription structurally cannot express. A subscription is live the moment it is written, but the CRDs a provider's transformers render against exist only once the provider is running. D3's answer is a health gate: an accepted claim stays inactive until its provider is Ready.
 

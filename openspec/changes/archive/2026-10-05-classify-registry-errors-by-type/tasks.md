@@ -38,5 +38,5 @@ opm-operator#248 merged the library bump and the import swap of 1.1 and 1.2 to `
 
 - [x] 5.1 Merge `main` after opm-operator#248; drop the proposal text and release note that repeated #248's bump and core move; the title is a plain `fix:`.
 - [x] 5.2 Add a MODIFIED delta to `modulepackage-kernel-rendering` so "Ordinary evaluation error keeps RenderFailed" excludes a registry fetch failure; copy every existing scenario. Verify: `openspec validate classify-registry-errors-by-type --strict`.
-- [x] 5.3 State the retry rationale in plain words in `IsTransientFailure` and the renderer tests; cite 0021:D8:R12 once, at the predicate. Pin a cancelled acquisition (stalled `ResolutionFailed`) in `TestClassifyRenderError`. The package-load stub carries a text the library classifies. The diagnostics page says "any other error answer from the registry".
+- [x] 5.3 State the retry rationale in plain words in `IsTransientFailure` and the renderer tests; cite enhancement 0021 ("A beta line reaches GA only when its exit criteria hold") once, at the predicate. Pin a cancelled acquisition (stalled `ResolutionFailed`) in `TestClassifyRenderError`. The package-load stub carries a text the library classifies. The diagnostics page says "any other error answer from the registry".
 - [x] 5.4 `task dev:fmt dev:vet dev:lint dev:test` and `task docs:bundle:check` green.

@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-<!-- Renamed from `module-release-synthesis` (0002 D10): the `module-release-synthesis/` spec dir is `git mv`'d to `module-instance-synthesis/` at archive. Requirements reproduced in `ModuleInstance` vocabulary; `Registry configuration` is unchanged. -->
+<!-- Renamed from `module-release-synthesis` (enhancement 0002, "Every `release`-named file and directory is renamed on disk (extends D8 to the filesystem)"): the `module-release-synthesis/` spec dir is `git mv`'d to `module-instance-synthesis/` at archive. Requirements reproduced in `ModuleInstance` vocabulary; `Registry configuration` is unchanged. -->
 
 ### Requirement: ModuleInstance CR spec shape
 

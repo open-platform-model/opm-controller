@@ -19,7 +19,7 @@
 ## ADDED Requirements
 
 ### Requirement: Prune asks the library's delete verdict
-For every entry it may delete, the prune MUST read the live object with the client that would delete it and MUST ask the library's delete verdict (`opm/k8s/ownership`) with that object and an identity of the instance. When the instance has more than one identity to judge with, it MUST ask with each in turn, and the object counts as the instance's own when the verdict says proceed for one of them. It MUST delete the object only then, and it MUST NOT decide ownership with a label or annotation comparison of its own. Source: 0012:D4:R1, 0012:D8:R8.
+For every entry it may delete, the prune MUST read the live object with the client that would delete it and MUST ask the library's delete verdict (`opm/k8s/ownership`) with that object and an identity of the instance. When the instance has more than one identity to judge with, it MUST ask with each in turn, and the object counts as the instance's own when the verdict says proceed for one of them. It MUST delete the object only then, and it MUST NOT decide ownership with a label or annotation comparison of its own. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 The prune MUST act on each answer as follows:
 

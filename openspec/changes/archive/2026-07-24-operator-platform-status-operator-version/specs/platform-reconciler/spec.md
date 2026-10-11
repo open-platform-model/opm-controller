@@ -1,6 +1,6 @@
 # platform-reconciler (delta)
 
-The reconciler self-publishes the operator version on every status patch (slice A6 of enhancement 0006, D24).
+The reconciler self-publishes the operator version on every status patch (slice A6 of enhancement 0006 ("CRD/operator version skew: CLI-≥-cluster invariant, gate-only (CRD field-presence floor + operator-version ceiling via `Platform.status`); resolves OQ4")).
 
 ## ADDED Requirements
 

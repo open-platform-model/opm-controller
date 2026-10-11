@@ -135,7 +135,7 @@ crdref's guarantee that "Served by" names the real controller would be lost with
 
 ### Citation links
 
-**Decision**: `citations: "link"`, matching the committed page (for example `[0015:D3/D16](/enhancements/0015/decisions/)` at line 99).
+**Decision**: `citations: "link"`, matching the committed page (for example `enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")` at line 99).
 **Rationale**: parity with crdref; the enhancements section serves `/enhancements/NNNN/decisions/` in every site version.
 
 ## Risks / Trade-offs

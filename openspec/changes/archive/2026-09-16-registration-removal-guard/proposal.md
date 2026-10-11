@@ -1,6 +1,6 @@
 ## Why
 
-Enhancement 0015 D3 makes removal refusable: *"A finalizer blocks deletion while instances demand contracts the registration provides, naming the count."* D16 extends that to the other door — an update that shrinks `provides` is the same abandonment, refused the same way.
+Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") makes removal refusable: *"A finalizer blocks deletion while instances demand contracts the registration provides, naming the count."* D16 extends that to the other door — an update that shrinks `provides` is the same abandonment, refused the same way.
 
 Neither exists. An active claim can be deleted, or have a contract dropped from `provides`, and every instance demanding that contract starts failing its render with no warning and no attribution to the change that caused it.
 

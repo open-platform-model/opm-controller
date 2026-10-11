@@ -1,6 +1,6 @@
 ## Why
 
-The operator ships one role a cluster administrator can bind for reading OPM state, `moduleinstance-viewer-role`, and it covers ModuleInstances only. A non-admin can read no Platform, ModulePackage or TransformerRegistration through any role the operator ships, so every installation that wants a read-only user (the OPM portal's milestone 2 first among them) has to hand-write the same three rules. Enhancement 0030 asks the operator to ship them (0030:D11:R4), and the portal's milestone 2 cannot show a non-admin the Platform, ModulePackages or registrations until an operator release carries them.
+The operator ships one role a cluster administrator can bind for reading OPM state, `moduleinstance-viewer-role`, and it covers ModuleInstances only. A non-admin can read no Platform, ModulePackage or TransformerRegistration through any role the operator ships, so every installation that wants a read-only user (the OPM portal's milestone 2 first among them) has to hand-write the same three rules. Enhancement 0030 asks the operator to ship them, and the portal's milestone 2 cannot show a non-admin the Platform, ModulePackages or registrations until an operator release carries them.
 
 ## What Changes
 

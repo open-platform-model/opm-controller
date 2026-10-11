@@ -68,7 +68,7 @@ Section 1 runs this flow by hand on a throwaway cluster before the spec encodes 
 1. the claim's `status.observedGeneration` to equal its new `metadata.generation`, with `accepted: true`, `active: true` and Ready=True with reason `Accepted` and a message containing `at v0.1.0`;
 2. then the Platform's `status.registry` entry for the backup catalog to name the same build (`0.1.0` once any leading `v` is trimmed; see the spike findings below), under a `status.packageIdentity` different from the bare-spelling one, with Ready=True/`Generated`; a second read of `packageIdentity` shows it is stable.
 
-The stale-verdict contribution is an operator gap outside this test-only change: a hand-edited claim contributes its new coordinate to the platform before it is judged, which skips the 0015:D11 checks for a short window. It goes to the supervisor as a follow-up issue.
+The stale-verdict contribution is an operator gap outside this test-only change: a hand-edited claim contributes its new coordinate to the platform before it is judged, which skips the enhancement 0015 ("Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version") checks for a short window. It goes to the supervisor as a follow-up issue.
 
 **Spike findings** (section 1, 2026-10-04, throwaway kind cluster, branch image on library beta.4):
 

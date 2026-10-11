@@ -29,7 +29,7 @@ feared is cheaper than the coupling it created.
 
 ### D2: Modulepackages move too, deviating from enhancement 0011 D14/D17 item 5
 
-**Context.** 0011 D14 places `opmodel.dev/releases/*` outside the namespace migration — *"they are not
+**Context.** enhancement 0011 ("Platforms get a reserved segment; instances get none, because they are not CUE modules") places `opmodel.dev/releases/*` outside the namespace migration — *"they are not
 in the namespace D5 partitions… OCI repository paths that share a spelling convention with module
 paths and nothing else"* — and D17 item 5 restates it as *"out of scope per D14; Flux artifacts, not
 CUE modules"*. Root `CLAUDE.md` Registry Policy rule 4 puts Flux bundle artifacts outside the policy
@@ -43,7 +43,7 @@ modules — would keep a coordinate no longer matching anything. GHCR already ca
 `testing.opmodel.dev/releases/hello` from a prior hand-push, so the shape has precedent.
 
 **Decision.** Modulepackages move to `testing.opmodel.dev/releases/operator/<name>`. **This is an
-explicit deviation from 0011 D17 item 5** and is recorded as such in 0011's history, not silently
+explicit deviation from enhancement 0011 ("There is no fleet migration; what remains is a bounded cleanup, and its sequencing runs the other way") item 5** and is recorded as such in 0011's history, not silently
 absorbed.
 
 **Rationale.** The purpose is one rule a contributor can hold: nothing fixture-shaped lives under
@@ -64,7 +64,7 @@ only OPM artifacts nothing validates — and the relocation is precisely what un
 `gateNamespace`'s testing-domain exemption, so nothing waits on a new cli release.
 
 **Rationale.** A fixture that violates a publish gate should fail CI rather than ship. This is the same
-argument the cli made for its templates (0011 D25) and its own fixture.
+argument the cli made for its templates (enhancement 0011, "Official templates are published modules in a reserved `templates` segment") and its own fixture.
 
 ### D4: The version contract moves from grep to the identity package
 
@@ -85,7 +85,7 @@ source of truth.
 ### D5: Prerelease publishing uses `opm module version set` on a staged copy
 
 **Context.** A prerelease tag must be matched by the artifact's *declared* version or the library's
-acquire-time identity check (0010 D11) refuses it. The old flow staged a copy and `sed`-rewrote the
+acquire-time identity check (enhancement 0010, "Identity is verified where artifacts are read") refuses it. The old flow staged a copy and `sed`-rewrote the
 first `version:` literal.
 
 **Explored.** `opm module publish --version` looked like the natural replacement, but its contract is

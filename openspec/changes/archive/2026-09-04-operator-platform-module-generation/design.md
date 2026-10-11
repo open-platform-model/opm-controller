@@ -14,7 +14,7 @@ See `proposal.md` § Why. This design has had its second pass: the six questions
 **Non-Goals**
 
 - Consuming the module (render switch, store reshaping, kernel-gate retirement): `operator-render-switch`.
-- Skew policy surface (0019 D7/D18): decided in the render-switch change.
+- Skew policy surface (enhancement 0019, "Catalog version skew between a module and its platform is detected by the kernel, and the response is caller-configured" and "Skew policy defaults to warn-and-render; the comparison reads the two committed resolutions; older-than-platform is data"): decided in the render-switch change.
 - Publishing the module anywhere, in any form (D6 disallows it outright).
 
 ## Research & Decisions

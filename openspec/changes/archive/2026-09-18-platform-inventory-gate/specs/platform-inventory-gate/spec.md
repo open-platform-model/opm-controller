@@ -1,12 +1,12 @@
 ## Purpose
 
-The Platform reconciler's read of the built platform's contract inventory: which of core's reports refuse platform-package generation, which only report, and how each surfaces on `Platform.status` (enhancement 0015 D5, D18).
+The Platform reconciler's read of the built platform's contract inventory: which of core's reports refuse platform-package generation, which only report, and how each surfaces on `Platform.status` (enhancement 0015, "Comparable predicates within one catalog-fulfilled bucket are refused, not arbitrated" and "An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation").
 
 ## ADDED Requirements
 
 ### Requirement: An over-subscribed platform is refused at generation
 
-After a generated platform module builds, the reconciler SHALL read the built platform's contract inventory before recording the package. When any provider-fulfilled contract is required by transformers from more than one enabled catalog (the inventory is not routable; 0010 D37, enhancement 0015 D2 and D18), the reconciler SHALL refuse the package: `Ready=False` with reason `OverSubscribedContracts` and a message naming each over-subscribed contract, the catalog that defines it and every transformer that requires it, in a deterministic order.
+After a generated platform module builds, the reconciler SHALL read the built platform's contract inventory before recording the package. When any provider-fulfilled contract is required by transformers from more than one enabled catalog (the inventory is not routable; enhancement 0010 ("A contract declares where its fulfilment comes from, and a provider-fulfilled contract admits exactly one provider") and enhancement 0015 ("One provider per contract stands; provider classes are rejected in this entry" and "An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation")), the reconciler SHALL refuse the package: `Ready=False` with reason `OverSubscribedContracts` and a message naming each over-subscribed contract, the catalog that defines it and every transformer that requires it, in a deterministic order.
 
 #### Scenario: Two catalogs providing one contract are refused
 
@@ -15,7 +15,7 @@ After a generated platform module builds, the reconciler SHALL read the built pl
 
 ### Requirement: An undiscriminated platform is refused at generation
 
-When the built platform's inventory reports a pair of enabled transformers whose match predicates are comparable over a shared catalog-fulfilled contract (the inventory is not discriminated; enhancement 0015 D5), the reconciler SHALL refuse the package: `Ready=False` with reason `ComparablePredicates` and a message naming, for each reported pair, the broader transformer, the narrower transformer and the contracts they share, in a deterministic order. No arbitration, ordering or most-specific-wins SHALL be applied. When a platform is both over-subscribed and undiscriminated, the reason SHALL be `OverSubscribedContracts` and the message SHALL carry both findings.
+When the built platform's inventory reports a pair of enabled transformers whose match predicates are comparable over a shared catalog-fulfilled contract (the inventory is not discriminated; enhancement 0015 ("Comparable predicates within one catalog-fulfilled bucket are refused, not arbitrated")), the reconciler SHALL refuse the package: `Ready=False` with reason `ComparablePredicates` and a message naming, for each reported pair, the broader transformer, the narrower transformer and the contracts they share, in a deterministic order. No arbitration, ordering or most-specific-wins SHALL be applied. When a platform is both over-subscribed and undiscriminated, the reason SHALL be `OverSubscribedContracts` and the message SHALL carry both findings.
 
 #### Scenario: A comparable pair is refused naming both transformers
 
@@ -57,7 +57,7 @@ A refusal SHALL be level-computed from the current tuple: a Platform edit or a c
 
 ### Requirement: Unfulfilled contracts are reported, never refused
 
-The reconciler SHALL write a `ContractsFulfilled` condition from the effective package's inventory on both success paths (a fresh build and the current-package skip) and SHALL declare it among the conditions it owns. `ContractsFulfilled=False` with reason `UnfulfilledContracts` SHALL name each provider-fulfilled contract nothing on the platform implements and the catalog that defines it; `ContractsFulfilled=True` with reason `ContractsFulfilled` SHALL report that every defined provider-fulfilled contract has a provider; `ContractsFulfilled=True` with reason `NoContractsDefined` SHALL report that the enabled catalogs list no contract, so nothing was verified. The condition SHALL NOT move `Ready` and SHALL NOT be rewritten by a refused generation, which describes only the package renders consume (enhancement 0015 D18).
+The reconciler SHALL write a `ContractsFulfilled` condition from the effective package's inventory on both success paths (a fresh build and the current-package skip) and SHALL declare it among the conditions it owns. `ContractsFulfilled=False` with reason `UnfulfilledContracts` SHALL name each provider-fulfilled contract nothing on the platform implements and the catalog that defines it; `ContractsFulfilled=True` with reason `ContractsFulfilled` SHALL report that every defined provider-fulfilled contract has a provider; `ContractsFulfilled=True` with reason `NoContractsDefined` SHALL report that the enabled catalogs list no contract, so nothing was verified. The condition SHALL NOT move `Ready` and SHALL NOT be rewritten by a refused generation, which describes only the package renders consume (enhancement 0015, "An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation").
 
 #### Scenario: An unfulfilled contract is a report beside a generated platform
 

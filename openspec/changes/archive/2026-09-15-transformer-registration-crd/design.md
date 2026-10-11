@@ -88,7 +88,7 @@ The kind lands in `api/v1alpha1` alongside the other three types, so its group i
 
 `catalog_opm` `opm` 4.3.0 renders `apiVersion: opm.opmodel.dev/v1alpha1`, a different
 group, and issue 132 records that spelling as the literal to match. It is wrong on the
-operator's side of the contract, not a constraint on it: enhancement 0002 D5 moved this
+operator's side of the contract, not a constraint on it: enhancement 0002 ("The operator Kubernetes API group is renamed to `opmodel.dev`") moved this
 repo from `releases.opmodel.dev` to a flat, kind-agnostic `opmodel.dev` and explicitly
 rejected kind-specific and prefixed groups, at the cost of a full cluster migration.
 Honouring the catalog's literal would reopen that decision and add a second API group

@@ -10,7 +10,7 @@ Five OpenSpec changes, planned together on 2026-09-30, in four repos. Four of th
 - The library turns a collision into a typed render refusal and decodes it in `Contracts()`.
 - The operator and cli name the collision.
 
-The fifth (E) is independent: it makes the operator's build-compatibility verdict deterministic on a platform carrying two majors of one catalog. The fix is an interim safety net and does not add side-by-side majors; enhancement 0026 D9 later makes two majors legitimate through per-resolution builds (0026 OQ17 and 05-risks recommend both fixes independent of 0026). No change claims a 0026 decision, so none carries an `enhancement.yaml`.
+The fifth (E) is independent: it makes the operator's build-compatibility verdict deterministic on a platform carrying two majors of one catalog. The fix is an interim safety net and does not add side-by-side majors; enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") later makes two majors legitimate through per-resolution builds (0026 OQ17 and 05-risks recommend both fixes independent of 0026). No change claims a 0026 decision, so none carries an `enhancement.yaml`.
 
 | ID | Repo | Change | Branch | Wave | Starts when | Merges when |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -151,7 +151,7 @@ Every PR follows its repo's `AGENTS.md`: a body of at most 250 words, no bare `@
 - **Messages are order-independent and the inventory is not mutated.** Sort into copies; `failReconcile` gates its warning event on an unchanged message, and the store may hold the inventory.
 - **Generated files.** Section 2 changes an API doc comment: run `task dev:manifests dev:generate` and `task operator:installer`, commit the regenerated `config/crd/bases/opmodel.dev_platforms.yaml` and `dist/install.yaml`, and never hand-edit either.
 - **`hack/fixtures.sh` and `test/fixtures/fixtures.go`** are byte-identical copies of the cli's (`task fixtures:lint` at the workspace root). This change must not touch them.
-- **No enhancement reference in output strings.** The collision and backstop messages carry none; a code comment may cite `0026:D9` once at a symbol if the rationale needs it.
+- **No enhancement reference in output strings.** The collision and backstop messages carry none; a code comment may cite enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") once at a symbol if the rationale needs it.
 - **`go.mod` never reaches a PR on a pseudo-version.** Section 3 pins B's release.
 - Commit messages are not Markdown: write path majors glued (`opmodel.dev/catalogs/opm@v5`), never a bare at-sign followed by a name, and no body line starting with a word followed by an opening parenthesis (the squash body reaches release-please).
 

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: The prune runs the library's deletion plan
-The prune of stale resources MUST delete a stale object only when the library's deletion transition (`opm/k8s/lifecycle`) names that delete as the next action. Source: 0012:D4:R1.
+The prune of stale resources MUST delete a stale object only when the library's deletion transition (`opm/k8s/lifecycle`) names that delete as the next action. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 The prune MUST send each delete in the order the plan gives, descending kind weight, and MUST add no ordering of its own. Each delete MUST carry the propagation policy the action names, Foreground, and the action's UID precondition.
 

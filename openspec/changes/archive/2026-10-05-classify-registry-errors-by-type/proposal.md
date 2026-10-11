@@ -7,7 +7,7 @@ The operator decides "retry or stall" for a failed render with an operator-only 
 
 The Platform reconciler has its own best-effort probe (`isTransientFailure`: a `net.Error` timeout, any `*url.Error`, `context.DeadlineExceeded`), a second classification that can drift from the first.
 
-Library `v1.0.0-beta.6` now types these failures (0021:D8:R12): `oerrors.ErrTransient`, `*oerrors.FetchError` with a `Kind` and an HTTP `Status`, and `oerrors.Classify`, applied at every site where a registry fetch or a dependency resolution leaves the library. A failure that is not a registry interaction (a syntax error, a conflict, an import no module provides) stays unclassified.
+Library `v1.0.0-beta.6` now types these failures (enhancement 0021, "A beta line reaches GA only when its exit criteria hold"): `oerrors.ErrTransient`, `*oerrors.FetchError` with a `Kind` and an HTTP `Status`, and `oerrors.Classify`, applied at every site where a registry fetch or a dependency resolution leaves the library. A failure that is not a registry interaction (a syntax error, a conflict, an import no module provides) stays unclassified.
 
 The library typed these errors first so that the operator and the cli could refine the stop-gap. The operator's policy keeps its intent: a registry fetch failure of any kind retries with backoff, because a late publish or a fixed credential recovers on the next attempt; the typed terminal causes stall; and an unclassified error from a CUE build or values evaluation stalls, because only an edit fixes it.
 
@@ -58,4 +58,4 @@ None.
 - Docs: `docs/RENDERING.md`, `docs/site/diagnostics/operator-conditions.md`.
 - Downstream: none. The cli moves to `Classify` in its own change; the two are independent.
 - Merge order in this repo: this change first, then the planned render-timeout and package-renderer changes, which edit the same renderer files.
-- Enhancement: `enhancement.yaml` declares 0021 with no decision claimed. 0021:D8 is a set of GA exit criteria, and R12 is the library's to satisfy; this change consumes it.
+- Enhancement: `enhancement.yaml` declares 0021 with no decision claimed. Enhancement 0021 ("A beta line reaches GA only when its exit criteria hold") is a set of GA exit criteria, and R12 is the library's to satisfy; this change consumes it.

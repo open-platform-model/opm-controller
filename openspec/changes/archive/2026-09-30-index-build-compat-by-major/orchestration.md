@@ -10,7 +10,7 @@ Five OpenSpec changes, planned together on 2026-09-30, in four repos. Four of th
 - The library turns a collision into a typed render refusal and decodes it in `Contracts()`.
 - The operator and cli name the collision.
 
-The fifth (E) is independent: it makes the operator's build-compatibility verdict deterministic on a platform carrying two majors of one catalog. The fix is an interim safety net and does not add side-by-side majors; enhancement 0026 D9 later makes two majors legitimate through per-resolution builds (0026 OQ17 and 05-risks recommend both fixes independent of 0026). No change claims a 0026 decision, so none carries an `enhancement.yaml`.
+The fifth (E) is independent: it makes the operator's build-compatibility verdict deterministic on a platform carrying two majors of one catalog. The fix is an interim safety net and does not add side-by-side majors; enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") later makes two majors legitimate through per-resolution builds (0026 OQ17 and 05-risks recommend both fixes independent of 0026). No change claims a 0026 decision, so none carries an `enhancement.yaml`.
 
 | ID | Repo | Change | Branch | Wave | Starts when | Merges when |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -118,7 +118,7 @@ Every PR follows its repo's `AGENTS.md`: a body of at most 250 words, no bare `@
 
 ## This change (E)
 
-**Release class.** `fix(controller)`, one section and one commit, PATCH: `fix(controller): judge build compatibility against the provider's own major`. No API, CRD, condition reason, generated file, fixture or library change. No `enhancement.yaml`: the change delivers 0026:D7:R2 and one half of 0026:D9:R7, and claims are decision-granular (a decision is claimed only when every requirement is delivered).
+**Release class.** `fix(controller)`, one section and one commit, PATCH: `fix(controller): judge build compatibility against the provider's own major`. No API, CRD, condition reason, generated file, fixture or library change. No `enhancement.yaml`: the change delivers enhancement 0026 ("The shared-path requirement check runs per render against the consumer's pins, and at acceptance against the platform floors") and one half of enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog"), and claims are decision-granular (a decision is claimed only when every requirement is delivered).
 
 **Worktree setup (opm-operator).**
 

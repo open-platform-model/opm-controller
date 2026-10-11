@@ -16,7 +16,7 @@ Reversibility: two-way door. No CRD field, no stored state, no flag. A revert of
 
 **Goals:**
 
-- Every delete of an inventory object is sent because `lifecycle.Advance` named it, with the action's propagation and precondition (0012:D4:R1).
+- Every delete of an inventory object is sent because `lifecycle.Advance` named it, with the action's propagation and precondition (enhancement 0012, "The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 - The cleanup finalizer is removed only after a release verdict of `lifecycle.MayReleaseHold`, and after the deleted objects are gone.
 - A deletion never stalls on a lost identity once every delete was sent.
 - One function in the operator performs the plan's actions.
@@ -40,7 +40,7 @@ Reversibility: two-way door. No CRD field, no stored state, no flag. A revert of
 
 **Options considered**:
 
-1. Status quo. No work; 0012:D4:R1 is not met and the operator keeps a second implementation of the order and the propagation.
+1. Status quo. No work; enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") is not met and the operator keeps a second implementation of the order and the propagation.
 2. Each reconciler calls `Advance`. Four copies of the loop.
 3. One runner in `internal/apply`; `Prune` and the two deletion handlers build plans and report.
 
@@ -125,7 +125,7 @@ A Conflict on a delete that carried a precondition is still wrapped in `ErrRepla
 
 **Decision**: option 2.
 
-**Rationale**: the plan holds exactly the objects that may be deleted, and its state is true. The classification pass sends no delete, so it is outside 0012:D4:R1; it still decides with the library's verdict and no comparison of its own. With `spec.dataPolicy: Delete`, claims are ordinary plan entries.
+**Rationale**: the plan holds exactly the objects that may be deleted, and its state is true. The classification pass sends no delete, so it is outside enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply"); it still decides with the library's verdict and no comparison of its own. With `spec.dataPolicy: Delete`, claims are ordinary plan entries.
 
 **Consequence (supervisor ruling 2 of 2026-10-09)**: the hold verdict is asked with the plans as built, after the claim split. With an inventory of kept claims only, the plan is empty and the verdict is `inventory-empty` before it looks at the identity (fact 7). The operator then removes the finalizer without a read, also when the ServiceAccount is missing. Today that deletion stalls with `DeletionSAMissing` (`moduleinstance.go:1399`, `:1410-1415`), although the cleanup would delete nothing. The claims cannot be read without the identity, so no `ClaimsKept` event would be true; the operator emits `DeletionUnconfirmed` with the number of claims left without a read. This is a behaviour change and is in the release note. With the identity available the claims are classified as usual. An inventory that also holds a Namespace or a CRD is not empty for the plan (those are steps, skipped up front), so it still needs the identity, as today.
 
@@ -153,7 +153,7 @@ A Conflict on a delete that carried a precondition is still wrapped in `ErrRepla
 
 **Decision**: B. Owner decision of 2026-10-09, relayed verbatim by the supervisor. Question: "When an instance is deleted, should the operator keep its finalizer until the deleted objects are really gone?" Selection: "Wait until gone (Recommended)".
 
-**Rationale**: a stuck object becomes visible on the object the user deleted, and the old instance cannot be replaced while its objects are still going. After the apply guard lands, the delete-and-recreate argument is weaker (row 3); visibility is then the main gain. The trade-off given up is liveness: a deletion can wait on an object the operator does not control. The remedy is explicit (`spec.prune: false`). 0012:D4:R1 is met: the hold is released only after a release verdict; the operator holds longer than the verdict asks, which R1 does not forbid.
+**Rationale**: a stuck object becomes visible on the object the user deleted, and the old instance cannot be replaced while its objects are still going. After the apply guard lands, the delete-and-recreate argument is weaker (row 3); visibility is then the main gain. The trade-off given up is liveness: a deletion can wait on an object the operator does not control. The remedy is explicit (`spec.prune: false`). Enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") is met: the hold is released only after a release verdict; the operator holds longer than the verdict asks, which R1 does not forbid.
 
 Mechanics:
 
@@ -226,13 +226,13 @@ While the identity works, the record changes nothing: the fresh pass is the auth
 
 **How far the record is trusted**: it lives in `status`, so it can be written by whoever may write `moduleinstances/status` or `modulepackages/status`. In the operator's install that is the manager only: the roles for users grant `get` on the status subresource and no write verb (`config/rbac/moduleinstance_editor_role.yaml:31-33`, `moduleinstance_admin_role.yaml:25-27`; the viewer roles read only; no role for users names `modulepackages/status`). A delta-spec scenario and a test keep it so. A cluster admin who grants status write gives that principal one new ability: when the identity is also unavailable, to make the operator release the finalizer of a **deleting** object early. That leaves objects in the cluster; it never deletes one, and it is what `spec.prune: false` does for anyone who may edit the spec. The record is ignored on an object without a `deletionTimestamp`, and a live reconcile overwrites the condition. The field manager name in `managedFields` is self-declared by the client, so it is not used as proof.
 
-**Rationale**: the fact that must survive a reconcile is one bit, and the status already holds it. 0012:D4:R1 is met: the release follows a release verdict, obtained in an earlier reconcile of the same deletion.
+**Rationale**: the fact that must survive a reconcile is one bit, and the status already holds it. Enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") is met: the release follows a release verdict, obtained in an earlier reconcile of the same deletion.
 
 **What this gives up**: after the release the operator cannot say whether the objects are gone. The event says so. A change of `spec.dataPolicy` to `Delete` during the wait is honoured only while the identity works; with the identity lost the claims are left, which is the safe direction.
 
 ### The state is not stored
 
-**Context**: 0012:D4 says the state is a serialisable value "so the operator carries it across reconciles". `02-design.md` of the entry words it as "can".
+**Context**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") says the state is a serialisable value "so the operator carries it across reconciles". `02-design.md` of the entry words it as "can".
 
 **Options considered**:
 
@@ -241,7 +241,7 @@ While the identity works, the record changes nothing: the fresh pass is the auth
 
 **Decision**: option 2 (supervisor ruling 1 of 2026-10-09), with the record above as the only carried fact.
 
-**Rationale**: a plan over a few dozen entries finishes inside one reconcile, as `apply.Prune` does today. A re-run sends no delete to an absent object. 0012:D4:R5 is a property of the library, already tested there.
+**Rationale**: a plan over a few dozen entries finishes inside one reconcile, as `apply.Prune` does today. A re-run sends no delete to an absent object. Enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") is a property of the library, already tested there.
 
 ### The threshold and the clock are test seams, not flags
 
@@ -299,7 +299,7 @@ Against the coming apply guard: `guard-every-apply-by-ownership` (merged as opm-
 
 **Decision**: `deleteGuard` (`internal/apply/claims.go:141-183`) is unchanged and stays an allowed delete site.
 
-**Rationale**: owner decision "UID precondition only". The delete is sent by Flux's engine in the middle of an apply, with Background propagation (`fluxcd/pkg/ssa v0.77.0`, `manager_apply.go:144`), and the object is created again at once; a Foreground delete would leave the name terminating. The object is not leaving the inventory, so it is no step of a deletion plan. 0012:D4:R1 names one exception and this is not it; see Open Questions.
+**Rationale**: owner decision "UID precondition only". The delete is sent by Flux's engine in the middle of an apply, with Background propagation (`fluxcd/pkg/ssa v0.77.0`, `manager_apply.go:144`), and the object is created again at once; a Foreground delete would leave the name terminating. The object is not leaving the inventory, so it is no step of a deletion plan. Enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") names one exception and this is not it; see Open Questions.
 
 ### Stale prune: no hold, no wait
 
@@ -345,4 +345,4 @@ No user migration. Rollback is a revert of the PR. Six sections, two implement l
 
 ## Open Questions
 
-None blocks implementation. One is for the supervisor: 0012:D4:R1 lists one exception (the operator install). The forced recreate is a second delete outside the plan, by owner decision, and the `DeletionUnconfirmed` release rests on a verdict of an earlier reconcile. Either the enhancement gains a note or the delivery log carries it. `enhancement.yaml` claims no decision until that is settled and the apply half has merged.
+None blocks implementation. One is for the supervisor: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") lists one exception (the operator install). The forced recreate is a second delete outside the plan, by owner decision, and the `DeletionUnconfirmed` release rests on a verdict of an earlier reconcile. Either the enhancement gains a note or the delivery log carries it. `enhancement.yaml` claims no decision until that is settled and the apply half has merged.

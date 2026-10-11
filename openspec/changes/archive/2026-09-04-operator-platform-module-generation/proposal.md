@@ -1,6 +1,6 @@
 ## Why
 
-Enhancement 0019 D6: the Platform CR keeps naming catalog coordinates in typed fields, and the operator generates the `#Platform` CUE package those coordinates describe. Under D5 a platform's registry entry carries its catalog by import, resolved by the platform module's own `cue.mod`, so the CR's spec can no longer be handed to the kernel as typed data: `SynthesizePlatform` is deleted by the library's 0019 wave, and the render build consumes a platform module on disk. The operator therefore writes that module to its own filesystem and validates it, keeping the CR's API surface unchanged.
+Enhancement 0019 ("The Platform CR keeps naming a catalog coordinate; the operator generates the platform package"): the Platform CR keeps naming catalog coordinates in typed fields, and the operator generates the `#Platform` CUE package those coordinates describe. Under D5 a platform's registry entry carries its catalog by import, resolved by the platform module's own `cue.mod`, so the CR's spec can no longer be handed to the kernel as typed data: `SynthesizePlatform` is deleted by the library's 0019 wave, and the render build consumes a platform module on disk. The operator therefore writes that module to its own filesystem and validates it, keeping the CR's API surface unchanged.
 
 This change is `operator-platform-module-generation`, the operator's D6 slice of the 0019 Phase B wave. Deliberately intent-level: the mechanism details (disk layout, lifecycle, core-pin source, tidy behavior) are recorded as open questions and ironed out in a second pass on this change before implementation, not decided here.
 
@@ -8,10 +8,10 @@ This change is `operator-platform-module-generation`, the operator's D6 slice of
 
 - The `PlatformReconciler` stops calling `SynthesizePlatform` + `Materialize` and instead, per reconciled generation of the singleton Platform CR, **generates a platform CUE module on the operator's own disk**: a `cue.mod/module.cue` (reserved-unpublished module path under `opmodel.dev/platforms/…`, catalog pins taken verbatim from the CR's `spec.registry` versions, plus the core pin) and a `platform.cue` (embeds `core.#Platform`; one `#registry` entry per subscription, carrying the catalog by import and stamping the CR's expected `version` so wrong bytes become a build conflict naming the entry, the D13 tripwire).
 - The reconciler validates the generated module by building it through the kernel's shape-gated platform loader; the Ready condition reflects the build (Ready=True on a clean build, Ready=False with the naming error on a bad pin, key/import drift, or unresolvable dependency). Status vocabulary moves from "materialized" to "generated and built"; exact reasons are second-pass detail.
-- The generated module's location (plus the generation it was built for) becomes the process-local record the render path will consume; the existing store keeps working until the operator's render-switch change consumes the module and retires the held `*MaterializedPlatform` slot (0019 D8).
+- The generated module's location (plus the generation it was built for) becomes the process-local record the render path will consume; the existing store keeps working until the operator's render-switch change consumes the module and retires the held `*MaterializedPlatform` slot (enhancement 0019, "ADR-002 is superseded, not amended; nothing built is shared between renders").
 - **No API change**: `PlatformSpec`/`Subscription` keep their shape (`registry[path].version` stays required; D6 keeps the CR naming coordinates). No CRD regeneration expected.
 
-Out of scope, as siblings in the same wave: switching the render path to `Kernel.Render` against the generated module and retiring the store's held platform + kernel gate (`operator-render-switch`); any skew-policy surface on the operator (0019 D7/D18, likely a manager flag or CR field, decided there); publishing a platform anywhere (disallowed outright, D6).
+Out of scope, as siblings in the same wave: switching the render path to `Kernel.Render` against the generated module and retiring the store's held platform + kernel gate (`operator-render-switch`); any skew-policy surface on the operator (enhancement 0019 ("Catalog version skew between a module and its platform is detected by the kernel, and the response is caller-configured" and "Skew policy defaults to warn-and-render; the comparison reads the two committed resolutions; older-than-platform is data"), likely a manager flag or CR field, decided there); publishing a platform anywhere (disallowed outright, D6).
 
 ## Sequencing
 
@@ -45,4 +45,4 @@ None in this change. `platform-reconciler`'s materialize-era requirements and `p
 ## Impact
 
 - `internal/controller` (PlatformReconciler), new `internal/platformmodule` (or similar; second-pass naming), `internal/platform/store.go` doc comments, `api/v1alpha1/platform_types.go` doc comments only.
-- `enhancement.yaml` declares 0019 D6 (with the D13 stamp clause).
+- `enhancement.yaml` declares enhancement 0019 ("The Platform CR keeps naming a catalog coordinate; the operator generates the platform package") (with the D13 stamp clause).

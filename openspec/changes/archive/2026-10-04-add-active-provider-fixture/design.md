@@ -3,12 +3,12 @@
 A claim is accepted when the Platform reconciler's generated platform exists and these checks pass (`internal/controller/transformerregistration_controller.go`):
 
 1. The named catalog resolves (`Kernel.AcquireCatalogFromRegistry(spec.catalog, spec.version)`).
-2. `spec.provides` equals the catalog's derived provider contracts (`Catalog.Provides()`), exactly (0015:D11).
+2. `spec.provides` equals the catalog's derived provider contracts (`Catalog.Provides()`), exactly (enhancement 0015, "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version").
 3. The claim is in the inventory of the ModuleInstance its `providerRef` names.
-4. The catalog's `cue.mod` requirements are no newer than the platform's resolution (0015:D8).
-5. No other claim holds the same catalog, no subscription or active claim already provides one of its contracts (0015:D12, 0015:D2).
+4. The catalog's `cue.mod` requirements are no newer than the platform's resolution (enhancement 0015, "A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline").
+5. No other claim holds the same catalog, no subscription or active claim already provides one of its contracts (enhancement 0015, "The rendered CR's name is instance-derived: dot-joined `namespace.name`" and "One provider per contract stands; provider classes are rejected in this entry").
 
-It activates when that ModuleInstance reports Ready, and it latches (0015:D3). An active claim adds its catalog to the generated platform, so a module demanding the contract renders.
+It activates when that ModuleInstance reports Ready, and it latches (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces"). An active claim adds its catalog to the generated platform, so a module demanding the contract renders.
 
 opm's `#TransformerRegistrationResource` and its transformer (opm 4.4.4 and later) render the claim: `catalog`, `version` and `provides` from the component, `providerRef` and the name `<namespace>.<instance>` from the rendering instance.
 
@@ -39,9 +39,9 @@ Read `.tasks/cascade/cascade.sh`: `task deps:cascade` advances the `provider` ca
 
 **Decision**: The backup provider is a catalog fixture of its own, `testing.opmodel.dev/catalogs/operator/backup@v0`, which the cascade does not touch. `backup_provider` authors its claim with opm's `#TransformerRegistration`, `catalog` and `version` as literals and `provides` as opm's backup trait FQN. It depends on core and the opm catalog only.
 
-This deviates from 0015:D11:R1 (no field of a rendered registration is authored). The fixture README and the spec requirement say so, so nobody copies it as a provider pattern. Moving `backup_provider` to `#PreBoundRegistration` (0015:D11:R1) is a follow-up once `backup` 0.1.0 is on GHCR, since the catalog then no longer changes in the same PR.
+This deviates from enhancement 0015 ("Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version") (no field of a rendered registration is authored). The fixture README and the spec requirement say so, so nobody copies it as a provider pattern. Moving `backup_provider` to `#PreBoundRegistration` (enhancement 0015, "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version") is a follow-up once `backup` 0.1.0 is on GHCR, since the catalog then no longer changes in the same PR.
 
-**Rationale**: The literal is checked twice. Acceptance re-derives `provides` from the named catalog and refuses a difference (0015:D11). The integration spec (D3) fails when the literal drifts from the catalog fixture's identity package or its transformers, so a hand bump of the catalog must re-pin the claim in the same PR, which Registry Policy rule 3 asks for anyway. The backup catalog's core and opm pins can only trail a platform's, and the build-compatibility check (0015:D8) refuses only a newer requirement, so leaving it off the cascade is safe. The cost: the fixture does not demonstrate `#PreBoundRegistration`. That helper has its own golden fixtures in the opm catalog.
+**Rationale**: The literal is checked twice. Acceptance re-derives `provides` from the named catalog and refuses a difference (enhancement 0015, "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). The integration spec (D3) fails when the literal drifts from the catalog fixture's identity package or its transformers, so a hand bump of the catalog must re-pin the claim in the same PR, which Registry Policy rule 3 asks for anyway. The backup catalog's core and opm pins can only trail a platform's, and the build-compatibility check (enhancement 0015, "A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline") refuses only a newer requirement, so leaving it off the cascade is safe. The cost: the fixture does not demonstrate `#PreBoundRegistration`. That helper has its own golden fixtures in the opm catalog.
 
 ### D2. What the consumer renders
 
@@ -92,6 +92,6 @@ The captured YAML for both runs and for the blocked deletion is on opm-operator#
 
 ## Risks / Trade-offs
 
-- **The literal claim can drift** from the backup catalog. Mitigated by the integration spec (D3) and by acceptance (0015:D11).
-- **The backup catalog's pins trail** core and opm. Harmless under 0015:D8 until a core major moves; a hand bump then fixes it.
-- **The ClusterRole in `backup_provider/moduleinstance.yaml`** grants write on every `TransformerRegistration` to one ServiceAccount. That is the point of the fixture (0015:D3:R2), but it is a cluster-wide grant in a sample. The manifest says so.
+- **The literal claim can drift** from the backup catalog. Mitigated by the integration spec (D3) and by acceptance (enhancement 0015, "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version").
+- **The backup catalog's pins trail** core and opm. Harmless under enhancement 0015 ("A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline") until a core major moves; a hand bump then fixes it.
+- **The ClusterRole in `backup_provider/moduleinstance.yaml`** grants write on every `TransformerRegistration` to one ServiceAccount. That is the point of the fixture (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces"), but it is a cluster-wide grant in a sample. The manifest says so.

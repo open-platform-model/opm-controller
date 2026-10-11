@@ -35,7 +35,7 @@ It reads the built platform through the existing `internal/platform.Store` rathe
 
 ### D11's deferred check is grounded in the inventory, not in labels
 
-D11 hands this slice a candidate check and does not mandate its mechanism: *"require the CR's instance-identity owner labels (0010 D41, present on all rendered output) to exist and match `spec.providerRef`"*. **Measured, that check cannot be written as described.**
+D11 hands this slice a candidate check and does not mandate its mechanism: *"require the CR's instance-identity owner labels (enhancement 0010 ("Instance identity derives from the module's registry path, not from its FQN"), present on all rendered output) to exist and match `spec.providerRef`"*. **Measured, that check cannot be written as described.**
 
 The rendered claim's labels are fixed by `catalog_opm`'s golden fixture, which asserts their count is exactly four:
 
@@ -65,7 +65,7 @@ D12 requires the second claim to be refused *naming the claimant*, and the spec 
 
 ### D8 compares against the built platform's resolution, not the Platform CR's spec
 
-`spec.registry` records what the platform *asked for*; `Generated.Platform` is what it *resolved to*, which is what a provider's transformers will actually run against. D8's discipline is a committed-resolution comparison (0019 D18), so the resolved side is the correct operand. Per shared OPM-namespace path, refuse when the catalog's requirement exceeds the platform's within a major, and refuse unconditionally across majors.
+`spec.registry` records what the platform *asked for*; `Generated.Platform` is what it *resolved to*, which is what a provider's transformers will actually run against. D8's discipline is a committed-resolution comparison (enhancement 0019, "Skew policy defaults to warn-and-render; the comparison reads the two committed resolutions; older-than-platform is data"), so the resolved side is the correct operand. Per shared OPM-namespace path, refuse when the catalog's requirement exceeds the platform's within a major, and refuse unconditionally across majors.
 
 The refusal message states the comparison is conservative — a `cue.mod` requirement records what the provider was tidied against, not what it uses — and that lowering it is a one-line fix, both of which D8 requires verbatim.
 

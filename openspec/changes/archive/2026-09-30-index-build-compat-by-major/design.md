@@ -20,8 +20,8 @@ State on `origin/main` (2e348a6, library `v1.0.0-alpha.35`), read 2026-09-30:
 
 **Non-Goals:**
 
-- Render-time checks: a provider built against `opm@v4` supplied to a render holding `opm@v5` (0026:D9:R4) is 0026's, not this change's.
-- The contract-conflict half of 0026:D9:R7 (refuse a second provider only within one major). `subscribedContract` already keys by registry key with major; making the count per major is 0026's.
+- Render-time checks: a provider built against `opm@v4` supplied to a render holding `opm@v5` (enhancement 0026, "A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") is 0026's, not this change's.
+- The contract-conflict half of enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") (refuse a second provider only within one major). `subscribedContract` already keys by registry key with major; making the count per major is 0026's.
 - Comparing against platform floors (0026:D7:R2's "static floors"): the operator compares against the generated closure's resolved versions, as today. Only which entry is compared changes.
 - The contract-key collision (changes A to D).
 - Any API, CRD, condition reason, generated file, fixture or library change.
@@ -82,7 +82,7 @@ for _, qualified := range paths { // sorted, as today
 
 ### 2. "Admitted entry" means any entry in the generated closure, disabled entries included
 
-0026:D9:R7 says "the admitted entry of the provider's own major". Build compatibility is an MVS question over the generated `cue.mod` deps, and a disabled entry's module is in that graph (Context, "The closure"), so it counts as present. Enable-flag routing is judged elsewhere (`subscribedContract`, keyed by registry key). Requiring enabled-only would mean passing enable flags into `buildIncompatibility`, and would refuse an `opm@v5` provider on the case-D platform although its build resolves. Flagged to the user as a decision in the set's `user_decisions_needed`; decided on 2026-09-30 as written here: compatibility is judged against any entry in the generated platform's dependency closure (MVS over its `cue.mod` deps), disabled entries included.
+Enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") says "the admitted entry of the provider's own major". Build compatibility is an MVS question over the generated `cue.mod` deps, and a disabled entry's module is in that graph (Context, "The closure"), so it counts as present. Enable-flag routing is judged elsewhere (`subscribedContract`, keyed by registry key). Requiring enabled-only would mean passing enable flags into `buildIncompatibility`, and would refuse an `opm@v5` provider on the case-D platform although its build resolves. Flagged to the user as a decision in the set's `user_decisions_needed`; decided on 2026-09-30 as written here: compatibility is judged against any entry in the generated platform's dependency closure (MVS over its `cue.mod` deps), disabled entries included.
 
 ### 3. Message shape
 
@@ -98,7 +98,7 @@ On a one-major platform the platform side changes from `"v2.0.0"` to `"opmodel.d
 
 ### 4. Doc comments
 
-The lines 97-98 comment is replaced by one describing the two lookups. The function doc's "Per shared base path: a requirement in a different major than the platform carries is refused ..." paragraph becomes: the comparison uses the platform entry of the provider's own major; a requirement is refused as a major mismatch only when no platform path shares that major; within one major a greater requirement is refused. The "sorted order" paragraph gains that the mismatch message lists the platform's majors sorted, so the message is stable too. Cite `0026:D7:R2` once at the symbol beside `0015:D8`.
+The lines 97-98 comment is replaced by one describing the two lookups. The function doc's "Per shared base path: a requirement in a different major than the platform carries is refused ..." paragraph becomes: the comparison uses the platform entry of the provider's own major; a requirement is refused as a major mismatch only when no platform path shares that major; within one major a greater requirement is refused. The "sorted order" paragraph gains that the mismatch message lists the platform's majors sorted, so the message is stable too. Cite enhancement 0026 ("The shared-path requirement check runs per render against the consumer's pins, and at acceptance against the platform floors") once at the symbol beside enhancement 0015 ("A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline").
 
 ### Reconcile phase impact
 

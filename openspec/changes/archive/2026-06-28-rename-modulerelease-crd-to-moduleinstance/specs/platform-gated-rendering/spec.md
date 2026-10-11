@@ -49,20 +49,20 @@ After the cut-over, the startup-loaded `*provider.Provider` SHALL NOT determine 
 
 ### Requirement: ModuleRelease renders through the kernel against the materialized platform
 
-**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002 D11/D12).
+**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002, "Renamed Go identifiers carry a doc comment with a `// Was:` old-name breadcrumb" and "The old-name breadcrumb applies to every rename site across code, docs, and specs (extends D11)").
 **Migration**: See the ADDED requirement "ModuleInstance renders through the kernel against the materialized platform".
 
 ### Requirement: Block ModuleRelease when no platform is materialized
 
-**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002 D11/D12).
+**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002, "Renamed Go identifiers carry a doc comment with a `// Was:` old-name breadcrumb" and "The old-name breadcrumb applies to every rename site across code, docs, and specs (extends D11)").
 **Migration**: See the ADDED requirement "Block ModuleInstance when no platform is materialized".
 
 ### Requirement: Re-enqueue ModuleReleases when the platform becomes ready
 
-**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002 D11/D12).
+**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002, "Renamed Go identifiers carry a doc comment with a `// Was:` old-name breadcrumb" and "The old-name breadcrumb applies to every rename site across code, docs, and specs (extends D11)").
 **Migration**: See the ADDED requirement "Re-enqueue ModuleInstances when the platform becomes ready".
 
 ### Requirement: Provider input no longer drives ModuleRelease rendering
 
-**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002 D11/D12).
+**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002, "Renamed Go identifiers carry a doc comment with a `// Was:` old-name breadcrumb" and "The old-name breadcrumb applies to every rename site across code, docs, and specs (extends D11)").
 **Migration**: See the ADDED requirement "Provider input no longer drives ModuleInstance rendering".

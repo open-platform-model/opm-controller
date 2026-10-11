@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-<!-- Renamed from `release-artifact-loading` (0002 D2/D10); the spec dir is `git mv`'d at archive. Authored file convention `release.cue` → `instance.cue` (D9). -->
+<!-- Renamed from `release-artifact-loading` (enhancement 0002, "Scope is cross-cutting; the GitOps `Release` CRD is renamed to `ModulePackage` (supersedes D1)" and "Every `release`-named file and directory is renamed on disk (extends D8 to the filesystem)"); the spec dir is `git mv`'d at archive. Authored file convention `release.cue` → `instance.cue` (D9). -->
 
 ### Requirement: Artifact unpacking and path navigation
 The ModulePackage reconciler MUST fetch the Flux source artifact, unpack it to a temporary directory, and navigate to `spec.path` within the extracted tree to locate the instance CUE package.

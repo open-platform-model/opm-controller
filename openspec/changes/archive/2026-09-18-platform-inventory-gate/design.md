@@ -131,7 +131,7 @@ On the skip path, if `held.Platform.Contracts()` errors, the held record is trea
 **Context**: one `Ready` condition carries one reason; a platform can be both over-subscribed and undiscriminated.
 **Explored**: two reasons in one condition (impossible); a combined reason; routing first with both findings in the message.
 **Decision**: routing first, both findings in the message.
-**Rationale**: 0015 D18 fixes over-subscription as the generation refusal and D5 joins it; an operator fixing the routing problem sees the discrimination problem in the same message rather than after the next reconcile, and a reason of its own per refusal is kept for the single-finding case, which is the common one.
+**Rationale**: enhancement 0015 ("An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation") fixes over-subscription as the generation refusal and D5 joins it; an operator fixing the routing problem sees the discrimination problem in the same message rather than after the next reconcile, and a reason of its own per refusal is kept for the single-finding case, which is the common one.
 
 ### Refusal leaves the condition and the registry describing the last good package
 

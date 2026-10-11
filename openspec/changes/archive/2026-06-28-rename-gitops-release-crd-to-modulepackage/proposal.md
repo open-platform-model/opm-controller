@@ -1,6 +1,6 @@
 ## Why
 
-Enhancement `0002` D2 renames the operator's GitOps `Release` CRD to `ModulePackage`. "Release" is being retired across the whole stack (it is Helm's word and foregrounds a shipping *event*); the GitOps CRD's actual role is to point at a Flux-delivered **package** of authored OPM content and reconcile it. `ModulePackage` names that role and frees the `Release` word entirely. This is slice **O2** of `0002`; it lands in the same atomic operator PR as O1 (`ModuleRelease` → `ModuleInstance`) and O3 (API group + label domain).
+Enhancement 0002 ("Scope is cross-cutting; the GitOps `Release` CRD is renamed to `ModulePackage` (supersedes D1)") renames the operator's GitOps `Release` CRD to `ModulePackage`. "Release" is being retired across the whole stack (it is Helm's word and foregrounds a shipping *event*); the GitOps CRD's actual role is to point at a Flux-delivered **package** of authored OPM content and reconcile it. `ModulePackage` names that role and frees the `Release` word entirely. This is slice **O2** of `0002`; it lands in the same atomic operator PR as O1 (`ModuleRelease` → `ModuleInstance`) and O3 (API group + label domain).
 
 ## What Changes
 

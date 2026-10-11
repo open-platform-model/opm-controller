@@ -38,7 +38,7 @@ The entries come from `internal/render/kernel_module_renderer.go:240` → `inter
 
 **Goals:**
 
-- The operator computes its stale set, inventory digest and render digest only through `opm/k8s/inventory` and keeps no copy (0012:D6, 0012:D7, 0012:D3:R6 for this package).
+- The operator computes its stale set, inventory digest and render digest only through `opm/k8s/inventory` and keeps no copy (enhancement 0012 ("Labels are stamped by the CUE render; the shared render digest ignores the runtime-name label value", "The stale set is component-blind, and the inventory digest hashes a canonical field encoding" and "The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module") for this package).
 - One CUE export per rendered resource per reconcile.
 - The stored digests change exactly once. The upgrade costs one apply per object and then converges, and a test pins that.
 
@@ -106,7 +106,7 @@ A further case pins the documented boundary: with the old digests and a key reco
 
 ### D5. A closed-surface test instead of a lint rule
 
-**Context**: opm-operator#253's depguard rule refuses the old `pkg/core` path. Here `internal/inventory` stays as the conversion boundary, so a path rule cannot refuse a copy put back into it. The `kubernetes-tier-adoption` requirement this change adds cites 0012:D3:R6, whose frontend half is that its checks refuse a reintroduced copy.
+**Context**: opm-operator#253's depguard rule refuses the old `pkg/core` path. Here `internal/inventory` stays as the conversion boundary, so a path rule cannot refuse a copy put back into it. The `kubernetes-tier-adoption` requirement this change adds cites enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module"), whose frontend half is that its checks refuse a reintroduced copy.
 **Explored**: (a) No check, review only: leaves R6's "checks refuse" unmet. (b) A test that scans the source for the deleted function names: catches a copy only under the names it guesses. (c) A closed-surface test, as the library's `opm/k8s/inventory/surface_test.go` does: parse the package's non-test files and require the exported names to be exactly the expected set.
 **Decision**: (c). `internal/inventory/surface_test.go` pins the package's exported names to exactly `{Current, FromEntries, FromEntry, ToEntries, ToEntry}` (methods would count as `Type.Method`). Any new exported function, a stale set or digest under any name included, fails it, and the author must change the test and say why in review.
 **Rationale**: The test does not guess names, so it closes the gap (b) leaves, at the cost of one small test file (Principle VII). It covers the package that is the natural home for a copy; a copy elsewhere is still caught only by review and by the `kubernetes-tier-adoption` "No local copy" scenario.

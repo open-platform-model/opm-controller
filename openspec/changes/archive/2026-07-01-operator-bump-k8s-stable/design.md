@@ -1,6 +1,6 @@
 ## Context
 
-`opm-operator` currently pins `k8s.io/*` at v0.35.2 and `sigs.k8s.io/controller-runtime` at v0.23.3. The CLI (a sibling repo in the same workspace) is already on `k8s.io/*` v0.36.0. Enhancement [0006](../../../../enhancements/0006/) recorded this skew as "Problem 3" (`research/findings.md`) and scoped closing it as slice A1 — independent prep work with no dependents, motivated by keeping the two repos on one k8s line as their dependency surface grows, rather than by any current build failure (D13/D31 mean the CLI doesn't import `opm-operator` or `controller-runtime` at all today, so there is no live MVS conflict this fixes right now).
+`opm-operator` currently pins `k8s.io/*` at v0.35.2 and `sigs.k8s.io/controller-runtime` at v0.23.3. The CLI (a sibling repo in the same workspace) is already on `k8s.io/*` v0.36.0. Enhancement 0006 recorded this skew as "Problem 3" (`research/findings.md`) and scoped closing it as slice A1 — independent prep work with no dependents, motivated by keeping the two repos on one k8s line as their dependency surface grows, rather than by any current build failure (D13/D31 mean the CLI doesn't import `opm-operator` or `controller-runtime` at all today, so there is no live MVS conflict this fixes right now).
 
 Investigated during the `openspec-explore` session that preceded this change:
 

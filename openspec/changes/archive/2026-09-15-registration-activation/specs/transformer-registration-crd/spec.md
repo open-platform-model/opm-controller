@@ -2,7 +2,7 @@
 
 ### Requirement: Claim status separates acceptance from activation
 
-`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a stored claim can report the three states enhancement 0015 D3 defines: not yet judged, accepted but inactive, and active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. All three states are now reachable.
+`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a stored claim can report the three states enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines: not yet judged, accepted but inactive, and active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. All three states are now reachable.
 
 #### Scenario: A stored claim receives a verdict
 

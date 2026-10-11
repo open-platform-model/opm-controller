@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-<!-- Renamed from `release-kind-detection` (0002 D2/D10); the spec dir is `git mv`'d at archive. -->
+<!-- Renamed from `release-kind-detection` (enhancement 0002, "Scope is cross-cutting; the GitOps `Release` CRD is renamed to `ModulePackage` (supersedes D1)" and "Every `release`-named file and directory is renamed on disk (extends D8 to the filesystem)"); the spec dir is `git mv`'d at archive. -->
 
 ### Requirement: Runtime kind detection
 After CUE evaluation, the ModulePackage reconciler MUST inspect the `kind` field of the evaluated CUE value. Only `ModuleInstance` is a renderable kind; any other kind value MUST be rejected without applying anything.
