@@ -119,7 +119,6 @@ can reword them.
 ├── cmd/            # manager entrypoint (`main.go`), controller registration
 ├── config/         # Kustomize overlays: generated CRDs + RBAC (no hand-edit), samples, manager, network-policy, prometheus
 ├── docs/           # design documents
-├── enhancements/   # enhancement proposals
 ├── experiments/    # exploratory prototypes
 ├── hack/           # helper scripts
 ├── internal/       # domain packages: apply, controller, inventory, reconcile, render, source, status
@@ -317,9 +316,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Default is none: a comment says what the code does and why, in its own words.
 
-- When a rationale genuinely lives in an enhancement, cite it **once at the symbol** as `0011:D9` — enhancement id, colon, decision id, no space. Several decisions of one enhancement share a head: `0011:D16/D18/D21`. Across enhancements, repeat the head: `0011:D9, 0010:D34`. A single requirement of a decision is `0011:D9:R2`; several under one decision share it (`0011:D9:R1/R2`).
-- Decision numbers restart per enhancement, so a bare `D9` names nothing. Never write one.
-- Never a section, slice, phase, task or design-doc-local number (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers. A requirement number (`R2` under a decision) is a stable identifier and is allowed.
+- When a rationale genuinely lives in an enhancement, name it **once at the symbol**, as an enhancement id beside the reason in words: `(enhancement NNNN)` after the sentence that gives the reason, or `(enhancements NNNN and MMMM)` for two.
+- Never an id alone, never a decision number (`NNNN:Dn`, `NNNN Dn`) and never a requirement number. Say the decision in words. A bare `Dn` names nothing, because decision numbers restart per enhancement.
+- To read an enhancement, run `openspec show <id>-<slug> --store opm-enhancements`. The store is the `references:` entry of `openspec/config.yaml`.
+- A change that delivers a line of an enhancement's `tasks.md` adds `## Enhancement` to its proposal, with one line `Delivers NNNN, task X.Y.` per task. Otherwise the section says `None.`
+- Never a section, slice, phase, task or design-doc-local number (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers.
 - Never in scaffold templates, generated files, fixtures a user copies, or CLI output strings. Those reach people who have no access to the enhancements repo.
 - No `Was:` rename history. `git log` owns it.
 - In CUE files the reference goes in a `// WHY` block separated from the doc comment by one blank line, never in the doc comment itself: `cue lsp` hover, `Value.Doc()` and `cue def` replay a doc comment verbatim.

@@ -35,7 +35,6 @@ bundles: "opm-operator": {
 				Platform:                "platform"
 				TransformerRegistration: "transformerregistration"
 			}
-			citations: "link"
 		},
 	]
 }
