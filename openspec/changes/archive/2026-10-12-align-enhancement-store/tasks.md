@@ -16,4 +16,4 @@
 
 - [x] 3.1 `cite-lint` 0 findings and `cite-rewrite --dry-run` 0 edits; `git grep` of the two retired ids empty outside excluded paths
 - [x] 3.2 `task dev:fmt dev:vet`, `task dev:manifests dev:generate docs:bundle:check`, `task operator:installer`, `task operator-module:drift`, `task dev:lint`, unit tests of touched packages, `openspec validate --all --strict --no-interactive`
-- [ ] 3.3 Review, fix, archive the change, then commit `docs(openspec): archive align-enhancement-store`
+- [x] 3.3 Review, fix, archive the change, then commit `docs(openspec): archive align-enhancement-store`
