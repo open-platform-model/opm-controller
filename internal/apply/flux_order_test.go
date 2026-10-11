@@ -249,7 +249,7 @@ func moduleVersion(path string) string {
 // modules and what the maintainer does next.
 func contradictionMessage(pairs []orderPair) string {
 	var b strings.Builder
-	b.WriteString("Flux's staged apply order contradicts the library's kind weights (0012:D5:R1).\n")
+	b.WriteString("Flux's staged apply order contradicts the library's kind weights (enhancement 0012).\n")
 	fmt.Fprintf(&b, "Flux:    %s %s\n", fluxModule, moduleVersion(fluxModule))
 	fmt.Fprintf(&b, "Library: %s %s\n\n", libraryModule, moduleVersion(libraryModule))
 	b.WriteString("Flux applies the first kind before the second; the library weighs the first above the second:\n")

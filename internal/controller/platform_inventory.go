@@ -67,8 +67,8 @@ import (
 // Precedence is ContractCollisions, then OverSubscribedContracts, then
 // ComparablePredicates. One condition carries one reason: a collision comes
 // first because it distorts the other reports and its fix (disabling a
-// major) reshapes them, and 0015:D18 fixes over-subscription as the
-// generation refusal with 0015:D5 joining it. Every finding stays in the
+// major) reshapes them, and enhancement 0015 fixes over-subscription as the
+// generation refusal, with comparable predicates joining it. Every finding stays in the
 // message, the collision first, so an operator fixing one problem sees the
 // others in the same message rather than one reconcile later.
 func inventoryRefusal(inv *platform.ContractInventory) (reason, msg string, refused bool) {
@@ -129,7 +129,7 @@ const unroutableFinding = "platform is not routable; the contract inventory name
 
 // overSubscribedFinding words the routing refusal: each over-subscribed
 // contract, the catalog defining it when an enabled one does, and every
-// enabled registry entry providing it (0010:D37, kept by 0015:D2). The
+// enabled registry entry providing it (enhancements 0010 and 0015: one provider per contract). The
 // providers are read from ProvidedBy, never counted here: a contract is
 // over-subscribed when two or more registry entries (two majors of one
 // catalog are two) provide it, whether or not its defining catalog is
@@ -150,7 +150,7 @@ func overSubscribedFinding(inv *platform.ContractInventory) string {
 
 // comparableFinding words the discrimination refusal: each comparable pair's
 // broader transformer, narrower transformer and the contracts they share
-// (enhancement 0015). No arbitration is offered because 0015:D5 takes none —
+// (enhancement 0015). No arbitration is offered because enhancement 0015 takes none —
 // the pair is refused, not ordered.
 func comparableFinding(inv *platform.ContractInventory) string {
 	rows := slices.Clone(inv.Comparable)
@@ -162,7 +162,7 @@ func comparableFinding(inv *platform.ContractInventory) string {
 	})
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "platform is not discriminated: %s; every component the narrower transformer matches is also matched by the broader one, so both would render (0015:D5):",
+	fmt.Fprintf(&b, "platform is not discriminated: %s; every component the narrower transformer matches is also matched by the broader one, so both would render:",
 		counted(len(rows), "comparable transformer pair", "comparable transformer pairs"))
 	for _, row := range rows {
 		shared := slices.Sorted(slices.Values(row.Contracts))
@@ -171,7 +171,7 @@ func comparableFinding(inv *platform.ContractInventory) string {
 	return b.String()
 }
 
-// setContractsFulfilled writes the non-gating 0015:D18 report on plat from the
+// setContractsFulfilled writes the non-gating report of enhancement 0015 on plat from the
 // inventory of the package renders are consuming. It is called only where
 // such a package exists — after a fresh build is recorded, and on the
 // current-package skip — never on a failure or a refusal, which leave the

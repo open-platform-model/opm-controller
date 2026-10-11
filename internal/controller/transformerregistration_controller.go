@@ -191,7 +191,7 @@ func (r *TransformerRegistrationReconciler) Reconcile(ctx context.Context, req c
 	case identityOK:
 	}
 
-	// 0015:D8 compares the catalog's committed requirements against the platform's
+	// Enhancement 0015 compares the catalog's committed requirements against the platform's
 	// resolved versions, here rather than at render: a render failure would
 	// name whichever unrelated module instance triggered the build, while
 	// this names the provider that is incompatible.
@@ -219,7 +219,7 @@ func (r *TransformerRegistrationReconciler) Reconcile(ctx context.Context, req c
 			holder, claim.Spec.Catalog))
 	}
 
-	// 0015:D2's second arm: one contract, one provider. Distinct from the 0015:D12
+	// The second arm of the one-provider rule (enhancement 0015): one contract, one provider. Distinct from the same-catalog
 	// refusal above, which is about two claims naming the same CATALOG; this
 	// one is about two providers of the same CONTRACT, which can arrive from
 	// different catalogs entirely.
@@ -295,7 +295,7 @@ func (r *TransformerRegistrationReconciler) holderOf(
 		// claim whose deletion is BLOCKED is not on its way out. It is still
 		// accepted, still active, and its catalog is still in the generated
 		// platform (activeClaims), so a second claim for the same catalog is
-		// the duplicate 0015:D12 refuses. The two reads agree deliberately: see
+		// the duplicate that enhancement 0015 refuses. The two reads agree deliberately: see
 		// the change's design.md for what that costs a provider migration.
 		if !other.DeletionTimestamp.IsZero() && !claimContributesAfterDeletion(other) {
 			continue

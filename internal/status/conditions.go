@@ -16,7 +16,7 @@ const (
 	DriftedCondition        = "Drifted"
 
 	// ActiveCondition reports whether an accepted TransformerRegistration's
-	// provider is serving, the second of the three states 0015:D3
+	// provider is serving, the second of the three states enhancement 0015
 	// defines. It is a separate condition from Ready because the two axes are
 	// independent: Ready carries the acceptance verdict, and a claim can be
 	// accepted and not yet active. Once Active=True it never goes False again
@@ -26,7 +26,7 @@ const (
 	// ContractsFulfilledCondition reports whether every provider-fulfilled
 	// contract the effective platform package defines has a provider
 	// (enhancement 0015). It is a separate condition from Ready because
-	// 0015:D18 makes an unfulfilled contract a report and never a refusal: the
+	// enhancement 0015 makes an unfulfilled contract a report and never a refusal: the
 	// package is generated, recorded and rendered against either way, so
 	// folding this into Ready would turn a report into a gate. It describes
 	// the package renders consume, which is why it is written on both
@@ -99,13 +99,13 @@ const (
 	// running. Retried on the bounded backoff.
 	RenderTimedOutReason = "RenderTimedOut"
 
-	// Platform-specific reasons (0019:D6: the reconciler generates
+	// Platform-specific reasons (enhancement 0019: the reconciler generates
 	// and builds the platform module).
 	GeneratedReason      = "Generated"      // Ready=True: the platform module was generated and built.
 	GenerateFailedReason = "GenerateFailed" // Ready=False: the module could not be written to disk.
 	BuildFailedReason    = "BuildFailed"    // Ready=False: a dependency did not resolve, the module did not build, or its contract inventory could not be read.
 
-	// Inventory reasons (0015:D5, D18: the reconciler reads the
+	// Inventory reasons (enhancement 0015: the reconciler reads the
 	// built platform's contract inventory before recording the package).
 	// The three refusals carry a reason each rather than one shared
 	// "inventory" reason because the fix differs: a collision is resolved by
@@ -131,7 +131,7 @@ const (
 	// majors of one catalog are two, whether or not the defining catalog is
 	// enabled), so no routing exists for it; the message names each
 	// contract, its defining catalog when one is enabled and the providing
-	// registry entries (0010:D37, kept by 0015:D2; D18 makes this the one
+	// registry entries (enhancements 0010 and 0015; it is the one
 	// inventory report that refuses generation). Reported after
 	// ContractCollisions and ahead of ComparablePredicates, with every
 	// finding in the message, so one fix pass sees them all. Also the
@@ -146,7 +146,7 @@ const (
 	// broader and both would render (enhancement 0015). Distinct from
 	// OverSubscribedContracts because nothing is over-subscribed: the
 	// catalogs route fine and the transformers cannot be told apart.
-	// Refused rather than arbitrated: 0015:D5 takes no most-specific-wins rule.
+	// Refused rather than arbitrated: enhancement 0015 takes no most-specific-wins rule.
 	ComparablePredicatesReason = "ComparablePredicates"
 
 	// UnfulfilledContractsReason: ContractsFulfilled=False, the effective
@@ -179,7 +179,7 @@ const (
 	DependenciesNotReadyReason = "DependenciesNotReady"
 	PlatformNotReadyReason     = "PlatformNotReady"
 
-	// TransformerRegistration-specific reasons (0015:D3: a claim
+	// TransformerRegistration-specific reasons (enhancement 0015: a claim
 	// carries a verdict). Every refusal gets a reason of its own: a claimant
 	// acts on the reason, and collapsing two causes into one sends them to
 	// the wrong fix.
