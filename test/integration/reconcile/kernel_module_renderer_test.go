@@ -125,11 +125,11 @@ var _ = Describe("KernelModuleRenderer Integration", func() {
 			Expect(res.Resources).NotTo(BeEmpty(),
 				"the fixture module must render to at least one resource")
 			Expect(res.Warnings).To(BeEmpty(), "a module pinning the platform's catalog build renders without warnings")
-			Expect(res.ResolvedVersions).NotTo(BeEmpty(), "the build reports the resolved-versions rows (0019:D18)")
+			Expect(res.ResolvedVersions).NotTo(BeEmpty(), "the build reports the resolved-versions rows (enhancement 0019)")
 			Expect(res.ModuleVersion).To(Equal(hello.Version),
 				"the render reports the version the module declares, as bare SemVer")
 			Expect(res.PlatformIdentity).To(Equal(store.Identity().String()),
-				"the render reports the identity of the package it built against (0015:D13)")
+				"the render reports the identity of the package it built against (enhancement 0015)")
 			Expect(res.SkewPolicy).To(Equal(releasesv1alpha1.SkewPolicyWarn),
 				"the render reports the default skew policy of the record it leased")
 			Expect(store.Leased()).To(BeEmpty(), "the render releases its lease on return")
