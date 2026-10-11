@@ -88,7 +88,7 @@ var _ = Describe("TransformerRegistration removal guard: D3 — a claim with dep
 			claim := createClaimProviding(ctx, ns, claimContract(ns))
 			ownProvidedInventory(ctx, ns, claim.Name)
 
-			// A catalog implementing nothing: refused on the catalog check (enhancement 0015), so the claim is
+			// A catalog implementing nothing: refused on the `provides` re-derivation (enhancement 0015), so the claim is
 			// never accepted and never held.
 			judged := judge(ctx, acceptanceReconciler(&stubCatalogs{cat: providerCatalog()}), claim.Name)
 

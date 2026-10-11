@@ -619,7 +619,7 @@ var _ = Describe("Platform Controller", func() {
 			// Model the defect through the closure: the pinned catalog's module
 			// file is made to require a newer build of the catalog itself, so the
 			// derived cue.mod pins the newer build while the entry stamps the
-			// CR's version. the tripwire of enhancement 0015 turns that into a conflict naming the
+			// CR's version. The tripwire of enhancement 0015 turns that into a conflict naming the
 			// entry before anything renders against it.
 			real, err := newTestModFileSource(reg)
 			Expect(err).NotTo(HaveOccurred())
