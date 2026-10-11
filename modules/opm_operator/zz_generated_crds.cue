@@ -482,7 +482,7 @@ package opm_operator
 	RequiredContracts lists every contract FQN this instance's components
 	declare, sorted and deduplicated, as the last successful render
 	reported them. It is the instance side of the removal guard
-	(0015:D3/D16): a TransformerRegistration counts its
+	(enhancement 0015): a TransformerRegistration counts its
 	dependents by intersecting this with its own spec.provides, so a
 	provider cannot be deleted, or shrink its provides, out from under
 	the instances still demanding what it serves.
@@ -1165,12 +1165,12 @@ package opm_operator
 												description: """
 	Version names exactly one published catalog build as a bare SemVer
 	string (e.g. "2.0.0-alpha.3") — the platform module IS the resolution
-	(0010:D14); there is no range or allow/deny vocabulary. The
+	(enhancement 0010); there is no range or allow/deny vocabulary. The
 	version's major must agree with the subscription key's `@vN` suffix.
 	The operator uses it twice: as the generated cue.mod pin and as the
 	entry's stamped expected version, which unifies with the imported
 	catalog's own version so wrong bytes fail the build naming the entry
-	(0019:D13).
+	(enhancement 0019).
 	CRD-required is safe against the stored pre-reshape singleton: API
 	server validation ratcheting keeps status-subresource patches working
 	against a stored object lacking the field (measured in
@@ -1187,7 +1187,7 @@ package opm_operator
 	Registry is the set of catalog subscriptions keyed by major-suffixed
 	catalog CUE module path (e.g. "opmodel.dev/catalogs/opm@v2"), projecting
 	core #Platform.#registry. The key's major must agree with the major of
-	the subscribed version (0010:D14).
+	the subscribed version (enhancement 0010).
 	"""
 									type: "object"
 								}
@@ -1195,7 +1195,7 @@ package opm_operator
 									description: """
 	SkewPolicy is the operator's response to catalog version skew: a
 	module whose cue.mod requires a newer build of an OPM-namespace path
-	(core or a catalog) than the platform pins (0019:D7/D18).
+	(core or a catalog) than the platform pins (enhancement 0019).
 	"Warn" (the default when unset) renders against the platform's build
 	and reports the skew as a RenderWarning event on the workload; "Refuse"
 	refuses the render before evaluation and the workload reports
@@ -1343,7 +1343,7 @@ package opm_operator
 									description: """
 	operatorVersion is the version of the operator that last patched this
 	Platform's status, stamped on every reconcile regardless of outcome
-	(0006:D24). The CLI reads it as the version-skew ceiling;
+	(enhancement 0006). The CLI reads it as the version-skew ceiling;
 	absence means no operator has reconciled the Platform (solo cluster).
 	"""
 									type: "string"
@@ -1351,7 +1351,7 @@ package opm_operator
 								packageIdentity: {
 									description: """
 	packageIdentity identifies the generated platform package by the two
-	inputs it is a function of (0015:D13): this CR's
+	inputs it is a function of (enhancement 0015): this CR's
 	generation and the sorted set of active claims' catalog coordinates.
 	The same inputs always produce the same value and any change to either
 	produces a different one.
@@ -1495,10 +1495,10 @@ package opm_operator
 
 						It is the cluster-scoped claim a provider module ships among its rendered
 						resources, the second path by which transformers reach a platform
-						(0015:D3); the first is a subscription in Platform.spec.registry.
+						(enhancement 0015); the first is a subscription in Platform.spec.registry.
 
 						metadata.name is the dot-joined "<namespace>.<name>" of the claiming
-						instance (0015:D12). A namespace cannot contain a dot, so the
+						instance (enhancement 0015). A namespace cannot contain a dot, so the
 						join is collision-free and two instances of one provider module produce two
 						distinct claims, the second refused at acceptance naming the claimant,
 						rather than contending for one object.
@@ -1539,7 +1539,7 @@ package opm_operator
 	(e.g. "opmodel.dev/catalogs/k8up@v1"). It names a catalog, never a
 	module: a catalog is what carries transformers, so a claim naming a
 	module names nothing that could implement a contract. Acceptance
-	refuses a non-catalog artifact structurally (0015:D10).
+	refuses a non-catalog artifact structurally (enhancement 0015).
 	"""
 									minLength: 1
 									type:      "string"
@@ -1548,7 +1548,7 @@ package opm_operator
 									description: """
 	ProviderRef identifies the ModuleInstance that rendered this claim. It
 	is stamped from the rendering instance and never authored, so a module
-	cannot claim to be another provider (0015:D11).
+	cannot claim to be another provider (enhancement 0015).
 	"""
 									properties: {
 										name: {
