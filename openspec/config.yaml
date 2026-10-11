@@ -109,7 +109,7 @@ context: |
   ### Comments
   - Default to no enhancement reference: say what the code does and why, in the comment's own words.
   - In any text (proposal, design, specs, comments), name an enhancement only by its id beside a reason in words, never alone, never a decision number.
-  - When the rationale genuinely lives in an enhancement, name it once at the symbol, as an enhancement id beside the reason in words: `(enhancement NNNN)` after the sentence that gives the reason, or `(enhancements NNNN and MMMM)` for two. Never an id alone, never a decision number (for example `NNNN:Dn` or `NNNN Dn`) and never a requirement number: say the decision in words.
+  - When the rationale genuinely lives in an enhancement, name it once at the symbol, as an enhancement id beside the reason in words: `(enhancement NNNN)` after the sentence that gives the reason, or `(enhancements NNNN and MMMM)` for two. Never an id alone, never a decision number (for example `NNNN:Dn` or `NNNN Dn`): say the decision in words.
   - Never cite a section, slice, phase, task or design-doc-local id (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers.
   - Never put a reference in a scaffold template, a generated file, a fixture a user copies, or a CLI output string. Those reach people with no access to the enhancements repo.
   - No `Was:` rename history in comments; `git log` owns it.
