@@ -22,7 +22,7 @@ See `proposal.md` § Why. This design has had its second pass: the six questions
 ### The operator writes the module to its own disk
 
 **Context**: D5 makes the platform a module; something must own its bytes.
-**Explored**: 0019 D6's alternatives (CR carrying CUE text, CR referencing a published platform module) were rejected in the enhancement; the remaining split was generate-in-memory-per-use versus generate-to-disk.
+**Explored**: the alternatives of enhancement 0019 (CR carrying CUE text, CR referencing a published platform module) were rejected in the enhancement; the remaining split was generate-in-memory-per-use versus generate-to-disk.
 **Decision**: generate to the operator's own filesystem, once per CR generation, and validate there (owner decision, this change's mandate).
 **Rationale**: the render build consumes directory replacements served from disk; a persistent per-generation module makes regeneration observable, diffable in support bundles, and shared across the render paths without re-deriving. Disk is ephemeral pod state and the CR is the source of truth, so loss is repaired by regeneration (see "Disk layout and lifecycle").
 

@@ -1,6 +1,6 @@
 # Delta: module-instance-ownership (envtest-coverage-batch)
 
-No behavior change. The ownership-marker requirement gains the reconcile-side scenario for the operator-managed default (absent owner) that its prose already states — the contract enhancement 0006 D24's skew model leans on.
+No behavior change. The ownership-marker requirement gains the reconcile-side scenario for the operator-managed default (absent owner) that its prose already states — the contract the version skew model of enhancement 0006 leans on.
 
 ## MODIFIED Requirements
 

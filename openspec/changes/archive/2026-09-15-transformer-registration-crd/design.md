@@ -2,7 +2,7 @@
 
 ## Context
 
-See `proposal.md` § Why, and `open-platform-model/opm-operator` issue 132 for the catalog-side contract this must match. The decisions are `enhancements/0015` D3 (the CR and its RBAC gate), D12 (the instance-derived name) and D15 (one registration per module); the pre-drafted shapes are that entry's `contracts/contracts.cue`.
+See `proposal.md` § Why, and `open-platform-model/opm-operator` issue 132 for the catalog-side contract this must match. The decisions are those of enhancement 0015 on the CR and its RBAC gate, the instance-derived name and one registration per module; the pre-drafted shapes are that entry's `contracts/contracts.cue`.
 
 Current state, read 2026-09-15:
 

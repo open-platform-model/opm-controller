@@ -55,7 +55,7 @@ Acceptance SHALL derive the provider-fulfilled contract set from the acquired ca
 
 ### Requirement: The claim must come from the instance it names
 
-Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (enhancement 0015 D11's check deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance — a hand-applied stray, which would otherwise point a later health gate at the wrong package.
+Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (the claim-origin check of enhancement 0015, deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance — a hand-applied stray, which would otherwise point a later health gate at the wrong package.
 
 The check SHALL be grounded in the inventory rather than in the claim's labels. D11 suggests the owner labels, but measured, a rendered claim carries an instance *name* label and no namespace-bearing or uuid label, while `providerRef` carries a namespace and a name; a label-only check would therefore admit a stray placed by any instance sharing the provider's name in another namespace — the exact substitution the check exists to stop. The inventory is already this repo's ownership record by constitutional principle.
 

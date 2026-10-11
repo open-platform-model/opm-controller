@@ -13,4 +13,4 @@
 
 ## 3. Archive
 
-- [x] 3.1 Archive the change into the main specs (`viewer-roles` new, `operator-module` modified), verify with `openspec validate --specs --strict` for the two specs, then commit `docs(openspec): archive add-platform-viewer-roles` (The 0030 delivery log is written once the PR merges: the log records landed work, and lives in the enhancements repo.)
+- [x] 3.1 Archive the change into the main specs (`viewer-roles` new, `operator-module` modified), verify with `openspec validate --specs --strict` for the two specs, then commit `docs(openspec): archive add-platform-viewer-roles` (The delivery log is written once the PR merges: the log records landed work, and lives in the enhancements repo.)

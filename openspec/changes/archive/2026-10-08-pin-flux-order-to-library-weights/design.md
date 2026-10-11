@@ -128,7 +128,7 @@ If `Apply` retries because discovery served the new kind late, a retried attempt
 Both tests fail through one message builder per test, with this content:
 
 ```text
-Flux's staged apply order contradicts the library's kind weights (0012:D5:R1).
+Flux's staged apply order contradicts the library's kind weights (enhancement 0012).
 Flux:    github.com/fluxcd/pkg/ssa <version>
 Library: github.com/open-platform-model/library <version>
 

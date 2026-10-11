@@ -1,6 +1,6 @@
 # Delta: prune-stale-resources (envtest-coverage-batch)
 
-No behavior change. The ownership-guard requirement gains the CLI-manager-identity tolerance scenario (enhancement 0006 D40's post-handoff window), test-pinning what `core.IsOPMManagedBy` already accepts. The requirement text also corrects post-0002 naming drift: the label is `module-instance.opmodel.dev/uuid` (was `module-release.opmodel.dev/uuid`) and the identity comes from `ModuleInstanceStatus.InstanceUUID` — naming only, the code already used these names.
+No behavior change. The ownership-guard requirement gains the CLI-manager-identity tolerance scenario (the post-handoff window of enhancement 0006), test-pinning what `core.IsOPMManagedBy` already accepts. The requirement text also corrects post-0002 naming drift: the label is `module-instance.opmodel.dev/uuid` (was `module-release.opmodel.dev/uuid`) and the identity comes from `ModuleInstanceStatus.InstanceUUID` — naming only, the code already used these names.
 
 ## MODIFIED Requirements
 

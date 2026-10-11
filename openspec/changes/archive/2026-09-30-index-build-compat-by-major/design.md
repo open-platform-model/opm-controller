@@ -22,7 +22,7 @@ State on `origin/main` (2e348a6, library `v1.0.0-alpha.35`), read 2026-09-30:
 
 - Render-time checks: a provider built against `opm@v4` supplied to a render holding `opm@v5` (enhancement 0026, "A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") is 0026's, not this change's.
 - The contract-conflict half of enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") (refuse a second provider only within one major). `subscribedContract` already keys by registry key with major; making the count per major is 0026's.
-- Comparing against platform floors (0026:D7:R2's "static floors"): the operator compares against the generated closure's resolved versions, as today. Only which entry is compared changes.
+- Comparing against platform floors (the "static floors" of enhancement 0026): the operator compares against the generated closure's resolved versions, as today. Only which entry is compared changes.
 - The contract-key collision (changes A to D).
 - Any API, CRD, condition reason, generated file, fixture or library change.
 

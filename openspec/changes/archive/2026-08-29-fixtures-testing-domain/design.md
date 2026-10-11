@@ -27,7 +27,7 @@ repos' `podinfo` coexist without a leaf collision.
 distinguishable by path, because CUE's resolver treats the path as the routing key. The confusion D1
 feared is cheaper than the coupling it created.
 
-### D2: Modulepackages move too, deviating from enhancement 0011 D14/D17 item 5
+### D2: Modulepackages move too, deviating from enhancement 0011 (instances stay outside the namespace migration)
 
 **Context.** enhancement 0011 ("Platforms get a reserved segment; instances get none, because they are not CUE modules") places `opmodel.dev/releases/*` outside the namespace migration — *"they are not
 in the namespace D5 partitions… OCI repository paths that share a spelling convention with module

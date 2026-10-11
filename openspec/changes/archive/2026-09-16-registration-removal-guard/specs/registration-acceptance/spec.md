@@ -23,7 +23,7 @@ A claim being deleted SHALL NOT compete for the provider — **unless its deleti
 
 ### Requirement: A contract has one provider
 
-Acceptance SHALL refuse a claim whose `provides` names a contract that an enabled entry of the built platform's registry or another **active** claim already provides, naming the holder and the contract (enhancement 0015 ("One provider per contract stands; provider classes are rejected in this entry"), keeping 0010 D37's exactly-one-provider rule). This refusal is distinct from the duplicate-claim refusal: that one is about two claims naming the same catalog, this one is about two providers of the same contract, which can arrive from different catalogs entirely.
+Acceptance SHALL refuse a claim whose `provides` names a contract that an enabled entry of the built platform's registry or another **active** claim already provides, naming the holder and the contract (enhancement 0015 ("One provider per contract stands; provider classes are rejected in this entry"), keeping the exactly-one-provider rule of enhancement 0010). This refusal is distinct from the duplicate-claim refusal: that one is about two claims naming the same catalog, this one is about two providers of the same contract, which can arrive from different catalogs entirely.
 
 An **inactive** accepted claim SHALL NOT hold a contract against a competitor, because a claim that has never served has no dependents to protect.
 
