@@ -6,7 +6,7 @@ The rewrite rule is design T2.3 sections 6 and 9 of the refactoring-enhancements
 
 - **Tool first, hand second.** Run `cite-rewrite --write` once with a worklist, commit the result per place (code, live specs, archived changes, docs and rest). Then clear every worklist row by hand, or leave it with a reason (excluded path, generated file).
 - **Generated files are regenerated.** The Go type comments in `api/v1alpha1` change; `task dev:manifests dev:generate`, `task operator:installer` regenerate the copies, and `task operator-module:drift` proves the CUE copy matches.
-- **`0030:`** loses the id and keeps the reason text, in the live spec, the RBAC kustomization comment and the test.
+- **Retired ids** lose the id and keep the reason text, in the live spec, the RBAC kustomization comment and the test.
 - **Excluded paths** stay as they are and are named in the PR body.
 - **Rules in `config.yaml`, not in skills.** `rules.proposal` carries the `Delivers` line; `context` carries the line to read an entry. `references:` uses `- id: opm-enhancements` with the remote of the store.
 - **No new behaviour, no new check in this change.** The lint task and CI call come later.
