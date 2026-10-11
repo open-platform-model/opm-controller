@@ -480,7 +480,7 @@ When the apply verdict refuses a reconcile (`ssa-apply`, "An apply is judged by 
 - **THEN** nothing is written and `Ready` is `False` with reason `ApplyRefused`
 
 ### Requirement: An allowed object outside the inventory is taken in
-When a rendered object exists, is not in `status.inventory`, and the apply verdict allows it, the reconciler MUST apply it and MUST record it in `status.inventory` in the same reconcile, also when every digest is unchanged. With unchanged digests a ModuleInstance MUST apply only such objects and the restorable missing objects, as a restore does, and MUST NOT rewrite an object that is in the inventory. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+When a rendered object exists, is not in `status.inventory`, and the apply verdict allows it, the reconciler MUST apply it and MUST record it in `status.inventory` in the same reconcile, also when every digest is unchanged. With unchanged digests a ModuleInstance MUST apply only such objects and the restorable missing objects, as a restore does, and MUST NOT rewrite an object that is in the inventory. Source: enhancement 0012, the apply guard.
 
 #### Scenario: An adopted object is taken in on unchanged digests
 - **GIVEN** a Ready ModuleInstance whose render names a ConfigMap it let go earlier, and a user who sets the ConfigMap's `opmodel.dev/adopt` annotation to this instance's UUID
