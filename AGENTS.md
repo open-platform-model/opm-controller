@@ -316,10 +316,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Default is none: a comment says what the code does and why, in its own words.
 
+- In any text (proposal, design, specs, comments), name an enhancement only by its id beside a reason in words, never alone, never a decision number.
 - When a rationale genuinely lives in an enhancement, name it **once at the symbol**, as an enhancement id beside the reason in words: `(enhancement NNNN)` after the sentence that gives the reason, or `(enhancements NNNN and MMMM)` for two.
 - Never an id alone, never a decision number (`NNNN:Dn`, `NNNN Dn`) and never a requirement number. Say the decision in words. A bare `Dn` names nothing, because decision numbers restart per enhancement.
-- To read an enhancement, run `openspec show <id>-<slug> --store opm-enhancements`. The store is the `references:` entry of `openspec/config.yaml`.
-- A change that delivers a line of an enhancement's `tasks.md` adds `## Enhancement` to its proposal, with one line `Delivers NNNN, task X.Y.` per task. Otherwise the section says `None.`
+- To read an enhancement, run `openspec show <id>-<slug> --store opm-enhancements`. The store is the `references:` entry of `openspec/config.yaml`. If OpenSpec warns that the store `opm-enhancements` is not registered, report the warning and go on; the human runs `task enhancements:register`.
+- A change that delivers a line of an enhancement's `tasks.md` adds `## Enhancement` to its proposal, with one line `Delivers NNNN, task X.Y.` per task. Otherwise the section says `None.` Name the delivered line in the PR body; after the repo PR merges, a PR on `enhancements` ticks that line.
 - Never a section, slice, phase, task or design-doc-local number (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers.
 - Never in scaffold templates, generated files, fixtures a user copies, or CLI output strings. Those reach people who have no access to the enhancements repo.
 - No `Was:` rename history. `git log` owns it.
