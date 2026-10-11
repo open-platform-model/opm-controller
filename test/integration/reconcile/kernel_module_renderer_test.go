@@ -203,7 +203,7 @@ var _ = Describe("KernelModuleRenderer Integration", func() {
 			Expect(out.res.PlatformIdentity).NotTo(Equal(superseding.Identity.String()))
 		})
 
-		// The instance side of the removal guard (0015:D3, D16).
+		// The instance side of the removal guard (enhancement 0015).
 		// The assertion is on the exact FQN sets rather than on "not empty":
 		// the guard's whole correctness is that these strings are the same
 		// keyspace TransformerRegistration.spec.provides carries, so a

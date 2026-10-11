@@ -52,7 +52,7 @@ func skewedCatalogVersion() string {
 	return "4.0.0"
 }
 
-// Catalog version skew end to end (0019:D7/D18): the fixture module pins a
+// Catalog version skew end to end (enhancement 0019): the fixture module pins a
 // newer catalog build than the platform carries. Under Refuse the render is
 // refused before evaluation with the typed skew error and the ModuleInstance
 // reports SkewRefused; under Warn the render proceeds and the skew is a

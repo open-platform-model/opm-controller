@@ -68,7 +68,7 @@ func loadShippedRole(t *testing.T, file string) *rbacv1.ClusterRole {
 }
 
 // The viewer roles let a cluster administrator grant a non-admin read access
-// to Platforms, ModulePackages and TransformerRegistrations (0030:D11). They
+// to Platforms, ModulePackages and TransformerRegistrations. They
 // ship unbound and outside the built-in view role; whether they aggregate
 // into it is still an open question, and adding the label later is the
 // reversible direction.

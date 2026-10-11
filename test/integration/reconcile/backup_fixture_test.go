@@ -59,7 +59,7 @@ const backupTraitFQN = "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
 // These specs hold the backup fixture set (test/fixtures/catalogs/backup,
 // test/fixtures/modules/backup_provider, test/fixtures/modules/backup_consumer)
 // to the facts a cluster relies on when it accepts and activates the
-// provider's claim (0015:D3, 0015:D11): the claim backup_provider renders
+// provider's claim (enhancement 0015): the claim backup_provider renders
 // names the backup catalog fixture at its declared build and lists exactly
 // the contracts that catalog implements, and backup_consumer renders through
 // that catalog once it is in the registry and is refused naming the contract
@@ -122,7 +122,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 
 		// Acceptance resolves the catalog with the claim's own fields, the bare
 		// SemVer opm renders included, and re-derives provides from it
-		// (0015:D11): this is the same call with the same inputs. A library
+		// (enhancement 0015): this is the same call with the same inputs. A library
 		// that resolves only a v-prefixed version fails here, as acceptance
 		// would refuse the claim CatalogUnresolved (opm-operator#210).
 		cat, err := k.AcquireCatalogFromRegistry(ctx, catalogPath, version)
@@ -189,7 +189,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 	// field, and the library falls back to a deprecated fold over
 	// #transformers. The fold is removed before GA, after catalog_opm is
 	// republished against a newer core. Acceptance compares that set with the
-	// claim for exact equality (0015:D11), so each path must accept the same
+	// claim for exact equality (enhancement 0015), so each path must accept the same
 	// valid claim. Each spec asserts the facts that pick its path, so a
 	// fixture or library move that breaks a premise fails here naming it. On
 	// a catalog pinned at or after ProvidesSince the fold and the field give

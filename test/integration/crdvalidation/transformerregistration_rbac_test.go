@@ -39,7 +39,7 @@ import (
 )
 
 // Creating a TransformerRegistration is a platform-admin privilege
-// (0015:D3). A transformer is arbitrary CUE producing arbitrary
+// (enhancement 0015). A transformer is arbitrary CUE producing arbitrary
 // Kubernetes objects, so the ability to register one is the ability to change
 // how another team's traits render.
 //
