@@ -45,4 +45,4 @@ None in this change. `platform-reconciler`'s materialize-era requirements and `p
 ## Impact
 
 - `internal/controller` (PlatformReconciler), new `internal/platformmodule` (or similar; second-pass naming), `internal/platform/store.go` doc comments, `api/v1alpha1/platform_types.go` doc comments only.
-- `enhancement.yaml` declares enhancement 0019 ("The Platform CR keeps naming a catalog coordinate; the operator generates the platform package") (with the D13 stamp clause).
+- `enhancement.yaml` declares enhancement 0019 ("The Platform CR keeps naming a catalog coordinate; the operator generates the platform package") (with its stamp clause).

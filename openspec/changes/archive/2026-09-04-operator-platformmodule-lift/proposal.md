@@ -1,6 +1,6 @@
 ## Why
 
-`internal/platformmodule` was written for enhancement 0019 ("The Platform CR keeps naming a catalog coordinate; the operator generates the platform package") as the first platform-module generator, and its design deferred lifting the generator into the library until a second frontend needed it. That lift is now `library-platform-module-generator` (`opm/helper/platformmodule`: `Generate`, `Roots`, `Closure`, `Files.WriteTo`, byte-identical output for the same input). Keeping the operator's copy would leave two implementations of the D13 closure that must never diverge, plus a core-pin constant (`CoreVersion`) bumped by workspace tooling that can drift from the release the library's render glue was actually verified against.
+`internal/platformmodule` was written for enhancement 0019 ("The Platform CR keeps naming a catalog coordinate; the operator generates the platform package") as the first platform-module generator, and its design deferred lifting the generator into the library until a second frontend needed it. That lift is now `library-platform-module-generator` (`opm/helper/platformmodule`: `Generate`, `Roots`, `Closure`, `Files.WriteTo`, byte-identical output for the same input). Keeping the operator's copy would leave two implementations of the closure that must never diverge, plus a core-pin constant (`CoreVersion`) bumped by workspace tooling that can drift from the release the library's render glue was actually verified against.
 
 ## What Changes
 
