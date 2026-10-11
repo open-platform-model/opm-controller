@@ -3,7 +3,7 @@
 Define the cluster-scoped singleton `Platform` custom resource: its CRD shape
 (spec projecting core `#Platform`, status carrying conditions and
 `observedGeneration`), its singleton enforcement, and its registration in the
-runtime scheme without a reconciler.
+runtime scheme, where a controller reconciles it (capability `platform-reconciler`).
 
 ## Requirements
 
