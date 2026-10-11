@@ -10,9 +10,14 @@ The enhancements now live in an OpenSpec store (`opm-enhancements`). The operato
 - `openspec/config.yaml` gains `references:` to the store, the `Delivers` rule, a `context` line to read an entry, and the new comment rule. The `enhancement.yaml` and `task enhancements:delivery:*` rules go. `AGENTS.md` says the same.
 - Generated copies (`config/crd/bases/*`, `dist/install.yaml`, `modules/opm_operator/zz_generated_crds.cue`) are regenerated from the changed Go type comments, never edited by hand.
 - `docs-kit.cue` drops `citations: "link"`; `openspec/specs/docs-bundle/spec.md` is updated in wording.
-- Excluded on purpose: published fixtures under `test/fixtures/modules/` (an edit forces a fixture version bump) and the active changes `add-cross-namespace-source-grants` and `stop-operator-install-manifest` (they belong to their authors).
+- Excluded on purpose: the published fixtures under `test/fixtures/modules/` and `test/fixtures/catalogs/` (an edit forces a fixture version bump and a republish; one citation stays in `test/fixtures/catalogs/backup/catalog.cue`), and the active changes `add-cross-namespace-source-grants` and `stop-operator-install-manifest` (they belong to their authors).
+- `hack/fixtures.sh` changes two comments. It stays byte-identical to the copy in `cli`, whose change makes the same edit.
 
 No behaviour changes. The only code touched is comments, string text and test messages; one production string (`internal/controller/platform_inventory.go`) reaches the status message and loses its decision number.
+
+## Enhancement
+
+None.
 
 ## Capabilities
 
