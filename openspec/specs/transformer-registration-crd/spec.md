@@ -21,7 +21,7 @@ The operator SHALL define a `TransformerRegistration` custom resource in group `
 
 ### Requirement: Every claim field is required at admission
 
-`TransformerRegistrationSpec` SHALL require `catalog` (the provider catalog's module path), `version` (its build), `provides` (the contract keys it claims to implement) and `providerRef` (the namespace and name of the claiming instance). The API server SHALL reject a claim missing any of them. This validation SHALL NOT be delegated to the authoring catalog: a missing required field in CUE is an incomplete value rather than an error, so a claim can reach the cluster with a field absent even though the contract declares it required.
+`TransformerRegistrationSpec` SHALL require `catalog` (the provider catalog's module path), `version` (its build), `provides` (the contract keys it claims to implement) and `providerRef` (the namespace and name of the claiming instance). The API server SHALL reject a claim missing any of them. `provides` is required but MAY be empty: the CRD sets no minimum on its length, and acceptance (not admission) compares the list with the contracts re-derived from the catalog, for exact equality. This validation SHALL NOT be delegated to the authoring catalog: a missing required field in CUE is an incomplete value rather than an error, so a claim can reach the cluster with a field absent even though the contract declares it required.
 
 #### Scenario: A claim missing its catalog is rejected
 
@@ -31,7 +31,8 @@ The operator SHALL define a `TransformerRegistration` custom resource in group `
 #### Scenario: A claim with an empty provides list is accepted
 
 - **WHEN** a `TransformerRegistration` is applied whose `spec.provides` is an empty list
-- **THEN** the API server accepts it, because a provider catalog implementing no provider-fulfilled contract is a claim that later acceptance refuses on its merits, not a malformed object
+- **THEN** the API server accepts it, because the CRD sets no minimum on `provides`
+- **AND** acceptance treats the empty list like any other list: it passes when the catalog implements no provider-fulfilled contract and is refused with reason `ProvidesMismatch` when the catalog implements any
 
 ### Requirement: The claim's name is instance-derived
 
@@ -47,21 +48,6 @@ The operator SHALL define a `TransformerRegistration` custom resource in group `
 - **WHEN** a claim named `k8up` is applied, carrying no dot
 - **THEN** the API server rejects it with a message identifying the required name shape
 
-### Requirement: Claim status separates acceptance from activation
-
-`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a stored claim can report the three states enhancement 0015 defines: not yet judged, accepted but inactive, and active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. All three states are now reachable.
-
-#### Scenario: A stored claim receives a verdict
-
-- **WHEN** a valid `TransformerRegistration` is applied and the manager is running
-- **THEN** a reconcile is triggered for it and its status reports whether it was accepted
-- **AND** `observedGeneration` matches the claim's generation
-
-#### Scenario: A stored claim is inert
-
-- **WHEN** a `TransformerRegistration` is applied and reconciled to any state, refused, accepted or active
-- **THEN** nothing in the cluster renders differently as a result: no workload, no `Platform` field and no generated platform module reflects the claim
-
 ### Requirement: Creating a claim requires platform-admin RBAC
 
 The operator SHALL ship a ClusterRole granting create, update and delete on `transformerregistrations`, and SHALL NOT grant those verbs to any tenant-facing role it ships. A module applied under an impersonated tenant ServiceAccount therefore cannot create a claim unless a cluster administrator has deliberately bound that role. The operator's own manager role SHALL carry the read and status verbs it needs.
@@ -75,3 +61,19 @@ The operator SHALL ship a ClusterRole granting create, update and delete on `tra
 
 - **WHEN** the same object is applied by a subject bound to the shipped platform-admin ClusterRole
 - **THEN** the API server accepts the create
+
+### Requirement: Claim status reports acceptance and activation as separate states
+
+`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a claim reports one of three states: not yet judged, accepted but inactive, or active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. Only a claim that is both accepted and active is an input to the generated platform module.
+
+#### Scenario: A stored claim receives a verdict
+
+- **WHEN** a valid `TransformerRegistration` is applied and the manager is running
+- **THEN** a reconcile is triggered for it and its status reports whether it was accepted
+- **AND** `observedGeneration` matches the claim's generation
+
+#### Scenario: Only an accepted and active claim feeds the generated platform
+
+- **WHEN** a `TransformerRegistration` is stored and reconciled to refused, accepted but inactive, or active
+- **THEN** a refused claim and an accepted but inactive claim are not inputs to the generated platform module
+- **AND** an active claim is an input, and its catalog is imported unless a subscription in `Platform.spec.registry` already names that catalog

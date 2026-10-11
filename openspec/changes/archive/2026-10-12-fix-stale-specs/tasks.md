@@ -8,4 +8,4 @@
 
 - [x] 2.1 Edit the Purpose of `platform-crd` by hand
 - [x] 2.2 `openspec validate fix-stale-specs --strict` passes
-- [ ] 2.3 Review, fix, archive the change (the archive syncs the deltas into `openspec/specs/`), run the gates again, then commit `docs(openspec): archive fix-stale-specs`
+- [x] 2.3 Review, fix, archive the change (the archive syncs the deltas into `openspec/specs/`), run the gates again, then commit `docs(openspec): archive fix-stale-specs`
