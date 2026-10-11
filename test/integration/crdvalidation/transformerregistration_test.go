@@ -148,11 +148,11 @@ func TestTransformerRegistrationAtAdmission(t *testing.T) {
 		t.Cleanup(func() { require.NoError(t, k8sClient.Delete(ctx, claim)) })
 	})
 
-	// An empty provides list is ACCEPTED, deliberately. Acceptance compares
-	// the list with the contracts re-derived from the catalog, so an empty
-	// list is refused only for a catalog that implements some contract; the
-	// CRD is the wrong place to encode a rule the reconciler states better.
-	// Do not "fix" this into a MinItems constraint.
+	// An empty provides list is ACCEPTED, deliberately. A provider catalog
+	// implementing no provider-fulfilled contract is a claim acceptance
+	// refuses on its merits, naming the catalog it re-derived from; the CRD is
+	// the wrong place to encode a rule the reconciler states better. Do not
+	// "fix" this into a MinItems constraint.
 	t.Run("an empty provides list is accepted", func(t *testing.T) {
 		claim := rendered()
 		claim.SetName("backup-system.noprovides")

@@ -27,7 +27,7 @@
 
 ### Requirement: Claim status reports acceptance and activation as separate states
 
-`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a claim reports one of three states: not yet judged, accepted but inactive, or active. A controller SHALL record a verdict on every claim and SHALL set `active` when an accepted claim's provider is ready. Only a claim that is both accepted and active feeds the generated platform module.
+`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a claim reports one of three states: not yet judged, accepted but inactive, or active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. Only a claim that is both accepted and active is an input to the generated platform module.
 
 #### Scenario: A stored claim receives a verdict
 
@@ -38,5 +38,5 @@
 #### Scenario: Only an accepted and active claim feeds the generated platform
 
 - **WHEN** a `TransformerRegistration` is stored and reconciled to refused, accepted but inactive, or active
-- **THEN** a refused claim and an accepted but inactive claim add nothing to the generated platform module
-- **AND** an active claim adds its catalog to the generated platform module
+- **THEN** a refused claim and an accepted but inactive claim are not inputs to the generated platform module
+- **AND** an active claim is an input, and its catalog is imported unless a subscription in `Platform.spec.registry` already names that catalog

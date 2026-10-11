@@ -21,5 +21,5 @@ Activation SHALL be visible in the claim's status. The claim reconciler's activa
 #### Scenario: An active claim feeds the generated platform
 
 - **WHEN** a claim is both accepted and active
-- **THEN** the Platform reconciler includes the claim's catalog and version in the active-claim set it generates the platform module from
+- **THEN** the Platform reconciler includes the claim in the active-claim set it generates the platform module from
 - **AND** a claim that is refused, or accepted but not active, is not in that set

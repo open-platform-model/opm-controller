@@ -1,6 +1,6 @@
 ## Context
 
-The specs follow the code. Every changed statement below was read from the code first. The code and its tests stay as they are, except for two comments that repeat the false statements.
+The specs follow the code. Every changed statement below was read from the code first. The code and its tests stay as they are, except for the doc comment of `Provides`. Two other comments still repeat the false statements (the reconciler doc at `transformerregistration_controller.go:90-91` and a note in `test/integration/crdvalidation/transformerregistration_test.go`); they are out of scope and left for a follow-up.
 
 ## Decisions
 

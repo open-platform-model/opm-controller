@@ -1,6 +1,6 @@
 ## 1. Doc comments and generated copies
 
-- [x] 1.1 Correct the `Provides` doc comment in `api/v1alpha1/transformerregistration_types.go`, the reconciler doc in `transformerregistration_controller.go` and the note in `test/integration/crdvalidation/transformerregistration_test.go`
+- [x] 1.1 Correct the `Provides` doc comment in `api/v1alpha1/transformerregistration_types.go`
 - [x] 1.2 Regenerate with `task dev:manifests dev:generate` and `task operator:installer`; check `task operator-module:drift`
 - [x] 1.3 `task dev:fmt dev:vet` green and `gofmt -l` clean, then commit `docs: say that acceptance compares an empty provides list like any other`
 

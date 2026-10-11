@@ -87,10 +87,8 @@ const claimGroup = "opmodel.dev"
 // a provider's CRDs do not exist YET — and not for steady-state health. See
 // gateActivation for what a live-tracking implementation would cost.
 //
-// Activation writes only the claim: this reconciler renders nothing and
-// writes no other object. An active claim is still an input elsewhere: the
-// Platform reconciler builds the platform module from the accepted and active
-// claims.
+// Activation is reported and inert: an active claim changes what the object
+// reports, not what the cluster renders.
 type TransformerRegistrationReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
