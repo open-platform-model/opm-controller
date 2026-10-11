@@ -45,7 +45,7 @@ The operator SHALL ship no RoleBinding or ClusterRoleBinding naming a viewer rol
 
 ### Requirement: Viewer roles do not aggregate into built-in roles
 
-No viewer role SHALL carry an `rbac.authorization.k8s.io/aggregate-to-view`, `aggregate-to-edit` or `aggregate-to-admin` label, so binding a built-in role grants no read of OPM kinds through them. Whether they aggregate is open (0030:OQ6); a later change MAY add the label once that question is answered.
+No viewer role SHALL carry an `rbac.authorization.k8s.io/aggregate-to-view`, `aggregate-to-edit` or `aggregate-to-admin` label, so binding a built-in role grants no read of OPM kinds through them. Whether they aggregate is an open question; a later change MAY add the label once that question is answered.
 
 #### Scenario: The built-in view role is unchanged
 

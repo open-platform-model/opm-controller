@@ -55,7 +55,7 @@ Acceptance SHALL derive the provider-fulfilled contract set from the acquired ca
 
 ### Requirement: The claim must come from the instance it names
 
-Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (enhancement 0015 D11's check deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance — a hand-applied stray, which would otherwise point a later health gate at the wrong package.
+Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (the claim-origin check of enhancement 0015, deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance — a hand-applied stray, which would otherwise point a later health gate at the wrong package.
 
 The check SHALL be grounded in the inventory rather than in the claim's labels. D11 suggests the owner labels, but measured, a rendered claim carries an instance *name* label and no namespace-bearing or uuid label, while `providerRef` carries a namespace and a name; a label-only check would therefore admit a stray placed by any instance sharing the provider's name in another namespace — the exact substitution the check exists to stop. The inventory is already this repo's ownership record by constitutional principle.
 
@@ -99,7 +99,7 @@ A claim being deleted SHALL NOT compete for the provider — **unless its deleti
 
 ### Requirement: A contract has one provider
 
-Acceptance SHALL refuse a claim whose `provides` names a contract that an enabled entry of the built platform's registry or another **active** claim already provides, naming the holder and the contract (enhancement 0015 ("One provider per contract stands; provider classes are rejected in this entry"), keeping 0010 D37's exactly-one-provider rule). This refusal is distinct from the duplicate-claim refusal: that one is about two claims naming the same catalog, this one is about two providers of the same contract, which can arrive from different catalogs entirely.
+Acceptance SHALL refuse a claim whose `provides` names a contract that an enabled entry of the built platform's registry or another **active** claim already provides, naming the holder and the contract (enhancement 0015 ("One provider per contract stands; provider classes are rejected in this entry"), keeping the exactly-one-provider rule of enhancement 0010). This refusal is distinct from the duplicate-claim refusal: that one is about two claims naming the same catalog, this one is about two providers of the same contract, which can arrive from different catalogs entirely.
 
 Which enabled entries provide a contract SHALL be read from the built platform's own provider count (the contract inventory's providers, which core computes once and the render build refuses on), never recounted by the operator. A provider SHALL be identified by its registry entry: the catalog module path with its major, the same string a claim's `spec.catalog` and a `spec.registry` key carry. Two majors of one catalog are two providers. When the built platform's provider count cannot be read, acceptance SHALL defer the verdict (not refuse), as it does when no platform has been built.
 
