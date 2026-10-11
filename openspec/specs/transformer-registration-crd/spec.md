@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the cluster-scoped `TransformerRegistration` custom resource: the shape a provider module's rendered claim lands as, the fields the API server requires of it, the name it must carry, and the RBAC that decides who may create one. This capability covers the kind and its admission-level guarantees only; accepting, activating and acting on a claim are separate capabilities (enhancement 0015 D3, D12, D15).
+Define the cluster-scoped `TransformerRegistration` custom resource: the shape a provider module's rendered claim lands as, the fields the API server requires of it, the name it must carry, and the RBAC that decides who may create one. This capability covers the kind and its admission-level guarantees only; accepting, activating and acting on a claim are separate capabilities (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces", "The rendered CR's name is instance-derived: dot-joined `namespace.name`" and "One registration per module").
 
 ## Requirements
 
@@ -35,7 +35,7 @@ The operator SHALL define a `TransformerRegistration` custom resource in group `
 
 ### Requirement: The claim's name is instance-derived
 
-`metadata.name` SHALL be constrained to the dot-joined `<namespace>.<name>` of the claiming instance, the name the catalog renderer emits (enhancement 0015 D12). A namespace cannot contain a dot, so the join is collision-free and two instances of one provider module produce two distinct objects rather than contending for one.
+`metadata.name` SHALL be constrained to the dot-joined `<namespace>.<name>` of the claiming instance, the name the catalog renderer emits (enhancement 0015, "The rendered CR's name is instance-derived: dot-joined `namespace.name`"). A namespace cannot contain a dot, so the join is collision-free and two instances of one provider module produce two distinct objects rather than contending for one.
 
 #### Scenario: An instance-derived name is accepted
 
@@ -49,7 +49,7 @@ The operator SHALL define a `TransformerRegistration` custom resource in group `
 
 ### Requirement: Claim status separates acceptance from activation
 
-`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a stored claim can report the three states enhancement 0015 D3 defines: not yet judged, accepted but inactive, and active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. All three states are now reachable.
+`TransformerRegistrationStatus` SHALL carry `conditions`, `accepted` and `active`, so that a stored claim can report the three states enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines: not yet judged, accepted but inactive, and active. A controller SHALL watch the kind and record a verdict on every claim, setting `conditions`, `accepted` and `observedGeneration`, and SHALL set `active` when an accepted claim's provider is ready. All three states are now reachable.
 
 #### Scenario: A stored claim receives a verdict
 

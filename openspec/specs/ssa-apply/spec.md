@@ -106,7 +106,7 @@ The resource manager MUST refuse on its own to delete a core PersistentVolumeCla
 - **THEN** the delete is refused and the claim is untouched
 
 ### Requirement: The staged apply order never contradicts the library's kind weights
-The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. When Flux's staged apply, at the version the operator pins, applies an object of kind A before an object of kind B, the library's weight of A, at the version the operator pins, MUST NOT be higher than its weight of B. Flux's order MAY refine the library's order: it MAY put two kinds that the library weighs equally in an order of its own. Source: 0012:D5:R1.
+The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. When Flux's staged apply, at the version the operator pins, applies an object of kind A before an object of kind B, the library's weight of A, at the version the operator pins, MUST NOT be higher than its weight of B. Flux's order MAY refine the library's order: it MAY put two kinds that the library weighs equally in an order of its own. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST read Flux's order from the pinned Flux module itself (its stage rules and its sort), not from a copy of Flux's kind list, so that a bump of the Flux pin that moves a kind fails the suite without an edit to the check. The check MUST cover every kind Flux's order names, every kind the library's weight table names, the same kind names in an API group of another owner, a custom kind and a custom kind whose name ends in `Class`.
 
@@ -173,7 +173,7 @@ The resource manager's client MUST refuse a delete of a collection of objects, w
 - **THEN** the delete is refused and no ConfigMap is deleted
 
 ### Requirement: An apply is judged by the ownership verdict before its first write
-Before the first write of a reconcile, the controller MUST read every object of the apply list and MUST ask the apply verdict of the library's `opm/k8s/ownership` package for it, with the instance's identity and with whether `status.inventory` lists the object (matched by group, kind, namespace and name). This holds for a ModuleInstance and a ModulePackage, for the apply of a changed render and for a restore. Source: 0012:D8:R1, 0012:D8:R2, 0012:D8:R5, 0012:D8:R8.
+Before the first write of a reconcile, the controller MUST read every object of the apply list and MUST ask the apply verdict of the library's `opm/k8s/ownership` package for it, with the instance's identity and with whether `status.inventory` lists the object (matched by group, kind, namespace and name). This holds for a ModuleInstance and a ModulePackage, for the apply of a changed render and for a restore. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 The read MUST be made by the client that applies: the impersonated ServiceAccount when one is effective, the controller's own identity otherwise. The controller MUST NOT set the verdict's install admission input.
 

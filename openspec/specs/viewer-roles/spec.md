@@ -8,7 +8,7 @@ Define the read-only ClusterRoles the operator ships for a cluster administrator
 
 ### Requirement: The operator ships a viewer role for every OPM kind
 
-The operator's install manifest SHALL carry one viewer ClusterRole per OPM kind it serves: `opm-operator-moduleinstance-viewer-role`, `opm-operator-platform-viewer-role`, `opm-operator-modulepackage-viewer-role` and `opm-operator-transformerregistration-viewer-role`. A cluster administrator SHALL be able to grant a non-admin read access to Platforms, ModulePackages and TransformerRegistrations by binding these roles and nothing else. Source: 0030:D11:R4.
+The operator's install manifest SHALL carry one viewer ClusterRole per OPM kind it serves: `opm-operator-moduleinstance-viewer-role`, `opm-operator-platform-viewer-role`, `opm-operator-modulepackage-viewer-role` and `opm-operator-transformerregistration-viewer-role`. A cluster administrator SHALL be able to grant a non-admin read access to Platforms, ModulePackages and TransformerRegistrations by binding these roles and nothing else.
 
 #### Scenario: A bound subject reads every Platform kind
 
