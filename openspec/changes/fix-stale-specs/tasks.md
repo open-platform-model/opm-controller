@@ -1,0 +1,11 @@
+## 1. Doc comments and generated copies
+
+- [ ] 1.1 Correct the `Provides` doc comment in `api/v1alpha1/transformerregistration_types.go`, the reconciler doc in `transformerregistration_controller.go` and the note in `test/integration/crdvalidation/transformerregistration_test.go`
+- [ ] 1.2 Regenerate with `task dev:manifests dev:generate` and `task operator:installer`; check `task operator-module:drift`
+- [ ] 1.3 `task dev:fmt dev:vet` green and `gofmt -l` clean, then commit `docs: say that acceptance compares an empty provides list like any other`
+
+## 2. Live specs
+
+- [ ] 2.1 Edit the Purpose of `platform-crd` by hand
+- [ ] 2.2 `openspec validate fix-stale-specs --strict` passes
+- [ ] 2.3 Review, fix, archive the change (the archive syncs the deltas into `openspec/specs/`), run the gates again, then commit `docs(openspec): archive fix-stale-specs`
