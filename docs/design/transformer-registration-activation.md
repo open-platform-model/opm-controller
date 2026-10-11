@@ -3,7 +3,7 @@
 Status: Current (2026-09-15). Implemented in
 `internal/controller/transformerregistration_controller.go` (`gateActivation`).
 
-A `TransformerRegistration` reports three states, from 0015:D3: not
+A `TransformerRegistration` reports three states, from enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces"): not
 yet judged, accepted but inactive, and active. It becomes active when the
 `ModuleInstance` its `spec.providerRef` names reports `Ready=True`. It never
 becomes inactive again. A claim leaves the active state by deletion, and by
@@ -34,7 +34,7 @@ reporting the truth.
 ## What live-tracking would cost
 
 The set of active claims is an input to platform-package regeneration
-(0015:D13): the generated platform carries the catalog of every
+(enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): the generated platform carries the catalog of every
 active claim, and every module instance in the fleet renders against that
 package.
 
@@ -70,6 +70,6 @@ condition churn either.
 
 - Acceptance and its refusals: the same file's `Reconcile`, and the
   `registration-acceptance` capability
-- Regeneration keyed on the active set: 0015:D13, delivered
+- Regeneration keyed on the active set: enhancement 0015 ("The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"), delivered
   separately
-- Removal of an active claim: 0015:D16, delivered separately
+- Removal of an active claim: enhancement 0015 ("Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost"), delivered separately
