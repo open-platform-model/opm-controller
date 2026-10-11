@@ -30,7 +30,7 @@ import (
 
 // The three verdicts the Platform reconciler reads off a built platform's
 // contract inventory: colliding contract keys, over-subscribed contracts and
-// comparable transformer pairs (0015:D5, D18). All are pure functions of the
+// comparable transformer pairs (enhancement 0015). All are pure functions of the
 // inventory: they decide and they word, they never read a registry or touch
 // the store, which is what lets every message be pinned by a table test
 // without a live catalog pair producing it.
@@ -150,7 +150,7 @@ func overSubscribedFinding(inv *platform.ContractInventory) string {
 
 // comparableFinding words the discrimination refusal: each comparable pair's
 // broader transformer, narrower transformer and the contracts they share
-// (0015:D5). No arbitration is offered because 0015:D5 takes none —
+// (enhancement 0015). No arbitration is offered because 0015:D5 takes none —
 // the pair is refused, not ordered.
 func comparableFinding(inv *platform.ContractInventory) string {
 	rows := slices.Clone(inv.Comparable)

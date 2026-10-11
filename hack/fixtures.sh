@@ -164,7 +164,7 @@ changed_since() {
 }
 
 # only_already_published <output>: the publish refused for exactly one reason,
-# the tag already exists. Publish itself never skips (0011:D15);
+# the tag already exists. Publish itself never skips (enhancement 0011, "The authored version is the trigger; an already-published version is always a refusal; nothing predicts a version");
 # idempotency is decided here, by the caller.
 only_already_published() {
   grep -q 'already holds' <<<"$1" && grep -q '1 refusal' <<<"$1"
@@ -181,7 +181,7 @@ publish_one() {
   srcdir=$dir
   # A pre-release tag (PR e2e) is v<ver>-<id>: valid SemVer that sorts below the
   # eventual release cut and never collides with it. The DECLARED version has to
-  # move with the tag: acquire-time identity checks (0010:D11) require
+  # move with the tag: acquire-time identity checks (enhancement 0010, "Identity is verified where artifacts are read") require
   # metadata.version to equal the fetched tag. Stage a copy and let `opm <kind>
   # version set` write it; it is offline and preserves the defaulted-disjunction
   # shape byte-for-byte.

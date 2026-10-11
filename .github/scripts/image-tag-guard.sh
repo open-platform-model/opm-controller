@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# image-tag-guard.sh: never overwrite a version image tag (0021:D10:R3).
+# image-tag-guard.sh: never overwrite a version image tag (enhancement 0021, "Release tags are immutable").
 #
 #   image-tag-guard.sh probe REF REV
 #     Prints "state=absent" when REF does not exist. When REF exists and its

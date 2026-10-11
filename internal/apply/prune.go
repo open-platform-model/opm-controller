@@ -59,7 +59,7 @@ var ErrReplaced = errors.New("object was replaced since it was read")
 
 // Prune deletes stale resources through the library's deletion plan
 // (opm/k8s/lifecycle), which judges every object with the library's delete
-// verdict (0012:D4:R1, 0012:D8:R8). It decides ownership with no comparison
+// verdict (enhancement 0012). It decides ownership with no comparison
 // of its own, and it deletes nothing itself: the plan runner sends each
 // delete the plan names, in the plan's order (descending kind weight), with
 // the plan's Foreground propagation and UID precondition.

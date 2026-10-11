@@ -19,7 +19,7 @@ import (
 
 // The tests in this file guard one rule: Flux's staged apply, which is the
 // operator's only apply order, may refine the order the library's kind
-// weights give and never contradicts it (0012:D5:R1). Flux's order is read
+// weights give and never contradicts it (enhancement 0012). Flux's order is read
 // by calling the pinned Flux module (its stage rules, its sorter and its
 // ReconcileOrder variable), so a Flux bump that moves a kind fails here.
 // This file holds no copy of Flux's kind list.

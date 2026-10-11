@@ -105,7 +105,7 @@ type ModulePackageReconciler struct {
 	DriftRenderInterval time.Duration
 
 	// warnings remembers each package's last render warnings so RenderWarning
-	// events are emitted on transition only (0019:D18).
+	// events are emitted on transition only (enhancement 0019).
 	warnings opmreconcile.WarningTracker
 }
 

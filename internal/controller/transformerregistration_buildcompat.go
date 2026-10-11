@@ -73,7 +73,7 @@ func platformRequirements(dir string) (map[string]string, error) {
 // buildIncompatibility compares the catalog's committed requirements against
 // the platform's resolved versions and returns the refusal message for the
 // first incompatible shared OPM-namespace path, or the empty string when
-// every shared path is compatible (0015:D8, 0026:D7:R2).
+// every shared path is compatible (enhancements 0015 and 0026).
 //
 // Two majors of one module are two paths. A requirement is compared against
 // the platform's resolution of the provider's own major, which the platform

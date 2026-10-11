@@ -209,7 +209,7 @@ type ModuleInstanceStatus struct {
 	// RequiredContracts lists every contract FQN this instance's components
 	// declare, sorted and deduplicated, as the last successful render
 	// reported them. It is the instance side of the removal guard
-	// (0015:D3/D16): a TransformerRegistration counts its
+	// (enhancement 0015): a TransformerRegistration counts its
 	// dependents by intersecting this with its own spec.provides, so a
 	// provider cannot be deleted, or shrink its provides, out from under
 	// the instances still demanding what it serves.
