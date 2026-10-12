@@ -179,7 +179,7 @@ The module publish job SHALL render the published module version from the regist
 
 ### Requirement: Module releases are drafts until every asset is attached
 
-The module package SHALL set `draft: true` and `force-tag-creation: true`. Every upload to a module release SHALL first confirm that exactly one release carries the tag and that it is a draft. A final module publish job SHALL depend on the publish job and SHALL confirm `install.yaml` is attached before it publishes the draft. A module release is not a prerelease, and it SHALL be published with GitHub's "latest" mark withheld (`make_latest=false`), so it never becomes the repository's latest release (0021:D11:R12). Recovery before publication is "Re-run failed jobs". After publication it is the next module version; a published tag is never moved.
+The module package SHALL set `draft: true` and `force-tag-creation: true`. Every upload to a module release SHALL first confirm that exactly one release carries the tag and that it is a draft. A final module publish job SHALL depend on the publish job and SHALL confirm `install.yaml` is attached before it publishes the draft. A module release is not a prerelease, and it SHALL be published with GitHub's "latest" mark withheld (`make_latest=false`), so it never becomes the repository's latest release (enhancement 0021, "The operator's install artifact is a registry module on its own version train"). Recovery before publication is "Re-run failed jobs". After publication it is the next module version; a published tag is never moved.
 
 #### Scenario: Asset missing
 

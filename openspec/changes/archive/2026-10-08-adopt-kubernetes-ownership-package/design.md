@@ -11,11 +11,11 @@ See `proposal.md` for the motivation. The state of the operator at the base of t
 Constraints:
 
 - The library verdicts are pure. The caller reads the live object and hands it in; the library words every skip (`opm/k8s/ownership` package doc). `CanDelete` takes one identity. With an empty identity it compares no UUID label and skips every object that carries a non-blank adopt annotation, also one that names this instance (library test "an empty instance UUID skips an annotated object"). The adopt annotation is no delete override (library test "the adopt annotation is no delete override").
-- The contract is 0012:D4:R1/R2, 0012:D7:R1 and 0012:D8:R1 to R8, with the "annotation only" rule of 0012:D8:R8 (library ADR-013, row e4).
+- The contract is enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply", "The stale set is component-blind, and the inventory digest hashes a canonical field encoding" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override") to R8, with the "annotation only" rule of enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override") (library ADR-013, row e4).
 - What #260 to #269 delivered MUST NOT change: the narrowed impersonation, the periodic reconcile and the restore, the stuck-delete fixes, held claims, drift as the identity that applies, `spec.dataPolicy` on prune, deletion and forced recreate.
 - The deletion protocol (order, finalizer holds, propagation policy) is a later change. This one keeps the prune loop and changes only the per-object decision and the precondition.
 
-Reversibility: costly two-way for the code. The parts that are hard to take back are owner decisions and are not decided here: the contract of 0012:D8, the additive `status.instanceUUID` on ModulePackage (2026-10-03), and the second status field that keeps the earlier identity (2026-10-08). A status field, once released, stays.
+Reversibility: costly two-way for the code. The parts that are hard to take back are owner decisions and are not decided here: the contract of enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override"), the additive `status.instanceUUID` on ModulePackage (2026-10-03), and the second status field that keeps the earlier identity (2026-10-08). A status field, once released, stays.
 
 ## Goals / Non-Goals
 
@@ -33,7 +33,7 @@ Reversibility: costly two-way for the code. The parts that are hard to take back
 - An ownership question on the forced recreate (owner decision of 2026-10-08).
 - The deletion protocol, `opm/k8s/lifecycle`, foreground propagation.
 - RBAC, and any change to which identity the operator impersonates.
-- A command, field or annotation by which the operator sets the adopt annotation (0012:D8:R6 excludes it).
+- A command, field or annotation by which the operator sets the adopt annotation (enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override") excludes it).
 - The `Admit` input of the verdicts. It exists for `opm operator install` only; the operator MUST never set it.
 
 ## Decisions
@@ -167,7 +167,7 @@ The identities, by path:
 | The instance name or namespace changes | That is another ModuleInstance object with its own, empty record. The earlier object's cleanup judges with its own identities. |
 | The instance inside a ModulePackage changes name, namespace or module path | As the first row: one record, both identities until settled. |
 | A stale object carries a UUID label that is neither identity | It is another instance's: left behind, reported. |
-| An object the instance adopted under A, whose annotation still names A after the change is settled | Left behind as `adopted-elsewhere`: the annotation names an identity the instance no longer has. 0012:D8 asks the user to annotate it again with the new identity. |
+| An object the instance adopted under A, whose annotation still names A after the change is settled | Left behind as `adopted-elsewhere`: the annotation names an identity the instance no longer has. Enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override") asks the user to annotate it again with the new identity. |
 
 #### No recorded identity
 
@@ -179,9 +179,9 @@ The first reconcile after the upgrade that renders writes `status.instanceUUID`:
 
 #### ModulePackage keeps a persisted identity
 
-**Context**: 0012:D8:R4. Today a ModulePackage persists no identity: its rendered objects carry the UUID label, but both prune calls pass an empty identity (`modulepackage.go:762`, `:945`).
+**Context**: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override"). Today a ModulePackage persists no identity: its rendered objects carry the UUID label, but both prune calls pass an empty identity (`modulepackage.go:762`, `:945`).
 **Options considered**: (1) status quo, the managed-by label alone; (2) read the identity from the live objects at delete time, which trusts the labels the guard is meant to check; (3) an additive `status.instanceUUID`, written as a ModuleInstance's.
-**Decision**: Option 3 (owner decision of 2026-10-03, recorded in 0012:D8: "ModulePackage gets a persisted UUID in an additive status field so the UUID guard applies"), with `status.previousInstanceUUID` beside it as on a ModuleInstance.
+**Decision**: Option 3 (owner decision of 2026-10-03, recorded in enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override"): "ModulePackage gets a persisted UUID in an additive status field so the UUID guard applies"), with `status.previousInstanceUUID` beside it as on a ModuleInstance.
 **Rationale**: It is the decided contract, and the same two fields on both kinds let one helper serve both.
 
 #### Delete precondition
@@ -201,7 +201,7 @@ The first reconcile after the upgrade that renders writes `status.instanceUUID`:
 
 **Options considered**: (1) status quo, a log line and a count; (2) one event per object; (3) one event per run, shaped as `ClaimsKept`.
 **Decision**: Option 3: reason `LeftBehind`, action `Prune` or `Delete`; the count, then the library's message for each object (at most ten, fewer past 1024 characters, then the number of the rest). The type is `Normal` when every object left is of a safety-excluded kind and `Warning` when at least one was left for an ownership reason (supervisor ruling of 2026-10-08: an instance that renders a Namespace must not warn on every deletion). `already-absent` is not reported. The event is emitted only by a run whose result is committed: a stale prune that returned no error, and the cleanup that removes the finalizer. A failed run emits none, because its retry judges the same entries again.
-**Rationale**: The library's message is the text the cli prints, which is the point of 0012:D4. A skipped object leaves the inventory in the same reconcile, so each is reported once.
+**Rationale**: The library's message is the text the cli prints, which is the point of enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply"). A skipped object leaves the inventory in the same reconcile, so each is reported once.
 
 #### The apply half: decisions recorded here
 
@@ -286,7 +286,7 @@ Different, with the reason:
 
 - Assets: objects in the cluster that an instance did not create, and their data.
 - Trust boundary: the cluster API. Live labels and annotations are input that any principal with patch rights on the object can set. The two identity fields are in the status subresource of the operator's own kinds.
-- Threats and mitigations: deleting another owner's object (the verdict on every prune and cleanup delete, on a fresh read); deleting a successor of the object that was read (the UID precondition on every delete); deciding on a read that failed (fails closed); deciding for a tenant with rights it lacks (the read is made as the acting identity); a delete that cannot be judged per object (the guard refuses a delete of a collection). Baseline: the contract of 0012:D8 and the library's verdict tests.
+- Threats and mitigations: deleting another owner's object (the verdict on every prune and cleanup delete, on a fresh read); deleting a successor of the object that was read (the UID precondition on every delete); deciding on a read that failed (fails closed); deciding for a tenant with rights it lacks (the read is made as the acting identity); a delete that cannot be judged per object (the guard refuses a delete of a collection). Baseline: the contract of enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override") and the library's verdict tests.
 - Residual risk, owner: the operator maintainers.
   - A principal with patch rights on an object can set the adopt annotation to another UUID; the instance then never deletes that object, so it outlives the instance. For the delete side this is what removing the OPM labels does today.
   - A principal who may write `status` of a ModuleInstance or ModulePackage can set `previousInstanceUUID` to another instance's identity; the next cleanup or prune then accepts that instance's objects when they are in this object's inventory. `instanceUUID` has the same property today, and the inventory itself is in the same status, so such a principal can already name any object for deletion. No new right is gained.

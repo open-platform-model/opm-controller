@@ -8,7 +8,7 @@
 #                         install.yaml for an operator module tag (opm_operator-v*),
 #                         install.yaml and opm-examples.tar.gz for an operator tag (v*).
 #                         An operator module release is published with make_latest=false:
-#                         it never takes the repository's "latest" mark (0021:D11:R12).
+#                         it never takes the repository's "latest" mark (enhancement 0021, "The operator's install artifact is a registry module on its own version train").
 set -euo pipefail
 [ $# -eq 2 ] || { echo "::error::usage: $0 assert-draft|assert-published|publish TAG"; exit 2; }
 mode=$1 tag=$2

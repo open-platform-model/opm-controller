@@ -12,7 +12,7 @@ import (
 const SingletonName = "cluster"
 
 // ResolveSkewPolicy resolves spec.skewPolicy to the kernel's policy: Refuse
-// maps to SkewRefuse, anything else (Warn, unset) to SkewWarn, the 0019:D18
+// maps to SkewRefuse, anything else (Warn, unset) to SkewWarn, the enhancement 0019
 // default. The CRD enum keeps other values out at admission.
 func ResolveSkewPolicy(plat *releasesv1alpha1.Platform) kernel.SkewPolicy {
 	if plat.Spec.SkewPolicy != nil && *plat.Spec.SkewPolicy == releasesv1alpha1.SkewPolicyRefuse {

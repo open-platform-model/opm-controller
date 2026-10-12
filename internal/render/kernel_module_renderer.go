@@ -66,7 +66,7 @@ const valuesOrigin = "spec.values"
 // kernel behind the ModuleRenderer seam: it leases the generated platform
 // record from the store, acquires the target module from the registry,
 // synthesizes the instance, and renders it against the platform module through
-// the kernel's single-build render (0019:D9).
+// the kernel's single-build render (enhancement 0019).
 type KernelModuleRenderer struct {
 	// Kernel is the shared, long-lived library Kernel (one per process).
 	Kernel *kernel.Kernel
@@ -207,12 +207,12 @@ func (r *KernelModuleRenderer) synthesizeFrom(
 // built: two objects sharing one apply identity reach apply as two writes to
 // one object and the last silently overwrites the first, so a refused render
 // must leave no resource and no digest for either loop to act on
-// (0015:D15). The library's error is
+// (enhancement 0015). The library's error is
 // returned bare so both classifiers find its type and status carries its
 // message verbatim.
 //
 // The instance's contract demand is the kernel's: the render build reports
-// it on its diagnostics, computed from the instance alone (0013:D24), and
+// it on its diagnostics, computed from the instance alone (enhancement 0013), and
 // both renderers read it here so they cannot fill it differently. An absent
 // list becomes an empty one, so status never alternates between the two.
 func resultFromRender(

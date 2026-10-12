@@ -1,7 +1,7 @@
 ## REMOVED Requirements
 
 ### Requirement: Acquisition failures without a typed terminal cause are transient
-**Reason**: The requirement keys retry on the acquisition phase. With the library's typed fetch failures (library `v1.0.0-beta.6`, 0021:D8:R12) the operator keys retry on the cause: an author defect in a ModulePackage no longer retries, and a registry failure during synthesis or render no longer stalls. The scenario "Message text does not classify" would turn false for a synthesis-phase registry failure, and OpenSpec refuses a MODIFIED that drops a scenario, so the requirement is replaced under a new name.
+**Reason**: The requirement keys retry on the acquisition phase. With the library's typed fetch failures (library `v1.0.0-beta.6`, enhancement 0021 ("A beta line reaches GA only when its exit criteria hold")) the operator keys retry on the cause: an author defect in a ModulePackage no longer retries, and a registry failure during synthesis or render no longer stalls. The scenario "Message text does not classify" would turn false for a synthesis-phase registry failure, and OpenSpec refuses a MODIFIED that drops a scenario, so the requirement is replaced under a new name.
 **Migration**: "Registry fetch failures are transient wherever they occur" below carries the shared classification, the backoff, the cap, the recovery, the typed terminal causes and the no-message-text rule, and adds the synthesis and render phases and the unclassified-failure stall.
 
 ## ADDED Requirements

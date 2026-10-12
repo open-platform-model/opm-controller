@@ -2,7 +2,7 @@
 
 ## 1. 0006 contract locks
 
-- [x] 1.1 `test/integration/apply/prune_test.go`: new Context mirroring the legacy-label case (`:375`) — live ConfigMap `managed-by: opm-cli` + matching instance UUID → deleted, `PruneResult.Deleted` incremented (0006 D40 window)
+- [x] 1.1 `test/integration/apply/prune_test.go`: new Context mirroring the legacy-label case (`:375`) — live ConfigMap `managed-by: opm-cli` + matching instance UUID → deleted, `PruneResult.Deleted` incremented (enhancement 0006 ("Handoff success is 'inventory-stable reconcile', not byte-no-op (the managed-by relabel is expected and reported; no cross-actor digest comparison); amends D7.5") window)
 - [x] 1.2 Reconcile the `prune-stale-resources` spec's label naming drift (`module-release.opmodel.dev/uuid` prose vs `module-instance.opmodel.dev/uuid` code) — naming only; correct the spec text via this change's delta if confirmed
 - [x] 1.3 Ownership tests (next to `moduleinstance_reconcile_test.go:370-616`): empty-`spec.owner` ModuleInstance → finalizer registered + stub-rendered resource applied (no skip, no ManagedExternally); API-level assertion that `spec.owner: "future-actor"` is enum-rejected
 

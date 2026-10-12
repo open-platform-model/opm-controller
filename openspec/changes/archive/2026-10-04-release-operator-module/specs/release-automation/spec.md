@@ -31,7 +31,7 @@ When a Release PR is merged to `main`, release-please SHALL create the git tag e
 - **THEN** package `"."` and package `"modules/opm_operator"` SHALL each set `"draft": true` and `"force-tag-creation": true`
 
 ### Requirement: Release assets upload only to a draft release
-Every step that uploads an asset to the GitHub Release (`install.yaml` of an operator or a module release, `opm-examples.tar.gz`, the example manifests) SHALL first confirm that the single release for the tag is a draft and SHALL fail without uploading when it is published. Replacing an existing asset (`--clobber`) SHALL be used only on a draft. Every GitHub CLI call in the release workflow SHALL name the repository explicitly. Source: 0021:D10:R8.
+Every step that uploads an asset to the GitHub Release (`install.yaml` of an operator or a module release, `opm-examples.tar.gz`, the example manifests) SHALL first confirm that the single release for the tag is a draft and SHALL fail without uploading when it is published. Replacing an existing asset (`--clobber`) SHALL be used only on a draft. Every GitHub CLI call in the release workflow SHALL name the repository explicitly. Source: enhancement 0021 ("Release tags are immutable").
 
 #### Scenario: Upload to the draft
 - **WHEN** the image job uploads `install.yaml` for a release that is still a draft

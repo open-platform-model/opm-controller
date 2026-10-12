@@ -56,7 +56,7 @@ type DeletionRun struct {
 	Steps []StepResult
 }
 
-// runDeletion drives plan from the zero State to done with c (0012:D4:R1). It
+// runDeletion drives plan from the zero State to done with c (enhancement 0012). It
 // is the only function of the operator that deletes an inventory object, and
 // it deletes only what lifecycle.Advance names: every delete was judged by
 // the library's delete verdict inside Advance. It sets no propagation policy

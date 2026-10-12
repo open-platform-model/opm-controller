@@ -1,6 +1,6 @@
 ## Why
 
-The operator deletes an instance's objects with a loop of its own (`internal/apply/prune.go:98`): its own order, no propagation policy, and a finalizer rule written in each reconciler. The library has one deletion protocol for every frontend (`opm/k8s/lifecycle` in library `v1.0.0-beta.8`: `NewDeletionPlan`, `Advance`, `MayReleaseHold`), enhancement 0012:D4 binds both frontends to it, and the cli moved to it in cli#350. The ownership verdict on every delete is already in the operator (opm-operator#271). This change moves the operator's two delete paths onto the plan, so a rule added to the plan reaches the operator without a second implementation.
+The operator deletes an instance's objects with a loop of its own (`internal/apply/prune.go:98`): its own order, no propagation policy, and a finalizer rule written in each reconciler. The library has one deletion protocol for every frontend (`opm/k8s/lifecycle` in library `v1.0.0-beta.8`: `NewDeletionPlan`, `Advance`, `MayReleaseHold`), enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply") binds both frontends to it, and the cli moved to it in cli#350. The ownership verdict on every delete is already in the operator (opm-operator#271). This change moves the operator's two delete paths onto the plan, so a rule added to the plan reaches the operator without a second implementation.
 
 ## What Changes
 

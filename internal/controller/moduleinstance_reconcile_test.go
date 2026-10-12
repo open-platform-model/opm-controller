@@ -478,7 +478,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			_, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
 
-			// CLI-written status survives untouched (0006:D25 boundary).
+			// CLI-written status survives untouched (the CLI writes no conditions; enhancement 0006).
 			var afterAck releasesv1alpha1.ModuleInstance
 			Expect(k8sClient.Get(ctx, nn, &afterAck)).To(Succeed())
 			Expect(afterAck.Status.InstanceUUID).To(Equal("cli-uuid-123"))
@@ -750,7 +750,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			ctx := context.Background()
 
 			// createModuleInstance sets no spec.owner — the operator-managed
-			// default the 0006:D24 skew model leans on.
+			// default the version skew model of enhancement 0006 leans on.
 			createModuleInstance(ctx, "empty-owner-mr")
 
 			reconciler := &ModuleInstanceReconciler{

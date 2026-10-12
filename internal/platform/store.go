@@ -9,7 +9,7 @@
 //
 // The store records one [Generated] platform module per [PackageIdentity]: the
 // module directory on the operator's own disk, the platform value the kernel
-// built from it and the resolved catalog-skew policy (0019:D6, D7). A render
+// built from it and the resolved catalog-skew policy (enhancement 0019). A render
 // leases the record for its duration ([Store.Lease]) so the PlatformReconciler
 // never prunes a module directory a render build is still reading from.
 package platform
@@ -29,10 +29,10 @@ import (
 // the manager's --platform-dir), the source-carrying platform the kernel's
 // shape-gated loader built from it and the skew policy the CR resolved to.
 // The render path consumes it through [Store.Lease]; the module is never
-// published, written to the cluster or served elsewhere (0019:D6).
+// published, written to the cluster or served elsewhere (enhancement 0019).
 type Generated struct {
 	// Identity is what the package is a function of: the Platform CR
-	// generation plus the active claims' catalog coordinates (0015:D13). It
+	// generation plus the active claims' catalog coordinates (enhancement 0015). It
 	// is the store's key and the name of Dir's last path element.
 	Identity PackageIdentity
 
@@ -41,7 +41,7 @@ type Generated struct {
 
 	// Skew is the resolved Platform.spec.skewPolicy (Warn when unset), passed
 	// verbatim as RenderInput.Skew by every render of this package
-	// (0019:D7/D18).
+	// (enhancement 0019).
 	Skew kernel.SkewPolicy
 }
 
@@ -49,7 +49,7 @@ type Generated struct {
 // [PackageIdentity] it was built for. One Platform per cluster needs one
 // slot and nothing more.
 //
-// The key is the identity rather than the CR generation (0015:D17) because a
+// The key is the identity rather than the CR generation (enhancement 0015) because a
 // claim activating produces a different package while leaving the generation
 // untouched: keyed on the generation alone, a render would keep consuming a
 // platform that does not contain the provider just accepted.

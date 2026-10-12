@@ -22,7 +22,7 @@ State on `origin/main` (2e348a6, library `v1.0.0-alpha.35`, core pinned through 
 **Non-Goals:**
 
 - The fold (A) and the render refusal (B).
-- Side-by-side catalog majors. 0026:D9 makes them legitimate through per-resolution builds; this change is the interim safety net's operator face.
+- Side-by-side catalog majors. Enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") makes them legitimate through per-resolution builds; this change is the interim safety net's operator face.
 - Operator wording for a render refused with `ContractCollisionsError` or `NotRoutableError`: a colliding package is never recorded, so no render sees one (Decision 5).
 - A registry-backed colliding Platform spec: no catalog published on the testing domain (or `opmodel.dev`) carries two majors sharing contract keys. The shape is pinned by hand-built inventories here and by B's parity tests against real CUE.
 - The build-compatibility index (change E, `index-build-compat-by-major`, a separate operator change).

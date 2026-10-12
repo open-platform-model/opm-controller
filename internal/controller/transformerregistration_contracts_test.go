@@ -59,7 +59,7 @@ import (
 //     fixture that flatters it.
 //
 // A nil map is a platform whose entries provide nothing, which is what every
-// spec that is not about 0015:D2 wants.
+// spec that is not about the one-provider rule (enhancement 0015) wants.
 func platformProviding(byEntry map[string][]string) *platform.Platform {
 	return platformFromCUE(corePlatformSource(byEntry, true))
 }
@@ -344,7 +344,7 @@ var _ = Describe("TransformerRegistration acceptance: D2 — one provider per co
 			activatedClaim(ctx, holderNS, contested)
 
 			// A second provider, from a catalog of its own, for the same
-			// contract: not a 0015:D12 duplicate, and refused all the same.
+			// contract: not a same-catalog duplicate (enhancement 0015), and refused all the same.
 			ns := nextClaimNamespace()
 			claim := createClaimProviding(ctx, ns, contested)
 			ownProvidedInventory(ctx, ns, claim.Name)

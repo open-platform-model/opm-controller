@@ -2,7 +2,7 @@
 
 `opm-operator` installs the `TransformerRegistration` CRD and ships the RBAC that gates who may create one (change `transformer-registration-crd`, PR 133), and `opm` 4.3.1 renders a claim into the group that CRD serves. Nothing reconciles a claim: it is stored with empty status and is inert, which is the state `transformer-registration-crd` deliberately left behind.
 
-This change gives the claim a verdict. Enhancement 0015 D3 defines three states — not yet judged, accepted but inactive, active — and this change decides the first transition: whether a claim is accepted at all.
+This change gives the claim a verdict. Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines three states — not yet judged, accepted but inactive, active — and this change decides the first transition: whether a claim is accepted at all.
 
 The prerequisite landed. Every acceptance check needs the *claimed* catalog fetched and evaluated, and the kernel could not read a catalog until `library` v1.0.0-alpha.31 added `opm/catalog`, `Kernel.AcquireCatalogFromRegistry` and the `Catalog` shape gate (library ADR-009). This repo is pinned to alpha.31 on `main`. The boundary that ADR draws is the one this change sits on: **the library reads, the operator judges.**
 

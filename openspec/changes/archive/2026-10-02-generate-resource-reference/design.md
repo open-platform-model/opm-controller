@@ -42,7 +42,7 @@ A schema construct no part can show (`allOf`, `oneOf`, `anyOf`, `not`, `nullable
 
 ### D3. Text from doc comments
 
-Paragraphs fold onto one line; a table cell takes the whole description on one line. Outside backtick spans, Markdown and HTML metacharacters are escaped, because the site renders raw HTML (`unsafe = true`) and `<namespace>` would otherwise become a tag. A decision citation such as `0015:D3/D16` becomes a link to `/enhancements/0015/decisions/`, the only enhancement link form the dialect allows below an entry. The generator refuses a block that would hold a shortcode opener, a raw `href=`/`src=` or an image, which the site lint rejects.
+Paragraphs fold onto one line; a table cell takes the whole description on one line. Outside backtick spans, Markdown and HTML metacharacters are escaped, because the site renders raw HTML (`unsafe = true`) and `<namespace>` would otherwise become a tag. A decision citation such as enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost") becomes a link to `/enhancements/0015/decisions/`, the only enhancement link form the dialect allows below an entry. The generator refuses a block that would hold a shortcode opener, a raw `href=`/`src=` or an image, which the site lint rejects.
 
 ### D4. Markers and the check
 

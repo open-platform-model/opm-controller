@@ -14,7 +14,7 @@ Scope here is **only** the `ModuleRelease` kind axis (slice O1 of `0002`). The s
 - `git mv` every `*release*`-named file on the `ModuleRelease` path (D10) and add a `// Was: ModuleRelease…` breadcrumb at each rename site (D11/D12).
 - Regenerate `zz_generated.deepcopy.go`, the CRD base, `config/rbac/role.yaml`, and `dist/install.yaml`; rename the aggregated RBAC role files, samples, and `test/fixtures/**/modulerelease.yaml`.
 
-This is a **MAJOR** (breaking) change; the operator artifact ships on the `v1.0.0-alpha.N` line per `0002` D13.
+This is a **MAJOR** (breaking) change; the operator artifact ships on the `v1.0.0-alpha.N` line per enhancement 0002 ("Artifacts ship as v1 prereleases `v1.x.x-alpha.x`, including the operator/CRDs (revises D8 release mechanics)").
 
 ## Capabilities
 

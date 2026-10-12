@@ -1,6 +1,6 @@
 ## Context
 
-Slice **O2** of enhancement `0002` (D2). The operator currently defines a GitOps `Release` CRD (group `releases.opmodel.dev`, shortName `rel`) that points at a Flux artifact, fetches it, navigates to `spec.path`, loads `release.cue`, and renders it when the evaluated `kind` is `ModuleRelease`. `0002` retires the "Release" word; this CRD's role — referencing a Flux-delivered package of authored content — is named `ModulePackage`.
+Slice **O2** of enhancement 0002 ("Scope is cross-cutting; the GitOps `Release` CRD is renamed to `ModulePackage` (supersedes D1)"). The operator currently defines a GitOps `Release` CRD (group `releases.opmodel.dev`, shortName `rel`) that points at a Flux artifact, fetches it, navigates to `spec.path`, loads `release.cue`, and renders it when the evaluated `kind` is `ModuleRelease`. `0002` retires the "Release" word; this CRD's role — referencing a Flux-delivered package of authored content — is named `ModulePackage`.
 
 O2 lands in one atomic operator PR with O1 (`ModuleRelease` → `ModuleInstance`) and O3 (group + label/finalizer). It consumes O1's renamed kind (`ModuleInstance`, `render.KindModuleInstance`) and the `library@v1` kernel API.
 
@@ -39,7 +39,7 @@ O2 lands in one atomic operator PR with O1 (`ModuleRelease` → `ModuleInstance`
 
 ## Risks / Trade-offs
 
-- **CRD identity break for existing `Release` CRs** → A renamed CRD is a new resource; existing `Release` objects are not migrated in place. *Mitigation*: breaking major (`v1.0.0-alpha.N`); rollout is reinstall, consistent with `0002` D13 and the PRR-lite in `06-operational.md`. No `Release` consumers exist outside the workspace (the operator is pre-1.0).
+- **CRD identity break for existing `Release` CRs** → A renamed CRD is a new resource; existing `Release` objects are not migrated in place. *Mitigation*: breaking major (`v1.0.0-alpha.N`); rollout is reinstall, consistent with enhancement 0002 ("Artifacts ship as v1 prereleases `v1.x.x-alpha.x`, including the operator/CRDs (revises D8 release mechanics)") and the PRR-lite in `06-operational.md`. No `Release` consumers exist outside the workspace (the operator is pre-1.0).
 - **Compile coupling with O1/O3** → The `library@v1` kernel calls on this path won't compile until the O1 pin bump lands; the label/group references won't be final until O3. *Mitigation*: one atomic PR; verify gates after all three.
 - **CUE-evaluating tests gated on K1** → Same as O1 — fixtures repin to `core@v1` + `catalogs/opm@v1`, gated on `catalog_opm@v1` published.
 

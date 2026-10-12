@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The workspace rule "Release Tags Are Immutable" (root `AGENTS.md`; enhancement 0021 D10) says no
+The workspace rule "Release Tags Are Immutable" (root `AGENTS.md`; enhancement 0021 ("Release tags are immutable")) says no
 git tag is ever moved, deleted or re-created, by anyone, and a version-named registry tag such as
 `:v1.0.0-beta.3` always names the content first pushed under it. A wrong or broken release is fixed
 by releasing the next version. The documentation site pins a ref per site version, so a moved tag
@@ -18,7 +18,7 @@ update and deletion of every tag with an empty bypass list, and `tags-create-app
 `opm-release-please` App create a tag. GitHub immutable releases go further: once a release is
 published, its assets can no longer be added, replaced or removed. The operator joins immutable
 releases only after it has shipped one release that was created as a draft, received every asset
-while a draft and was published last (0021:D10:R8).
+while a draft and was published last (enhancement 0021, "Release tags are immutable").
 
 Before this decision the release workflow did the opposite. release-please published the GitHub
 Release first, then `image-release` and `publish-examples` uploaded `install.yaml` and the example
@@ -105,14 +105,14 @@ human-run push paths (`.tasks/docker.yaml`, `Makefile` `docker-buildx`) can stil
 version tag if `IMG` names one; they run in no workflow and are left to an owner decision.
 
 **Deferred:** Release branches (`release/vX.Y`, the cut action, release runs on `release/**`) are
-Phase 2 of 0021 D10, delivered before GA by a separate change. Until then a fix for a released
+Phase 2 of enhancement 0021 ("Release tags are immutable"), delivered before GA by a separate change. Until then a fix for a released
 version goes forward on `main`.
 
 **Addendum (2026-10-04):** the operator module (`modules/opm_operator`) releases on its own train
 with tags `opm_operator-vX.Y.Z`, through the same draft-first flow (`module-publish`,
 `module-manifest`, `module-publish-release`). For those tags only, `release-guard.sh publish`
 requires `install.yaml` alone and sends `make_latest=false`, so a module release never takes the
-repository's Latest mark (0021:D11:R12). Operator tags still send neither flag. A module draft
+repository's Latest mark (enhancement 0021, "The operator's install artifact is a registry module on its own version train"). Operator tags still send neither flag. A module draft
 stranded by a broken script at its tag is recovered by `release.yml`'s `workflow_dispatch`
 (`module_tag`), which runs only the module jobs, with `main`'s scripts against the tag's tree; the
 tag and the published version stay as they are.

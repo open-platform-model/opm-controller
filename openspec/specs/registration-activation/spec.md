@@ -1,6 +1,6 @@
 ## Purpose
 
-Define when an accepted `TransformerRegistration` becomes active, what keeps it active, and what does not. Activation is the second of the three states enhancement 0015 D3 defines; acceptance is the first and is a separate capability.
+Define when an accepted `TransformerRegistration` becomes active, what keeps it active, and what does not. Activation is the second of the three states enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines; acceptance is the first and is a separate capability.
 
 ## Requirements
 

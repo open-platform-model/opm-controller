@@ -2,7 +2,7 @@
 
 ## Context
 
-See `proposal.md` § Why. The decisions are `enhancements/0015` D5 (comparable predicates are refused at platform-package generation, not arbitrated) and D18 (an unfulfilled contract is a non-gating report; only over-subscription refuses generation), both placed at 0019 D6's cold path: the Platform reconciler's generate-and-build step.
+See `proposal.md` § Why. The decisions are those of enhancement 0015: comparable predicates are refused at platform-package generation, not arbitrated, and an unfulfilled contract is a non-gating report while only over-subscription refuses generation. Both sit at the cold path of enhancement 0019 (the operator generates the platform package): the Platform reconciler's generate-and-build step.
 
 Current state, measured 2026-09-18:
 
@@ -62,7 +62,7 @@ status.MarkReadyWithReason(&plat, status.GeneratedReason, ...)
 `internal/controller/platform_inventory.go`:
 
 ```go
-// inventoryRefusal decides whether a built platform may be recorded (0015 D5, D18).
+// inventoryRefusal decides whether a built platform may be recorded (enhancement 0015).
 func inventoryRefusal(inv *platform.ContractInventory) (reason, msg string, refused bool)
 
 // contractsFulfilled is the non-gating D18 report as a condition.
@@ -75,7 +75,7 @@ func setContractsFulfilled(plat *releasesv1alpha1.Platform, inv *platform.Contra
 platform is not routable: 1 over-subscribed contract; a platform package cannot be generated until one competing catalog is disabled or its claim removed:
   opmodel.dev/catalogs/opm/traits/backup@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4) required by opmodel.dev/catalogs/k8up/transformers/schedule@1.0.0, opmodel.dev/catalogs/velero/transformers/schedule@1.0.0
 
-platform is not discriminated: 1 comparable transformer pair; every component the narrower transformer matches is also matched by the broader one, so both would render (enhancement 0015 D5):
+platform is not discriminated: 1 comparable transformer pair; every component the narrower transformer matches is also matched by the broader one, so both would render:
   testing.opmodel.dev/cat2/transformers/mirror@0.2.0 (broader) and testing.opmodel.dev/cat/transformers/deployment@0.1.0 (narrower) over testing.opmodel.dev/cat/resources/container@v1
 ```
 
@@ -131,7 +131,7 @@ On the skip path, if `held.Platform.Contracts()` errors, the held record is trea
 **Context**: one `Ready` condition carries one reason; a platform can be both over-subscribed and undiscriminated.
 **Explored**: two reasons in one condition (impossible); a combined reason; routing first with both findings in the message.
 **Decision**: routing first, both findings in the message.
-**Rationale**: 0015 D18 fixes over-subscription as the generation refusal and D5 joins it; an operator fixing the routing problem sees the discrimination problem in the same message rather than after the next reconcile, and a reason of its own per refusal is kept for the single-finding case, which is the common one.
+**Rationale**: enhancement 0015 ("An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation") fixes over-subscription as the generation refusal and the comparable-predicates refusal joins it; an operator fixing the routing problem sees the discrimination problem in the same message rather than after the next reconcile, and a reason of its own per refusal is kept for the single-finding case, which is the common one.
 
 ### Refusal leaves the condition and the registry describing the last good package
 

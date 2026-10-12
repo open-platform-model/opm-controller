@@ -14,7 +14,7 @@
 ## 2. hello-web → hello_web rename residue
 
 - [x] 2.1 `.tasks/release.yaml` `PKGS: "hello hello_web podinfo redis"`; `kernel_package_renderer_test.go:125` loop; sweep remaining `hello-web` references (`hack/kind-opm-dev-test/` is historical — leave, note as such).
-- [x] 2.2 Record in the change and in 0010's history: the source-side rename delivers half of 0011 D17 item 2; the registry-side residue (old `hello-web@v0` artifacts + `-e2e` tags relocation/deletion) stays with 0011 `registry-cleanup` — note it in that slice's concern when recording.
+- [x] 2.2 Record in the change and in 0010's history: the source-side rename delivers half of enhancement 0011 ("There is no fleet migration; what remains is a bounded cleanup, and its sequencing runs the other way") item 2; the registry-side residue (old `hello-web@v0` artifacts + `-e2e` tags relocation/deletion) stays with 0011 `registry-cleanup` — note it in that slice's concern when recording.
 
 ## 3. modulepackages mirrors
 
@@ -35,7 +35,7 @@
 ## 6. Record, publish, release
 
 - [x] 6.1 Push to main → e2e workflow publishes `-e2e.g<sha>` prerelease tags of the v2 fixtures to GHCR — the end-to-end publish proof before the release.
-- [x] 6.2 Record in `enhancements/0010/`: slice `operator-library-retarget` → `done`, `openspec_ref` citing both changes; history event covering the CRD absorption, the `hello_web` source-side rename (partial 0011 D17 item 2 delivery), and the fixture version bumps (new podinfo coordinate `v0.1.4` — the value the CLI track pins).
+- [x] 6.2 Record in enhancement 0010: slice `operator-library-retarget` → `done`, `openspec_ref` citing both changes; history event covering the CRD absorption, the `hello_web` source-side rename (partial enhancement 0011 ("There is no fleet migration; what remains is a bounded cleanup, and its sequencing runs the other way") item 2 delivery), and the fixture version bumps (new podinfo coordinate `v0.1.4` — the value the CLI track pins).
 - [x] 6.3 Cut the release (with `operator-library-retarget` already in): verify the release publishes `hello v0.0.5` / `hello_web v0.1.3` / `podinfo v0.1.4` / `redis v0.1.7` to GHCR and uploads the v2-CRD `install.yaml` + corrected examples bundle. Notify the CLI track: `operator:sync` target version + the `v0.1.4` pin.
 
 > Completion notes (2026-08-14): 6.1's e2e run proved the GHCR pre-release publish (all four `-e2e.g726b3a1` tags) and surfaced a masked gap — pre-release tags failed the library's acquire-time identity check because the artifact still declared the bare version; fixed in the follow-up that publishes pre-release tags from a staged copy with the version literal rewritten. 6.3's release (v1.0.0-alpha.10) published hello v0.0.5 / hello_web v0.1.3 / podinfo v0.1.4 / redis v0.1.7 to GHCR and uploaded the v2-CRD install.yaml plus the corrected examples bundle (12 manifests, modulepackage manifests included for the first time).

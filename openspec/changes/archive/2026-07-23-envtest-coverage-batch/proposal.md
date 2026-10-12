@@ -8,7 +8,7 @@ The audit found the operator's envtest tier excellent where it exists but carryi
 
 ## What Changes
 
-- **Prune guard tolerance test**: a live resource labeled `app.kubernetes.io/managed-by: opm-cli` with a matching instance UUID is pruned normally (not skipped) — locking `core.IsOPMManagedBy`'s cross-actor acceptance in the removed-but-not-yet-relabeled handoff window (0006 D40 drafting note).
+- **Prune guard tolerance test**: a live resource labeled `app.kubernetes.io/managed-by: opm-cli` with a matching instance UUID is pruned normally (not skipped) — locking `core.IsOPMManagedBy`'s cross-actor acceptance in the removed-but-not-yet-relabeled handoff window (enhancement 0006 ("Handoff success is 'inventory-stable reconcile', not byte-no-op (the managed-by relabel is expected and reported; no cross-actor digest comparison); amends D7.5") drafting note).
 - **Empty-owner reconcile test**: a `ModuleInstance` with no `spec.owner` receives a normal reconcile (finalizer registered, resources applied) — the operator-managed default the A4 design states in prose. (The originally-proposed unknown-owner variant is moot: CRD enum validation rejects any value other than `cli`/`operator` at the API server, which one added scenario also pins.)
 - **Fill the open integration TODO stubs** (behaviors already specified in existing capabilities; tests only):
   - `status_tracking_test.go` — ObservedGeneration tracking, history across outcomes, `forceConflicts` passthrough. *Excluded*: the cross-namespace sourceRef stub (`:58`) — owned by the active `add-cross-namespace-source-grants` change.

@@ -36,9 +36,9 @@ import (
 //
 // Every provider matching ownCatalog is skipped. Once a claim is active its
 // catalog is a registry entry of the very platform the next reconcile judges
-// it against (0015:D13), so without this a re-judged claim would be refused
+// it against (enhancement 0015), so without this a re-judged claim would be refused
 // for providing what it itself provides, be deactivated, drop out of the next
-// package and be accepted again, the oscillation 0015:D13's loop has to
+// package and be accepted again, the oscillation the regeneration loop of enhancement 0015 has to
 // avoid. A claim's own contracts are what it is for; only another provider of
 // them is a conflict.
 //
@@ -64,7 +64,7 @@ func subscribedContract(provides []string, providers map[string][]string, ownCat
 //
 // Only active claims hold. An accepted but inactive claim has never served, so
 // it has no dependents to protect, and letting it block a competitor would let
-// a provider that never came up lock out one that did (0015:D2).
+// a provider that never came up lock out one that did (enhancement 0015).
 //
 // A claim on its way out does not hold either — unless its deletion is
 // BLOCKED, in which case it is not on its way out: it is still serving the
@@ -72,9 +72,9 @@ func subscribedContract(provides []string, providers map[string][]string, ownCat
 // the generated platform. Accepting a second provider of the same contract
 // while that is true does not produce a migration, it produces an
 // over-subscribed platform whose generation the single-provider guard refuses
-// cluster-wide (0010:D32/D37). Refusing the newcomer here names the claim that
+// cluster-wide (enhancement 0010). Refusing the newcomer here names the claim that
 // holds the contract and the dependents holding it open, which is the same
-// rule the 0015:D12 check one file over now reads.
+// rule the duplicate check (enhancement 0015) one file over now reads.
 //
 // Claims are walked in name order and each one's contracts in sorted order, so
 // the reported conflict does not move between reconciles.

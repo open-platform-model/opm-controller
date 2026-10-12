@@ -16,7 +16,7 @@ Two traps make this more than an import sweep. **Immutability**: `examples:publi
 - **Four `modulepackages/` mirrors follow**: core dep → v2, embedded test-module pins → the bumped versions; the `hello-web` mirror renames to `opmodel.dev/releases/test/hello_web@v0` and its instance import drops the explicit `:hello_web` package qualifier (path leaf and package now agree).
 - **Publish pipeline fixes**: `examples:bundle`'s `RELEASES_DIR` corrected (`test/fixtures/releases` → `test/fixtures/modulepackages` — the OCIRepository/ModulePackage manifests have never actually been bundled); the version-grep convention documented against the v2 metadata shape.
 - **Tests flip to v2 identity**: `acquire_test`'s `ModulePath` assertion moves to the full address (`opmodel.dev/modules/test/hello@v0`); integration version pins bump (`hello v0.0.5`, `redis v0.1.7`); registry-backed specs re-run green against the republished fleet.
-- **Identity subpackages NOT added** (0011 D12's publish-gate conformance): the fixtures publish via bare `cue mod publish`, not `opm module publish`; the gate arrives with 0011's cutover slices, and core records absence as an accepted exposure. Recorded as future 0011-side work, not smuggled in here.
+- **Identity subpackages NOT added** (the publish-gate conformance of enhancement 0011): the fixtures publish via bare `cue mod publish`, not `opm module publish`; the gate arrives with 0011's cutover slices, and core records absence as an accepted exposure. Recorded as future 0011-side work, not smuggled in here.
 
 ## Capabilities
 

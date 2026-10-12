@@ -28,7 +28,7 @@ linters:
     depguard:
       rules:
         # The library's Kubernetes tier owns the object and label decisions;
-        # the operator keeps no copy of them (0012:D3:R6). This refuses the
+        # the operator keeps no copy of them (enhancement 0012, "The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module"). This refuses the
         # path the operator's own copy lived under.
         no-local-kubernetes-tier-copy:
           list-mode: lax

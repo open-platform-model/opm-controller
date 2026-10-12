@@ -167,7 +167,7 @@ func TestInventoryRefusal(t *testing.T) {
 			wantRefused: true,
 			wantReason:  status.ComparablePredicatesReason,
 			wantMessage: "platform is not discriminated: 1 comparable transformer pair; " +
-				"every component the narrower transformer matches is also matched by the broader one, so both would render (0015:D5):" +
+				"every component the narrower transformer matches is also matched by the broader one, so both would render:" +
 				"\n  " + mirrorTransformer + " (broader) and " + deployTransformer + " (narrower) over " + containerResource + ", " + volumeResource,
 		},
 		{
@@ -196,7 +196,7 @@ func TestInventoryRefusal(t *testing.T) {
 				"\n  " + backupTrait + " (defined by " + opmCatalog + ") provided by " + k8upCatalog + ", " + veleroCatalog +
 				"\n\n" +
 				"platform is not discriminated: 1 comparable transformer pair; " +
-				"every component the narrower transformer matches is also matched by the broader one, so both would render (0015:D5):" +
+				"every component the narrower transformer matches is also matched by the broader one, so both would render:" +
 				"\n  " + mirrorTransformer + " (broader) and " + deployTransformer + " (narrower) over " + containerResource,
 		},
 		{
@@ -294,7 +294,7 @@ func TestInventoryRefusal(t *testing.T) {
 			wantMessage: collidingPairFinding +
 				"\n\n" +
 				"platform is not discriminated: 1 comparable transformer pair; " +
-				"every component the narrower transformer matches is also matched by the broader one, so both would render (0015:D5):" +
+				"every component the narrower transformer matches is also matched by the broader one, so both would render:" +
 				"\n  " + mirrorTransformer + " (broader) and " + deployTransformer + " (narrower) over " + volumeResource,
 		},
 		{
@@ -608,7 +608,7 @@ func TestInventoryContractsFulfilled(t *testing.T) {
 	}
 }
 
-// TestInventoryContractsFulfilled_NeverTouchesReady is the 0015:D18 guarantee in
+// TestInventoryContractsFulfilled_NeverTouchesReady is the guarantee of enhancement 0015 in
 // its narrowest form: the report is not a gate.
 func TestInventoryContractsFulfilled_NeverTouchesReady(t *testing.T) {
 	plat := &releasesv1alpha1.Platform{}

@@ -216,7 +216,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # The version tag always names the image first pushed under it
-      # (0021:D10:R3). absent: build and push. reuse: a previous attempt of
+      # (enhancement 0021, "Release tags are immutable"). absent: build and push. reuse: a previous attempt of
       # this release already pushed it from the release commit, so push
       # nothing under it and reuse its digest. Anything else fails here.
       - name: Probe the release version tag

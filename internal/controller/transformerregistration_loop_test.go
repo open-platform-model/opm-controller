@@ -113,8 +113,8 @@ var _ = Describe("TransformerRegistration acceptance: the regeneration loop", fu
 			ownProvidedInventory(ctx, firstNS, first.Name)
 			setProviderReadiness(ctx, firstNS, true)
 
-			// A second provider, from a catalog of its own: not a 0015:D12
-			// duplicate, and a contract still has exactly one provider.
+			// A second provider, from a catalog of its own: not a same-catalog
+			// duplicate (enhancement 0015), and a contract still has exactly one provider.
 			secondNS := nextClaimNamespace()
 			second := createClaimProviding(ctx, secondNS, contested)
 			ownProvidedInventory(ctx, secondNS, second.Name)

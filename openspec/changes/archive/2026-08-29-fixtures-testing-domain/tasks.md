@@ -12,7 +12,7 @@ the deliverable**, which it is here. The publish steps below are in scope by tha
 - [x] 1.4 `cue vet` clean and `cue eval ./identity -e Version` correct for all four.
 - [x] 1.5 `opm module publish --dry-run` resolves GO with no refusals for all four.
 
-## 2. Modulepackages follow (D2 — deviation from 0011 D17 item 5)
+## 2. Modulepackages follow (D2 — deviation from enhancement 0011: instances stay outside the namespace migration)
 
 - [x] 2.1 Point each `modulepackages/*/cue.mod` `module:` at `testing.opmodel.dev/releases/operator/<n>@v0`.
 - [x] 2.2 Re-point their `deps:` pin and `instance.cue` import at the new module coordinate.
@@ -55,7 +55,7 @@ the deliverable**, which it is here. The publish steps below are in scope by tha
 - [x] 6.2 Close the deviation in `opm-operator/CLAUDE.md`; add fixture-authoring guidance.
 - [x] 6.3 Close the workspace deviation in the root `CLAUDE.md` (not a git repo — disk only).
 - [x] 6.4 ADR-017 recording the production-vs-fixture domain split, amending ADR-008.
-- [x] 6.5 `enhancements/0011`: add `opm-operator` to `affects`, add the operator `registry-cleanup`
+- [x] 6.5 enhancement 0011: add `opm-operator` to `affects`, add the operator `registry-cleanup`
       slice, append the history event including the D2 deviation.
 
 ## 7. Verification

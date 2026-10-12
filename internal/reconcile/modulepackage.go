@@ -374,7 +374,7 @@ func ReconcileModulePackage(
 	// An identity change that is not settled is never a NoOp.
 	digestsUnchanged := identities.keepsNoOp(status.IsNoOp(digests, lastApplied))
 
-	// The apply guard (0012:D8:R1, R4), before the no-op decision and before
+	// The apply guard (enhancement 0012), before the no-op decision and before
 	// the first write: a package has no drift check to carry a verdict that
 	// could not be asked, so a reconcile that renders and cannot judge its
 	// objects fails, also when every digest matches.
@@ -838,7 +838,7 @@ func applyAndPruneModulePackage(
 	sa, _ := resolveEffectiveSA(pkg.Spec.ServiceAccountName, params.DefaultServiceAccount)
 	reader := appliedReader(sa, applyClient, params.APIReader, params.Client)
 	// An object another instance adopted is in no inventory this package
-	// records (0012:D8:R8); it stays in the cluster.
+	// records (enhancement 0012); it stays in the cluster.
 	entries := withoutEntries(converted.entries, judgedObjects(guard.letGo))
 	return &applyPruneResult{outcome: outcome, entries: entries, healthReader: reader}, nil
 }

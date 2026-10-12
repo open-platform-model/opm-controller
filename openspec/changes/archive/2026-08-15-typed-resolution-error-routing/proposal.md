@@ -13,7 +13,7 @@ ModuleInstance render path that the classifier cannot see:
   identity disagrees with the coordinate it was fetched by.
 - `*oerrors.UnresolvedDemandsError` from compile (possibly joined with
   `*compile.UnmatchedComponentsError`): the rendered module demands contracts the materialized
-  platform does not provide (0010 D28 made this fail instead of warn).
+  platform does not provide (enhancement 0010 ("An unresolved primitive demand is an error; a trait's optionality is stated by its catalog and overridden by the attachment") made this fail instead of warn).
 
 `classifyRenderError` (`internal/reconcile/moduleinstance.go:822`) routes to
 `ResolutionFailedReason` only through `isResolutionError`'s string match ("loading synthesized

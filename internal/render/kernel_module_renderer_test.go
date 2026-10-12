@@ -34,7 +34,7 @@ func compiledObject(t *testing.T, ctx *cue.Context, component, transformer, src 
 
 const registrationTransformer = "opmodel.dev/catalogs/opm/transformers/transformer-registration@v4"
 
-// The motivating case of 0015:D15: a module shipping two
+// The motivating case of the one-registration-per-module rule (enhancement 0015): a module shipping two
 // transformer-registration components renders two cluster-scoped objects
 // under one instance-derived name. The adapter refuses before anything is
 // built, with the library's typed error naming the identity once and both
@@ -130,7 +130,7 @@ func TestResultFromRender_NamesOnlyTheSharedIdentity(t *testing.T) {
 }
 
 // The demand is the kernel's: the adapter carries the list the render build
-// reported on its diagnostics through unchanged (0013:D24).
+// reported on its diagnostics through unchanged (enhancement 0013).
 func TestResultFromRender_ReportsKernelDemand(t *testing.T) {
 	want := []string{
 		"opmodel.dev/catalogs/opm/resources/config-maps@v1beta1",

@@ -6,7 +6,7 @@ Define the read-only ClusterRoles the operator ships for a cluster administrator
 
 ### Requirement: The operator ships a viewer role for every OPM kind
 
-The operator's install manifest SHALL carry one viewer ClusterRole per OPM kind it serves: `opm-operator-moduleinstance-viewer-role`, `opm-operator-platform-viewer-role`, `opm-operator-modulepackage-viewer-role` and `opm-operator-transformerregistration-viewer-role`. A cluster administrator SHALL be able to grant a non-admin read access to Platforms, ModulePackages and TransformerRegistrations by binding these roles and nothing else. Source: 0030:D11:R4.
+The operator's install manifest SHALL carry one viewer ClusterRole per OPM kind it serves: `opm-operator-moduleinstance-viewer-role`, `opm-operator-platform-viewer-role`, `opm-operator-modulepackage-viewer-role` and `opm-operator-transformerregistration-viewer-role`. A cluster administrator SHALL be able to grant a non-admin read access to Platforms, ModulePackages and TransformerRegistrations by binding these roles and nothing else.
 
 #### Scenario: A bound subject reads every Platform kind
 
@@ -43,7 +43,7 @@ The operator SHALL ship no RoleBinding or ClusterRoleBinding naming a viewer rol
 
 ### Requirement: Viewer roles do not aggregate into built-in roles
 
-No viewer role SHALL carry an `rbac.authorization.k8s.io/aggregate-to-view`, `aggregate-to-edit` or `aggregate-to-admin` label, so binding a built-in role grants no read of OPM kinds through them. Whether they aggregate is open (0030:OQ6); a later change MAY add the label once that question is answered.
+No viewer role SHALL carry an `rbac.authorization.k8s.io/aggregate-to-view`, `aggregate-to-edit` or `aggregate-to-admin` label, so binding a built-in role grants no read of OPM kinds through them. Whether they aggregate is an open question; a later change MAY add the label once that question is answered.
 
 #### Scenario: The built-in view role is unchanged
 

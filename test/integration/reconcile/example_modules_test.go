@@ -40,7 +40,7 @@ import (
 // a registry mapping.
 //
 // The platform subscription names exactly one published catalog build
-// (0010:D14) — matching the cluster Platform sample and avoiding
+// (enhancement 0010) — matching the cluster Platform sample and avoiding
 // catalog-version skew. Resource and transformer FQNs embed the catalog
 // version, so the generated platform MUST pin the same catalog build the
 // modules pin; any other build yields "no matching transformer".
