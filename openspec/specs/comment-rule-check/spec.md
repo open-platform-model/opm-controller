@@ -1,7 +1,7 @@
 # comment-rule-check Specification
 
 ## Purpose
-TBD - created by archiving change wire-cite-lint. Update Purpose after archive.
+Run the shared comment rule of the enhancements store on Go and CUE files, locally with `task cite-lint` and in CI through the reusable workflow of `.github`, so a bad citation fails the pull request that adds it.
 
 ## Requirements
 
