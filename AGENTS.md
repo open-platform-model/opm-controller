@@ -174,6 +174,7 @@ Follow the Registry Policy in the root `AGENTS.md` (reads resolve `opmodel.dev/*
 - `task docs:bundle:check`: `task docs:pins:check`, then build and lint the bundle into a temporary directory.
 - `task docs:pins:check`: refuse a docs-kit `publish.yml` ref that names another release than `.opm-docs-version` (offline).
 - `task cascade:wiring:check`: check the release-cascade caller workflows against `.tasks/cascade/wiring-check.yaml` (offline, so the copy is not compared with `.github`; needs mikefarah `yq` v4). Run it after any edit under `.github/workflows/`; `GH_TOKEN=$(gh auth token) bash .tasks/cascade/wiring-check.sh --pin-on-main` runs the CI form.
+- `task cite-lint`: run the comment rule on Go and CUE files (no decision number, no lone enhancement id, no old entry path) with the tool commit CI uses; `cite-lint.yml` runs it on every pull request. The published fixtures under `test/fixtures/modules/` and `test/fixtures/catalogs/` are excluded in both places.
 - `task dev:fmt`: `go fmt ./...`.
 - `task dev:vet`: `go vet ./...`.
 - `task dev:lint:config`: verify the golangci-lint config against the schema committed under `.github/golangci-lint/` (no schema download), and that `.golangci-lint-version`, the schema, its checksum, `.custom-gcl.yml` and the `Lint` job agree (`.github/scripts/lint-config-check.sh`).

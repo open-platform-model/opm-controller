@@ -184,6 +184,23 @@ tasks:
     cmds:
       - bash .tasks/cascade/wiring-check.sh
 
+  cite-lint:
+    desc: Check Go and CUE files against the comment rule (no decision number, no lone enhancement id, no old entry path), as CI does
+    vars:
+      # The one pinned commit of enhancements that every repo's CI uses: the
+      # enh-ref default of the reusable cite-lint.yml in open-platform-model/.github.
+      # Move it only with the .github pin.
+      ENH_REF: e0335b2ec44e659c0191bc3523d79d17f26f8e7d
+    cmds:
+      # The excludes are repeated in .github/workflows/cite-lint.yml (a reusable
+      # workflow input cannot read this file); change both together.
+      # Published fixtures keep the old form until their next republish.
+      - >-
+        go run github.com/open-platform-model/enhancements/tools/enh@{{.ENH_REF}}
+        cite-lint --root {{.ROOT_DIR}}
+        --exclude test/fixtures/modules/
+        --exclude test/fixtures/catalogs/
+
   docs:bundle:check:
     desc: Check the docs-kit pins agree, then build and lint the opm-operator docs bundle into a temporary directory
     deps: [tools:opm-docs]
