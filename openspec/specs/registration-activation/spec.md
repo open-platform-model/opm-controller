@@ -45,11 +45,18 @@ This is deliberate and not an oversight: the active-claim set is an input to pla
 - **WHEN** that provider becomes ready again
 - **THEN** the claim is still active and no activation transition is recorded, because it never left
 
-### Requirement: Activation is reported and inert
+### Requirement: Activation is reported on the claim and feeds the generated platform
 
-Activation SHALL be visible in the claim's status and SHALL have no other effect in this capability. No rendering, no `Platform` field and no workload SHALL change because a claim became active.
+Activation SHALL be visible in the claim's status. The claim reconciler's activation SHALL write nothing but the claim itself: it SHALL NOT render a workload, change a `Platform` field or write another claim. Activation is not inert, though: an accepted and active claim is an input to the generated platform module, and the Platform reconciler regenerates the module from the set of such claims (capability `registration-driven-regeneration`).
 
-#### Scenario: An active claim changes nothing else
+#### Scenario: Activation writes nothing but the claim
 
 - **WHEN** a claim becomes active
-- **THEN** no workload is re-rendered and no other object is written as a result
+- **THEN** the claim reconciler writes the claim's own status and no other object in the cluster
+- **AND** no workload is re-rendered by the claim reconciler as a result
+
+#### Scenario: An active claim feeds the generated platform
+
+- **WHEN** a claim is both accepted and active
+- **THEN** the Platform reconciler includes the claim in the active-claim set it generates the platform module from
+- **AND** a claim that is refused, or accepted but not active, is not in that set
