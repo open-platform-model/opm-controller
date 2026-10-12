@@ -185,7 +185,7 @@ tasks:
       - bash .tasks/cascade/wiring-check.sh
 
   cite-lint:
-    desc: Check the Go and CUE comments against the comment rule (no decision number, no lone enhancement id), as CI does
+    desc: Check Go and CUE files against the comment rule (no decision number, no lone enhancement id, no old entry path), as CI does
     vars:
       # The one pinned commit of enhancements that every repo's CI uses: the
       # enh-ref default of the reusable cite-lint.yml in open-platform-model/.github.
