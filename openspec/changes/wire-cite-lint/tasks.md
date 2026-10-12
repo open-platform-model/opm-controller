@@ -9,5 +9,5 @@
 
 ## 3. Verify and archive
 
-- [ ] 3.1 `task cite-lint`, `task cascade:wiring:check`, `openspec validate wire-cite-lint --strict`, actionlint and zizmor on the changed workflows pass.
-- [ ] 3.2 Archive the change. Commit `chore(openspec): archive wire-cite-lint`.
+- [x] 3.1 `task cite-lint`, `task cascade:wiring:check`, `openspec validate wire-cite-lint --strict`, actionlint and zizmor on the changed workflows pass.
+- [x] 3.2 Archive the change. Commit `chore(openspec): archive wire-cite-lint`.
