@@ -1,6 +1,6 @@
 module github.com/open-platform-model/opm-operator
 
-go 1.26.2
+go 1.26.9
 
 require (
 	cuelang.org/go v0.17.1
