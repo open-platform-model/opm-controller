@@ -45,7 +45,17 @@ The `publish` job publishes only when `CASCADE_DRY_RUN` is exactly `false` and t
 
 - Offline: `task cascade:wiring:check` (needs mikefarah `yq` v4). Run it after any edit under `.github/workflows/`.
 - CI form: the step "Verify the cascade wiring" of the `Lint` job runs `bash .tasks/cascade/wiring-check.sh --pin-on-main` with `GH_TOKEN`. Only SHA-pinned actions from other repos may come before it; every `run:` step goes after it.
-- It refuses: a change to the key-holding jobs' shape (keys, step, inputs, permissions, Environment, a `runs-on` other than `ubuntu-latest`, the notify job's `needs`, `if`, `tag` and timeout, the publish job's `needs`, `if` with the gates-only clause, `gates-only` input and timeout); a key read or `cascade` Environment elsewhere; a `RELEASE_APP_PRIVATE_KEY` reader without `environment: release`, or a `release` job that reads no key; `secrets` on a call into `.github`; a `release.yml` workflow `env` key other than `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`; any Actions cache in a workflow the config lists as publishing (`release.yml`, `publish-fixtures.yml`, `docs.yml`, `image-pr.yml`, `test-e2e.yml`, `module-image.yml`, `module-deps.yml`); a `.github` checkout other than `actions/checkout@<SHA>` with `repository`, `ref`, `path` and `persist-credentials: false`; a `Lint` workflow or job `env` name outside `CUE_*`, `OPM_*`, `REGISTRY` and `IMAGE_NAME`; a second SHA or a missing pin comment.
+- It refuses:
+  - a change to the key-holding jobs' shape: keys, step, inputs, permissions, Environment, a `runs-on` other than `ubuntu-latest`;
+  - a change to the notify job's `needs`, `if`, `tag` and timeout, or the publish job's `needs`, `if` (with the gates-only clause), `gates-only` input and timeout;
+  - a key read or `cascade` Environment elsewhere;
+  - a `RELEASE_APP_PRIVATE_KEY` reader without `environment: release`, or a `release` job that reads no key;
+  - `secrets` on a call into `.github`;
+  - a `release.yml` workflow `env` key other than `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`;
+  - any Actions cache in a workflow the config lists as publishing (`release.yml`, `publish-fixtures.yml`, `docs.yml`, `image-pr.yml`, `test-e2e.yml`, `module-image.yml`, `module-deps.yml`);
+  - a `.github` checkout other than `actions/checkout@<SHA>` with `repository`, `ref`, `path` and `persist-credentials: false`;
+  - a `Lint` workflow or job `env` name outside `CUE_*`, `OPM_*`, `REGISTRY` and `IMAGE_NAME`;
+  - a second SHA or a missing pin comment.
 - With `--pin-on-main` it also refuses a SHA not on `.github` `main` and a copy that differs from the file at the pin.
 - A new workflow that publishes joins `publish-workflows` in the config.
 - It guards against mistakes, not a deliberate edit. Code-owner review guards against that, and the `main` ruleset does not require review while OPM is in beta (no approvals, workspace PR 29).

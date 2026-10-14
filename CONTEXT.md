@@ -18,5 +18,5 @@ Router only. Facts and rules are in `AGENTS.md`.
 | Start a feature change | `openspec/config.yaml` | `CONSTITUTION.md` |
 | Deliver or cite an enhancement | `references/enhancements.md` at the workspace root | `openspec/config.yaml`, the `references:` entry |
 | Commit, open a PR or write GitHub text | `references/git-text.md` at the workspace root | |
-| Tag, release or publish | `references/releases.md` at the workspace root | |
+| Tag or publish by hand, or change tag rules | `references/releases.md` at the workspace root | |
 | Run `cue` or touch a registry | `references/registry.md` at the workspace root | |

@@ -25,8 +25,7 @@ Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the n
 - **A fixture never has an `opmodel.dev/*` path.** CUE routes by longest prefix. Fixtures live under `testing.opmodel.dev`.
 - **Registry precedence on the binary:** `--registry`, then `OPM_REGISTRY`, then the built-in default. `CUE_REGISTRY` as pod env is ignored.
 - **Add new automation as a task in `.tasks/`, not in the `Makefile`.** `Taskfile.yml` is the source of truth. The `Makefile` is the Kubebuilder scaffold and still serves some local flows (`make run`, `make publish-test-module`).
-- **Enhancement references in comments are rare.** Default is none. When a rationale lives in an enhancement, name it once at the symbol as `(enhancement NNNN)` after the reason, per the workspace enhancements reference. Never in scaffold templates, generated files, fixtures a user copies or CLI output strings. In a CUE file the reference goes in a `// WHY` block, one blank line below the doc comment, because `cue lsp` hover and `cue def` replay a doc comment verbatim. No `Was:` rename history. `task cite-lint` checks this.
-- **A change that delivers an enhancement task line** adds `## Enhancement` to its proposal with `Delivers NNNN, task X.Y.` per task, or `None.`.
+- **Enhancement references in comments:** default is none; the form is in the workspace enhancements reference. Repo extras: never in scaffold templates, generated files, fixtures a user copies or CLI output strings; in a CUE file the reference goes in a `// WHY` block, one blank line below the doc comment, because `cue lsp` hover and `cue def` replay a doc comment verbatim; no `Was:` rename history. `task cite-lint` checks this.
 
 ## Layout
 
@@ -42,7 +41,7 @@ modules/        opm_operator/, the operator's own OPM module (its own release un
 openspec/       OpenSpec config, specs, changes
 references/     detail files that CONTEXT.md routes to
 test/           e2e (build tag e2e), integration, fixtures, rbac, collector, utils
-.tasks/         Taskfile includes (dev, operator, operator-module, docker, kind, registry, flux, release, module, examples, cascade, tools)
+.tasks/         Taskfile includes (dev, operator, operator-module, docker, kind, registry, flux, release, module, examples, deps, cascade, tools)
 .github/        workflows, scripts, golangci-lint schema, CODEOWNERS
 ```
 
@@ -63,7 +62,13 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | `task operator:binary` / `operator:run` | Build `bin/manager` / run against the current kubeconfig | Local run |
 | `task operator:installer` | Render `dist/install.yaml` from `config/default` | After manifest or RBAC changes |
 | `task dev:e2e` | e2e on Kind, then cleanup | Needs Kind; say so when skipped |
-| `task operator-module:drift` | Fail on stale `config/` or module data | After a CRD or RBAC change |
+| `task operator-module:drift` | Fail on stale `config/` or module data; `REF=<tag>` checks the data against that tag's `config/` | After a CRD or RBAC change |
+| `task operator-module:generate` | Regenerate the module's CRD and RBAC data from `config/` (`dev:manifests` runs it) | After a CRD or RBAC change |
+| `task operator-module:release-check VERSION=<X.Y.Z>` | The module's release gate. Needs `GH_REPO`, `gh`, `docker buildx` and the operator tags | On the module's release PR |
+| `task operator-module:release-check:test` / `operator-module:publish:test` | Offline tests of the release gate / the module publish script | After editing those scripts |
+| `task kind:setup` | Create the Kind cluster if missing | Before e2e by hand |
+| `task docker:build IMG=<image>` / `docker:push IMG=<image>` | Build / publish the manager image | Image work |
+| `task operator:controller:install IMG=<image>` / `operator:controller:uninstall` | Install / remove the controller on the current cluster | Manual cluster test |
 | `task examples:pin` / `examples:check` | Re-pin fixture consumers / run the publish gates | After a fixture bump |
 | `task -x deps:cascade` | Move upstream pins in the working tree | Cascade PRs |
 

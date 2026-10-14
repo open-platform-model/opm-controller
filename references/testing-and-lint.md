@@ -35,7 +35,7 @@ There is no single-test task; use `go test`. The envtest binaries are installed 
 export KUBEBUILDER_ASSETS="$(./bin/setup-envtest use <k8s-minor> --bin-dir "$PWD/bin" -p path)"
 go test ./internal/controller                                   # one package
 go test ./internal/controller -run TestControllers              # one suite entrypoint
-go test ./internal/controller -run TestControllers -ginkgo.focus="Release Controller"
+go test ./internal/controller -run TestControllers -ginkgo.focus="ModuleInstance Controller"
 go test -tags=e2e ./test/e2e -v -ginkgo.v                       # e2e only
 KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run TestE2E -ginkgo.focus="should run successfully" -v -ginkgo.v
 ```

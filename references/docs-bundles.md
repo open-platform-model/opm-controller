@@ -48,8 +48,7 @@ The docs-kit release is pinned twice: in `.opm-docs-version` and in every `publi
 
 ## Generated files that feed the reference
 
-- Do not hand-edit `api/v1alpha1/zz_generated.deepcopy.go`, `config/crd/bases/*.yaml` or `config/rbac/role.yaml`.
-- Do not hand-edit `modules/opm_operator/zz_generated_crds.cue` or `zz_generated_rbac.cue`. `task dev:manifests` writes them from `config/` with `cue import` (through `task operator-module:generate`). `task operator-module:drift`, a `test.yml` step, fails when they or `config/` are stale.
+- Generated files are never hand-edited (the list is in `AGENTS.md`, "Repository rules"). `task operator-module:drift`, a `test.yml` step, fails when the module data or `config/` are stale.
 - After a change to API markers, schema, `*_types.go` or an RBAC marker, run `task dev:manifests dev:generate docs:bundle:check`. The doc comments become the CRD descriptions and the public resource reference.
 - After a change to `config/samples` or controller registration, run `task docs:bundle:check`. `test/integration/crdvalidation` proves every sample is admitted by the CRDs.
 

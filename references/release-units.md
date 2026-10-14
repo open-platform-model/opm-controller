@@ -51,7 +51,7 @@ Each unit has its own release PR (`separate-pull-requests`). The operator packag
 - Every operator release opens or updates the `module/operator-image` PR (`fix(deps)`, or `fix(deps)!` for a breaking operator release). `module-image.yml` recovers it by hand.
 - `module-deps.yml` runs `task -x deps:cascade:module` on the same `upstream-released` dispatch (dry while `CASCADE_DRY_RUN` is not `false`).
 - `hack/operator-module/bot-pr.sh` pushes both bot branches with the release App token. It and the two `publish` jobs write plain files only and refuse a symlink, a hard link or a mode change.
-- A module draft stranded by a broken script at its tag: dispatch `release.yml` on `main` with `module_tag=opm_operator-vX.Y.Z`. Only the module jobs run, with `main`'s scripts against the tag's tree; "Re-run failed jobs" would replay the tag's script. The dispatch has its own concurrency group per tag. Dispatch only when no Release run is queued or running.
+- A module draft stranded by a broken script at its tag: dispatch `release.yml` on `main` with `module_tag=opm_operator-vX.Y.Z`. Only the module jobs run, with `main`'s scripts against the tag's tree; "Re-run failed jobs" would replay the tag's script. The dispatch has its own concurrency group per tag, so it never replaces a pending push run. Dispatch only when no Release run is queued or running.
 
 ## Beta line
 
