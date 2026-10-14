@@ -15,7 +15,7 @@ Covers the `opm-operator` docs-kit bundle: what it holds, how it builds and publ
 
 ## What the bundle holds
 
-`docs-kit.cue` declares one bundle, `opm-operator` (docs-kit `docs/contracts.md` C6, C15, C18). It has two parts:
+`docs-kit.cue` declares one bundle, `opm-operator` (docs-kit contracts C6, C15, C18). It has two parts:
 
 - the authored pages under `docs/site/`;
 - the resource reference, which docs-kit's `crd` source generates from `config/crd/bases` and `config/samples`.
@@ -38,9 +38,9 @@ Once the site reads the bundle, an authored fix reaches a released version only 
 
 ## `reconciledBy`
 
-`reconciledBy` in `docs-kit.cue` names the controller of each kind: the `Named(...)` value of the builder that calls `For(&<Kind>{})`.
+`reconciledBy` in `docs-kit.cue` names the controller of each kind: the name the controller registers itself under.
 
-The test `internal/controller/docskit_reconciledby_test.go` (part of `task dev:test`) keeps it true. It scans the controllers and fails naming the kind when a name differs. A renamed controller, or a new kind, therefore needs its `reconciledBy` entry; `task dev:test` fails until it has one.
+A test in `internal/controller/` (part of `task dev:test`) keeps it true. It scans the controllers and fails naming the kind when a name differs. A renamed controller, or a new kind, therefore needs its `reconciledBy` entry; `task dev:test` fails until it has one.
 
 ## The docs-kit pin
 
@@ -48,8 +48,8 @@ The docs-kit release is pinned twice: in `.opm-docs-version` and in every `publi
 
 ## Generated files that feed the reference
 
-- Generated files are never hand-edited (the list is in `AGENTS.md`, "Repository rules"). `task operator-module:drift`, a `test.yml` step, fails when the module data or `config/` are stale.
-- After a change to API markers, schema, `*_types.go` or an RBAC marker, run `task dev:manifests dev:generate docs:bundle:check`. The doc comments become the CRD descriptions and the public resource reference.
+- Generated files are never hand-edited (the list is in `AGENTS.md`). `task operator-module:drift`, a CI step, fails when the module data or `config/` are stale.
+- After a change to API markers, schema, type files or an RBAC marker, run `task dev:manifests dev:generate docs:bundle:check`. The doc comments become the CRD descriptions and the public resource reference.
 - After a change to `config/samples` or controller registration, run `task docs:bundle:check`. `test/integration/crdvalidation` proves every sample is admitted by the CRDs.
 
 ## Pitfalls
@@ -57,7 +57,7 @@ The docs-kit release is pinned twice: in `.opm-docs-version` and in every `publi
 - Moving `.opm-docs-version` without every `publish.yml` ref (or the reverse) fails `task docs:pins:check`.
 - Pinning `publish.yml` to a SHA breaks docs-kit C5.
 - Expecting a CRD description fix to reach a released version through a revision: it needs a release.
-- Renaming a controller `Named(...)` without updating `reconciledBy` fails `task dev:test`.
+- Renaming a controller without updating `reconciledBy` fails `task dev:test`.
 - An operator version on a site page outside the release-please markers goes stale at the next release.
 
 ## Check before you finish

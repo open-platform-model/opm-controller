@@ -15,7 +15,7 @@ Covers how upstream pins move (`task -x deps:cascade`, `.opm-cli-version`), the 
 ## Pins and `task -x deps:cascade`
 
 - **The opm CLI pin lives only in `.opm-cli-version`.** Every workflow that installs the opm CLI reads and checks the tag from that one-line file. No workflow carries a version literal, so the cascade can move it without editing `.github/workflows/`. Moving it is a `ci(deps)` commit and releases nothing (workspace `RELEASING.md`: "Cascade files", "Pin classes").
-- **`task -x deps:cascade` moves the upstream pins** (workspace `RELEASING.md`, "What each repo's task moves"): library (`go get` and `go mod tidy`); the opm catalog and core as a consistent set across `config/samples`, `test/fixtures/catalog.go`, the fixture modules and the provider catalog fixture, each changed fixture's version once per PR with its consumers; `.opm-cli-version` last.
+- **`task -x deps:cascade` moves the upstream pins** (workspace `RELEASING.md`): library (`go get` and `go mod tidy`); the opm catalog and core as a consistent set across `config/samples`, `test/fixtures/catalog.go`, the fixture modules and the provider catalog fixture, each changed fixture's version once per PR with its consumers; `.opm-cli-version` last.
 - It edits the working tree only. Exit 0: it changed something. Exit 3: nothing to do. Other: error. Always run it with `task -x`, or go-task turns 3 into 201.
 - Every version comes from the shared resolver in `open-platform-model/.github` (`CASCADE_RESOLVER`, or the checkout beside this repo).
 - `task -x deps:cascade:title` and `deps:cascade:body` print the cascade PR title and body. `task -x deps:cascade:test` tests the task against a stub resolver (`CASCADE_TEST_SET=offline` runs in the `Lint` job, the full set in `cascade-task.yml`). The scripts live in `.tasks/cascade/`.
@@ -23,7 +23,7 @@ Covers how upstream pins move (`task -x deps:cascade`, `.opm-cli-version`), the 
 
 ## The three cascade workflows
 
-Contract: workspace `RELEASING.md` ("The cascade", "Pinning the cascade code", "Gates", "Stop switches") and the Phase 3 wiring contract (version 3.1) in the `.github` repo.
+Contract: workspace `RELEASING.md` (the cascade, pinning, gates and stop switches parts) and the Phase 3 wiring contract (version 3.1) in the `.github` repo.
 
 | Workflow | What it does |
 | --- | --- |
@@ -37,14 +37,14 @@ The `publish` job publishes only when `CASCADE_DRY_RUN` is exactly `false` and t
 
 - **The key** is read only in the caller-owned `notify-downstream` or `publish` job. That job declares `environment: cascade` and passes `secrets.CASCADE_APP_PRIVATE_KEY` only as the `private-key` input of the SHA-pinned cascade action. It has no checkout or `run:` of its own, and no `env:`, `container:` or `services:` (the action checks out the repo but never runs it). No reusable call passes `secrets:` or `secrets: inherit`.
 - **The pin:** all six cascade references name one full `.github` `main` commit SHA with the comment `# .github main`. They are the `cascade-notify` and `cascade-publish` steps, the `cascade-receive.yml` and `cascade-gates.yml` calls, and the `ref:` of the resolver checkouts in `cascade-task.yml` and `module-deps.yml`.
-- A `.github` change reaches this repo only through a `ci(deps): pin the cascade to .github <sha7>` PR that moves all six (workspace `RELEASING.md`, "Moving the cascade pin"). Dependabot ignores them. `cascade-task.yml` fails when the pinned commit has no resolver. A bad pin is fixed by a pin PR.
+- A `.github` change reaches this repo only through a `ci(deps): pin the cascade to .github <sha7>` PR that moves all six (workspace `RELEASING.md`). Dependabot ignores them. `cascade-task.yml` fails when the pinned commit has no resolver. A bad pin is fixed by a pin PR.
 
 ## The wiring check
 
-`.tasks/cascade/wiring-check.sh` is a byte-identical copy of the `.github` file at the pin. This repo's values are in `.tasks/cascade/wiring-check.yaml` (`.github` README, "The wiring check").
+The wiring check script in `.tasks/cascade/` is a byte-identical copy of the `.github` file at the pin. This repo's values are in the config beside it (described in the `.github` README).
 
 - Offline: `task cascade:wiring:check` (needs mikefarah `yq` v4). Run it after any edit under `.github/workflows/`.
-- CI form: the step "Verify the cascade wiring" of the `Lint` job runs `bash .tasks/cascade/wiring-check.sh --pin-on-main` with `GH_TOKEN`. Only SHA-pinned actions from other repos may come before it; every `run:` step goes after it.
+- CI form: the `Lint` job runs the wiring check script with `--pin-on-main` with `GH_TOKEN`. Only SHA-pinned actions from other repos may come before it; every `run:` step goes after it.
 - It refuses:
   - a change to the key-holding jobs' shape: keys, step, inputs, permissions, Environment, a `runs-on` other than `ubuntu-latest`;
   - a change to the notify job's `needs`, `if`, `tag` and timeout, or the publish job's `needs`, `if` (with the gates-only clause), `gates-only` input and timeout;

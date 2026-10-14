@@ -34,10 +34,10 @@ There is no single-test task; use `go test`. The envtest binaries are installed 
 ```bash
 export KUBEBUILDER_ASSETS="$(./bin/setup-envtest use <k8s-minor> --bin-dir "$PWD/bin" -p path)"
 go test ./internal/controller                                   # one package
-go test ./internal/controller -run TestControllers              # one suite entrypoint
-go test ./internal/controller -run TestControllers -ginkgo.focus="ModuleInstance Controller"
+go test ./internal/controller -run <suite-func>                 # one suite entrypoint
+go test ./internal/controller -run <suite-func> -ginkgo.focus="ModuleInstance Controller"
 go test -tags=e2e ./test/e2e -v -ginkgo.v                       # e2e only
-KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run TestE2E -ginkgo.focus="should run successfully" -v -ginkgo.v
+KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run <suite-func> -ginkgo.focus="should run successfully" -v -ginkgo.v
 ```
 
 `<k8s-minor>` is the `1.N` that `task dev:test` prints in its envtest line. `KUBEBUILDER_ASSETS` must be an absolute path.
@@ -45,25 +45,25 @@ KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run TestE2E -gi
 ## Lint expectations
 
 - `.golangci.yml` enables, among others: `errcheck`, `ginkgolinter`, `gocyclo`, `govet`, `misspell`, `modernize`, `revive`, `staticcheck`, `unused`, `depguard`, `logcheck`. Formatters: `gofmt` and `goimports`.
-- `logcheck` (custom plugin built from `.custom-gcl.yml`) validates structured logging and balanced key/value parameters.
+- `logcheck` (a custom plugin built from the custom-gcl config) validates structured logging and balanced key/value parameters.
 - `lll` and `dupl` are relaxed in `api/*` and `internal/*`. Do not rely on the exclusions without need.
-- The `depguard` rule keeps the operator from copying the library's Kubernetes tier decisions (see the comment in `.golangci.yml`).
+- The `depguard` rule keeps the operator from copying the library's Kubernetes tier decisions (the comment in `.golangci.yml` says why).
 - `ginkgolinter` flags non-idiomatic Ginkgo.
 
 ## Moving the golangci-lint version
 
-`.golangci-lint-version` is the only place that names the linter version. `Taskfile.yml` and `Makefile` read it. `.custom-gcl.yml` repeats it because `golangci-lint custom` reads only that file; `task dev:lint:config` refuses a tree where the two differ.
+`.golangci-lint-version` is the only place that names the linter version. `Taskfile.yml` and `Makefile` read it. The custom-gcl config at the repo root repeats it because `golangci-lint custom` reads only that file; `task dev:lint:config` refuses a tree where the two differ.
 
 No workflow, task file or `Makefile` line runs `golangci-lint config verify` on its own. Without `--schema` it downloads the schema from golangci-lint.run on every run, which failed the cli's required `Lint` job twice on 2026-10-08.
 
-- **Patch move** (`v2.8.0` to `v2.8.1`): edit `.golangci-lint-version` and the `version:` line of `.custom-gcl.yml`. The schema is per minor line and stays.
+- **Patch move** (`v2.8.0` to `v2.8.1`): edit `.golangci-lint-version` and the `version:` line of the custom-gcl config. The schema is per minor line and stays.
 - **Minor or major move**: edit both files, then replace the schema. Take `jsonschema/golangci.next.jsonschema.json` of the Go module `github.com/golangci/golangci-lint/v2` at the new version; the Go checksum database verifies it. Do not take `jsonschema/golangci.jsonschema.json`: the linter project updates that file only after a release, so at a release tag it still holds the line before.
   1. `dir=$(go mod download -json github.com/golangci/golangci-lint/v2@vX.Y.Z | jq -r .Dir)`
   2. Copy `$dir/jsonschema/golangci.next.jsonschema.json` to `.github/golangci-lint/golangci.vX.Y.jsonschema.json` and `chmod 644` it.
   3. Remove the old schema file. In that directory run `sha256sum golangci.vX.Y.jsonschema.json > SHA256SUMS`.
   4. Say in the PR body where the file came from, so the reviewer can compare the checksum.
 - `task dev:lint:config dev:lint:config:test dev:lint` must pass.
-- The scenario `value-of-this-line` in `.github/scripts/lint-config-check-test.sh` proves the schema is not the one of the line before. On a minor move, change it to a value the new line added.
+- The scenario `value-of-this-line` in the lint-config test in `.github/scripts/` proves the schema is not the one of the line before. On a minor move, change it to a value the new line added.
 - The check uses the hidden `--schema` flag of `golangci-lint config verify`. If a release drops the flag, the check fails on the bump PR and needs a new design, never a dropped check.
 - Installing the linter needs the network (the Go module proxy and the plugin build), and `task dev:lint*` reinstalls it on every run. Only the configuration check is offline: with the linter in `bin/`, `GOLANGCI_LINT=bin/golangci-lint bash .github/scripts/lint-config-check.sh` runs without a network.
 
@@ -71,7 +71,7 @@ No workflow, task file or `Makefile` line runs `golangci-lint config verify` on 
 
 - A relative `KUBEBUILDER_ASSETS` makes envtest suites fail to find the binaries.
 - A schema taken from `golangci.jsonschema.json` is one release behind.
-- Editing `.golangci-lint-version` without `.custom-gcl.yml` fails `task dev:lint:config`.
+- Editing `.golangci-lint-version` without the custom-gcl config fails `task dev:lint:config`.
 - Adding a bare `golangci-lint config verify` to CI reintroduces the schema download.
 - Registry-backed specs skip silently without `CUE_REGISTRY` outside PR CI; check the skip count.
 

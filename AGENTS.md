@@ -8,23 +8,23 @@ The OPM Kubernetes controller, Go, built with Kubebuilder. It reconciles the CRD
 | --- | --- |
 | `main` | All work. It lands by PR. release-please cuts releases from it (operator `1.0.0-beta.N`, module `0.x`). |
 
-Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the normative OpenSpec source). `Taskfile.yml` and `.tasks/*.yaml` win on how a command runs.
+Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the normative OpenSpec source). `Taskfile.yml` and `.tasks/` win on how a command runs.
 
 ## Repository rules
 
-- **Do not hand-edit generated files.** They are `api/v1alpha1/zz_generated.deepcopy.go`, `config/crd/bases/*.yaml`, `config/rbac/role.yaml`, `PROJECT`, and `modules/opm_operator/zz_generated_crds.cue` and `zz_generated_rbac.cue`. `task dev:manifests` writes the CUE pair from `config/` (through `task operator-module:generate`), and `task operator-module:drift` fails in `test.yml` when they or `config/` are stale.
+- **Do not hand-edit generated files.** They are `zz_generated*` in `api/v1alpha1/` and `modules/opm_operator/`, everything in `config/crd/bases/` and `config/rbac/`, and `PROJECT`. `task dev:manifests` writes the module's CUE data from `config/`, and `task operator-module:drift` fails in CI when that data or `config/` is stale.
 - **Keep `// +kubebuilder:scaffold:*` comments and license headers.**
 - **Type doc comments are public text.** They become the CRD descriptions and the resource reference on the site, so write them for a site reader.
 - **A PR that changes `modules/opm_operator` changes nothing else.** Otherwise its squash commit releases both units. The one forced exception is a CRD or RBAC change, which regenerates the module's `zz_generated_*` in the same PR.
 - **Commit type decides the release.** `docs`, `chore`, `test`, `ci` and `build` release nothing. A pin bump in `config/samples`, `hack`, `test/fixtures` or `internal/source/testdata` is `test(fixtures)`. Tooling under `hack/operator-module/` is `ci` or `build`, never `fix` or `feat`.
 - **A breaking change is `feat!` in the PR title** (beta rule), and it never moves the module path.
-- **Never hold a lock while calling the Kernel.** The process has one library Kernel and no gate. Every kernel verb builds in its own context and is safe to call concurrently (library ADR-007). Concurrency is bounded by one render slot pool (`--max-concurrent-renders`, default 1) and by the Platform reconciler building one generation at a time. `--render-timeout` (default 10m) lets a render outlive its reconcile: `render.Slots.Run` returns `ErrRenderTimedOut` while the render keeps its slot. A caller copies its inputs before `Run`, never reads what the closure writes after that error, and lets the closure own the files it reads. Detail: `docs/RENDERING.md`.
-- **`reconciledBy` in `docs-kit.cue` names the controller of each kind.** A renamed `Named(...)` or a new kind needs its entry. `task dev:test` fails until it has one.
+- **Never hold a lock while calling the Kernel.** The process has one library Kernel and no gate. Every kernel verb builds in its own context and is safe to call concurrently (library ADR-007). Concurrency is bounded by one render slot pool (`--max-concurrent-renders`, default 1) and by the Platform reconciler building one generation at a time. `--render-timeout` (default 10m) lets a render outlive its reconcile: the slot pool returns a timeout error while the render keeps its slot. A caller copies its inputs before the call, never reads what the render writes after that error, and lets the render own the files it reads. Detail: the rendering note in `docs/`.
+- **`reconciledBy` in `docs-kit.cue` names the controller of each kind.** A renamed controller or a new kind needs its entry. `task dev:test` fails until it has one.
 - **The opm CLI pin lives only in `.opm-cli-version`.** No workflow carries a version literal, so the release cascade moves it without editing workflows.
 - **Run `task deps:cascade` as `task -x deps:cascade`.** Without `-x`, go-task turns exit 3 (nothing to do) into 201.
 - **A fixture never has an `opmodel.dev/*` path.** CUE routes by longest prefix. Fixtures live under `testing.opmodel.dev`.
 - **Registry precedence on the binary:** `--registry`, then `OPM_REGISTRY`, then the built-in default. `CUE_REGISTRY` as pod env is ignored.
-- **Add new automation as a task in `.tasks/`, not in the `Makefile`.** `Taskfile.yml` is the source of truth. The `Makefile` is the Kubebuilder scaffold and still serves some local flows (`make run`, `make publish-test-module`).
+- **Add new automation as a task in `.tasks/`, not in the `Makefile`.** `Taskfile.yml` is the source of truth. The `Makefile` is the Kubebuilder scaffold and still serves some local flows.
 - **Enhancement references in comments:** default is none; the form is in the workspace enhancements reference. Repo extras: never in scaffold templates, generated files, fixtures a user copies or CLI output strings; in a CUE file the reference goes in a `// WHY` block, one blank line below the doc comment, because `cue lsp` hover and `cue def` replay a doc comment verbatim; no `Was:` rename history. `task cite-lint` checks this.
 
 ## Layout
@@ -32,10 +32,10 @@ Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the n
 ```text
 adr/            Architecture Decision Records
 api/            CRD types (v1alpha1), validation markers, generated DeepCopy
-cmd/            manager entrypoint (main.go), controller registration
+cmd/            manager entrypoint and controller registration
 config/         Kustomize: generated CRDs and RBAC, samples, manager, network-policy, prometheus
-docs/           RENDERING.md, design/ notes, site/ pages the docs bundle ships
-hack/           helper scripts, fixtures.sh, operator-module/ tooling
+docs/           rendering note, design/ notes, site/ pages the docs bundle ships
+hack/           helper scripts and operator-module/ tooling
 internal/       apply, controller, inventory, metrics, moduleacquire, platform, reconcile, render, shrink, source, status, version
 modules/        opm_operator/, the operator's own OPM module (its own release unit)
 openspec/       OpenSpec config, specs, changes
@@ -50,7 +50,7 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | Command | What it does | When |
 | --- | --- | --- |
 | `task` | List tasks | Orientation |
-| `task dev:manifests` | CRDs, RBAC and webhook manifests with controller-gen, then the operator module's data (needs `cue` at the `CUE_VERSION` of `test.yml`) | After API markers, `*_types.go` or an RBAC marker changes |
+| `task dev:manifests` | CRDs, RBAC and webhook manifests with controller-gen, then the operator module's data (needs `cue` at the `CUE_VERSION` that CI sets) | After API markers, type files or an RBAC marker changes |
 | `task dev:generate` | DeepCopy methods | Same |
 | `task dev:fmt dev:vet dev:test` | Format, vet, unit and integration tests with envtest | Minimum after a Go change in `cmd/` or `internal/` |
 | `task dev:lint` / `dev:lint:fix` | golangci-lint | Before you finish a non-trivial change |
@@ -60,7 +60,7 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | `task cascade:wiring:check` | Offline check of the cascade workflows | After any edit under `.github/workflows/` |
 | `task cite-lint` | Comment rule on Go and CUE files | Before a PR that adds comments |
 | `task operator:binary` / `operator:run` | Build `bin/manager` / run against the current kubeconfig | Local run |
-| `task operator:installer` | Render `dist/install.yaml` from `config/default` | After manifest or RBAC changes |
+| `task operator:installer` | Render the install manifest into `dist/` from `config/default` | After manifest or RBAC changes |
 | `task dev:e2e` | e2e on Kind, then cleanup | Needs Kind; say so when skipped |
 | `task operator-module:drift` | Fail on stale `config/` or module data; `REF=<tag>` checks the data against that tag's `config/` | After a CRD or RBAC change |
 | `task operator-module:generate` | Regenerate the module's CRD and RBAC data from `config/` (`dev:manifests` runs it) | After a CRD or RBAC change |
@@ -72,7 +72,7 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | `task examples:pin` / `examples:check` | Re-pin fixture consumers / run the publish gates | After a fixture bump |
 | `task -x deps:cascade` | Move upstream pins in the working tree | Cascade PRs |
 
-Go version: `go.mod`. Dependencies: controller-runtime, Kubebuilder APIs, Flux source types, Ginkgo v2, Gomega. Envtest binaries install into `./bin` via `.tasks/tools.yaml`. `task dev:lint*` needs the network.
+Go version: `go.mod`. Dependencies: controller-runtime, Kubebuilder APIs, Flux source types, Ginkgo v2, Gomega. Envtest binaries install into `./bin` via `.tasks/`. `task dev:lint*` needs the network.
 
 ## Style
 
