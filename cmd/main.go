@@ -125,7 +125,7 @@ func main() {
 			"spec.serviceAccountName. The SA is resolved in the resource's own namespace (not the "+
 			"controller's); it must exist in each tenant namespace or the reconcile stalls with "+
 			"ImpersonationFailed. Empty (default) preserves today's behavior: fall back to the "+
-			"controller's own identity. See docs/TENANCY.md for the recommended per-namespace SA pattern.")
+			"controller's own identity. See docs/site/operating for the per-namespace SA pattern.")
 	flag.IntVar(&maxConcurrentRenders, "max-concurrent-renders", 1,
 		"Maximum number of renders in flight at once, ModuleInstances and ModulePackages together; each "+
 			"of the two controllers also reconciles up to this many objects of its kind. Renders share "+
