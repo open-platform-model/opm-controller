@@ -76,7 +76,7 @@ tasks:
         go test $(go list ./... | grep -v /e2e) -coverprofile cover.out
 
   test:one:
-    desc: 'Run one test package or one suite entrypoint. Vars: PKG (default ./internal/controller), RUN (go test -run regexp), FOCUS (Ginkgo focus). Example: task dev:test:one RUN=TestControllers FOCUS="ModuleInstance Controller"'
+    desc: 'Run one test package or one suite entrypoint. Vars: TEST_PKG (default ./internal/controller), RUN (go test -run regexp), FOCUS (Ginkgo focus). Example: task dev:test:one RUN=TestControllers FOCUS="ModuleInstance Controller"'
     deps: [":tool:setup-envtest", ":tool:kustomize"]
     env:
       CUE_REGISTRY: '{{.TEST_CUE_REGISTRY | default .GHCR_CUE_REGISTRY}}'
@@ -84,7 +84,7 @@ tasks:
     cmds:
       - |
         KUBEBUILDER_ASSETS="$("{{.ENVTEST}}" use {{.ENVTEST_K8S_VERSION}} --bin-dir "{{.LOCALBIN}}" -p path)" \
-        go test {{.PKG | default "./internal/controller"}}{{if .RUN}} -run '{{.RUN}}'{{end}}{{if .FOCUS}} -ginkgo.focus='{{.FOCUS}}'{{end}}
+        go test {{.TEST_PKG | default "./internal/controller"}}{{if .RUN}} -run '{{.RUN}}'{{end}}{{if .FOCUS}} -ginkgo.focus='{{.FOCUS}}'{{end}}
 
   test:seeded:
     desc: 'Run unit and integration tests against the tree''s fixtures: seed the local registry from test/fixtures/modules (registry from `task registry:start` at the workspace root), then test with the MIXED mapping and OPM_TEST_REGISTRY_FORCE=1. This is what PR CI runs.'

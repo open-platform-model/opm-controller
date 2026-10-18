@@ -29,7 +29,7 @@ Pick the lightest tier that proves the behaviour.
 
 ## Run one test
 
-`task dev:test:one` runs one package or suite entrypoint (vars `PKG`, `RUN`, `FOCUS`) with the envtest assets set. The raw `go test` forms follow, for e2e and for hand runs. The envtest binaries are installed as a dependency of `task dev:test`: run it once to provision them. The Kubernetes version is derived from `k8s.io/api` in `go.mod` by `ENVTEST_K8S_VERSION` in `Taskfile.yml`.
+`task dev:test:one` runs one package or suite entrypoint (vars `TEST_PKG`, `RUN`, `FOCUS`) with the envtest assets set. The raw `go test` forms follow, for e2e and for hand runs. The envtest binaries are installed as a dependency of `task dev:test`: run it once to provision them. The Kubernetes version is derived from `k8s.io/api` in `go.mod` by `ENVTEST_K8S_VERSION` in `Taskfile.yml`.
 
 ```bash
 export KUBEBUILDER_ASSETS="$(./bin/setup-envtest use <k8s-minor> --bin-dir "$PWD/bin" -p path)"
