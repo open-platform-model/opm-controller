@@ -29,13 +29,11 @@ Pick the lightest tier that proves the behaviour.
 
 ## Run one test
 
-There is no single-test task; use `go test`. The envtest binaries are installed as a dependency of `task dev:test`: run it once to provision them. The Kubernetes version is derived from `k8s.io/api` in `go.mod` by `ENVTEST_K8S_VERSION` in `Taskfile.yml`.
+`task dev:test:one` runs one package or suite entrypoint (vars `PKG`, `RUN`, `FOCUS`) with the envtest assets set. The raw `go test` forms follow, for e2e and for hand runs. The envtest binaries are installed as a dependency of `task dev:test`: run it once to provision them. The Kubernetes version is derived from `k8s.io/api` in `go.mod` by `ENVTEST_K8S_VERSION` in `Taskfile.yml`.
 
 ```bash
 export KUBEBUILDER_ASSETS="$(./bin/setup-envtest use <k8s-minor> --bin-dir "$PWD/bin" -p path)"
 go test ./internal/controller                                   # one package
-go test ./internal/controller -run <suite-func>                 # one suite entrypoint
-go test ./internal/controller -run <suite-func> -ginkgo.focus="ModuleInstance Controller"
 go test -tags=e2e ./test/e2e -v -ginkgo.v                       # e2e only
 KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run <suite-func> -ginkgo.focus="should run successfully" -v -ginkgo.v
 ```
