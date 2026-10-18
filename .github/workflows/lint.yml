@@ -44,7 +44,7 @@ jobs:
 
       # The key-holding cascade jobs keep their contract shape, every .github
       # reference carries one pinned SHA on .github main, and this copy of the
-      # check is the file at that SHA (.github README, "The wiring check").
+      # check is the file at that SHA (.github references/cascade-wiring-check.md).
       # Only SHA-pinned actions may come before this step. Uses the runner's
       # mikefarah yq.
       - name: Verify the cascade wiring
