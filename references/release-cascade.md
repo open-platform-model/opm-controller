@@ -41,7 +41,7 @@ The `publish` job publishes only when `CASCADE_DRY_RUN` is exactly `false` and t
 
 ## The wiring check
 
-The wiring check script in `.tasks/cascade/` is a byte-identical copy of the `.github` file at the pin. This repo's values are in the config beside it (described in the `.github` README).
+The wiring check script in `.tasks/cascade/` is a byte-identical copy of the `.github` file at the pin. This repo's values are in the config beside it (described in `.github` `references/cascade-wiring-check.md`).
 
 - Offline: `task cascade:wiring:check` (needs mikefarah `yq` v4). Run it after any edit under `.github/workflows/`.
 - CI form: the `Lint` job runs the wiring check script with `--pin-on-main` with `GH_TOKEN`. Only SHA-pinned actions from other repos may come before it; every `run:` step goes after it.
