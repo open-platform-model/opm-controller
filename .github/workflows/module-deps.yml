@@ -1,7 +1,7 @@
 name: Operator module deps
 
-# The operator module's own cascade PR (deps-cascade, "The operator module's
-# pin move opens its own pull request"). The repository's cascade
+# The operator module's own cascade PR (deps-cascade,
+# "module-deps.yml opens one pull request for the module's pin move"). The repository's cascade
 # (deps-cascade.yml, task deps:cascade) never touches modules/opm_operator; this
 # workflow moves only the module's opm catalog and core with
 # `task -x deps:cascade:module` and opens the move as its own fix(deps) PR on

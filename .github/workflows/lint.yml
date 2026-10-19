@@ -61,8 +61,9 @@ jobs:
           && (github.head_ref || github.ref_name) != 'release-please--branches--main--components--opm_operator'
         run: task deps:release-check
 
-      # The operator module's release gate (operator-module-release, "Module
-      # release gate"), on its own release PR only. A step, not a job: a
+      # The operator module's release gate (operator-module-release, "The module
+      # release check runs in Lint on the module's release PR"), on its own
+      # release PR only. A step, not a job: a
       # skipped job reports as passing, a failing step fails Lint.
       - name: Operator module release gate (module release PR only)
         if: (github.head_ref || github.ref_name) == 'release-please--branches--main--components--opm_operator'

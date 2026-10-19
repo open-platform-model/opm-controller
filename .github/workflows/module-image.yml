@@ -2,7 +2,7 @@ name: Operator module image PR
 
 # Opens or updates the PR on module/operator-image that moves the operator
 # module to a published operator release (operator-module-release, "An
-# operator release opens the PR that moves the module's image"). release.yml's
+# operator release opens one pull request on module/operator-image"). release.yml's
 # module-image-pr job calls it after every operator release; dispatch it by
 # hand with the release tag to recover a missed or failed run:
 #
