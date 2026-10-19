@@ -139,7 +139,15 @@ format) and the clause or scenario THEN line that carries each. Rules of the led
   default or an exact value may move this way. A clause that adds or changes a condition stays
   in the body. A separate behavior goes to b or c2.
 
-Ledgers written so far: unit 1 (opm-operator-B2), below.
+Ledgers written so far: unit 1 (opm-operator-B2) and unit 2 (opm-operator-B4), below.
+
+Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
+
+- Em-dash characters of the old bodies (four places: `module-instance-ownership` "The operator acknowledges a CLI-owned instance with a single condition", `platform-reconciler` "Generate and build the singleton Platform on reconcile", `kernel-module-renderer` "Adapt compiled output to operator resources", twice) are written as `:` or `,` in the new bodies, because the workspace bans the character. The word and the order stay.
+- A sentence whose subject was "It" gets the subject of the sentence before it, copied (the "Edit" column shows it).
+- Where a body relies on a sibling for a condition, the condition is copied from the old text in front of its sentence (the "Edit" column shows it).
+- A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`, the identity sentence of `Single-slot identity-keyed store for concurrent read`) is cut at a list boundary; the parts are verbatim and the head is repeated.
+- `Source:` lines: the whole line stays where it fits with the whole rule. Where it does not, it becomes `Source: enhancement 0012.` or `Source: enhancement 0013.` (titles dropped, no issue or PR reference lost), and at least one body of the same old requirement carries the whole line.
 
 ### Ledger: deps-cascade
 
@@ -369,6 +377,9 @@ Clause table (old clause, new requirement, sentence of its body):
 | The module is a release unit of its own | a commit with no file under the module directory proposes no module release | A commit releases only the package whose files it changes | 2 |
 | The module is a release unit of its own | module versions do not follow the operator's or the cli's | The module is a second release-please package | 3 |
 | The module version follows the 0.x bump rule on the v0 path | definition of a breaking module release (three conditions) | Module versions on the v0 path are 0.y.z | 2 |
+| Healthy is independent of Ready | "`Healthy` SHALL be independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." | "`Healthy` is independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." (status-conditions, "The Healthy condition vocabulary") |
+| A failure is transient when its error chain holds a registry fetch failure | "A failure SHALL be transient when its error chain holds ..." | "A failure is transient when its error chain holds ..." (platform-reconciler, "Transient failures retry faster than semantic failures") |
+| The demand is read only from a successful render | "The demand SHALL be read only from a successful render; this requirement does not change when the reconciler writes it ..." | "The demand is read only from a successful render; this requirement does not change when the reconciler writes it ..." (kernel-module-renderer, "The render reports the instance's contract demand from the kernel") |
 | The module version follows the 0.x bump rule on the v0 path | on `@v0` every version `0.y.z`; breaking raises `y` and resets `z`; other releases raise `z`, `feat` included | Module versions on the v0 path are 0.y.z | 1 |
 | The module version follows the 0.x bump rule on the v0 path | first module release `0.1.0` | The first module release is 0.1.0 | 1 |
 | The module version follows the 0.x bump rule on the v0 path | move to `@v1` only with `1.0.0` no earlier than the operator's first GA | The module moves to the v1 path only after operator GA | 1 |
@@ -547,6 +558,448 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The event of a stalled render failure stays inside the event note limit | 714 | 358, 278, 154 |
 | Events emitted while a deletion waits | 507 | 393, 382 |
 | Events emitted when a deletion is released without confirmation | 606 | 366, 261 |
+
+### Ledger: status-conditions
+
+Form c2 for every requirement below except where marked b: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. Form b for "The Ready message counts the objects adopted by another instance": the parent stays (MODIFIED, shorter body, both of its scenarios in place) and the split-off sentence is ADDED under a new name, because `events-emission` quotes the parent header. `grep -rn --exclude-dir=archive` for each old header found no reference to fix, except the quotation in `events-emission` (kept valid by form b). Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Reason constants available | The existing reason constants stay defined, Reason constants available | no (byte equal, checked by the item 3 command) |
+| Skew refusal reason is available | The SkewRefused reason constant is defined, Skew refusal reason is available | no (byte equal, checked by the item 3 command) |
+| Duplicate-identity reason is available | The DuplicateIdentities reason constant is defined, Duplicate-identity reason is available | no (byte equal, checked by the item 3 command) |
+| Reconcile-panic reason is available | The ReconcilePanic reason constant is defined, Reconcile-panic reason is available | no (byte equal, checked by the item 3 command) |
+| Render-timeout reason is available | The RenderTimedOut reason constant is defined, Render-timeout reason is available | no (byte equal, checked by the item 3 command) |
+| The constants are available | The Healthy condition type and its reasons are defined, The constants are available | no (byte equal, checked by the item 3 command) |
+| Marking Ready leaves Healthy alone | Healthy is independent of Ready, Marking Ready leaves Healthy alone | no (byte equal, checked by the item 3 command) |
+| The helper sets only Healthy | One helper sets Healthy and no other condition, The helper sets only Healthy | no (byte equal, checked by the item 3 command) |
+| A refused claim on a ModuleInstance | A ClaimConflict reconcile does not stall, prune or record, A refused claim on a ModuleInstance | no (byte equal, checked by the item 3 command) |
+| The conflict clears when the render fits the claim again | A refused claim recreate sets the ClaimConflict reason, The conflict clears when the render fits the claim again | no (byte equal, checked by the item 3 command) |
+| Delete recreates the claim | A refused claim recreate sets the ClaimConflict reason, Delete recreates the claim | no (byte equal, checked by the item 3 command) |
+| A claim kept by the delete guard | The ClaimConflict message after the delete guard kept the claim, A claim kept by the delete guard | no (byte equal, checked by the item 3 command) |
+| The reason on a refused second change | The IdentityChangeUnsettled message names the way out, The reason on a refused second change | no (byte equal, checked by the item 3 command) |
+| The reason on a refused apply | The ApplyRefused message states the count and carries the library messages, The reason on a refused apply | no (byte equal, checked by the item 3 command) |
+| A let-go object does not set the reason | A refused apply sets the ApplyRefused reason, A let-go object does not set the reason | no (byte equal, checked by the item 3 command) |
+| Waiting is not stalled | DeletionInProgress is set while the cleanup waits, Waiting is not stalled | no (byte equal, checked by the item 3 command) |
+| Blocked is stalled and names the way out | DeletionBlocked is set when an object has not gone for 10 minutes, Blocked is stalled and names the way out | no (byte equal, checked by the item 3 command) |
+| A long list is cut | A deletion wait message lists at most ten objects, A long list is cut | no (byte equal, checked by the item 3 command) |
+| The finalizer that holds the object is named first | A deletion wait message names the finalizer that holds the object first, The finalizer that holds the object is named first | no (byte equal, checked by the item 3 command) |
+| Only the collector's finalizer | A deletion wait message names the finalizer that holds the object first, Only the collector's finalizer | no (byte equal, checked by the item 3 command) |
+| The count after a let-go | The Ready message counts the objects adopted by another instance, The count after a let-go | no (byte equal, checked by the item 3 command) |
+| The count goes away | The Ready message counts the objects adopted by another instance, The count goes away | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A claim refused by the check before the apply | The ClaimConflict message names the refused field when the check refused the claim | the clause of that requirement body |
+| A ClaimConflict reconcile prunes and records nothing | A ClaimConflict reconcile does not stall, prune or record | the clause of that requirement body |
+| The IdentityChangeUnsettled message carries no enhancement reference | A refused second identity change sets the IdentityChangeUnsettled reason | the clause of that requirement body |
+| A skipped render keeps the Ready message | A reconcile that skips its render leaves the Ready message as written | the clause of that requirement body |
+| The deletion reasons are defined | The deletion wait reasons are defined | the clause of that requirement body |
+| An object that is not being deleted carries neither reason | The deletion wait reasons are defined | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Reason constants | list item `SkewRefused` (Ready=False: the platform's skew policy is ...) | The SkewRefused reason constant is defined | 1 | list cut at an item boundary; the sentence head "The status package SHALL define the reason constants used on the Ready condition, including" repeated; none else |
+| Reason constants | list item `DuplicateIdentities` (... enhancement 0015 ("One registration per module")) | The DuplicateIdentities reason constant is defined | 1 | list cut at an item boundary; head repeated; the citation stays in the item; none else |
+| Reason constants | list item `ReconcilePanic` (Ready=False, Reconciling=True: ...) | The ReconcilePanic reason constant is defined | 1 | list cut at an item boundary; head repeated; none else |
+| Reason constants | list item `RenderTimedOut` (Ready=False, Reconciling=True, not stalled: ...) | The RenderTimedOut reason constant is defined | 1 | list cut at an item boundary; head repeated; none else |
+| Reason constants | "beside the existing `ResolutionFailed`, `RenderFailed`, `PlatformNotReady` and the Platform reasons `Generated`, `BuildFailed`, `GenerateFailed`" | The existing reason constants stay defined | 1 | head repeated, the including-list left out; none else |
+| The Healthy condition vocabulary | The `internal/status` package SHALL define the condition type `Healthy... | The Healthy condition type and its reasons are defined | 1 | none |
+| The Healthy condition vocabulary | It SHALL provide one helper that sets `Healthy` from a status, a reaso... | One helper sets Healthy and no other condition | 1 | -It +The `internal/status` package |
+| The Healthy condition vocabulary | `Healthy` is independent of `Ready`: no helper that sets `Ready`, `Rec... | Healthy is independent of Ready | 1 | -is +SHALL be |
+| The ClaimConflict reason | The status package SHALL define the reason constant `ClaimConflict`. | A refused claim recreate sets the ClaimConflict reason | 1 | none |
+| The ClaimConflict reason | A ModuleInstance or ModulePackage reconcile whose apply refused the fo... | A refused claim recreate sets the ClaimConflict reason | 2 | none |
+| The ClaimConflict reason | A ModuleInstance or ModulePackage reconcile whose apply refused the fo... | The ClaimConflict message names the refused field when the c... | 1 | none |
+| The ClaimConflict reason | A ModuleInstance or ModulePackage reconcile whose apply refused the fo... | The ClaimConflict message after the delete guard kept the cl... | 1 | none |
+| The ClaimConflict reason | A ModuleInstance or ModulePackage reconcile whose apply refused the fo... | A ClaimConflict reconcile does not stall, prune or record | 1 | none |
+| The ClaimConflict reason | The message MUST name the claim as `<namespace>/<name>`, MUST say that... | A refused claim recreate sets the ClaimConflict reason | 3 | none |
+| The ClaimConflict reason | When the check before the apply refused the claim, the message MUST al... | The ClaimConflict message names the refused field when the c... | 2 | none |
+| The ClaimConflict reason | When the resource manager's delete guard kept the claim (the claim cha... | The ClaimConflict message after the delete guard kept the cl... | 2 | none |
+| The ClaimConflict reason | The reconcile MUST NOT set `Stalled`: it MUST retry on the bounded bac... | A ClaimConflict reconcile does not stall, prune or record | 2 | none |
+| The ClaimConflict reason | The reconcile MUST NOT prune, MUST NOT record a new inventory and MUST... | A ClaimConflict reconcile does not stall, prune or record | 3 | none |
+| The IdentityChangeUnsettled reason | The status package SHALL define the reason constant `IdentityChangeUns... | A refused second identity change sets the IdentityChangeUnse... | 1 | none |
+| The IdentityChangeUnsettled reason | The status package SHALL define the reason constant `IdentityChangeUns... | The IdentityChangeUnsettled message names the way out | 1 | none |
+| The IdentityChangeUnsettled reason | A ModuleInstance or ModulePackage reconcile that refuses a second chan... | A refused second identity change sets the IdentityChangeUnse... | 2 | none |
+| The IdentityChangeUnsettled reason | A ModuleInstance or ModulePackage reconcile that refuses a second chan... | The IdentityChangeUnsettled message names the way out | 2 | none |
+| The IdentityChangeUnsettled reason | The message MUST say that an earlier change of the instance identity i... | The IdentityChangeUnsettled message names the way out | 3 | none |
+| The IdentityChangeUnsettled reason | The message MUST NOT carry an enhancement reference. | A refused second identity change sets the IdentityChangeUnse... | 3 | none |
+| The ApplyRefused reason | The status package SHALL define the reason constant `ApplyRefused`. | A refused apply sets the ApplyRefused reason | 1 | none |
+| The ApplyRefused reason | A ModuleInstance or ModulePackage reconcile that the apply verdict ref... | A refused apply sets the ApplyRefused reason | 2 | none |
+| The ApplyRefused reason | A ModuleInstance or ModulePackage reconcile that the apply verdict ref... | The ApplyRefused message states the count and carries the li... | 1 | -that;  +`ApplyRefused` |
+| The ApplyRefused reason | The message MUST state how many objects were refused and that nothing... | The ApplyRefused message states the count and carries the li... | 2 | none |
+| The ApplyRefused reason | The message MUST NOT carry an enhancement reference. | A refused apply sets the ApplyRefused reason | 3 | none |
+| The Ready message counts the objects ado... | When a ModuleInstance or ModulePackage reconcile renders, ends `Ready=... | The Ready message counts the objects adopted by another inst... | 1 | none |
+| The Ready message counts the objects ado... | When it found none, the message MUST NOT mention such objects. | The Ready message counts the objects adopted by another inst... | 2 | none |
+| The Ready message counts the objects ado... | A reconcile that skips its render MUST leave the message as the last r... | A reconcile that skips its render leaves the Ready message a... | 1 |  +of the `Ready` condition |
+| The Ready message counts the objects ado... | The message MUST NOT carry an enhancement reference. | The Ready message counts the objects adopted by another inst... | 3 | none |
+| The Ready message counts the objects ado... | Source: enhancement 0012 ("The apply guard runs on every apply, refusi... | A reconcile that skips its render leaves the Ready message a... | 2 | none |
+| The deletion wait reasons | The `internal/status` package MUST define the reasons `DeletionInProgr... | The deletion wait reasons are defined | 1 | none |
+| The deletion wait reasons | `DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=T... | DeletionInProgress is set while the cleanup waits | 1 | none |
+| The deletion wait reasons | `DeletionBlocked` MUST be set with `Ready=False` and `Stalled=True`: a... | DeletionBlocked is set when an object has not gone for 10 mi... | 1 | none |
+| The deletion wait reasons | Both messages MUST name the remaining objects and their finalizers; th... | DeletionBlocked is set when an object has not gone for 10 mi... | 2 | none |
+| The deletion wait reasons | Both messages MUST name the remaining objects and their finalizers; th... | A deletion wait message lists at most ten objects | 1 | none |
+| The deletion wait reasons | A message MUST list at most ten objects and say how many more remain. | A deletion wait message lists at most ten objects | 2 | none |
+| The deletion wait reasons | A message MUST list at most ten objects and say how many more remain. | A deletion wait message names the finalizer that holds the o... | 1 | none |
+| The deletion wait reasons | For each object it MUST name at most three finalizers and count the re... | A deletion wait message names the finalizer that holds the o... | 2 | none |
+| The deletion wait reasons | When `foregroundDeletion` is the only finalizer, the message MUST say... | A deletion wait message names the finalizer that holds the o... | 3 | none |
+| The deletion wait reasons | Neither reason MUST appear on an object that is not being deleted. | The deletion wait reasons are defined | 2 | none |
+
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Reason constants | 1769 | 358, 481, 447, 491, 343 |
+| The Healthy condition vocabulary | 1172 | 516, 340, 347 |
+| The ClaimConflict reason | 2477 | 888, 492, 794, 1125 |
+| The IdentityChangeUnsettled reason | 829 | 479, 776 |
+| The ApplyRefused reason | 1094 | 408, 838 |
+| The deletion wait reasons | 2401 | 628, 424, 556, 382, 937 |
+| The Ready message counts the objects adopted by another instance | 1214 | 945, 438 |
+
+### Ledger: kubernetes-tier-adoption
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| No local copy | The operator takes the Kubernetes object and label code from the library and declares no copy, No local copy | no (byte equal, checked by the item 3 command) |
+| Lint refuses the old path | Lint refuses an import of the operator's earlier object copy, Lint refuses the old path | no (byte equal, checked by the item 3 command) |
+| Digest and apply objects from one export | The reconciler exports a render once and takes the digest, the objects and the entries from it, Digest and apply objects from one export | no (byte equal, checked by the item 3 command) |
+| Export failure keeps its reason | A failure of the export is reported by the conversion, Export failure keeps its reason | no (byte equal, checked by the item 3 command) |
+| Decode failure keeps its reason | A failure of the export is reported by the conversion, Decode failure keeps its reason | no (byte equal, checked by the item 3 command) |
+| Inventory entries from the same export | The reconciler exports a render once and takes the digest, the objects and the entries from it, Inventory entries from the same export | no (byte equal, checked by the item 3 command) |
+| No local copy | The operator takes the Kubernetes object and label code from the library and declares no copy, No local copy | no (byte equal, checked by the item 3 command) |
+| A copy in the conversion package fails the tests | The operator declares no inventory code beyond the conversion, A copy in the conversion package fails the tests | no (byte equal, checked by the item 3 command) |
+| No local evaluator | The Healthy condition code declares no readiness rule of its own, No local evaluator | no (byte equal, checked by the item 3 command) |
+| The prune's outcome is the verdict's | A prune or cleanup delete follows a delete verdict of the library's ownership package, The prune's outcome is the verdict's | no (byte equal, checked by the item 3 command) |
+| A new delete outside the listed places fails the tests | A test keeps the places that may delete a cluster object closed, A new delete outside the listed places fails the tests | no (byte equal, checked by the item 3 command) |
+| A method of the same name on another type is not a delete | A test keeps the places that may delete a cluster object closed, A method of the same name on another type is not a delete | no (byte equal, checked by the item 3 command) |
+| The plan's order and propagation reach the API server unchanged | The deletion plan is built by the library constructor and performed by one function, The plan's order and propagation reach the API server unchanged | no (byte equal, checked by the item 3 command) |
+| The forced recreate is not a plan step | The forced recreate delete asks no verdict and carries the UID precondition, The forced recreate is not a plan step | no (byte equal, checked by the item 3 command) |
+| The apply's outcome is the verdict's | A write follows an apply verdict of the library's ownership package, The apply's outcome is the verdict's | no (byte equal, checked by the item 3 command) |
+| A new write outside the listed places fails the tests | A test keeps the places that may write a cluster object closed, A new write outside the listed places fails the tests | no (byte equal, checked by the item 3 command) |
+| No write of the adopt annotation | The operator never writes the adopt annotation, No write of the adopt annotation | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The stale set and the digests come from the library | The operator computes the inventory stale set and the digests only with the library | the clause of that requirement body |
+| The operator passes the fetched object to the library | The operator judges the readiness of an inventory object only with the library's health package | the clause of that requirement body |
+| The operator's own resources keep their own condition checks | The health package covers applied inventory objects only | the clause of that requirement body |
+| The install admission input is not set | The operator sets no install admission input in a delete verdict | the clause of that requirement body |
+| A delete is an action of the lifecycle transition | Prune and cleanup deletes are lifecycle actions of the library | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| The operator uses the library's object a... | The operator SHALL take the Kubernetes resource wrapper over the kerne... | The operator takes the Kubernetes object and label code from... | 1 | none |
+| The operator uses the library's object a... | It SHALL declare no type, constant or function of its own for any of t... | The operator takes the Kubernetes object and label code from... | 2 | none |
+| The operator uses the library's object a... | Its lint SHALL refuse an import of the package path that held its earl... | Lint refuses an import of the operator's earlier object copy | 1 | none |
+| The operator uses the library's object a... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | Lint refuses an import of the operator's earlier object copy | 2 | none |
+| The reconciler converts a render with on... | The reconciler SHALL convert a render's resources with one call to the... | The reconciler exports a render once and takes the digest, t... | 1 | none |
+| The reconciler converts a render with on... | It SHALL take the render digest, the unstructured objects it applies a... | The reconciler exports a render once and takes the digest, t... | 2 | -It +The reconciler |
+| The reconciler converts a render with on... | It SHALL drop the rendered CUE values as soon as the export returns, s... | The reconciler exports a render once and takes the digest, t... | 3 | -It +The reconciler |
+| The reconciler converts a render with on... | No other code path SHALL export a rendered resource. | The reconciler exports a render once and takes the digest, t... | 4 | none |
+| The reconciler converts a render with on... | A failure of the export SHALL be reported by the conversion: a value t... | A failure of the export is reported by the conversion | 1 | none |
+| The reconciler converts a render with on... | With the renderer's export gone, the conversion is the first place suc... | A failure of the export is reported by the conversion | 2 | none |
+| The operator uses the library's inventor... | The operator SHALL compute the inventory stale set, the inventory dige... | The operator computes the inventory stale set and the digest... | 1 | none |
+| The operator uses the library's inventor... | It SHALL build inventory entries with that package's `NewEntry`. | The operator computes the inventory stale set and the digest... | 2 | -It +The operator |
+| The operator uses the library's inventor... | It SHALL declare no entry constructor, identity relation, stale-set fu... | The operator declares no inventory code beyond the conversio... | 1 | -It +The operator |
+| The operator uses the library's inventor... | Its only inventory code is the conversion between the API's `Inventory... | The operator declares no inventory code beyond the conversio... | 2 | none |
+| The operator uses the library's inventor... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator computes the inventory stale set and the digest... | 3 | none |
+| The operator judges the health of invent... | The operator SHALL judge the readiness of an object in `status.invento... | The operator judges the readiness of an inventory object onl... | 1 | none |
+| The operator judges the health of invent... | The operator SHALL judge the readiness of an object in `status.invento... | The health package covers applied inventory objects only | 1 | none |
+| The operator judges the health of invent... | The code that computes the `Healthy` condition SHALL read no status fi... | The Healthy condition code declares no readiness rule of its... | 1 | none |
+| The operator judges the health of invent... | The operator fetches each object with its own client and passes it in,... | The operator judges the readiness of an inventory object onl... | 2 | none |
+| The operator judges the health of invent... | This requirement covers applied inventory objects only; the operator's... | The health package covers applied inventory objects only | 2 | none |
+| The operator judges the health of invent... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator judges the readiness of an inventory object onl... | 3 | none |
+| The operator judges the health of invent... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The Healthy condition code declares no readiness rule of its... | 2 | none |
+| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | A prune or cleanup delete follows a delete verdict of the li... | 1 | none |
+| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The operator sets no install admission input in a delete ver... | 1 | none |
+| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | Prune and cleanup deletes are lifecycle actions of the libra... | 1 | none |
+| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The forced recreate delete asks no verdict and carries the U... | 1 | none |
+| The operator decides prune and cleanup d... | The operator MUST take the kinds that are never deleted from the same... | A prune or cleanup delete follows a delete verdict of the li... | 2 | none |
+| The operator decides prune and cleanup d... | The operator MUST NOT set the verdict's install admission input. | The operator sets no install admission input in a delete ver... | 2 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A prune or cleanup delete follows a delete verdict of the li... | 3 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator sets no install admission input in a delete ver... | 3 | none |
+| The operator decides prune and cleanup d... | Each such delete MUST be an action the library's `opm/k8s/lifecycle` t... | Prune and cleanup deletes are lifecycle actions of the libra... | 2 | none |
+| The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | The deletion plan is built by the library constructor and pe... | 1 | none |
+| The operator decides prune and cleanup d... | One function of the operator MUST perform the plan's reads and deletes... | The deletion plan is built by the library constructor and pe... | 2 | none |
+| The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced re... | The forced recreate delete asks no verdict and carries the U... | 2 | none |
+| The operator decides prune and cleanup d... | A test MUST keep the list of places that may delete a cluster object c... | A test keeps the places that may delete a cluster object clo... | 1 | none |
+| The operator decides prune and cleanup d... | It MUST find a delete by the type of the receiver, a Kubernetes client... | A test keeps the places that may delete a cluster object clo... | 2 | -It +A test |
+| The operator decides every apply only th... | Every write of a cluster object that the operator makes on behalf of a... | A write follows an apply verdict of the library's ownership... | 1 | none |
+| The operator decides every apply only th... | The operator MUST declare no ownership rule of its own for an apply: i... | A write follows an apply verdict of the library's ownership... | 2 | none |
+| The operator decides every apply only th... | The operator MUST NOT set, change or remove the `opmodel.dev/adopt` an... | The operator never writes the adopt annotation | 1 | none |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator never writes the adopt annotation | 2 | none |
+| The operator decides every apply only th... | A test MUST keep the list of places that may write a cluster object cl... | A test keeps the places that may write a cluster object clos... | 1 | none |
+| The operator decides every apply only th... | It MUST find a write by the type of the receiver, as the test of the d... | A test keeps the places that may write a cluster object clos... | 2 | -It +A test |
+
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| The operator uses the library's object and label packages and keeps no copy | 1312 | 792, 545 |
+| The reconciler converts a render with one export | 1689 | 931, 781 |
+| The operator uses the library's inventory package and keeps no copy | 1191 | 628, 838 |
+| The operator judges the health of inventory objects only through the library's health package | 1250 | 634, 748, 636 |
+| The operator decides prune and cleanup deletes only through the library's ownership package | 2481 | 703, 621, 711, 428, 684, 725 |
+| The operator decides every apply only through the library's ownership package | 1867 | 629, 624, 642 |
+
+### Ledger: module-instance-ownership
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Field accepts the two enum values | ModuleInstance carries an optional owner field with two values, Field accepts the two enum values | no (byte equal, checked by the item 3 command) |
+| Field is optional with no default | ModuleInstance carries an optional owner field with two values, Field is optional with no default | no (byte equal, checked by the item 3 command) |
+| Empty owner is reconciled as operator-managed | An absent or empty owner is operator-managed, Empty owner is reconciled as operator-managed | no (byte equal, checked by the item 3 command) |
+| Unknown owner values cannot reach the reconciler | ModuleInstance carries an optional owner field with two values, Unknown owner values cannot reach the reconciler | no (byte equal, checked by the item 3 command) |
+| CLI-owned instance is not reconciled and gets no finalizer | A CLI-owned instance is not reconciled and gets no finalizer, CLI-owned instance is not reconciled and gets no finalizer | no (byte equal, checked by the item 3 command) |
+| Deleting a CLI-owned instance is a no-op for the operator | A CLI-owned instance is not reconciled and gets no finalizer, Deleting a CLI-owned instance is a no-op for the operator | no (byte equal, checked by the item 3 command) |
+| Deleting a CLI-owned instance that carries the finalizer releases it | A CLI-owned instance that carries the finalizer releases it when it is deleted, Deleting a CLI-owned instance that carries the finalizer releases it | no (byte equal, checked by the item 3 command) |
+| A live CLI-owned instance keeps a leftover finalizer | A live CLI-owned instance keeps its finalizers, A live CLI-owned instance keeps a leftover finalizer | no (byte equal, checked by the item 3 command) |
+| Operator-managed instances are unaffected | A CLI-owned instance is not reconciled and gets no finalizer, Operator-managed instances are unaffected | no (byte equal, checked by the item 3 command) |
+| ManagedExternally condition is set | The status package exposes the ManagedExternally reason and its helper, ManagedExternally condition is set | no (byte equal, checked by the item 3 command) |
+| No observedGeneration and no CLI-written status is touched | A CLI-owned instance is acknowledged with Ready Unknown and no other status, No observedGeneration and no CLI-written status is touched | no (byte equal, checked by the item 3 command) |
+| Re-acknowledgement is a no-op | A CLI-owned instance is acknowledged with Ready Unknown and no other status, Re-acknowledgement is a no-op | no (byte equal, checked by the item 3 command) |
+| Fixed coordinates identify the instance | The fixed coordinates identify the operator's own instance, Fixed coordinates identify the instance | no (byte equal, checked by the item 3 command) |
+| The operator module identifies the instance in any namespace and any major | The operator module path identifies the operator's own instance, The operator module identifies the instance in any namespace and any major | no (byte equal, checked by the item 3 command) |
+| A recorded operator CRD identifies the instance | A recorded operator CRD identifies the operator's own instance, A recorded operator CRD identifies the instance | no (byte equal, checked by the item 3 command) |
+| Similar names are not the operator's own instance | A recorded operator CRD identifies the operator's own instance, Similar names are not the operator's own instance | no (byte equal, checked by the item 3 command) |
+| An own instance flipped to operator is refused without a finalizer | The controller never applies, prunes or adds a finalizer on its own instance, An own instance flipped to operator is refused without a finalizer | no (byte equal, checked by the item 3 command) |
+| A suspended own instance is refused, not suspended | An own instance with no owner or owner operator is refused before any render, A suspended own instance is refused, not suspended | no (byte equal, checked by the item 3 command) |
+| Refusal clears conditions left by an earlier adoption | A refusal sets Ready and Stalled with SelfManagementRefused, Refusal clears conditions left by an earlier adoption | no (byte equal, checked by the item 3 command) |
+| An own instance with no owner is refused | An own instance with no owner or owner operator is refused before any render, An own instance with no owner is refused | no (byte equal, checked by the item 3 command) |
+| Refusal leaves CLI-written status alone | A refusal leaves the CLI-written status alone and does not requeue, Refusal leaves CLI-written status alone | no (byte equal, checked by the item 3 command) |
+| Re-refusal is a no-op | Re-refusing an already-refused instance changes no status, Re-refusal is a no-op | no (byte equal, checked by the item 3 command) |
+| Handing the instance back to the CLI clears the refusal | An own instance with no owner or owner operator is refused before any render, Handing the instance back to the CLI clears the refusal | no (byte equal, checked by the item 3 command) |
+| Deleting an own instance with a leftover finalizer prunes nothing | The operator releases a leftover finalizer from its own instance without pruning, Deleting an own instance with a leftover finalizer prunes nothing | no (byte equal, checked by the item 3 command) |
+| A live own instance loses a leftover finalizer | The operator releases a leftover finalizer from its own instance without pruning, A live own instance loses a leftover finalizer | no (byte equal, checked by the item 3 command) |
+| A CLI-owned own instance is left alone | The operator writes no status on its own instance that is being deleted, A CLI-owned own instance is left alone | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| Refusal records the generation | A refusal records the generation and emits one Warning event | the clause of that requirement body |
+| Refusal emits a Warning event once | A refusal records the generation and emits one Warning event | the clause of that requirement body |
+| The reason constant is exposed | The status package exposes the SelfManagementRefused reason | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| ModuleInstance carries an ownership mark... | `ModuleInstanceSpec` SHALL provide an optional `owner` field of a type... | ModuleInstance carries an optional owner field with two valu... | 1 | none |
+| ModuleInstance carries an ownership mark... | The field SHALL NOT define a CRD-level default. | ModuleInstance carries an optional owner field with two valu... | 2 | none |
+| ModuleInstance carries an ownership mark... | The API SHALL define exported constants for both values. | ModuleInstance carries an optional owner field with two valu... | 3 | none |
+| ModuleInstance carries an ownership mark... | An absent or empty `owner` SHALL be treated by the controller as opera... | An absent or empty owner is operator-managed | 1 | none |
+| The operator skips CLI-owned instances b... | When `spec.owner == cli`, the controller MUST return from `Reconcile`... | A CLI-owned instance is not reconciled and gets no finalizer | 1 | none |
+| The operator skips CLI-owned instances b... | The owner check MUST occur before finalizer registration so that an in... | A CLI-owned instance is not reconciled and gets no finalizer | 2 | none |
+| The operator skips CLI-owned instances b... | An instance that was operator-owned before its `spec.owner` became `cl... | A CLI-owned instance that carries the finalizer releases it... | 1 | none |
+| The operator skips CLI-owned instances b... | An instance that was operator-owned before its `spec.owner` became `cl... | A live CLI-owned instance keeps its finalizers | 1 | none |
+| The operator skips CLI-owned instances b... | When such an instance is being deleted, the controller MUST remove the... | A CLI-owned instance that carries the finalizer releases it... | 2 | none |
+| The operator skips CLI-owned instances b... | On a CLI-owned instance that is not being deleted the controller MUST... | A live CLI-owned instance keeps its finalizers | 2 | none |
+| The operator skips CLI-owned instances b... | Rationale: only the operator removes its finalizer, and the owner-skip... | A CLI-owned instance that carries the finalizer releases it... | 3 | none |
+| The operator skips CLI-owned instances b... | Without the release the delete never completes. | A CLI-owned instance that carries the finalizer releases it... | 4 | none |
+| The operator acknowledges a CLI-owned in... | On a non-deleting `ModuleInstance` with `spec.owner == cli`, the contr... | A CLI-owned instance is acknowledged with Ready Unknown and... | 1 | -field — +field: |
+| The operator acknowledges a CLI-owned in... | The `internal/status` package MUST expose a `ManagedExternally` reason... | The status package exposes the ManagedExternally reason and... | 1 | none |
+| The operator acknowledges a CLI-owned in... | The acknowledgement MUST be idempotent: reconciling an already-acknowl... | A CLI-owned instance is acknowledged with Ready Unknown and... | 2 | none |
+| The operator recognises the instance tha... | The controller SHALL treat a `ModuleInstance` as the operator's own in... | The fixed coordinates identify the operator's own instance | 1 | none |
+| The operator recognises the instance tha... | The controller SHALL treat a `ModuleInstance` as the operator's own in... | The operator module path identifies the operator's own insta... | 1 | none |
+| The operator recognises the instance tha... | The controller SHALL treat a `ModuleInstance` as the operator's own in... | A recorded operator CRD identifies the operator's own instan... | 1 | none |
+| The operator recognises the instance tha... | - its `metadata.name` is `opm-operator` and its `metadata.namespace` i... | The fixed coordinates identify the operator's own instance | 2 | none |
+| The operator recognises the instance tha... | - its `spec.module.path`, with any `@<major>` suffix removed, is `opmo... | The operator module path identifies the operator's own insta... | 2 | none |
+| The operator recognises the instance tha... | - its `status.inventory.entries` holds an entry of group `apiextension... | A recorded operator CRD identifies the operator's own instan... | 2 | none |
+| The operator recognises the instance tha... | The coordinates are the ones every CLI install records the operator's... | The fixed coordinates identify the operator's own instance | 3 | none |
+| The operator recognises the instance tha... | The coordinates are the ones every CLI install records the operator's... | The operator module path identifies the operator's own insta... | 3 | none |
+| The operator recognises the instance tha... | A refusal must be decided before the finalizer is registered, which is... | A recorded operator CRD identifies the operator's own instan... | 3 | none |
+| The operator never reconciles its own in... | On the operator's own instance, whatever `spec.owner` says, the contro... | The controller never applies, prunes or adds a finalizer on... | 1 | none |
+| The operator never reconciles its own in... | On the operator's own instance, whatever `spec.owner` says, the contro... | An own instance with no owner or owner operator is refused b... | 1 | none |
+| The operator never reconciles its own in... | An own instance with `spec.owner: cli` is handled by the owner-skip ga... | An own instance with no owner or owner operator is refused b... | 2 | none |
+| The operator never reconciles its own in... | On refusal the controller MUST: | A refusal sets Ready and Stalled with SelfManagementRefused; A refusal records the generation and emits one Warning event; A refusal leaves the CLI-written status alone and does not requeue | 1 | "of the operator's own instance" added after "On refusal" (condition copied from the first sentence of the old body), because no sibling is read for it |
+| The operator never reconciles its own in... | - set `Ready=False` and `Stalled=True`, both with reason `SelfManageme... | A refusal sets Ready and Stalled with SelfManagementRefused | 2 | none |
+| The operator never reconciles its own in... | - set `status.observedGeneration` to the instance's generation, so a c... | A refusal records the generation and emits one Warning event | 2 | none |
+| The operator never reconciles its own in... | - emit a Warning event with reason `SelfManagementRefused` when the in... | A refusal records the generation and emits one Warning event | 3 | none |
+| The operator never reconciles its own in... | - leave `status.inventory`, the `lastApplied*` digests, `instanceUUID`... | A refusal leaves the CLI-written status alone and does not r... | 2 | none |
+| The operator never reconciles its own in... | - not requeue: the refusal is re-evaluated when the instance changes. | A refusal leaves the CLI-written status alone and does not r... | 3 | none |
+| The operator never reconciles its own in... | The `internal/status` package MUST expose a `SelfManagementRefused` re... | The status package exposes the SelfManagementRefused reason | 1 | none |
+| The operator never reconciles its own in... | Re-refusing an already-refused instance at the same generation MUST pr... | Re-refusing an already-refused instance changes no status | 1 | none |
+| The operator never reconciles its own in... | Rationale: the operator is the one workload whose failure stops every... | The controller never applies, prunes or adds a finalizer on... | 2 | none |
+| The operator never reconciles its own in... | Nothing the operator does to its own instance may stand between a re-r... | The controller never applies, prunes or adds a finalizer on... | 3 | none |
+| The operator releases its finalizer from... | When the operator's own instance with `spec.owner` absent or `operator... | The operator releases a leftover finalizer from its own inst... | 1 | none |
+| The operator releases its finalizer from... | On an own instance being deleted, the controller MUST write no status. | The operator writes no status on its own instance that is be... | 1 | none |
+| The operator releases its finalizer from... | An own instance with `spec.owner: cli` is left to the owner-skip gate,... | The operator writes no status on its own instance that is be... | 2 | none |
+| The operator releases its finalizer from... | Rationale: a finalizer only a running operator can clear would block t... | The operator writes no status on its own instance that is be... | 3 | none |
+
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| ModuleInstance carries an ownership marker | 1404 | 874, 529 |
+| The operator skips CLI-owned instances before registering a finalizer | 2489 | 1252, 890, 447 |
+| The operator acknowledges a CLI-owned instance with a single condition | 1669 | 1079, 588 |
+| The operator recognises the instance that deploys it | 2105 | 659, 762, 1195 |
+| The operator never reconciles its own instance | 3423 | 862, 1085, 564, 619, 497, 192, 326 |
+| The operator releases its finalizer from its own instance without pruning | 1626 | 929, 696 |
+
+### Ledger: platform-reconciler
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Valid platform is generated | The Platform named cluster is generated, built and recorded in the store, Valid platform is generated | no (byte equal, checked by the item 3 command) |
+| Non-cluster object ignored | Only the Platform named cluster is reconciled, Non-cluster object ignored | no (byte equal, checked by the item 3 command) |
+| A claim change wakes the reconciler | The generated package is a function of the spec and the active claims, A claim change wakes the reconciler | no (byte equal, checked by the item 3 command) |
+| An unchanged tuple regenerates nothing | A reconcile whose inputs resolve to the held identity skips regeneration, An unchanged tuple regenerates nothing | no (byte equal, checked by the item 3 command) |
+| Success sets Ready and observedGeneration | A successful build sets Ready True with reason Generated, Success sets Ready and observedGeneration | no (byte equal, checked by the item 3 command) |
+| Build failure surfaces structured error | A build failure sets Ready False with reason BuildFailed, Build failure surfaces structured error | no (byte equal, checked by the item 3 command) |
+| A refusal surfaces a structured verdict | A contract collision sets Ready False with reason ContractCollisions, A refusal surfaces a structured verdict | no (byte equal, checked by the item 3 command) |
+| Failure preserves last-good generated platform | Every outcome sets observedGeneration and a failure keeps the last good module, Failure preserves last-good generated platform | no (byte equal, checked by the item 3 command) |
+| A spec change replaces the slot | The package identity is derived from the generation and the active claims, A spec change replaces the slot | no (byte equal, checked by the item 3 command) |
+| A claim change replaces the slot without a spec change | The generated-platform record is held per package identity, A claim change replaces the slot without a spec change | no (byte equal, checked by the item 3 command) |
+| A leased package survives the swap | Readers lease the record and superseded directories are removed only when unleased, A leased package survives the swap | no (byte equal, checked by the item 3 command) |
+| Concurrent reads are safe | The store holds at most one generated-module record, Concurrent reads are safe | no (byte equal, checked by the item 3 command) |
+| Failure requeues instead of stalling indefinitely | A build failure requeues after a bounded interval and keeps the last good module, Failure requeues instead of stalling indefinitely | no (byte equal, checked by the item 3 command) |
+| Recovery without a spec change | A build failure requeues after a bounded interval and keeps the last good module, Recovery without a spec change | no (byte equal, checked by the item 3 command) |
+| A transient registry failure does not outlive its reconcile | Each reconcile resolves module files through a source built for it, A transient registry failure does not outlive its reconcile | no (byte equal, checked by the item 3 command) |
+| Transient cause retries quickly | A failure is transient when its error chain holds a registry fetch failure, Transient cause retries quickly | no (byte equal, checked by the item 3 command) |
+| Semantic or unknown cause retries slowly | Transient and other failures are requeued on different intervals, Semantic or unknown cause retries slowly | no (byte equal, checked by the item 3 command) |
+| Missing version surfaces as BuildFailed | A subscription that cannot be built surfaces as BuildFailed, Missing version surfaces as BuildFailed | no (byte equal, checked by the item 3 command) |
+| Named build not published | A subscription that cannot be built surfaces as BuildFailed, Named build not published | no (byte equal, checked by the item 3 command) |
+| Identity mismatch surfaces with both values | A subscription that cannot be built surfaces as BuildFailed, Identity mismatch surfaces with both values | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A stale event yields the package the current state implies | The waking event's content is not an input to the generated package | the clause of that requirement body |
+| A module that could not be written surfaces as GenerateFailed | A write failure sets Ready False with reason GenerateFailed | the clause of that requirement body |
+| A platform that is not routable surfaces as OverSubscribedContracts | An over-subscribed contract sets Ready False with reason OverSubscribedContracts | the clause of that requirement body |
+| A platform that is not discriminated surfaces as ComparablePredicates | Comparable predicates set Ready False with reason ComparablePredicates | the clause of that requirement body |
+| Several refusals hold at once | When several refusals hold the first reason applies | the clause of that requirement body |
+| The failure class does not change the condition | The failure class picks the requeue interval only | the clause of that requirement body |
+| A subscription version is used as written | A subscription version is used verbatim as the pin and the stamp | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Generate and build the singleton Platfor... | The operator SHALL reconcile the `Platform` named `cluster` by generat... | The Platform named cluster is generated, built and recorded... | 1 | none |
+| Generate and build the singleton Platfor... | The reconciler SHALL reconcile only the object named `cluster`; any ot... | Only the Platform named cluster is reconciled | 1 | none |
+| Generate and build the singleton Platfor... | No second, derived copy of the platform exists. | The Platform named cluster is generated, built and recorded... | 2 | none |
+| Generate and build the singleton Platfor... | The package the reconcile generates SHALL be a function of exactly two... | The generated package is a function of the spec and the acti... | 1 | -inputs — +inputs:; -claims — +claims, |
+| Generate and build the singleton Platfor... | The waking event's content SHALL NOT be an input: the reconcile comput... | The waking event's content is not an input to the generated... | 2 | none |
+| Generate and build the singleton Platfor... | A reconcile whose inputs resolve to the identity the store already hol... | A reconcile whose inputs resolve to the held identity skips... | 1 | none |
+| Surface build outcome on status | prefix "The reconciler SHALL record the outcome on the `Platform` status:" | every one of the six outcome requirements | 1 | list cut at item boundaries; prefix repeated in each |
+| Surface build outcome on status | item `Ready=True` with reason `Generated` on success | A successful build sets Ready True with reason Generated | 1 | none |
+| Surface build outcome on status | item `Ready=False` with reason `BuildFailed` (...) | A build failure sets Ready False with reason BuildFailed | 1 | none |
+| Surface build outcome on status | item `GenerateFailed` (the module could not be written) | A write failure sets Ready False with reason GenerateFailed | 1 | "`Ready=False` with reason" copied in front from the `BuildFailed` item, whose reason it shares |
+| Surface build outcome on status | item `ContractCollisions` (...) | A contract collision sets Ready False with reason ContractCollisions | 1 | "`Ready=False` with reason" copied in front, as above |
+| Surface build outcome on status | item `OverSubscribedContracts` (...) | An over-subscribed contract sets Ready False with reason OverSubscribedContracts | 1 | "`Ready=False` with reason" copied in front, as above |
+| Surface build outcome on status | item `ComparablePredicates` (...) | Comparable predicates set Ready False with reason ComparablePredicates | 1 | "`Ready=False` with reason" copied in front, as above |
+| Surface build outcome on status | When several refusals hold, the reason SHALL be the first of `Contract... | When several refusals hold the first reason applies | 1 | none |
+| Surface build outcome on status | On success the reconciler SHALL also write the non-gating `ContractsFu... | A successful build sets Ready True with reason Generated | 2 | none |
+| Surface build outcome on status | `status.observedGeneration` SHALL be set on every outcome. | Every outcome sets observedGeneration and a failure keeps th... | 1 | none |
+| Surface build outcome on status | A failure or a refusal SHALL NOT overwrite a previously recorded good... | Every outcome sets observedGeneration and a failure keeps th... | 2 | none |
+| Single-slot identity-keyed store for con... | The store SHALL hold at most one current generated-module record, keye... | The store holds at most one generated-module record | 1 | none |
+| Single-slot identity-keyed store for con... | Readers SHALL obtain the record through a lease that they release when... | Readers lease the record and superseded directories are remo... | 1 | none |
+| Single-slot identity-keyed store for con... | Superseded module directories SHALL be removed only when no lease hold... | Readers lease the record and superseded directories are remo... | 2 | none |
+| Single-slot identity-keyed store for con... | The identity SHALL be derived from the `Platform` CR's generation and... | The package identity is derived from the generation and the... | 1 | -accepted" and "The generated-platform record survives the render-parity enhancement and is held per package identity, not per Platform CR generation"). +accept |
+| Single-slot identity-keyed store for con... | The identity SHALL be derived from the `Platform` CR's generation and... | The generated-platform record is held per package identity | 1 | -platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted" and "The |
+| Build failures requeue on a bounded inte... | When closure derivation, generation or the build fails, the `PlatformR... | A build failure requeues after a bounded interval and keeps... | 1 | none |
+| Build failures requeue on a bounded inte... | The reconciler SHALL set the failure reason (`BuildFailed` or `Generat... | A build failure requeues after a bounded interval and keeps... | 2 | none |
+| Build failures requeue on a bounded inte... | Each reconcile SHALL resolve module files for closure derivation throu... | Each reconcile resolves module files through a source built... | 1 | none |
+| Build failures requeue on a bounded inte... | A module-file source injected into the reconciler (tests) SHALL be use... | Each reconcile resolves module files through a source built... | 2 | none |
+| Transient failures retry faster than sem... | The reconciler SHALL requeue a transient failure on a short interval a... | Transient and other failures are requeued on different inter... | 1 | none |
+| Transient failures retry faster than sem... | The reconciler SHALL requeue a transient failure on a short interval a... | The failure class picks the requeue interval only | 1 | none |
+| Transient failures retry faster than sem... | A failure is transient when its error chain holds the library's typed... | A failure is transient when its error chain holds a registry... | 1 | -is +SHALL be |
+| Transient failures retry faster than sem... | The shared classification picks the Platform's requeue interval only:... | The failure class picks the requeue interval only | 2 | none |
+| Transient failures retry faster than sem... | The reconciler SHALL classify by type, never by message text; an unrec... | Transient and other failures are requeued on different inter... | 2 | none |
+| Transient failures retry faster than sem... | The condition the failure sets is unchanged by its class. | The failure class picks the requeue interval only | 3 | none |
+| Subscription mapping and build failures | Each subscription's `version` SHALL be used verbatim as the generated... | A subscription version is used verbatim as the pin and the s... | 1 | none |
+| Subscription mapping and build failures | A subscription with an empty version (a stored object predating the re... | A subscription that cannot be built surfaces as BuildFailed | 1 | none |
+| Subscription mapping and build failures | A version absent from the registry SHALL surface as `BuildFailed` nami... | A subscription that cannot be built surfaces as BuildFailed | 2 | none |
+| Subscription mapping and build failures | A pin whose bytes disagree with the stamp SHALL surface as `BuildFaile... | A subscription that cannot be built surfaces as BuildFailed | 3 | none |
+| Subscription mapping and build failures | All retain the stalled recheck interval. | A subscription that cannot be built surfaces as BuildFailed | 4 | none |
+
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Generate and build the singleton Platform on reconcile | 2144 | 656, 254, 558, 576, 478 |
+| Surface build outcome on status | 2507 | 499, 511, 278, 698, 576, 458, 384, 359 |
+| Single-slot identity-keyed store for concurrent read | 1739 | 362, 471, 605, 560 |
+| Build failures requeue on a bounded interval | 1524 | 746, 777 |
+| Transient failures retry faster than semantic failures | 1341 | 522, 607, 484 |
+| Subscription mapping and build failures | 1068 | 285, 940 |
+
+### Ledger: kernel-module-renderer
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Renders resources from a generated platform | KernelModuleRenderer renders an instance through the kernel and shares nothing between kernel calls, Renders resources from a generated platform | no (byte equal, checked by the item 3 command) |
+| Values are applied when supplied | Values reach synthesis as a stack of values sources with an origin, Values are applied when supplied | no (byte equal, checked by the item 3 command) |
+| A values error names its origin | Values reach synthesis as a stack of values sources with an origin, A values error names its origin | no (byte equal, checked by the item 3 command) |
+| Compiled item maps to a resource | The renderer adapts compiled objects to the library's object resources, Compiled item maps to a resource | no (byte equal, checked by the item 3 command) |
+| One compiled-output type | The renderer adapts compiled objects to the library's object resources, One compiled-output type | no (byte equal, checked by the item 3 command) |
+| Warnings reach the reconciler | The renderer composes the result's warnings from the advisory rows, Warnings reach the reconciler | no (byte equal, checked by the item 3 command) |
+| Two registrations in one module are refused before apply | The refusal of duplicate identities builds no resource, Two registrations in one module are refused before apply | no (byte equal, checked by the item 3 command) |
+| Distinct identities adapt as before | The renderer adapts compiled objects to the library's object resources, Distinct identities adapt as before | no (byte equal, checked by the item 3 command) |
+| A rendered module reports its components' contracts | Both kernel renderers report the contract demand of the kernel's render, A rendered module reports its components' contracts | no (byte equal, checked by the item 3 command) |
+| Both renderers fill the demand the same way | Both kernel renderers report the contract demand of the kernel's render, Both renderers fill the demand the same way | no (byte equal, checked by the item 3 command) |
+| An empty demand is an empty list | An empty demand is reported as an empty, non-nil list, An empty demand is an empty list | no (byte equal, checked by the item 3 command) |
+| No operator walk of the components | Both kernel renderers report the contract demand of the kernel's render, No operator walk of the components | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A call passes no per-call registry argument | No acquisition or synthesis call passes a per-call registry or load-options argument | the clause of that requirement body |
+| A refusal carries the library's error unchanged | The refusal of duplicate identities uses the library check and carries its error | the clause of that requirement body |
+| A failed render yields no demand | The demand is read only from a successful render | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Render a ModuleRelease through the kerne... | `KernelModuleRenderer` SHALL acquire the module from the registry, syn... | KernelModuleRenderer renders an instance through the kernel... | 1 | none |
+| Render a ModuleRelease through the kerne... | Every kernel call SHALL share nothing: acquisition, synthesis and the... | KernelModuleRenderer renders an instance through the kernel... | 2 | none |
+| Render a ModuleRelease through the kerne... | Values SHALL reach synthesis as a stack of values sources, each carryi... | Values reach synthesis as a stack of values sources with an... | 1 | none |
+| Render a ModuleRelease through the kerne... | No acquisition or synthesis call SHALL pass a per-call registry or loa... | No acquisition or synthesis call passes a per-call registry... | 1 | none |
+| Adapt compiled output to operator resour... | The renderer SHALL adapt the single-build render's compiled objects —... | The renderer adapts compiled objects to the library's object... | 1 | -objects — +objects,; -verb — +verb, |
+| Adapt compiled output to operator resour... | The refusal SHALL use the library's duplicate-identity check and SHALL... | The refusal of duplicate identities builds no resource | 1 | -SHALL use the library's duplicate-identity check and SHALL carry its error unchanged, naming each shared identity once and every component and transformer that |
+| Adapt compiled output to operator resour... | The render SHALL report no message strings. | The renderer composes the result's warnings from the advisor... | 1 | none |
+| Adapt compiled output to operator resour... | The renderer SHALL compose the result's warnings itself from the rende... | The renderer composes the result's warnings from the advisor... | 2 | none |
+| Adapt compiled output to operator resour... | Each composed warning SHALL name the same facts as before — for skew,... | The renderer composes the result's warnings from the advisor... | 3 | -before — +before: |
+| The render reports the instance's contra... | Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `K... | Both kernel renderers report the contract demand of the kern... | 1 | none |
+| The render reports the instance's contra... | The operator SHALL NOT compute the demand itself by reading the instan... | Both kernel renderers report the contract demand of the kern... | 2 | none |
+| The render reports the instance's contra... | An empty demand SHALL be reported as an empty, non-nil list. | An empty demand is reported as an empty, non-nil list | 1 | none |
+| The render reports the instance's contra... | Source: enhancement 0013 ("The kernel reports every contract a render... | An empty demand is reported as an empty, non-nil list | 2 | none |
+| The render reports the instance's contra... | The demand is read only from a successful render; this requirement doe... | The demand is read only from a successful render | 1 | -is +SHALL be |
+
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Render a ModuleRelease through the kernel | 1484 | 694, 627, 373 |
+| Adapt compiled output to operator resources | 2710 | 1089, 506, 797, 718 |
+| The render reports the instance's contract demand from the kernel | 1538 | 1029, 328, 294 |
 
 ## Strength table
 
