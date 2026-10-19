@@ -14,7 +14,7 @@
 
 ### Requirement: Module release gate
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The module release check runs in Lint on the module's release PR", "The module release check refuses a development pin or a local module", "The module release check verifies the operator image reference", "The module release check verifies the module version", "The module release check refuses an operator below the minimum version", "The module release check compares generated CRDs and RBAC with the deployed operator", "Module releases are frozen while config differs from the deployed tag", "The module release check runs in the publish job before any push", "An offline test covers the module release checks that need no network".
+**Migration**: See "The module release check runs in Lint on the module's release PR", "The module release check refuses a development pin or a local module", "The module release check verifies the operator image reference", "The module release check verifies the module version", "The module release check refuses an operator below the minimum version", "The module release check compares generated CRDs and RBAC with the deployed operator", "The module release check states why it compares generated CRDs and RBAC", "Module releases are frozen while config differs from the deployed tag", "The module release check runs in the publish job before any push", "An offline test covers the module release checks that need no network".
 
 ### Requirement: The module publishes its tagged source once
 **Reason**: Split into requirements that each state one behavior.
@@ -181,7 +181,15 @@ The module release check SHALL fail when the `<tag>` of the module's operator im
 - **THEN** the check fails naming both tags
 
 ### Requirement: The module release check compares generated CRDs and RBAC with the deployed operator
-The module release check SHALL fail when the module's generated CRDs or controller RBAC differ from what the operator source at the `<tag>` of the module's operator image generates. The last check (The module release check compares generated CRDs and RBAC with the deployed operator) exists because a module release must render exactly the CRDs the controller it deploys serves and exactly the cluster permissions that controller declares, and `main` can move ahead of the deployed operator release.
+The module release check SHALL fail when the module's generated CRDs or controller RBAC differ from what the operator source at the `<tag>` of the module's operator image reference generates.
+
+#### Scenario: CRDs ahead of the deployed operator
+
+- **WHEN** `main` changed a CRD after `v1.0.0-beta.6` and the module still names `v1.0.0-beta.6` but carries the new CRD
+- **THEN** the check fails naming the CRD, and the module waits for the image-bump PR of the next operator release
+
+### Requirement: The module release check states why it compares generated CRDs and RBAC
+The last check (The module release check compares generated CRDs and RBAC with the deployed operator) SHALL exist because a module release must render exactly the CRDs the controller it deploys serves and exactly the cluster permissions that controller declares, and `main` can move ahead of the deployed operator release.
 
 #### Scenario: CRDs ahead of the deployed operator
 

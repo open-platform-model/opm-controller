@@ -328,6 +328,7 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | Image digest does not match GHCR | The module release check verifies the operator image reference, Image digest does not match GHCR | no (byte equal, checked by the item 3 command) |
 | Image tag is a draft release | The module release check verifies the operator image reference, Image tag is a draft release | no (byte equal, checked by the item 3 command) |
 | CRDs ahead of the deployed operator | The module release check compares generated CRDs and RBAC with the deployed operator, CRDs ahead of the deployed operator | no (byte equal, checked by the item 3 command) |
+| CRDs ahead of the deployed operator | The module release check states why it compares generated CRDs and RBAC, CRDs ahead of the deployed operator | no (byte equal, checked by the item 3 command) |
 | Operator below the minimum | The module release check refuses an operator below the minimum version, Operator below the minimum | no (byte equal, checked by the item 3 command) |
 | Development pin | The module release check refuses a development pin or a local module, Development pin | no (byte equal, checked by the item 3 command) |
 | Several failures named at once | An offline test covers the module release checks that need no network, Several failures named at once | no (byte equal, checked by the item 3 command) |
@@ -410,7 +411,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | Module release gate | fails when the proposed version breaks the v0 rules (reference now names the three requirements) | The module release check verifies the module version | 1 |
 | Module release gate | fails when `<tag>` is older than the minimum operator version (first release that refuses to reconcile the operator's own instance) | The module release check refuses an operator below the minimum version | 1 |
 | Module release gate | fails when generated CRDs or RBAC differ from the operator source at `<tag>` | The module release check compares generated CRDs and RBAC with the deployed operator | 1 |
-| Module release gate | rationale, with its head "The last check (<header>) exists because": module must render exactly the CRDs and permissions of the controller it deploys; `main` can move ahead | The module release check compares generated CRDs and RBAC with the deployed operator | 2 |
+| Module release gate | rationale, with its head "The last check (<header>) exists because": module must render exactly the CRDs and permissions of the controller it deploys; `main` can move ahead (SHALL added; "reference" kept in "operator image reference") | The module release check states why it compares generated CRDs and RBAC | 1 |
 | Module release gate | releases are frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR of an operator release carrying that change merges (the old sentence, whole; SHALL added) | Module releases are frozen while config differs from the deployed tag | 1 |
 | Module release gate | check also runs in the publish job before anything is pushed | The module release check runs in the publish job before any push | 1 |
 | Module release gate | no-network checks covered by an offline test run by `Lint` on every PR | An offline test covers the module release checks that need no network | 1 |
