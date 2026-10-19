@@ -44,3 +44,7 @@ Out of scope: the cli (`opm controller`, its own change), the `.github` cascade 
 - API types `ModuleInstance` (owner enum) and `Platform` (status field, printer column); all four reconcilers' prose; `internal/reconcile` self-skip; `internal/status` render input key and condition text; `cmd/main.go`.
 - `config/`, `dist/install.yaml`, `modules/opm_controller`, `hack/`, `.tasks/`, `.github/`, `docs/`, `adr/`, README, AGENTS, CONSTITUTION, `openspec/config.yaml`.
 - No reconcile phase changes behavior apart from the renamed values.
+
+## Enhancement
+
+None.
