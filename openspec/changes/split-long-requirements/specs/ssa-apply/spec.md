@@ -134,7 +134,7 @@ Before the first write of a reconcile, the controller MUST read every object of 
 
 ### Requirement: A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The data deletion option is off at its zero value and has no effect without force", "A forced apply with the option off never deletes a PersistentVolumeClaim", "The apply checks every claim of the set before it applies or deletes any object", "A claim whose update the API server refuses fails the whole apply with a named error", "A claim is recreated when data deletion is allowed", "The forced recreate of every other kind is unchanged", "The resource manager refuses to delete a core PersistentVolumeClaim outside a data-deleting apply".
+**Migration**: See "The data deletion option is off at its zero value and has no effect without force", "A forced apply with the option off never deletes a PersistentVolumeClaim", "The apply checks every claim of the set before it applies or deletes any object", "A claim whose update the API server refuses fails the whole apply with a named error", "A refused claim update applies, creates and deletes no object of the set", "A claim is recreated when data deletion is allowed", "The forced recreate of every other kind is unchanged", "The resource manager refuses to delete a core PersistentVolumeClaim outside a data-deleting apply".
 
 ### Requirement: The staged apply order never contradicts the library's kind weights
 **Reason**: Split into requirements that each state one behavior.
@@ -189,7 +189,7 @@ The apply MUST take, beside `force`, an option that allows the deletion of data,
 - **THEN** the apply checks every such claim before it applies or deletes any object
 
 ### Requirement: A claim whose update the API server refuses fails the whole apply with a named error
-When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. When the API server refuses the update of one (the error the forced recreate would answer with a delete), the apply MUST return an error that names the claim's namespace and name, the refused field or fields as the API server reports them, and the API server's message. In that case no object of the resource set is applied, created or deleted.
+The apply MUST take, beside `force`, an option that allows the deletion of data. When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. When the API server refuses the update of one (the error the forced recreate would answer with a delete), the apply MUST return an error that names the claim's namespace and name, the refused field or fields as the API server reports them, and the API server's message.
 
 #### Scenario: A claim with a changed immutable field is kept
 - **GIVEN** a live PersistentVolumeClaim and a resource set that holds the claim with another `storageClassName` and a ConfigMap with new data
@@ -202,6 +202,13 @@ When `force` is true and the option is off, the apply MUST NOT delete a Persiste
 - **GIVEN** a live claim and a resource set that changes only a label of the claim
 - **WHEN** the set is applied with `force` true and the data option off
 - **THEN** the apply succeeds and the claim keeps its UID
+
+### Requirement: A refused claim update applies, creates and deletes no object of the set
+The apply MUST take, beside `force`, an option that allows the deletion of data. When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. When the API server refuses the update of one (the error the forced recreate would answer with a delete). In that case no object of the resource set is applied, created or deleted.
+
+#### Scenario: No object of the set is written after a refused claim update
+- **WHEN** `force` is true, the option is off and the API server refuses the update of a PersistentVolumeClaim of the resource set
+- **THEN** no object of the resource set is applied, created or deleted
 
 ### Requirement: A claim is recreated when data deletion is allowed
 The apply MUST take, beside `force`, an option that allows the deletion of data, and the option MUST be off at its zero value. When the option is on, a forced recreate MUST delete and recreate a claim as it does any other object.
@@ -366,11 +373,18 @@ The identity the verdict is asked with is the same for a ModuleInstance and a Mo
 - **THEN** it asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
 
 ### Requirement: The verdict is asked once per object with the render's identity, or the recorded one when the render carries none
-The controller MUST ask once per object, with the instance's identity: the render's, or the recorded one when the render carries none. This holds when no identity is recorded yet and while an identity change is not settled. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage. The controller MUST ask once per object, with the instance's identity: the render's, or the recorded one when the render carries none. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+
+#### Scenario: The verdict identity is the render's or the recorded one
+- **WHEN** a ModuleInstance or a ModulePackage reconcile asks the apply verdict for an object
+- **THEN** the controller asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
+
+### Requirement: The verdict is asked with the instance's identity when no identity is recorded yet or a change is not settled
+The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage. The controller MUST ask once per object, with the instance's identity. This holds when no identity is recorded yet and while an identity change is not settled. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Verdict identity when none is recorded
 - **WHEN** no identity is recorded yet or an identity change is not settled
-- **THEN** the controller asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
+- **THEN** the controller asks once per object, with the instance's identity
 
 ### Requirement: The earlier identity of an unsettled change is not asked with
 The controller MUST NOT ask with the earlier identity of an unsettled change (`status.previousInstanceUUID`): another record can render that identity, so an object that carries it is not proven to be the instance's own. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").

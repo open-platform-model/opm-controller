@@ -168,7 +168,7 @@ When instance synthesis refuses the values of a ModuleInstance, the message on t
 - **THEN** the message names both fields, each with its positions
 
 ### Requirement: The event carries the text of the values failure
-When instance synthesis refuses the values of a ModuleInstance, the message on the `Ready` condition SHALL carry the kernel's error text up to its first finding, followed by every finding the kernel reported, each with the positions the kernel attributed it to. The event SHALL carry the same text within the event note limit (capability `events-emission`).
+As listed in requirement "A values failure message carries every finding while it fits the condition limit": The event SHALL carry the same text within the event note limit (capability `events-emission`).
 
 #### Scenario: The event carries the same text
 - **WHEN** instance synthesis refuses the values of a ModuleInstance

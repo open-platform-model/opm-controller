@@ -72,7 +72,7 @@ When any provider-fulfilled contract is provided by more than one enabled regist
 - **THEN** the Platform reports `Ready=False` with reason `OverSubscribedContracts`, the message names the contract and both providing registry entries with no defining catalog, and no package is recorded for that tuple
 
 ### Requirement: The operator does not recount the over-subscription
-When any provider-fulfilled contract is provided by more than one enabled registry entry, the reconciler SHALL refuse the package. The operator SHALL NOT recount it, so the generation gate and the render refusal fire on the same platforms. "It" is the count of the requirement "The over-subscription count is the one core computes".
+When any provider-fulfilled contract is provided by more than one enabled registry entry, the reconciler SHALL refuse the package. As listed in requirement "The over-subscription count is the one core computes": The operator SHALL NOT recount it, so the generation gate and the render refusal fire on the same platforms.
 
 #### Scenario: The operator does not recount
 - **WHEN** a provider-fulfilled contract is provided by more than one enabled registry entry

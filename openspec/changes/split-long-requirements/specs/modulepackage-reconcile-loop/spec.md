@@ -31,7 +31,7 @@ The `ReleaseReconciler` MUST detect no-op reconciliations when source artifact r
 
 ### Requirement: A ModulePackage guards every apply by ownership
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "A ModulePackage reconcile judges every rendered object with the instance's identity", "A ModulePackage reconcile never asks the verdict with the earlier identity of an unsettled change", "A ModulePackage reconcile never asks the verdict with an empty identity", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the ssa-apply requirement", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement", "The read is made by the client that applies and a skipped render reads nothing", "A reconcile that renders fails when the verdict could not be asked", "The failure reason is ImpersonationFailed when the ServiceAccount is missing or the read is Forbidden", "The failure reason is ApplyFailed on the backoff otherwise", "A failed ModulePackage reconcile writes nothing and keeps the inventory".
+**Migration**: See "A ModulePackage reconcile judges every rendered object with the instance's identity", "A ModulePackage reconcile never asks the verdict with the earlier identity of an unsettled change", "A ModulePackage reconcile never asks the verdict with an empty identity", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the ssa-apply requirement", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement", "The read is made by the client that applies and a skipped render reads nothing", "A reconcile that renders fails when the verdict could not be asked", "The failure reason is ImpersonationFailed when the ServiceAccount is missing or the read is Forbidden", "The failure reason is ApplyFailed on the backoff except when the ServiceAccount is missing or the read is Forbidden", "A failed ModulePackage reconcile writes nothing and keeps the inventory".
 
 ## ADDED Requirements
 
@@ -192,8 +192,8 @@ So a reconcile that renders MUST fail, as listed in requirement "A reconcile tha
 - **WHEN** a reconcile renders
 - **THEN** the package reports `Stalled=True` with reason `ImpersonationFailed` and is not a `NoOp`
 
-### Requirement: The failure reason is ApplyFailed on the backoff otherwise
-So a reconcile that renders MUST fail, as listed in requirement "A reconcile that renders fails when the verdict could not be asked": `Ready=False` with reason `ApplyFailed` on the backoff otherwise. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+### Requirement: The failure reason is ApplyFailed on the backoff except when the ServiceAccount is missing or the read is Forbidden
+So a reconcile that renders MUST fail, as listed in requirement "A reconcile that renders fails when the verdict could not be asked": `Ready=False` with reason `ApplyFailed` on the backoff, except when the ServiceAccount is missing or the read is Forbidden under an effective ServiceAccount. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Another failure to ask the verdict is ApplyFailed
 - **WHEN** a reconcile that renders must fail, the ServiceAccount is not missing and the read is not Forbidden under an effective ServiceAccount
