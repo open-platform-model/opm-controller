@@ -181,7 +181,7 @@ The module release check SHALL fail when the `<tag>` of the module's operator im
 - **THEN** the check fails naming both tags
 
 ### Requirement: The module release check compares generated CRDs and RBAC with the deployed operator
-The module release check SHALL fail when the module's generated CRDs or controller RBAC differ from what the operator source at the `<tag>` of the module's operator image reference generates. The last check exists because a module release must render exactly the CRDs the controller it deploys serves and exactly the cluster permissions that controller declares, and `main` can move ahead of the deployed operator release.
+The module release check SHALL fail when the module's generated CRDs or controller RBAC differ from what the operator source at the `<tag>` of the module's operator image generates. The last check (The module release check compares generated CRDs and RBAC with the deployed operator) exists because a module release must render exactly the CRDs the controller it deploys serves and exactly the cluster permissions that controller declares, and `main` can move ahead of the deployed operator release.
 
 #### Scenario: CRDs ahead of the deployed operator
 
