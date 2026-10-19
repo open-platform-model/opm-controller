@@ -2083,6 +2083,370 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The generated package is a function of the platform spec and the active-claim set | 865 | 261, 324, 435 |
 | The effective registry is readable from the Platform | 607 | 309, 469 |
 
+### Ledger: registration-removal-guard
+
+Form b for "Shrinking provides while dependents exist is refused before it takes effect" (MODIFIED keeps the header, the first paragraph as the body and all five scenarios; the two splits are ADDED under new names with a restatement scenario each) and form c2 for "A refused upgrade is reported on the provider it came from" (REMOVED, two ADDED). The ADDED blocks name the kept header as the requirement whose subject they continue (DECISIONS.md 2026-10-19 16:55). `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A shrinking upgrade is refused | Shrinking provides while dependents exist is refused before it takes effect, A shrinking upgrade is refused | no (byte equal, checked by the item 3 command) |
+| The previously accepted claim keeps serving | Shrinking provides while dependents exist is refused before it takes effect, The previously accepted claim keeps serving | no (byte equal, checked by the item 3 command) |
+| A non-shrinking upgrade passes untouched | Shrinking provides while dependents exist is refused before it takes effect, A non-shrinking upgrade passes untouched | no (byte equal, checked by the item 3 command) |
+| Dropping a contract nobody demands is allowed | Shrinking provides while dependents exist is refused before it takes effect, Dropping a contract nobody demands is allowed | no (byte equal, checked by the item 3 command) |
+| A provider that renders no claim is unaffected | Shrinking provides while dependents exist is refused before it takes effect, A provider that renders no claim is unaffected | no (byte equal, checked by the item 3 command) |
+| The instance names what was refused | A refused shrink is reported on the ModuleInstance whose render produced the claim, The instance names what was refused | no (byte equal, checked by the item 3 command) |
+| The refusal clears when the cause does | A refused shrink is reported on the ModuleInstance whose render produced the claim, The refusal clears when the cause does | no (byte equal, checked by the item 3 command) |
+| The claim's own verdict is untouched | A refused shrink does not write the claim's own status, The claim's own verdict is untouched | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A refusal names the dropped contracts and the dependent count | The refusal of a shrink names the dropped contracts and the dependent count | the clause of that requirement body |
+| A claim written by another actor is outside the guarantee | The guarantee against shrinking is bounded to writes the operator makes | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Shrinking provides while de... | The operator SHALL refuse to apply a rendered `TransformerRegistrat... | Shrinking provides while dependents exist is refused befo... | 1 | none |
+| Shrinking provides while de... | The refusal SHALL name the dropped contracts and the dependent coun... | The refusal of a shrink names the dropped contracts and t... | 1 | added the named reference: As in requirement "Shrinking provides while dependents e...": |
+| Shrinking provides while de... | This guarantee is bounded to writes the operator makes. A `Transfor... | The guarantee against shrinking is bounded to writes the ... | 1 | added the named reference: As in requirement "Shrinking provides while dependents e...":; the em-dashes are written as "," |
+| A refused upgrade is report... | The operator SHALL report a refused shrink on the `ModuleInstance` ... | A refused shrink is reported on the ModuleInstance whose ... | 1 | none |
+| A refused upgrade is report... | The claim's own status SHALL NOT be written by this refusal. Accept... | A refused shrink does not write the claim's own status | 1 | added the named reference: As in requirement "A refused shrink is reported on the M...": |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Shrinking provides while dependents exist is refused before it takes effect | 887 | 473, 256, 348 |
+| A refused upgrade is reported on the provider it came from | 530 | 353, 280 |
+
+### Ledger: test-registry-lifecycle
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Catalog present enables the platform build | Tests resolve fixtures and their dependencies through the configured mapping, Catalog present enables the platform build | no (byte equal, checked by the item 3 command) |
+| Fixture prefix redirected alone | A local-iteration mapping redirects only the fixture prefix, Fixture prefix redirected alone | no (byte equal, checked by the item 3 command) |
+| Real-renderer pipeline validated against the registry | An integration test exercises the real renderer against the local registry, Real-renderer pipeline validated against the registry | no (byte equal, checked by the item 3 command) |
+| Catalog resolved from the generated platform | The integration test resolves the catalog from the generated platform, Catalog resolved from the generated platform | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| Exporting only CUE_REGISTRY leaves the CLI on the caller's personal configuration | Publish tooling exports OPM_REGISTRY as well as CUE_REGISTRY | the clause of that requirement body |
+| The render result carries no inventory entries | The render result carries no inventory entries and full apply is covered by the Kind-backed e2e suite | the clause of that requirement body |
+| Full apply to Ready is left to the Kind-backed suite | The render result carries no inventory entries and full apply is covered by the Kind-backed e2e suite | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| CUE_REGISTRY configuration ... | Tests SHALL resolve the fixture modules from whatever registry the ... | Tests resolve fixtures and their dependencies through the... | 1 | none |
+| CUE_REGISTRY configuration ... | Because the fixtures and their dependencies now occupy SEPARATE dom... | A local-iteration mapping redirects only the fixture prefix | 1 | the em-dashes are written as "," |
+| CUE_REGISTRY configuration ... | Tooling that invokes the publish CLI SHALL export `OPM_REGISTRY` as... | Publish tooling exports OPM_REGISTRY as well as CUE_REGISTRY | 1 | none |
+| End-to-end integration tests | At least one integration test MUST exercise the real renderer (`ren... | An integration test exercises the real renderer against t... | 1 | none |
+| End-to-end integration tests | The test MUST resolve the catalog from the generated platform (the ... | The integration test resolves the catalog from the genera... | 1 | added the named reference: As in requirement "An integration test exercises the rea...": |
+| End-to-end integration tests | The render result carries no inventory entries; the reconciler buil... | The render result carries no inventory entries and full a... | 1 | added the named reference: As in requirement "An integration test exercises the rea...": |
+| End-to-end integration tests | Full apply → `Ready=True` on a live cluster is covered by the Kind-... | The render result carries no inventory entries and full a... | 2 | added "SHALL" (SHALL be covered by; Strength table) |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| CUE_REGISTRY configuration for tests | 927 | 265, 382, 276 |
+| End-to-end integration tests | 851 | 396, 313, 338 |
+
+### Ledger: workflow-hardening
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Every key reader runs in the release Environment | Every job that reads the release App key runs in the release Environment, Every key reader runs in the release Environment | no (byte equal, checked by the item 3 command) |
+| Key not yet moved | Every job that reads the release App key runs in the release Environment, Key not yet moved | no (byte equal, checked by the item 3 command) |
+| Module image PR call passes no key | A reusable-workflow call does not pass the release App key, Module image PR call passes no key | no (byte equal, checked by the item 3 command) |
+| Cascade PR image build skipped | A write-scope pull_request job does not run for a bot head, Cascade PR image build skipped | no (byte equal, checked by the item 3 command) |
+| Dependabot and operator module bot PRs hold no write token | A write-scope pull_request job does not run for a bot head, Dependabot and operator module bot PRs hold no write token | no (byte equal, checked by the item 3 command) |
+| Human PR e2e publishes in its own job | A write-scope pull_request job does not run for a bot head, Human PR e2e publishes in its own job | no (byte equal, checked by the item 3 command) |
+| Cascade PR e2e runs read-only | A job that runs bot-head code holds only read scopes, Cascade PR e2e runs read-only | no (byte equal, checked by the item 3 command) |
+| E2E without a publish still runs the podinfo spec | A job that runs bot-head code holds only read scopes, E2E without a publish still runs the podinfo spec | no (byte equal, checked by the item 3 command) |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Release App key read only i... | Every job that reads `secrets.RELEASE_APP_PRIVATE_KEY` SHALL declar... | Every job that reads the release App key runs in the rele... | 1 | none |
+| Release App key read only i... | A reusable-workflow call SHALL NOT pass the key through `secrets:` ... | A reusable-workflow call does not pass the release App key | 1 | added the named reference: As in requirement "Every job that reads the release App ...": |
+| Bot-head code never holds a... | A job triggered by `pull_request` that holds any write scope or `id... | A write-scope pull_request job does not run for a bot head | 1 | none |
+| Bot-head code never holds a... | The code on those heads comes from the release cascade, release-ple... | A job that runs bot-head code holds only read scopes | 1 | added the named reference: As in requirement "A write-scope pull_request job does n...": |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Release App key read only in the release Environment | 651 | 354, 390 |
+| Bot-head code never holds a write token or OIDC | 561 | 192, 448 |
+
+### Ledger: docs-bundle
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The test fixture is not shown as an example | The opm-operator docs project builds from a markdown source and a crd source, The test fixture is not shown as an example | no (byte equal, checked by the item 3 command) |
+| An enhancement citation stays plain text | The opm-operator docs project sets the section weight, the reconciledBy entries and plain-text citations, An enhancement citation stays plain text | no (byte equal, checked by the item 3 command) |
+| The bundle holds both kinds of page | The bundle carries the authored pages and the generated reference and is built by task docs:bundle, The bundle holds both kinds of page | no (byte equal, checked by the item 3 command) |
+| A CRD that is not a CustomResourceDefinition is refused | The bundle carries the authored pages and the generated reference and is built by task docs:bundle, A CRD that is not a CustomResourceDefinition is refused | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The project is placed in the docs tree | The opm-operator docs project is placed in the docs tree and versioned from tags | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| The operator publishes one ... | The repository SHALL declare one docs-kit project, `opm-operator`, ... | The opm-operator docs project is placed in the docs tree ... | 1 | none |
+| The operator publishes one ... | placed in a site version's `/docs/` tree, owning `reference/operato... | The opm-operator docs project is placed in the docs tree ... | 2 | final punctuation written as "." |
+| The operator publishes one ... | The repository SHALL declare one docs-kit project, `opm-operator`, ... | The opm-operator docs project builds from a markdown sour... | 1 | none |
+| The operator publishes one ... | built from a `markdown` source over `docs/site` and a `crd` source ... | The opm-operator docs project builds from a markdown sour... | 2 | final punctuation written as "." |
+| The operator publishes one ... | The repository SHALL declare one docs-kit project, `opm-operator`, ... | The opm-operator docs project sets the section weight, th... | 1 | none |
+| The operator publishes one ... | the section weight 7, one `reconciledBy` entry per kind, and enhanc... | The opm-operator docs project sets the section weight, th... | 2 | none |
+| The operator publishes one ... | The bundle SHALL carry the authored pages under `docs/site/` and th... | The bundle carries the authored pages and the generated r... | 1 | added the named reference: As in requirement "The opm-operator docs project is plac...": |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| The operator publishes one docs bundle | 884 | 198, 387, 199, 371 |
+
+### Ledger: inventory-bridge
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The stored digest changes once on upgrade | The inventory digest is inventory.Digest over the rendered set the last apply recorded, The stored digest changes once on upgrade | no (byte equal, checked by the item 3 command) |
+| The digest after an expired Job left the entries | The inventory digest is inventory.Digest over the rendered set the last apply recorded, The digest after an expired Job left the entries | no (byte equal, checked by the item 3 command) |
+| Order does not matter | A reader compares the stored digest with the digest of a render, Order does not matter | no (byte equal, checked by the item 3 command) |
+| Content does | A reader compares the stored digest with the digest of a render, Content does | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A reader does not recompute the digest from the stored entries | A reader compares the stored digest with the digest of a render | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| The inventory digest is the... | `status.inventory.digest` MUST be `inventory.Digest` from `opm/k8s/... | The inventory digest is inventory.Digest over the rendere... | 1 | none |
+| The inventory digest is the... | It equals the digest of `status.inventory.entries`, with one except... | The inventory digest is inventory.Digest over the rendere... | 2 | none |
+| The inventory digest is the... | Source: enhancement 0012. | The inventory digest is inventory.Digest over the rendere... | 3 | none |
+| The inventory digest is the... | A reader MUST compare the stored digest with the digest of a render... | A reader compares the stored digest with the digest of a ... | 1 | added the named reference: As in requirement "The inventory digest is inventory.Dig...": |
+| The inventory digest is the... | That digest hashes a versioned canonical encoding of each entry's f... | A reader compares the stored digest with the digest of a ... | 2 | none |
+| The inventory digest is the... | Source: enhancement 0012. | A reader compares the stored digest with the digest of a ... | 3 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| The inventory digest is the library's canonical digest | 752 | 431, 454 |
+
+### Ledger: live-flux-e2e
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A bare-version claim is accepted, activated and built | The suite asserts the claim, the registry entry and the Platform state, A bare-version claim is accepted, activated and built | no (byte equal, checked by the item 3 command) |
+| A v-prefixed claim is accepted and built | The suite asserts the Platform registry entry under a new package identity, A v-prefixed claim is accepted and built | no (byte equal, checked by the item 3 command) |
+| Teardown releases the claim | The last step deletes the provider instance and teardown removes any remaining claim, Teardown releases the claim | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The suite applies the sample Platform and the provider fixture | The suite drives a claim into a platform build | the clause of that requirement body |
+| The expected version is not a literal | The suite reads the expected catalog from the fixture's identity package | the clause of that requirement body |
+| The provider is suspended and the claim version gets a v prefix | The v-prefixed claim is covered | the clause of that requirement body |
+| The claim is re-judged at its new generation | The claim is re-judged at its new generation | the clause of that requirement body |
+| A moved package identity shows the regeneration | The package identity shows the platform was regenerated for the edited claim | the clause of that requirement body |
+| The spec needs no registry credentials on the public default registry | The spec deploys and tears down its own controller | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Deployed-controller registr... | Against the deployed controller, the e2e suite SHALL drive a claim ... | The suite drives a claim into a platform build | 1 | none |
+| Deployed-controller registr... | The suite SHALL read the expected catalog path and version from the... | The suite reads the expected catalog from the fixture's i... | 1 | added the named reference: As in requirement "The suite drives a claim into a platf...": |
+| Deployed-controller registr... | The suite SHALL assert three things: the claim reports `accepted: t... | The suite asserts the claim, the registry entry and the P... | 1 | added the named reference: As in requirement "The suite drives a claim into a platf...": |
+| Deployed-controller registr... | The suite SHALL then cover the `v`-prefixed spelling. It suspends t... | The v-prefixed claim is covered | 1 | none |
+| Deployed-controller registr... | The suite SHALL assert that the claim is re-judged at its new gener... | The claim is re-judged at its new generation | 1 | added the named reference: As in requirement "The v-prefixed claim is covered": |
+| Deployed-controller registr... | Only after that verdict SHALL the suite assert that the Platform's ... | The suite asserts the Platform registry entry under a new... | 1 | added the named reference: As in requirement "The claim is re-judged at its new gen...": |
+| Deployed-controller registr... | The package identity is a function of the claims' coordinates, so i... | The package identity shows the platform was regenerated f... | 1 | added the named reference: As in requirement "The suite asserts the Platform regist...":; added "SHALL" (SHALL be a function; Strength table) |
+| Deployed-controller registr... | The spec SHALL deploy and tear down its own controller. It SHALL ne... | The spec deploys and tears down its own controller | 1 | none |
+| Deployed-controller registr... | Its last ordered step SHALL delete the provider instance and assert... | The last step deletes the provider instance and teardown ... | 1 | added the named reference: As in requirement "The spec deploys and tears down its o...": |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Deployed-controller registration claim proof | 2782 | 384, 324, 448, 222, 500, 417, 241, 267, 400 |
+
+### Ledger: module-acquisition
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Published module is acquired | The operator acquires a module from the registry as a library Module, Published module is acquired | no (byte equal, checked by the item 3 command) |
+| Unresolvable module surfaces a load error | The operator acquires a module from the registry as a library Module, Unresolvable module surfaces a load error | no (byte equal, checked by the item 3 command) |
+| Acquisition delegates to the kernel, not a wrapper package | Acquisition delegates to the library kernel's registry module loader, Acquisition delegates to the kernel, not a wrapper package | no (byte equal, checked by the item 3 command) |
+| Core@v0 self-referential metadata is preserved | Acquisition synthesizes no wrapper package and writes no temporary directory, Core@v0 self-referential metadata is preserved | no (byte equal, checked by the item 3 command) |
+| Module with catalog imports is acquired | Acquisition synthesizes no wrapper package and writes no temporary directory, Module with catalog imports is acquired | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| Acquisition writes no temporary directory | Acquisition synthesizes no wrapper package and writes no temporary directory | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Acquire a module from the r... | The operator SHALL acquire a `ModuleRelease`'s target module from t... | The operator acquires a module from the registry as a lib... | 1 | none |
+| Acquire a module from the r... | Registry configuration and the absence of process-environment mutat... | The operator acquires a module from the registry as a lib... | 2 | none |
+| Acquire a module from the r... | Acquisition SHALL delegate to the library kernel's registry module ... | Acquisition delegates to the library kernel's registry mo... | 1 | the em-dashes are written as "," |
+| Acquire a module from the r... | Delegating to the library is load-bearing: the wrapper approach re-... | Acquisition delegates to the library kernel's registry mo... | 2 | none |
+| Acquire a module from the r... | Acquisition SHALL NOT synthesize a wrapper CUE package that imports... | Acquisition synthesizes no wrapper package and writes no ... | 1 | added the named reference: As in requirement "Acquisition delegates to the library ...": |
+| Acquire a module from the r... | The library loader loads the module as the main module, its own `cu... | Acquisition synthesizes no wrapper package and writes no ... | 2 | the em-dashes are written as "," |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Acquire a module from the registry as a library Module | 1229 | 371, 466, 476 |
+
+### Ledger: operator-resource-reference
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Each kind has its own page | The operator resource reference is generated by docs-kit, Each kind has its own page | no (byte equal, checked by the item 3 command) |
+| The authored intro completes the page | The committed index holds only authored front matter and intro, The authored intro completes the page | no (byte equal, checked by the item 3 command) |
+| A generated heading in the authored page is refused | The committed index holds only authored front matter and intro, A generated heading in the authored page is refused | no (byte equal, checked by the item 3 command) |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| The resource reference is g... | The operator resource reference SHALL be generated by docs-kit's `c... | The operator resource reference is generated by docs-kit | 1 | none |
+| The resource reference is g... | The committed `docs/site/reference/operator/_index.md` SHALL hold o... | The committed index holds only authored front matter and ... | 1 | added the named reference: As in requirement "The operator resource reference is ge...": |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| The resource reference is generated into the docs bundle | 732 | 491, 318 |
+
+### Ledger: platform-gated-rendering
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Blocked instances retry when the platform is generated | Fields that re-enqueue, Blocked instances retry when the platform is generated | no (byte equal, checked by the item 3 command) |
+| Instances re-render under a new pin set | Fields that re-enqueue, Instances re-render under a new pin set | no (byte equal, checked by the item 3 command) |
+| An operator upgrade into an already-Ready Platform recovers blocked instances | The Platform reconciler's own status update and a change to operatorVersion re-enqueue, An operator upgrade into an already-Ready Platform recovers blocked instances | no (byte equal, checked by the item 3 command) |
+| A message-only status write enqueues nothing | A Platform update that changes none of the fields enqueues nothing, A message-only status write enqueues nothing | no (byte equal, checked by the item 3 command) |
+| A spec edit renders once the regenerated package lands | A Platform update that changes none of the fields enqueues nothing, A spec edit renders once the regenerated package lands | no (byte equal, checked by the item 3 command) |
+| CLI-owned and suspended instances are not enqueued | A Platform event enqueues only the operator-managed, unsuspended ModuleInstances, CLI-owned and suspended instances are not enqueued | no (byte equal, checked by the item 3 command) |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Re-enqueue ModuleInstances ... | The ModuleInstance reconciler SHALL watch the `Platform`. It SHALL ... | Fields that re-enqueue | 1 | none |
+| Re-enqueue ModuleInstances ... | - the `Ready` condition's status | Fields that re-enqueue | 2 | none |
+| Re-enqueue ModuleInstances ... | - the pin set: `status.packageIdentity` or `status.registry` | Fields that re-enqueue | 3 | none |
+| Re-enqueue ModuleInstances ... | - `spec.skewPolicy` | Fields that re-enqueue | 4 | none |
+| Re-enqueue ModuleInstances ... | - `status.observedGeneration` | Fields that re-enqueue | 5 | none |
+| Re-enqueue ModuleInstances ... | `status.packageIdentity` is the field that identifies the pin set a... | Fields that re-enqueue | 6 | none |
+| Re-enqueue ModuleInstances ... | The trigger includes the Platform reconciler's own status update, w... | The Platform reconciler's own status update and a change ... | 1 | added the named reference: As in requirement "Fields that re-enqueue": |
+| Re-enqueue ModuleInstances ... | A Platform update that changes none of these fields SHALL NOT enque... | A Platform update that changes none of the fields enqueue... | 1 | added the named reference: As in requirement "Fields that re-enqueue": |
+| Re-enqueue ModuleInstances ... | Platform create and delete events SHALL re-enqueue. | A Platform event enqueues only the operator-managed, unsu... | 1 | none |
+| Re-enqueue ModuleInstances ... | The reconciler SHALL enqueue only the ModuleInstances that render a... | A Platform event enqueues only the operator-managed, unsu... | 2 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Re-enqueue ModuleInstances when the platform becomes ready | 1745 | 471, 426, 492, 441 |
+
+### Ledger: registration-activation
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A provider going unready leaves the claim active | An active claim stays active when its provider's readiness regresses, A provider going unready leaves the claim active | no (byte equal, checked by the item 3 command) |
+| A provider recovering does not re-run the gate | The readiness gate governs initial activation only, A provider recovering does not re-run the gate | no (byte equal, checked by the item 3 command) |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Activation latches against ... | Once active, a claim SHALL NOT be deactivated because its provider'... | An active claim stays active when its provider's readines... | 1 | none |
+| Activation latches against ... | This is deliberate and not an oversight: the active-claim set is an... | An active claim stays active when its provider's readines... | 2 | none |
+| Activation latches against ... | The readiness gate SHALL govern initial activation only. | The readiness gate governs initial activation only | 1 | added the named reference: As in requirement "An active claim stays active when its...": |
+| Activation latches against ... | A claim leaves the active state by deletion, never by its provider ... | The readiness gate governs initial activation only | 2 | none |
+| Activation latches against ... | Established CRDs outlive a provider's pods, so an active claim stay... | The readiness gate governs initial activation only | 3 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Activation latches against provider health | 623 | 363, 349 |
+
+### Ledger: transformer-registration-crd
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A claim missing its catalog is rejected | TransformerRegistrationSpec requires catalog, version, provides and providerRef, A claim missing its catalog is rejected | no (byte equal, checked by the item 3 command) |
+| A claim with an empty provides list is accepted | TransformerRegistrationSpec requires catalog, version, provides and providerRef, A claim with an empty provides list is accepted | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A claim can reach the cluster with a field absent | Claim validation is not delegated to the authoring catalog | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Every claim field is requir... | `TransformerRegistrationSpec` SHALL require `catalog` (the provider... | TransformerRegistrationSpec requires catalog, version, pr... | 1 | none |
+| Every claim field is requir... | `provides` is required but MAY be empty: the CRD sets no minimum on... | TransformerRegistrationSpec requires catalog, version, pr... | 2 | none |
+| Every claim field is requir... | This validation SHALL NOT be delegated to the authoring catalog: a ... | Claim validation is not delegated to the authoring catalog | 1 | added the named reference: As in requirement "TransformerRegistrationSpec requires ...": |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Every claim field is required at admission | 733 | 491, 342 |
+
 ## Strength table
 
 Every sentence that gained SHALL, MUST or MAY in this unit.
@@ -2105,6 +2469,8 @@ Old text from `origin/main`. All other keywords are the old ones.
 | A refused claim update applies, creates and deletes no object of the set | "In that case no object of the resource set SHALL be applied, created or deleted." | "In that case no object of the resource set is applied, created or deleted." (ssa-apply, "A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed") |
 | The event carries the text of the values failure | "The event SHALL carry the same text within the event note limit (capability `events-emission`)." | "The event carries the same text within the event note limit (capability `events-emission`)." (module-instance-synthesis, "A values failure reports every finding with its positions") |
 | A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it | "Such a reconcile SHALL apply the rendered set, so an inventoried object that is being deleted refuses it ..." | "Such a reconcile applies the rendered set, so an inventoried object that is being deleted refuses it ..." (modulepackage-reconcile-loop, "No-op detection") |
+| The render result carries no inventory entries and full apply is covered by the Kind-backed e2e suite | "Full apply → `Ready=True` on a live cluster SHALL be covered by the Kind-backed `test/e2e` suite, not this integration-tier test." | "Full apply → `Ready=True` on a live cluster is covered by the Kind-backed `test/e2e` suite, not this integration-tier test." (test-registry-lifecycle, "End-to-end integration tests") |
+| The package identity shows the platform was regenerated for the edited claim | "The package identity SHALL be a function of the claims' coordinates, so its move is what shows the platform was regenerated for the edited claim." | "The package identity is a function of the claims' coordinates, so its move is what shows the platform was regenerated for the edited claim." (live-flux-e2e, "Deployed-controller registration claim proof") |
 
 ## The gate
 

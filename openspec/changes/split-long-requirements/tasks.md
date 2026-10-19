@@ -43,10 +43,10 @@ Specs: platform-inventory-gate 5, render-input-key 5, ssa-apply 5, library-kerne
 
 Specs: serviceaccount-impersonation 4, platform-crd 3, platform-module-generation 3, reconcile-backoff 2, registration-driven-regeneration 2, registration-removal-guard 2, test-registry-lifecycle 2, workflow-hardening 2, docs-bundle 1, inventory-bridge 1, live-flux-e2e 1, module-acquisition 1, operator-resource-reference 1, platform-gated-rendering 1, registration-activation 1, transformer-registration-crd 1.
 
-- [x] 5.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch. (Unit 5a: `serviceaccount-impersonation`, `platform-crd`, `platform-module-generation`, `reconcile-backoff`, `registration-driven-regeneration`, 14 requirements; the other 11 specs wait for unit 5b.)
-- [x] 5.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`. (Unit 5a: the 14 requirements above; no `DIFF`, no `LOST`.)
-- [x] 5.3 Gate (`N=112`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement. (Unit 5a: gate run with `N=98`, the cumulative count after unit 5a; `N=112` is the gate of unit 5b.)
-- [ ] 5.4 Commit `docs(openspec): split the long requirements of opm-operator-B7`
+- [x] 5.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch. (Unit 5a: `serviceaccount-impersonation`, `platform-crd`, `platform-module-generation`, `reconcile-backoff`, `registration-driven-regeneration`, 14 requirements. Unit 5b: `registration-removal-guard`, `test-registry-lifecycle`, `workflow-hardening`, `docs-bundle`, `inventory-bridge`, `live-flux-e2e`, `module-acquisition`, `operator-resource-reference`, `platform-gated-rendering`, `registration-activation`, `transformer-registration-crd`, 14 requirements.)
+- [x] 5.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`. (Units 5a and 5b: the 28 requirements above; no `DIFF`, no `LOST`.)
+- [x] 5.3 Gate (`N=112`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement. (Unit 5a: gate run with `N=98`. Unit 5b: gate run with `N=112`, `GATE PASS`; the 11 specs of unit 5b show no WARNING.)
+- [x] 5.4 Commit `docs(openspec): split the long requirements of opm-operator-B7`
 
 ## 6. Pause for the open changes (the human's step)
 
