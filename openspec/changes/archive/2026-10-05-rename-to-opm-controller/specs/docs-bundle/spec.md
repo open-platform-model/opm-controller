@@ -46,8 +46,8 @@ The repository SHALL declare one docs-kit project, `opm-controller`, in `docs-ki
 
 #### Scenario: A decision citation stays a link
 
-- **WHEN** a CRD description cites `0015:D3/D16`
-- **THEN** the generated page shows `[0015:D3/D16](/enhancements/0015/decisions/)`
+- **WHEN** a CRD description cites enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")
+- **THEN** the generated page shows `enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")`
 
 #### Scenario: A CRD that is not a CustomResourceDefinition is refused
 

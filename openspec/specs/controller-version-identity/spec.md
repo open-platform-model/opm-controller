@@ -2,7 +2,7 @@
 
 Define the controller's build-time version identity: a source-burned constant
 maintained by release automation, exposed at startup and via
-`Platform.status.controllerVersion`. Slice A6 of enhancement 0006 (0006:D24, controller
+`Platform.status.controllerVersion`. Slice A6 of enhancement 0006 (controller
 half).
 
 ## Requirements
@@ -23,7 +23,7 @@ The controller SHALL carry its version as a Go constant in `internal/version` an
 
 ### Requirement: Version value contract
 
-The published version string SHALL be the `v`-prefixed constant (matching release tags, e.g. `v1.0.0-alpha.2`). When the binary was built from a VCS checkout exposing build info, the string MAY carry a `+g<short-revision>` suffix, with `.dirty` appended for modified worktrees. Consumers (the CLI's 0006:D24 ceiling check) MUST tolerate and strip the `+…` build-metadata suffix before comparison.
+The published version string SHALL be the `v`-prefixed constant (matching release tags, e.g. `v1.0.0-alpha.2`). When the binary was built from a VCS checkout exposing build info, the string MAY carry a `+g<short-revision>` suffix, with `.dirty` appended for modified worktrees. Consumers (the CLI's ceiling check) MUST tolerate and strip the `+…` build-metadata suffix before comparison.
 
 #### Scenario: Release image reports the clean tag
 

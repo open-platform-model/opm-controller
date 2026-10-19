@@ -8,7 +8,7 @@ The owner decided on 2026-10-05 to rename opm-operator to opm-controller across 
 
 - One name in every identifier that is not immutable history, with no alias, migration or warning.
 - The controller module starts clean on `opmodel.dev/modules/opm_controller@v0` at 0.1.0.
-- A controller release stops publishing an install manifest of its own (0021:D4, folded from `stop-operator-install-manifest` by the owner's 2026-10-05 decision).
+- A controller release stops publishing an install manifest of its own (enhancement 0021 ("The classes the policy covers"), folded from `stop-operator-install-manifest` by the owner's 2026-10-05 decision).
 
 **Non-Goals:**
 
