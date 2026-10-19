@@ -2,7 +2,7 @@
 
 Branch `docs/split-long-requirements`, created from `origin/main`. Run every command inside its worktree. The gate of `design.md` runs in a scratch copy of `openspec/`, never in the worktree.
 
-Every unit of sections 1 to 10 edits spec text only, so no Go file, CRD or generated file changes and `task dev:fmt dev:vet dev:lint dev:test` has nothing to check there; the unit's gate is the gate of `design.md`, and its review is the 14 items of guide section 7. Section 11 edits a Taskfile and a workflow and runs the repo gates as well. `N` in a gate is the cumulative count of requirements rewritten on the branch.
+Every unit of sections 1 to 10 edits spec text only, so no Go file, CRD or generated file changes and `task dev:fmt dev:vet dev:lint dev:test` has nothing to check there; the unit's gate is the gate of `design.md`, and its review is the 14 items of guide section 7. `N` in a gate is the cumulative count of requirements rewritten on the branch.
 
 Each unit starts by writing its scenario ledger into `design.md` (heading `### Ledger: <spec>`), reading `git show main:openspec/specs/<spec>/spec.md` and running `grep -rn --exclude-dir=archive "<old header>" .` before any split.
 
@@ -89,12 +89,9 @@ Specs: prune-stale-resources 6, cascade-receiver 5, drift-detection 5, modulepac
 - [ ] 10.3 Gate (`N=196` or the fresh total): no new ERROR item; the Purpose ERRORs are gone.
 - [ ] 10.4 Commit `docs(openspec): add Purpose text to source-resolution and example-module-publishing`
 
-## 11. Pinned OpenSpec 1.14.1 gate (Taskfile and CI) and the final gate
+## 11. Final gate and archive
 
-- [ ] 11.1 Load `eng-shared-security` (supply-chain) and `eng-cicd-security` (workflow-security) before editing `lint.yml`.
-- [ ] 11.2 Add `openspec:install` (exact `@fission-ai/openspec@1.14.1`) and `openspec:check` (`openspec validate --all --strict --no-interactive`) in `.tasks/`, included from `Taskfile.yml`. The pin is written once.
-- [ ] 11.3 Add one step to the `Lint` job of `.github/workflows/lint.yml` that installs and runs the task. No version literal in the workflow. Run `task cascade:wiring:check` and actionlint.
-- [ ] 11.4 Show `task openspec:check` failing on a scratch copy with one long requirement restored, and passing on the branch.
-- [ ] 11.5 Final gate (`LAST=1`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; `validate --specs --strict` exit 0; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (expected exit 0 on main after both open changes).
-- [ ] 11.6 `task dev:fmt dev:vet dev:lint dev:test` and `task docs:bundle:check` green, then commit `ci(openspec): gate the specs with a pinned OpenSpec 1.14.1 strict check`
-- [ ] 11.7 Archive the change on this branch (`openspec-archive-change`), so the archive commit rides the PR. Commit `docs(openspec): archive split-long-requirements`
+The pinned OpenSpec 1.14.1 gate (Taskfile and CI) is not part of this change. It moves to a separate change and PR after `stop-operator-install-manifest` and `add-cross-namespace-source-grants` land (DECISIONS.md 2026-10-19 14:05).
+
+- [ ] 11.1 Final gate (`LAST=1`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; `validate --specs --strict` exit 0; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (expected exit 0 on main after both open changes).
+- [ ] 11.2 Archive the change on this branch (`openspec-archive-change`), so the archive commit rides the PR. Commit `docs(openspec): archive split-long-requirements`

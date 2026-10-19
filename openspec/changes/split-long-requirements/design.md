@@ -93,7 +93,7 @@ for the human to land both open changes, then a fresh inventory, then B1, B3, B5
 | Pause: the human lands both open changes | They edit `release-automation` (B1), `container-image-publish` (B3), `operator-module` (B5) and `source-resolution` | |
 | B1, B3, B5 | After the pause, with an inventory re-run first | 140, 168, 196, or the fresh count |
 | `source-resolution` Purpose | Its change must have landed | unchanged |
-| Gate (Taskfile, CI) | A step that runs `--all --strict` would fail its own PR while the open changes carry warnings and errors | unchanged |
+| Gate (Taskfile, CI) | Moved to a separate change after the open changes land | unchanged |
 
 **Rationale**: each unit stays independent of the open changes until they land, as the human
 ruled. The last column assumes an unchanged inventory; B1, B3 and B5 re-measure first, and `N`
@@ -104,7 +104,7 @@ editing them is out of scope.
 
 ### Reversibility
 
-high (hours). Spec text and a CI step are reverted by a PR. No contract changes and no accepted
+high (hours). Spec text is reverted by a PR. No contract changes and no accepted
 decision record is edited.
 
 ## The scenario ledger
@@ -166,29 +166,14 @@ Pass rules:
 - The 14 review items of guide section 7 run per unit, including the byte-equality command for
   each rewritten requirement.
 
-## The pinned gate (Taskfile and CI)
+## The pinned gate (Taskfile and CI): moved out
 
-**Context**: this repo has no OpenSpec task and no workflow that runs the CLI
-(`grep -rn openspec Taskfile.yml .tasks .github/workflows` finds nothing). The `cli` repo's
-`openspec:install` and `openspec:check` tasks are the model.
-**Decision**: add two tasks in `.tasks/`: `openspec:install` (npm install of
-`@fission-ai/openspec` at exactly 1.14.1) and `openspec:check`
-(`openspec validate --all --strict --no-interactive`, with a clear message when the CLI is
-missing), included from `Taskfile.yml` like the other `.tasks/*.yaml` files. Add one step in the
-required `Lint` job of `.github/workflows/lint.yml` that installs the pinned version through
-the task and runs the check. The pin is written once, in the task, and the workflow carries no
-version literal (the repo's own rule for the opm CLI pin).
-**Rationale**: one pin in one place; `Lint` is the required check, so a regression of a long
-requirement fails the PR.
-**Alternative rejected**: a separate workflow file. It adds a trigger and a permission set and
-is not a required check.
-**Order**: delivered after both open changes land, as the human chose on 2026-10-19 10:50.
-Before that, the step would fail its own PR.
-**Confirmation**: the unit shows the task failing on a scratch copy with one long requirement
-restored.
-**Security**: the step runs a pinned npm package. The unit loads the supply-chain rules
-(exact version, cooldown, install scripts) and the workflow-security rules before it edits
-`lint.yml`.
+The pinned OpenSpec 1.14.1 gate (`openspec:install` and `openspec:check` tasks and a `Lint` step)
+is not part of this change. It becomes a small separate change and PR after the open changes
+`stop-operator-install-manifest` and `add-cross-namespace-source-grants` land, because a step
+that runs `--all --strict` would fail its own PR while they carry warnings and errors
+(DECISIONS.md 2026-10-19 14:05). That change installs OpenSpec 1.14.1 pinned by version with
+`--ignore-scripts` and no lockfile, and takes the `cli` repo's tasks as the model.
 
 ## Risks / Trade-offs
 
@@ -197,11 +182,11 @@ restored.
 - The two open changes move text before B1, B3 and B5. Counter: the pause and the fresh
   inventory. An "Archive would refuse" line is reported, never repaired by editing the other
   change.
-- Section count: 11 task groups (9 units plus a pause and the gate), against the config's "at most about seven sections" rule. The
+- Section count: 11 task groups (9 units plus a pause and the final gate), against the config's "at most about seven sections" rule. The
   groups are mechanical units of one kind, each ends green, and DECISIONS.md 2026-10-19 09:50
   sets one change per repo run as several units. The proposal gate may ask instead for two
   changes (before and after the open changes land).
-- No new trust boundary, secret or personal data. The one new CI step is covered above.
+- No new trust boundary, secret or personal data.
 
 ## Open Questions
 

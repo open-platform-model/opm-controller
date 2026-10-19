@@ -19,8 +19,7 @@ lost or changed.
 
 ## What Changes
 
-No code, no API type, no controller and no CRD changes. Only `openspec/specs/` text, a Taskfile
-task and a CI step change. Spec deltas are not written in this step: later implement units write
+No code, no API type, no controller and no CRD changes. Only `openspec/specs/` text changes. Spec deltas are not written in this step: later implement units write
 them batch by batch, each under the human's yes at this proposal gate.
 
 Specs by batch (counts are long requirements, from `explore/T1.3.md` and re-measured on
@@ -51,12 +50,13 @@ Specs by batch (counts are long requirements, from `explore/T1.3.md` and re-meas
 - **Purpose, after the open changes land.** `source-resolution` gets its Purpose in the last
   group, after `add-cross-namespace-source-grants` lands. `example-module-publishing` gets real
   Purpose text (an archive placeholder today) in the B5 unit, which already rewrites that spec.
-- **Gate.** A pinned OpenSpec 1.14.1 `openspec validate --all --strict` gate in `Taskfile.yml`
-  (via `.tasks/`) and in CI, as the last unit, delivered after both open changes land.
+- **Gate moved out.** The pinned OpenSpec 1.14.1 `openspec validate --all --strict` gate
+  (Taskfile and CI) is not part of this change. It becomes a small separate change and PR after
+  both open changes land (DECISIONS.md 2026-10-19 14:05).
 
 ## Scope
 
-In scope: the specs named above, the Purpose text, the gate.
+In scope: the specs named above, the Purpose text.
 
 The 8th ERROR (the MODIFIED block of `operator-module` in `stop-operator-install-manifest`
 omits a live scenario) is that change's to fix before it lands (DECISIONS.md 2026-10-19 12:45).
@@ -66,10 +66,9 @@ over 500 characters belong to their authors.
 ## Impact
 
 - Affected API types and controllers: none.
-- SemVer class: none (specification text and CI only). The commits are `docs` and `ci`, which
+- SemVer class: none (specification text only). The commits are `docs`, which
   release nothing, so no `-beta.N` is cut.
-- Complexity: no new component. The one added moving part is a CI step; it keeps the repo
-  clean once the rewrite is done (Principle VII).
+- Complexity: no new component.
 - Sections: more than about five (see `tasks.md`). Principle VIII allows one PR per change with
   one commit per section; a section that edits specs only ends green under the guide gate
   and leaves `main` releasable. The change runs as several units on one branch (DECISIONS.md
