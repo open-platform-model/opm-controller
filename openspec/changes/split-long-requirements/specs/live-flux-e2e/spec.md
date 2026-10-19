@@ -32,7 +32,7 @@ As in requirement "The suite drives a claim into a platform build": The suite SH
 - **AND** the Platform SHALL report `Ready=True` with reason `Generated`
 
 ### Requirement: The v-prefixed claim is covered
-The suite SHALL then cover the `v`-prefixed spelling. It suspends the provider instance, so the controller does not re-apply the rendered claim, and sets the live claim's `spec.version` to the same build with a `v` prefix.
+As in requirement "The suite drives a claim into a platform build": The suite SHALL then cover the `v`-prefixed spelling. It suspends the provider instance, so the controller does not re-apply the rendered claim, and sets the live claim's `spec.version` to the same build with a `v` prefix.
 
 #### Scenario: The provider is suspended and the claim version gets a v prefix
 - **WHEN** the suite covers the `v`-prefixed spelling
@@ -64,11 +64,15 @@ As in requirement "The suite asserts the Platform registry entry under a new pac
 - **THEN** that move shows the platform was regenerated for the edited claim, because the package identity is a function of the claims' coordinates
 
 ### Requirement: The spec deploys and tears down its own controller
-The spec SHALL deploy and tear down its own controller. It SHALL need no registry credentials when the fixtures are on the public default registry, and it SHALL use the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do.
+As in requirement "The suite drives a claim into a platform build": The spec SHALL deploy and tear down its own controller. It SHALL need no registry credentials when the fixtures are on the public default registry, and it SHALL use the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do.
 
 #### Scenario: The spec needs no registry credentials on the public default registry
 - **WHEN** the fixtures are on the public default registry
-- **THEN** the spec needs no registry credentials, and it uses the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do
+- **THEN** the spec needs no registry credentials
+
+#### Scenario: The spec uses the LOCAL_REGISTRY and OPERATOR_DOCKER_CONFIG overrides
+- **WHEN** the spec runs
+- **THEN** it uses the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do
 
 ### Requirement: The last step deletes the provider instance and teardown removes any remaining claim
 As in requirement "The spec deploys and tears down its own controller": Its last ordered step SHALL delete the provider instance and assert that the claim is pruned with its guard released. Teardown SHALL then remove any claim still present, with a bounded wait and a finalizer strip, before it removes the applier RBAC and the Platform and before it undeploys the controller and uninstalls the CRDs.

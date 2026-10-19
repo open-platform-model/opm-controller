@@ -2,7 +2,7 @@
 
 ### Requirement: Re-enqueue ModuleInstances when the platform becomes ready
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "Fields that re-enqueue", "The Platform reconciler's own status update and a change to operatorVersion re-enqueue", "A Platform update that changes none of the fields enqueues nothing" and "A Platform event enqueues only the operator-managed, unsuspended ModuleInstances".
+**Migration**: See "Fields that re-enqueue", "The Platform reconciler's own status update and a change to operatorVersion re-enqueue", "A Platform update that changes none of the fields enqueues nothing", "A bump of the Platform generation alone enqueues nothing" and "A Platform event enqueues only the operator-managed, unsuspended ModuleInstances".
 
 ## ADDED Requirements
 
@@ -34,12 +34,15 @@ As in requirement "Fields that re-enqueue": The trigger includes the Platform re
 - **THEN** the reconciler re-enqueues every operator-managed, unsuspended `ModuleInstance` and renders it on the next reconcile, without waiting for the transient backoff
 
 ### Requirement: A Platform update that changes none of the fields enqueues nothing
-As in requirement "Fields that re-enqueue": A Platform update that changes none of these fields SHALL NOT enqueue any ModuleInstance. Examples of such updates are a change to the `Ready` message or to its reason while it stays `False`, a `ContractsFulfilled` update, or a bump of `metadata.generation` alone: the platform has not been regenerated yet, so a render on that edge would run against the previous package, and the `status.observedGeneration` write that follows carries the new one.
+As in requirements "Fields that re-enqueue" and "The Platform reconciler's own status update and a change to operatorVersion re-enqueue": A Platform update that changes none of these fields SHALL NOT enqueue any ModuleInstance. Examples of such updates are a change to the `Ready` message or to its reason while it stays `False`, a `ContractsFulfilled` update.
 
 #### Scenario: A message-only status write enqueues nothing
 
 - **WHEN** the Platform reconciler rewrites the `Ready` condition's message, and its status, `packageIdentity`, `registry`, `operatorVersion` and `observedGeneration` are unchanged
 - **THEN** no `ModuleInstance` is enqueued and no render runs
+
+### Requirement: A bump of the Platform generation alone enqueues nothing
+As in requirements "Fields that re-enqueue" and "The Platform reconciler's own status update and a change to operatorVersion re-enqueue": A Platform update that changes none of these fields SHALL NOT enqueue any ModuleInstance. Examples of such updates are a bump of `metadata.generation` alone: the platform has not been regenerated yet, so a render on that edge would run against the previous package, and the `status.observedGeneration` write that follows carries the new one.
 
 #### Scenario: A spec edit renders once the regenerated package lands
 
@@ -47,7 +50,7 @@ As in requirement "Fields that re-enqueue": A Platform update that changes none 
 - **THEN** the generation bump alone enqueues no `ModuleInstance`, and the status write re-enqueues every operator-managed, unsuspended `ModuleInstance`
 
 ### Requirement: A Platform event enqueues only the operator-managed, unsuspended ModuleInstances
-Platform create and delete events SHALL re-enqueue. The reconciler SHALL enqueue only the ModuleInstances that render against the changed Platform: those that are operator-managed (`spec.owner` absent, empty or `operator`) and not suspended. A ModuleInstance with `spec.owner: cli` or `spec.suspend: true` SHALL NOT be enqueued by a Platform event; a change to either field is a spec change and reconciles the instance through its own watch.
+As in requirement "Fields that re-enqueue": Platform create and delete events SHALL re-enqueue. The reconciler SHALL enqueue only the ModuleInstances that render against the changed Platform: those that are operator-managed (`spec.owner` absent, empty or `operator`) and not suspended. A ModuleInstance with `spec.owner: cli` or `spec.suspend: true` SHALL NOT be enqueued by a Platform event; a change to either field is a spec change and reconciles the instance through its own watch.
 
 #### Scenario: CLI-owned and suspended instances are not enqueued
 

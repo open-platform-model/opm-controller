@@ -1948,9 +1948,9 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 
 | Old requirement | Old clause | New requirement | Sentence | Edit |
 | --- | --- | --- | --- | --- |
-| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated platform module has a cue.mod/module.cue at... | 1 | none |
-| The reconciler generates a platform m... | a `cue.mod/module.cue` under the fixed reserved-unpublished module ... | The generated platform module has a cue.mod/module.cue at... | 2 | added "." |
-| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... (head; a `cue.mod/module.cue` under the fixed reserved-unpublished module path ...) | The generated cue.mod pins core at the library's release ... | 1 | the head sentence replaced by the named reference As in requirement "The platform module has a cue.mod/module.cue at the reserved path": and the words "the operator SHALL generate" and the list item's opening "a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`," copied from the old head; no cut inside the list item (DECISIONS.md 2026-10-20 02:40) |
+| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The platform module has a cue.mod/module.cue at the reserved path | 1 | none |
+| The reconciler generates a platform m... | a `cue.mod/module.cue` under the fixed reserved-unpublished module ... | The platform module has a cue.mod/module.cue at the reserved path | 2 | added "." |
+| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... (head; a `cue.mod/module.cue` under the fixed reserved-unpublished module path ...) | The generated cue.mod pins core at the library's release ... | 1 | the head sentence replaced by the named reference As in requirement "The platform module has a cue.mod/module.cue at the reserved path": and the words "the operator SHALL generate" and the list item's opening "a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`," copied from the old head; no cut inside the list item |
 | The reconciler generates a platform m... | pinning core at the library's verified core release (the version ca... | The generated cue.mod pins core at the library's release ... | 1 | none |
 | The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated platform.cue embeds core.#Platform with one... | 1 | none |
 | The reconciler generates a platform m... | a `platform.cue` embedding `core.#Platform` with one `#registry` en... | The generated platform.cue embeds core.#Platform with one... | 2 | none |
@@ -2085,7 +2085,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 ### Ledger: registration-removal-guard
 
-Form b for "Shrinking provides while dependents exist is refused before it takes effect" (MODIFIED keeps the header, the first paragraph as the body and all five scenarios; the two splits are ADDED under new names with a restatement scenario each) and form c2 for "A refused upgrade is reported on the provider it came from" (REMOVED, two ADDED). The ADDED blocks name the kept header as the requirement whose subject they continue (DECISIONS.md 2026-10-19 16:55). `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+Form b for "Shrinking provides while dependents exist is refused before it takes effect" (MODIFIED keeps the header, the first paragraph as the body and all five scenarios; the two splits are ADDED under new names with a restatement scenario each) and form c2 for "A refused upgrade is reported on the provider it came from" (REMOVED, two ADDED). The ADDED blocks name the kept header as the requirement whose subject they continue. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
@@ -2123,6 +2123,8 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | A refused upgrade is reported on the provider it came from | 530 | 353, 280 |
 
 ### Ledger: test-registry-lifecycle
+
+The block "The render result carries no inventory entries and full apply is covered by the Kind-backed e2e suite" holds two sentences of the old body that carry no keyword of their own beside one sentence that gained SHALL; they are kept together so that no new keyword is added to the render-result sentence.
 
 Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
 
@@ -2280,6 +2282,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | The claim is re-judged at its new generation | The claim is re-judged at its new generation | the clause of that requirement body |
 | A moved package identity shows the regeneration | The package identity shows the platform was regenerated for the edited claim | the clause of that requirement body |
 | The spec needs no registry credentials on the public default registry | The spec deploys and tears down its own controller | the clause of that requirement body |
+| The spec uses the LOCAL_REGISTRY and OPERATOR_DOCKER_CONFIG overrides | The spec deploys and tears down its own controller | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
 
@@ -2288,18 +2291,18 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Deployed-controller registr... | Against the deployed controller, the e2e suite SHALL drive a claim ... | The suite drives a claim into a platform build | 1 | none |
 | Deployed-controller registr... | The suite SHALL read the expected catalog path and version from the... | The suite reads the expected catalog from the fixture's i... | 1 | added the named reference: As in requirement "The suite drives a claim into a platf...": |
 | Deployed-controller registr... | The suite SHALL assert three things: the claim reports `accepted: t... | The suite asserts the claim, the registry entry and the P... | 1 | added the named reference: As in requirement "The suite drives a claim into a platf...": |
-| Deployed-controller registr... | The suite SHALL then cover the `v`-prefixed spelling. It suspends t... | The v-prefixed claim is covered | 1 | none |
+| Deployed-controller registr... | The suite SHALL then cover the `v`-prefixed spelling. It suspends t... | The v-prefixed claim is covered | 1 | added the named reference: As in requirement "The suite drives a claim into a platf...": |
 | Deployed-controller registr... | The suite SHALL assert that the claim is re-judged at its new gener... | The claim is re-judged at its new generation | 1 | added the named reference: As in requirement "The v-prefixed claim is covered": |
 | Deployed-controller registr... | Only after that verdict SHALL the suite assert that the Platform's ... | The suite asserts the Platform registry entry under a new... | 1 | added the named reference: As in requirement "The claim is re-judged at its new gen...": |
 | Deployed-controller registr... | The package identity is a function of the claims' coordinates, so i... | The package identity shows the platform was regenerated f... | 1 | added the named reference: As in requirement "The suite asserts the Platform regist...":; added "SHALL" (SHALL be a function; Strength table) |
-| Deployed-controller registr... | The spec SHALL deploy and tear down its own controller. It SHALL ne... | The spec deploys and tears down its own controller | 1 | none |
+| Deployed-controller registr... | The spec SHALL deploy and tear down its own controller. It SHALL ne... | The spec deploys and tears down its own controller | 1 | added the named reference: As in requirement "The suite drives a claim into a platf...": |
 | Deployed-controller registr... | Its last ordered step SHALL delete the provider instance and assert... | The last step deletes the provider instance and teardown ... | 1 | added the named reference: As in requirement "The spec deploys and tears down its o...": |
 
 Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Deployed-controller registration claim proof | 2782 | 384, 324, 448, 222, 500, 417, 241, 267, 400 |
+| Deployed-controller registration claim proof | 2782 | 384, 324, 448, 290, 500, 417, 241, 335, 400 |
 
 ### Ledger: module-acquisition
 
@@ -2369,7 +2372,7 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | Instances re-render under a new pin set | Fields that re-enqueue, Instances re-render under a new pin set | no (byte equal, checked by the item 3 command) |
 | An operator upgrade into an already-Ready Platform recovers blocked instances | The Platform reconciler's own status update and a change to operatorVersion re-enqueue, An operator upgrade into an already-Ready Platform recovers blocked instances | no (byte equal, checked by the item 3 command) |
 | A message-only status write enqueues nothing | A Platform update that changes none of the fields enqueues nothing, A message-only status write enqueues nothing | no (byte equal, checked by the item 3 command) |
-| A spec edit renders once the regenerated package lands | A Platform update that changes none of the fields enqueues nothing, A spec edit renders once the regenerated package lands | no (byte equal, checked by the item 3 command) |
+| A spec edit renders once the regenerated package lands | A bump of the Platform generation alone enqueues nothing, A spec edit renders once the regenerated package lands | no (byte equal, checked by the item 3 command) |
 | CLI-owned and suspended instances are not enqueued | A Platform event enqueues only the operator-managed, unsuspended ModuleInstances, CLI-owned and suspended instances are not enqueued | no (byte equal, checked by the item 3 command) |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
@@ -2383,15 +2386,20 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Re-enqueue ModuleInstances ... | - `status.observedGeneration` | Fields that re-enqueue | 5 | none |
 | Re-enqueue ModuleInstances ... | `status.packageIdentity` is the field that identifies the pin set a... | Fields that re-enqueue | 6 | none |
 | Re-enqueue ModuleInstances ... | The trigger includes the Platform reconciler's own status update, w... | The Platform reconciler's own status update and a change ... | 1 | added the named reference: As in requirement "Fields that re-enqueue": |
-| Re-enqueue ModuleInstances ... | A Platform update that changes none of these fields SHALL NOT enque... | A Platform update that changes none of the fields enqueue... | 1 | added the named reference: As in requirement "Fields that re-enqueue": |
-| Re-enqueue ModuleInstances ... | Platform create and delete events SHALL re-enqueue. | A Platform event enqueues only the operator-managed, unsu... | 1 | none |
+| Re-enqueue ModuleInstances ... | A Platform update that changes none of these fields SHALL NOT enque... | A Platform update that changes none of the fields enqueue... | 1 | added the named reference: As in requirements "Fields that re-enqueue and The Platfo...": |
+| Re-enqueue ModuleInstances ... | Examples of such updates are | A Platform update that changes none of the fields enqueue... | 2 | none |
+| Re-enqueue ModuleInstances ... | a change to the `Ready` message or to its reason while it stays `Fa... | A Platform update that changes none of the fields enqueue... | 3 | final punctuation written as "." |
+| Re-enqueue ModuleInstances ... | A Platform update that changes none of these fields SHALL NOT enque... | A bump of the Platform generation alone enqueues nothing | 1 | added the named reference: As in requirements "Fields that re-enqueue and The Platfo...": |
+| Re-enqueue ModuleInstances ... | Examples of such updates are | A bump of the Platform generation alone enqueues nothing | 2 | none |
+| Re-enqueue ModuleInstances ... | a bump of `metadata.generation` alone: the platform has not been re... | A bump of the Platform generation alone enqueues nothing | 3 | none |
+| Re-enqueue ModuleInstances ... | Platform create and delete events SHALL re-enqueue. | A Platform event enqueues only the operator-managed, unsu... | 1 | added the named reference: As in requirement "Fields that re-enqueue": |
 | Re-enqueue ModuleInstances ... | The reconciler SHALL enqueue only the ModuleInstances that render a... | A Platform event enqueues only the operator-managed, unsu... | 2 | none |
 
 Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Re-enqueue ModuleInstances when the platform becomes ready | 1745 | 471, 426, 492, 441 |
+| Re-enqueue ModuleInstances when the platform becomes ready | 1745 | 471, 426, 360, 479, 485 |
 
 ### Ledger: registration-activation
 
@@ -2400,7 +2408,13 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
 | A provider going unready leaves the claim active | An active claim stays active when its provider's readiness regresses, A provider going unready leaves the claim active | no (byte equal, checked by the item 3 command) |
-| A provider recovering does not re-run the gate | The readiness gate governs initial activation only, A provider recovering does not re-run the gate | no (byte equal, checked by the item 3 command) |
+| A provider recovering does not re-run the gate | An active claim stays active when its provider's readiness regresses, A provider recovering does not re-run the gate | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The readiness gate does not govern an active claim | The readiness gate governs initial activation only | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
 

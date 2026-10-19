@@ -14,10 +14,14 @@ Once active, a claim SHALL NOT be deactivated because its provider's readiness r
 - **WHEN** an active claim's provider transitions from `Ready=True` to not ready
 - **THEN** the claim stays active and its status does not flap
 
-### Requirement: The readiness gate governs initial activation only
-As in requirement "An active claim stays active when its provider's readiness regresses": The readiness gate SHALL govern initial activation only. A claim leaves the active state by deletion, never by its provider becoming unhealthy. Established CRDs outlive a provider's pods, so an active claim staying active through a provider outage is correct.
-
 #### Scenario: A provider recovering does not re-run the gate
 
 - **WHEN** that provider becomes ready again
 - **THEN** the claim is still active and no activation transition is recorded, because it never left
+
+### Requirement: The readiness gate governs initial activation only
+As in requirement "An active claim stays active when its provider's readiness regresses": The readiness gate SHALL govern initial activation only. A claim leaves the active state by deletion, never by its provider becoming unhealthy. Established CRDs outlive a provider's pods, so an active claim staying active through a provider outage is correct.
+
+#### Scenario: The readiness gate does not govern an active claim
+- **WHEN** a claim is already active
+- **THEN** the readiness gate does not govern it, because a claim leaves the active state by deletion, never by its provider becoming unhealthy
