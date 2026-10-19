@@ -18,7 +18,7 @@
 
 ### Requirement: The operator decides prune and cleanup deletes only through the library's ownership package
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "A prune or cleanup delete follows a delete verdict of the library's ownership package", "The operator sets no install admission input in a delete verdict", "Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds", "One function of the operator performs the deletion plan", "The forced recreate delete asks no verdict and carries the UID precondition", "A test keeps the places that may delete a cluster object closed", "A test finds a delete by the type of the receiver".
+**Migration**: See "A prune or cleanup delete follows a delete verdict of the library's ownership package", "The operator sets no install admission input in a delete verdict", "Prune and cleanup deletes are lifecycle actions", "The operator builds each deletion plan with the library's constructor", "One function of the operator performs the deletion plan", "The forced recreate delete asks no verdict", "The forced recreate delete carries the UID precondition", "A test keeps the places that may delete a cluster object closed", "A test finds a delete by the type of the receiver".
 
 ### Requirement: The operator decides every apply only through the library's ownership package
 **Reason**: Split into requirements that each state one behavior.
@@ -135,13 +135,15 @@ Every delete of a cluster object that the operator makes in a prune of stale res
 - **WHEN** the operator asks the library's `opm/k8s/ownership` package for a delete verdict
 - **THEN** the operator does not set the verdict's install admission input
 
-### Requirement: Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds
-Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST be an action the library's `opm/k8s/lifecycle` transition named, performed with the propagation policy and the precondition of that action.
-The operator MUST build each plan with the library's constructor and MUST NOT order the entries or set a propagation policy with code of its own.
+### Requirement: Prune and cleanup deletes are lifecycle actions
+Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST be an action the library's `opm/k8s/lifecycle` transition named, performed with the propagation policy and the precondition of that action. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: A delete is an action of the lifecycle transition
 - **WHEN** the operator deletes a cluster object in a prune of stale resources or in a deletion cleanup
 - **THEN** the delete is an action the library's `opm/k8s/lifecycle` transition named, performed with the propagation policy and the precondition of that action
+
+### Requirement: The operator builds each deletion plan with the library's constructor
+The operator MUST build each plan with the library's constructor and MUST NOT order the entries or set a propagation policy with code of its own. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: The plan's order and propagation reach the API server unchanged
 - **GIVEN** a plan over a ConfigMap and a Deployment
@@ -149,14 +151,21 @@ The operator MUST build each plan with the library's constructor and MUST NOT or
 - **THEN** the DELETE requests arrive in the plan's order, each with the action's propagation policy and UID precondition
 
 ### Requirement: One function of the operator performs the deletion plan
-The operator MUST build each plan with the library's constructor and MUST NOT order the entries or set a propagation policy with code of its own. One function of the operator MUST perform the plan's reads and deletes.
+The operator MUST build each plan with the library's constructor and MUST NOT order the entries or set a propagation policy with code of its own. One function of the operator MUST perform the plan's reads and deletes. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: One function performs the plan's reads and deletes
 - **WHEN** the operator performs a deletion plan
 - **THEN** one function of the operator performs the plan's reads and deletes
 
-### Requirement: The forced recreate delete asks no verdict and carries the UID precondition
-Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST follow a delete verdict of the library's `opm/k8s/ownership` package on a live read of that object. The one other delete the operator makes, the delete inside a forced recreate, asks no verdict and MUST carry the UID precondition (capability `ssa-apply`). Source: enhancement 0012.
+### Requirement: The forced recreate delete asks no verdict
+Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST follow a delete verdict of the library's `opm/k8s/ownership` package on a live read of that object. The one other delete the operator makes, the delete inside a forced recreate, asks no verdict. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
+
+#### Scenario: The forced recreate delete asks no verdict
+- **WHEN** the operator deletes an object inside a forced recreate
+- **THEN** the delete asks no verdict
+
+### Requirement: The forced recreate delete carries the UID precondition
+The one other delete the operator makes, the delete inside a forced recreate, MUST carry the UID precondition (capability `ssa-apply`). Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: The forced recreate is not a plan step
 - **GIVEN** an apply that is allowed to recreate objects, and an object the API server refuses to update

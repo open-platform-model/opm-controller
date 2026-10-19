@@ -33,7 +33,7 @@ When a ModuleInstance or ModulePackage reconcile renders, ends `Ready=True` (aft
 
 ### Requirement: The ApplyRefused reason
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "A refused apply sets the ApplyRefused reason", "The ApplyRefused message states the count and carries the library messages".
+**Migration**: See "A refused apply sets the ApplyRefused reason", "The ApplyRefused message states the count", "The ApplyRefused message carries the library messages".
 
 ### Requirement: The deletion wait reasons
 **Reason**: Split into requirements that each state one behavior.
@@ -172,8 +172,15 @@ The status package SHALL define the reason constant `ApplyRefused`. A ModuleInst
 - **WHEN** the reconcile completes
 - **THEN** `Ready` is `True`
 
-### Requirement: The ApplyRefused message states the count and carries the library messages
-A ModuleInstance or ModulePackage reconcile that the apply verdict refuses MUST set `Ready=False` with reason `ApplyRefused` and MUST NOT set `Stalled`. The message MUST state how many objects were refused and that nothing was applied, and MUST carry, for each refused object, the message the library words for the refusal, unchanged (at most ten objects, and fewer when the messages would take the text past 1024 characters; then the number of the rest).
+### Requirement: The ApplyRefused message states the count
+The status package SHALL define the reason constant `ApplyRefused`. A ModuleInstance or ModulePackage reconcile that the apply verdict refuses MUST set `Ready=False` with that reason and MUST NOT set `Stalled`. The message MUST state how many objects were refused and that nothing was applied.
+
+#### Scenario: The message states the count and that nothing was applied
+- **WHEN** a ModuleInstance or ModulePackage reconcile is refused by the apply verdict
+- **THEN** the message states how many objects were refused and that nothing was applied
+
+### Requirement: The ApplyRefused message carries the library messages
+The status package SHALL define the reason constant `ApplyRefused`. A ModuleInstance or ModulePackage reconcile that the apply verdict refuses MUST set `Ready=False` with that reason and MUST NOT set `Stalled`. The message MUST carry, for each refused object, the message the library words for the refusal, unchanged (at most ten objects, and fewer when the messages would take the text past 1024 characters; then the number of the rest).
 
 #### Scenario: The reason on a refused apply
 - **GIVEN** a ModuleInstance whose render names a live ConfigMap `team-a/settings` that OPM does not manage

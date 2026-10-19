@@ -147,7 +147,7 @@ Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
 - A sentence whose subject was "It" gets the subject of the sentence before it, copied (the "Edit" column shows it).
 - Where a body relies on a sibling for a condition, the condition is copied from the old text in front of its sentence (the "Edit" column shows it).
 - A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`, the identity sentence of `Single-slot identity-keyed store for concurrent read`) is cut at a list boundary; the parts are verbatim and the head is repeated.
-- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). Two bodies keep the short form `Source: enhancement 0012.`: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance") and the forced-recreate body of `kubernetes-tier-adoption` ("The forced recreate delete asks no verdict and carries the UID precondition"). Each carries one sentence of the old requirement that, with its title, passes 500 and that cannot be cut; the other bodies of the same old requirements carry the whole line. The supervisor decides whether to accept or to cut those sentences.
+- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block keeps the short form `Source: enhancement 0012.` only where one sentence of the old requirement, with its title, passes 500 characters and has no clause boundary that keeps its condition with its rule: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance", 335 plus 208) and the two AdoptedElsewhere bodies of `events-emission` (319 plus 208; 278 plus 65 plus 208).
 
 ### Ledger: deps-cascade
 
@@ -575,7 +575,7 @@ Form c2 for every requirement below except where marked b: REMOVED under the old
 | Delete recreates the claim | A refused claim recreate sets the ClaimConflict reason, Delete recreates the claim | no (byte equal, checked by the item 3 command) |
 | A claim kept by the delete guard | The ClaimConflict message after the delete guard kept the claim, A claim kept by the delete guard | no (byte equal, checked by the item 3 command) |
 | The reason on a refused second change | The IdentityChangeUnsettled message names the way out, The reason on a refused second change | no (byte equal, checked by the item 3 command) |
-| The reason on a refused apply | The ApplyRefused message states the count and carries the library messages, The reason on a refused apply | no (byte equal, checked by the item 3 command) |
+| The reason on a refused apply | The ApplyRefused message carries the library messages, The reason on a refused apply | no (byte equal, checked by the item 3 command) |
 | A let-go object does not set the reason | A refused apply sets the ApplyRefused reason, A let-go object does not set the reason | no (byte equal, checked by the item 3 command) |
 | Waiting is not stalled | DeletionInProgress is set while the cleanup waits, Waiting is not stalled | no (byte equal, checked by the item 3 command) |
 | Blocked is stalled and names the way out | DeletionBlocked is set when an object has not gone for 10 minutes, Blocked is stalled and names the way out | no (byte equal, checked by the item 3 command) |
@@ -593,6 +593,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | A ClaimConflict reconcile prunes and records nothing | A ClaimConflict reconcile does not stall, prune or record | the clause of that requirement body |
 | The IdentityChangeUnsettled message carries no enhancement reference | A refused second identity change sets the IdentityChangeUnsettled reason | the clause of that requirement body |
 | A skipped render keeps the Ready message | A reconcile that skips its render leaves the Ready message as written | the clause of that requirement body |
+| The message states the count and that nothing was applied | The ApplyRefused message states the count | the clause of that requirement body |
 | The deletion reasons are defined | The deletion wait reasons are defined | the clause of that requirement body |
 | An object that is not being deleted carries neither reason | The deletion wait reasons are defined | the clause of that requirement body |
 
@@ -626,8 +627,12 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The IdentityChangeUnsettled reason | The message MUST NOT carry an enhancement reference. | A refused second identity change sets the IdentityChangeUnse... | 3 | none |
 | The ApplyRefused reason | The status package SHALL define the reason constant `ApplyRefused`. | A refused apply sets the ApplyRefused reason | 1 | none |
 | The ApplyRefused reason | A ModuleInstance or ModulePackage reconcile that the apply verdict ref... | A refused apply sets the ApplyRefused reason | 2 | none |
-| The ApplyRefused reason | A ModuleInstance or ModulePackage reconcile that the apply verdict ref... | The ApplyRefused message states the count and carries the li... | 1 | -that;  +`ApplyRefused` |
-| The ApplyRefused reason | The message MUST state how many objects were refused and that nothing... | The ApplyRefused message states the count and carries the li... | 2 | none |
+| The ApplyRefused reason | The status package SHALL define the reason constant `ApplyRefused`. | The ApplyRefused message states the count | 1 | none (context copied; "that reason" of sentence 2 keeps its referent) |
+| The ApplyRefused reason | A ModuleInstance or ModulePackage reconcile that the apply verdict ref... | The ApplyRefused message states the count | 2 | none |
+| The ApplyRefused reason | The message MUST state how many objects were refused and that nothing was applied, | The ApplyRefused message states the count | 3 | "," at the end becomes "." (list cut at ", and MUST carry") |
+| The ApplyRefused reason | The status package SHALL define the reason constant `ApplyRefused`. | The ApplyRefused message carries the library messages | 1 | none (context copied) |
+| The ApplyRefused reason | A ModuleInstance or ModulePackage reconcile that the apply verdict ref... | The ApplyRefused message carries the library messages | 2 | none |
+| The ApplyRefused reason | and MUST carry, for each refused object, the message the library words... | The ApplyRefused message carries the library messages | 3 | -and +The message (subject repeated; list cut) |
 | The ApplyRefused reason | The message MUST NOT carry an enhancement reference. | A refused apply sets the ApplyRefused reason | 3 | none |
 | The Ready message counts the objects ado... | When a ModuleInstance or ModulePackage reconcile renders, ends `Ready=... | The Ready message counts the objects adopted by another inst... | 1 | none |
 | The Ready message counts the objects ado... | When it found none, the message MUST NOT mention such objects. | The Ready message counts the objects adopted by another inst... | 2 | none |
@@ -657,7 +662,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The Healthy condition vocabulary | 598 | 295, 145, 189 |
 | The ClaimConflict reason | 1081 | 388, 326, 401, 452 |
 | The IdentityChangeUnsettled reason | 520 | 320, 467 |
-| The ApplyRefused reason | 566 | 263, 455 |
+| The ApplyRefused reason | 566 | 263, 293, 438 |
 | The deletion wait reasons | 1155 | 295, 170, 405, 475, 453 |
 | The Ready message counts the objects adopted by another instance | 746 | 477, 319 |
 
@@ -679,8 +684,8 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | The prune's outcome is the verdict's | A prune or cleanup delete follows a delete verdict of the library's ownership package, The prune's outcome is the verdict's | no (byte equal, checked by the item 3 command) |
 | A new delete outside the listed places fails the tests | A test keeps the places that may delete a cluster object closed, A new delete outside the listed places fails the tests | no (byte equal, checked by the item 3 command) |
 | A method of the same name on another type is not a delete | A test finds a delete by the type of the receiver, A method of the same name on another type is not a delete | no (byte equal, checked by the item 3 command) |
-| The plan's order and propagation reach the API server unchanged | Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds, The plan's order and propagation reach the API server unchanged | no (byte equal, checked by the item 3 command) |
-| The forced recreate is not a plan step | The forced recreate delete asks no verdict and carries the UID precondition, The forced recreate is not a plan step | no (byte equal, checked by the item 3 command) |
+| The plan's order and propagation reach the API server unchanged | The operator builds each deletion plan with the library's constructor, The plan's order and propagation reach the API server unchanged | no (byte equal, checked by the item 3 command) |
+| The forced recreate is not a plan step | The forced recreate delete carries the UID precondition, The forced recreate is not a plan step | no (byte equal, checked by the item 3 command) |
 | The apply's outcome is the verdict's | A write follows an apply verdict of the library's ownership package, The apply's outcome is the verdict's | no (byte equal, checked by the item 3 command) |
 | A new write outside the listed places fails the tests | A test keeps the places that may write a cluster object closed, A new write outside the listed places fails the tests | no (byte equal, checked by the item 3 command) |
 | No write of the adopt annotation | The operator never writes the adopt annotation, No write of the adopt annotation | no (byte equal, checked by the item 3 command) |
@@ -694,7 +699,8 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | The operator passes the fetched object to the library | The operator judges the readiness of an inventory object only with the library's health package | the clause of that requirement body |
 | The operator's own resources keep their own condition checks | The health package covers applied inventory objects only | the clause of that requirement body |
 | The install admission input is not set | The operator sets no install admission input in a delete verdict | the clause of that requirement body |
-| A delete is an action of the lifecycle transition | Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds | the clause of that requirement body |
+| A delete is an action of the lifecycle transition | Prune and cleanup deletes are lifecycle actions | the clause of that requirement body |
+| The forced recreate delete asks no verdict | The forced recreate delete asks no verdict | the clause of that requirement body |
 | One function performs the plan's reads and deletes | One function of the operator performs the deletion plan | the clause of that requirement body |
 | No ownership rule of the operator's own | The operator declares no ownership rule of its own for an apply | the clause of that requirement body |
 | A write is found by the type of the receiver | A test finds a write by the type of the receiver | the clause of that requirement body |
@@ -733,18 +739,24 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The operator judges the health of invent... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The health package covers applied inventory objects only | 2 | none |
 | The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | A prune or cleanup delete follows a delete verdict of the li... | 1 | none |
 | The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The operator sets no install admission input in a delete ver... | 1 | none |
-| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The forced recreate delete asks no verdict and carries the U... | 1 | none |
+| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The forced recreate delete asks no verdict | 1 | none (context copied) |
 | The operator decides prune and cleanup d... | The operator MUST take the kinds that are never deleted from the same... | A prune or cleanup delete follows a delete verdict of the li... | 2 | none |
 | The operator decides prune and cleanup d... | The operator MUST NOT set the verdict's install admission input. | The operator sets no install admission input in a delete ver... | 2 | none |
 | The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A prune or cleanup delete follows a delete verdict of the li... | 3 | none |
 | The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator sets no install admission input in a delete ver... | 3 | none |
 | The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test keeps the places that may delete a cluster object clo... | 2 | none |
 | The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test finds a delete by the type of the receiver | 2 | none |
-| The operator decides prune and cleanup d... | Each such delete MUST be an action the library's `opm/k8s/lifecycle` transition named, ... | Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds | 1 | "Each such delete" replaced by "Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage," copied from the first sentence |
-| The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | Prune and cleanup deletes are lifecycle actions in a plan th... | 2 | none |
+| The operator decides prune and cleanup d... | Each such delete MUST be an action the library's `opm/k8s/lifecycle` transition named, ... | Prune and cleanup deletes are lifecycle actions | 1 | "Each such delete" replaced by "Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage," copied from the first sentence |
+| The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | The operator builds each deletion plan with the library's constructor | 1 | none |
 | The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | One function of the operator performs the deletion plan | 1 | none |
 | The operator decides prune and cleanup d... | One function of the operator MUST perform the plan's reads and deletes... | One function of the operator performs the deletion plan | 2 | none |
-| The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced re... | The forced recreate delete asks no verdict and carries the U... | 2 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | Prune and cleanup deletes are lifecycle actions | 2 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator builds each deletion plan with the library's constructor | 2 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | One function of the operator performs the deletion plan | 3 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The forced recreate delete asks no verdict | 3 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The forced recreate delete carries the UID precondition | 2 | none |
+| The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced recreate, asks no verdict ... | The forced recreate delete asks no verdict | 2 | "and MUST carry the UID precondition (capability `ssa-apply`)" left out of this block (list cut at the "and") |
+| The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced recreate, ... MUST carry the UID precondition (capability `ssa-apply`). | The forced recreate delete carries the UID precondition | 1 | "asks no verdict and" left out (list cut); the subject is repeated |
 | The operator decides prune and cleanup d... | A test MUST keep the list of places that may delete a cluster object c... | A test keeps the places that may delete a cluster object clo... | 1 | none |
 | The operator decides prune and cleanup d... | It MUST find a delete by the type of the receiver, a Kubernetes client... | A test finds a delete by the type of the receiver | 1 | -It +A test |
 | The operator decides every apply only th... | Every write of a cluster object that the operator makes on behalf of a... | A write follows an apply verdict of the library's ownership... | 1 | none |
@@ -767,7 +779,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The reconciler converts a render with one export | 816 | 482, 357 |
 | The operator uses the library's inventory package and keeps no copy | 742 | 398, 378, 270 |
 | The operator judges the health of inventory objects only through the library's health package | 925 | 436, 423, 360 |
-| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 444, 217, 440, 269, 398 |
+| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 429, 276, 348, 484, 266, 269, 398 |
 | The operator decides every apply only through the library's ownership package | 1191 | 418, 356, 409, 424, 420 |
 
 ### Ledger: module-instance-ownership
