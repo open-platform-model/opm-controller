@@ -120,7 +120,7 @@ Generation SHALL write into a staging directory and rename it into place, so a m
 
 ### Requirement: The generated module is build-local and never published
 
-The generated module SHALL exist only on the controller's own filesystem for the controller's own consumption. The controller MUST NOT publish it to any registry, write it to the cluster, or serve it to other consumers; the reserved `opmodel.dev/platforms/…` namespace stays reserved-unpublished (enhancement 0019: the operator generates the platform package). The module's location and the CR generation it was built for SHALL be recorded process-locally for the render path to consume.
+The generated module SHALL exist only on the controller's own filesystem for the controller's own consumption. The controller MUST NOT publish it to any registry, write it to the cluster, or serve it to other consumers; the reserved `opmodel.dev/platforms/…` namespace stays reserved-unpublished (enhancement 0019: the controller generates the platform package). The module's location and the CR generation it was built for SHALL be recorded process-locally for the render path to consume.
 
 #### Scenario: Nothing leaves the pod
 
