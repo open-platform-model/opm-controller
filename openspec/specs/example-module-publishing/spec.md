@@ -1,7 +1,8 @@
 # example-module-publishing Specification
 
 ## Purpose
-TBD - created by archiving change add-example-test-modules. Update Purpose after archive.
+Defines how CI publishes the operator's example modules to GHCR on a release: each module keeps its own version, a re-publish is safe, and the release attaches example manifests and an examples bundle that reference what the release published. It also defines how a pre-release publish keeps the artifact's declared version equal to its tag.
+
 ## Requirements
 ### Requirement: Example modules published to GHCR on release
 
