@@ -89,8 +89,8 @@ changes are ignored, and the colliding batches are left out.
 | --- | --- | --- |
 | Purpose for 6 specs | No collision, no length work; removes 6 of the 8 ERRORs on main | 0 |
 | B2, B4, B6, B7 | No spec of these batches is edited by an open change | 28, 56, 84, 112 |
-| `example-module-publishing` Purpose | A direct edit of one Purpose; no requirement text changes | 112 |
-| Gate and archive | Last unit of the change | 112 |
+| `example-module-publishing` Purpose | A direct edit of one Purpose; no requirement text changes | 112 (113 WARNING lines fall: the placeholder Purpose counts one) |
+| Gate and archive | Last unit of the change | 113 |
 
 **Rationale**: each unit stays independent of the open changes.
 **Alternative rejected**: all units first, with the open changes moved onto the new text
@@ -121,8 +121,7 @@ pre-release publishes). Its two long requirements are not rewritten here.
 ## The scenario ledger
 
 Each unit writes its ledger in this file before it writes the delta of a spec, under the heading
-`### Ledger: <spec>`. It is not written now, because the inventory moves for B1, B3 and B5 and
-the requirement text is read when the unit starts. The first table has the form of guide
+`### Ledger: <spec>`. Each unit wrote it from the requirement text, read when the unit started. The first table has the form of guide
 section 4:
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
@@ -2464,7 +2463,7 @@ Old text from `origin/main`. All other keywords are the old ones.
 
 | Requirement (new) | Sentence | Old sentence, no keyword |
 | --- | --- | --- |
-| No ClaimsKept event when nothing was kept | "The controller MUST NOT emit a `ClaimsKept` event when nothing was kept: ..." | "No `ClaimsKept` event is emitted when nothing was kept: ..." (events-emission, "Events emitted when claims are kept") |
+| No ClaimsKept event is emitted when nothing was kept | "The controller MUST NOT emit a `ClaimsKept` event when nothing was kept: ..." | "No `ClaimsKept` event is emitted when nothing was kept: ..." (events-emission, "Events emitted when claims are kept") |
 | No LeftBehind event for an absent object or a kept claim | "The controller MUST NOT emit a `LeftBehind` event for an object that was already absent or for a kept PersistentVolumeClaim, which has its own event." | "No `LeftBehind` event is emitted for an object that was already absent or for a kept PersistentVolumeClaim, which has its own event." (events-emission, "Events emitted when objects are left behind") |
 | No AdoptedElsewhere event while the count is unchanged | "A reconcile that finds the same number as before, or that skips its render, MUST emit no `AdoptedElsewhere` event: ..." | "A reconcile that finds the same number as before, or that skips its render, emits none: ..." |
 | Recovery never moves a tag or edits a release by hand | "Recovery SHALL never move, delete or re-create a tag and SHALL never edit a release by hand." | "Recovery never moves, deletes or re-creates a tag and never edits a release by hand" |
@@ -2481,11 +2480,11 @@ Old text from `origin/main`. All other keywords are the old ones.
 | A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it | "Such a reconcile SHALL apply the rendered set, so an inventoried object that is being deleted refuses it ..." | "Such a reconcile applies the rendered set, so an inventoried object that is being deleted refuses it ..." (modulepackage-reconcile-loop, "No-op detection") |
 | The render result carries no inventory entries and full apply is covered by the Kind-backed e2e suite | "Full apply → `Ready=True` on a live cluster SHALL be covered by the Kind-backed `test/e2e` suite, not this integration-tier test." | "Full apply → `Ready=True` on a live cluster is covered by the Kind-backed `test/e2e` suite, not this integration-tier test." (test-registry-lifecycle, "End-to-end integration tests") |
 | The package identity shows the platform was regenerated for the edited claim | "The package identity SHALL be a function of the claims' coordinates, so its move is what shows the platform was regenerated for the edited claim." | "The package identity is a function of the claims' coordinates, so its move is what shows the platform was regenerated for the edited claim." (live-flux-e2e, "Deployed-controller registration claim proof") |
-| Two cases of a missing deletion-cleanup ServiceAccount are not the DeletionSAMissing stall | "Two cases SHALL NOT be this stall, because the missing ServiceAccount has nothing left to do ..." | "Two cases are not this stall, because the missing ServiceAccount has nothing left to do ..." (serviceaccount-impersonation, "Deletion-cleanup SA-missing stalls with DeletionSAMissing") |
+| Two cases of a missing deletion-cleanup ServiceAccount are not the DeletionSAMissing stall | "Two cases SHALL NOT be this stall, because the missing ServiceAccount has nothing left to do ..." | "Two cases are not this stall, because the missing ServiceAccount has nothing left to do ..." (serviceaccount-impersonation, "Deletion-cleanup SA-missing stalls with distinct reason") |
 | Both cases remove the finalizer and warn DeletionUnconfirmed | "In both the finalizer SHALL be removed, the controller's own client SHALL still never be used, and a `Warning` event with reason `DeletionUnconfirmed` SHALL say what could not be read." | "In both the finalizer is removed, the controller's own client is still never used, and a `Warning` event with reason `DeletionUnconfirmed` says what could not be read." (same requirement) |
-| The restore of ServiceAccount RBAC alone is not a trigger | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) SHALL NOT be a trigger; ..." | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) is not a trigger; ..." (serviceaccount-impersonation, "A created ServiceAccount wakes the instances stalled on it") |
-| The materialize-era reasons are retired | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) SHALL be retired." | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) are retired." (platform-module-generation, "The generated module is validated by ...") |
-| Registry fetch failures are transient wherever they occur | "A failure SHALL be transient when its error chain holds the library's typed registry fetch failure ..." | "A failure is transient when its error chain holds the library's typed registry fetch failure ..." (reconcile-backoff) |
+| The restore of ServiceAccount RBAC alone is not a trigger | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) SHALL NOT be a trigger; ..." | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) is not a trigger; ..." (serviceaccount-impersonation, "A created ServiceAccount wakes the instances that impersonate it") |
+| The materialize-era reasons are retired | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) SHALL be retired." | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) are retired." (platform-module-generation, "The generated module is validated by building it") |
+| Registry fetch failures are transient wherever they occur | "A failure SHALL be transient when its error chain holds the library's typed registry fetch failure ..." | "A failure is transient when its error chain holds the library's typed registry fetch failure ..." (reconcile-backoff, "Registry fetch failures are transient wherever they occur") |
 
 ## The gate
 
@@ -2497,7 +2496,7 @@ WT=/var/home/emil/dev/open-platform-model/agent-swarm/openspec-requirement-split
 CH=split-long-requirements
 S=<scratch folder under the session scratchpad>
 N=<requirements rewritten on the branch so far, earlier units included>
-# LAST=1 only in the final unit
+# LAST is unset in the final unit of this change
 ```
 
 Then the block of guide section 6 runs unchanged: it archives the change in the copy, runs
@@ -2516,8 +2515,8 @@ Pass rules:
 - Earlier units: other batches still hold warnings, so `validate --all` exits 1. The unit passes
   when no ERROR item is new and WARNING lines fell by `N`. For the batch's specs also run
   `openspec validate <spec> --type spec --strict --json 2>&1` and read it.
-- Last unit (`N=112`, `LAST` unset): passes when the change passes `validate --strict`, the
-  archive in the copy exits 0, WARNING lines fell by 112, and no ERROR item is new.
+- Last unit (`N=113`: 112 requirements plus the placeholder Purpose warning; `LAST` unset): passes when the change passes `validate --strict`, the
+  archive in the copy exits 0, WARNING lines fell by 113, and no ERROR item is new.
   `validate --all --strict` still fails on the 84 long requirements and on the open changes; the
   unit reports its exit code.
 - The 14 review items of guide section 7 run per unit, including the byte-equality command for

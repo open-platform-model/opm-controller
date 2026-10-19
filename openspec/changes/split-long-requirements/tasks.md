@@ -57,7 +57,7 @@ Specs: serviceaccount-impersonation 4, platform-crd 3, platform-module-generatio
 The pinned OpenSpec 1.14.1 gate (Taskfile and CI) is not part of this change. It moves to a separate change and PR.
 
 - [x] 11.0 Update the seven workflow comments that cite requirement names this change removed (comment text only), in its own `ci` commit. Remove the swarm decision times from `design.md`.
-- [ ] 11.1 Final gate (`N=112`, `LAST` unset, base `origin/main`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; WARNING lines fall by 112; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (it still fails on the 84 long requirements of B1, B3 and B5 and on the open changes).
+- [ ] 11.1 Final gate (`N=113`: 112 requirements and the placeholder Purpose warning of `example-module-publishing`, `LAST` unset, base `origin/main`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; WARNING lines fall by 113; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (it still fails on the 84 long requirements of B1, B3 and B5 and on the open changes).
 - [ ] 11.2 Archive the change on this branch (`openspec-archive-change`), so the archive commit rides the PR. Commit `docs(openspec): archive split-long-requirements`
 
 ## Not in this change

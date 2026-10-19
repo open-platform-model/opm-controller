@@ -19,8 +19,7 @@ lost or changed.
 
 ## What Changes
 
-No code, no API type, no controller and no CRD changes. Only `openspec/specs/` text changes. Spec deltas are not written in this step: later implement units write
-them batch by batch, each under the human's yes at this proposal gate.
+No code, no API type, no controller and no CRD changes. Spec text changes, and seven workflow comments that cite removed requirement names change (comment text only). The spec deltas were written batch by batch on one branch.
 
 Specs by batch (counts are long requirements, from `explore/T1.3.md` and re-measured on
 `origin/main` 7713cc86):
