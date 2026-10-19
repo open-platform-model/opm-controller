@@ -30,7 +30,7 @@ resources:
 - platform_viewer_role.yaml
 - modulepackage_viewer_role.yaml
 - transformerregistration_viewer_role.yaml
-# The platform-admin role for transformer registrations (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces").
+# The platform-admin role for transformer registrations (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces").
 # Shipped unbound on purpose — see the file's own header.
 - transformerregistration_admin_role.yaml
 
