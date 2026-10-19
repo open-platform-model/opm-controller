@@ -1,3 +1,7 @@
+## Purpose
+
+Defines how the controller resolves the CUE registry mapping at startup and configures the library Kernel with it, and how it sets the CUE cache directory.
+
 ## Requirements
 
 ### Requirement: Registry resolution at startup

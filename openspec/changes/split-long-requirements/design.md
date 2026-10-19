@@ -107,6 +107,17 @@ editing them is out of scope.
 high (hours). Spec text is reverted by a PR. No contract changes and no accepted
 decision record is edited.
 
+## Purpose fixes by direct edit
+
+`openspec archive` ignores a delta Purpose for an existing spec (DECISIONS.md 2026-10-19 14:00,
+verified in the CLI's `specs-apply`). A Purpose is therefore a direct edit of `## Purpose` in
+`openspec/specs/<spec>/spec.md`, in its own commit, and is recorded here. Unit 1 added a
+`## Purpose` above `## Requirements` to `artifact-fetch`, `catalog-registry-resolution`,
+`failure-counters`, `history-tracking`, `metrics` and `suspend-resume`. Each text was read from the
+requirements of the spec. Gate on `origin/main` 7713cc86 in a scratch copy: the ERROR set lost
+those six specs (8 items to 2 on the specs plus the open change's one); WARNING lines stayed
+equal. The remaining spec ERROR, `source-resolution`, waits for its open change.
+
 ## The scenario ledger
 
 Each unit writes its ledger in this file before it writes the delta of a spec, under the heading
