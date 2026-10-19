@@ -653,13 +653,13 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Reason constants | 1769 | 358, 481, 447, 491, 343 |
-| The Healthy condition vocabulary | 1172 | 516, 340, 347 |
-| The ClaimConflict reason | 2477 | 888, 492, 794, 1125 |
-| The IdentityChangeUnsettled reason | 829 | 479, 776 |
-| The ApplyRefused reason | 1094 | 408, 838 |
-| The deletion wait reasons | 2401 | 628, 424, 556, 382, 937 |
-| The Ready message counts the objects adopted by another instance | 1214 | 945, 438 |
+| Reason constants | 962 | 229, 316, 265, 277, 226 |
+| The Healthy condition vocabulary | 598 | 295, 145, 189 |
+| The ClaimConflict reason | 1081 | 388, 326, 401, 452 |
+| The IdentityChangeUnsettled reason | 520 | 320, 467 |
+| The ApplyRefused reason | 566 | 263, 455 |
+| The deletion wait reasons | 1155 | 295, 170, 234, 196, 453 |
+| The Ready message counts the objects adopted by another instance | 746 | 477, 319 |
 
 ### Ledger: kubernetes-tier-adoption
 
@@ -747,12 +747,12 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| The operator uses the library's object and label packages and keeps no copy | 1312 | 792, 545 |
-| The reconciler converts a render with one export | 1689 | 931, 781 |
-| The operator uses the library's inventory package and keeps no copy | 1191 | 628, 838 |
-| The operator judges the health of inventory objects only through the library's health package | 1250 | 634, 748, 636 |
-| The operator decides prune and cleanup deletes only through the library's ownership package | 2481 | 703, 621, 711, 428, 684, 725 |
-| The operator decides every apply only through the library's ownership package | 1867 | 629, 624, 642 |
+| The operator uses the library's object and label packages and keeps no copy | 692 | 437, 280 |
+| The reconciler converts a render with one export | 816 | 482, 357 |
+| The operator uses the library's inventory package and keeps no copy | 742 | 398, 389 |
+| The operator judges the health of inventory objects only through the library's health package | 925 | 436, 423, 418 |
+| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 446, 217, 440, 406 |
+| The operator decides every apply only through the library's ownership package | 1191 | 383, 409, 427 |
 
 ### Ledger: module-instance-ownership
 
@@ -846,12 +846,12 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| ModuleInstance carries an ownership marker | 1404 | 874, 529 |
-| The operator skips CLI-owned instances before registering a finalizer | 2489 | 1252, 890, 447 |
-| The operator acknowledges a CLI-owned instance with a single condition | 1669 | 1079, 588 |
-| The operator recognises the instance that deploys it | 2105 | 659, 762, 1195 |
-| The operator never reconciles its own instance | 3423 | 862, 1085, 564, 619, 497, 192, 326 |
-| The operator releases its finalizer from its own instance without pruning | 1626 | 929, 696 |
+| ModuleInstance carries an ownership marker | 536 | 274, 261 |
+| The operator skips CLI-owned instances before registering a finalizer | 926 | 338, 490, 198 |
+| The operator acknowledges a CLI-owned instance with a single condition | 804 | 463, 339 |
+| The operator recognises the instance that deploys it | 845 | 434, 440, 482 |
+| The operator never reconciles its own instance | 1619 | 446, 422, 302, 312, 262, 84, 98 |
+| The operator releases its finalizer from its own instance without pruning | 767 | 341, 425 |
 
 ### Ledger: platform-reconciler
 
@@ -939,12 +939,12 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Generate and build the singleton Platform on reconcile | 2144 | 656, 254, 558, 576, 478 |
-| Surface build outcome on status | 2507 | 499, 511, 278, 698, 576, 458, 384, 359 |
-| Single-slot identity-keyed store for concurrent read | 1739 | 362, 471, 605, 560 |
-| Build failures requeue on a bounded interval | 1524 | 746, 777 |
-| Transient failures retry faster than semantic failures | 1341 | 522, 607, 484 |
-| Subscription mapping and build failures | 1068 | 285, 940 |
+| Generate and build the singleton Platform on reconcile | 1379 | 426, 110, 377, 354, 268 |
+| Surface build outcome on status | 1387 | 243, 275, 143, 293, 296, 237, 189, 136 |
+| Single-slot identity-keyed store for concurrent read | 936 | 156, 234, 404, 401 |
+| Build failures requeue on a bounded interval | 675 | 338, 336 |
+| Transient failures retry faster than semantic failures | 844 | 250, 382, 347 |
+| Subscription mapping and build failures | 519 | 127, 391 |
 
 ### Ledger: kernel-module-renderer
 
@@ -997,9 +997,9 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Render a ModuleRelease through the kernel | 1484 | 694, 627, 373 |
-| Adapt compiled output to operator resources | 2710 | 1089, 506, 797, 718 |
-| The render reports the instance's contract demand from the kernel | 1538 | 1029, 328, 294 |
+| Render a ModuleRelease through the kernel | 778 | 413, 202, 161 |
+| Adapt compiled output to operator resources | 1352 | 352, 255, 463, 431 |
+| The render reports the instance's contract demand from the kernel | 796 | 440, 175, 211 |
 
 ## Strength table
 
