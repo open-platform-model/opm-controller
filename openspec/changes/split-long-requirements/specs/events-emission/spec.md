@@ -162,7 +162,7 @@ The controller MUST NOT emit a `LeftBehind` event for an object that was already
 - **THEN** no event with reason `LeftBehind` is emitted for them
 
 ### Requirement: An AdoptedElsewhere event is emitted when the count of adopted objects changes
-The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and action `Apply` when a reconcile that renders finds a nonzero number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, differing from the number the `Ready` message stated before it. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and action `Apply` when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile. Source: enhancement 0012.
 
 #### Scenario: An object is let go
 - **GIVEN** an inventoried ConfigMap `team-a/settings` whose `opmodel.dev/adopt` annotation names another instance
@@ -175,7 +175,7 @@ The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and 
 - **THEN** no event with reason `AdoptedElsewhere` is emitted
 
 ### Requirement: The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing
-The controller MUST emit the `AdoptedElsewhere` event, when a reconcile finds a nonzero number of refused objects that differs from the number the `Ready` message stated before it, whether the reconcile applies, restores or is a no-op. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The controller MUST emit the `AdoptedElsewhere` event when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile. This holds whether the reconcile applies, restores or is a no-op. Source: enhancement 0012.
 
 #### Scenario: AdoptedElsewhere event on a no-op reconcile
 - **WHEN** a reconcile that renders is a no-op and finds a nonzero number of objects refused as `adopted-elsewhere` that differs from the number the `Ready` message stated before
@@ -223,7 +223,7 @@ Any other stalled render event message that does not fit in 1024 characters SHAL
 - **THEN** the event message is at most 1024 characters, starts as the condition message and ends with ` ... (<N> more characters)`
 
 ### Requirement: A DeletionInProgress event is emitted when a deletion wait starts
-The controller MUST emit one Normal event with reason `DeletionInProgress` and action `Delete` when a deletion cleanup starts to wait for deleted objects. The event MUST carry the message of the condition. The controller MUST NOT repeat it at a later reconcile while `Ready` already carries that reason.
+The controller MUST emit one Normal event with reason `DeletionInProgress` and action `Delete` when a deletion cleanup starts to wait for deleted objects. The event MUST carry the message of the condition. The controller MUST NOT repeat it at a later reconcile while `Ready` already carries that reason. A deletion that is blocked at its first reconcile emits the `DeletionBlocked` event only.
 
 #### Scenario: One event when the wait starts
 - **GIVEN** a deleting ModuleInstance whose cleanup deleted a Deployment that still exists

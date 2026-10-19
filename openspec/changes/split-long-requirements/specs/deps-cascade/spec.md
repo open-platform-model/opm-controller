@@ -335,7 +335,7 @@ The offline test set of `task deps:cascade:test` SHALL cover `task deps:cascade:
 - **THEN** its scenarios include `task deps:cascade:module`
 
 ### Requirement: module-deps.yml opens one pull request for the module's pin move
-`.github/workflows/module-deps.yml` SHALL run `task -x deps:cascade:module` on `repository_dispatch` of type `upstream-released` and on `workflow_dispatch`. When the task changed the tree, it SHALL push the branch `module/deps` with the release App's token and open or update one pull request from it, so the PR's CI runs.
+`.github/workflows/module-deps.yml` SHALL run `task -x deps:cascade:module` on `repository_dispatch` of type `upstream-released` and on `workflow_dispatch`. Unless the repository variable `CASCADE_DRY_RUN` is not exactly `false`, when the task changed the tree, it SHALL push the branch `module/deps` with the release App's token and open or update one pull request from it, so the PR's CI runs.
 
 #### Scenario: Catalog published
 - **WHEN** this repository receives `upstream-released` for catalog `opm-v4.6.0`, `CASCADE_DRY_RUN` is `false`, and the module pins `v4.5.2`

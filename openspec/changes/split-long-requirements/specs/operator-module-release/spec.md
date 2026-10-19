@@ -283,7 +283,7 @@ The render and the upload of `install.yaml` SHALL run in a job apart from the pu
 - **THEN** "Re-run failed jobs" re-runs the render and the upload, never the publish
 
 ### Requirement: The install manifest names the operator image the module names
-The install manifest SHALL name the operator image by the tag and digest the module names, and the module publish job SHALL check that before the upload.
+The install manifest SHALL name the operator image by the tag and digest the module names, and the job apart from the publish SHALL check that before the upload.
 
 #### Scenario: Manifest names another image
 

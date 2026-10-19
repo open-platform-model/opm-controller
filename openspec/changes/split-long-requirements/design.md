@@ -262,7 +262,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | deps:cascade:module moves only the operator module's catalog and core | SHALL NOT edit outside `modules/opm_operator/`, nor `operator/operator.cue`, `identity.Version`, generated CRD/RBAC, `CHANGELOG.md`, `RELEASE`; the four reasons | deps:cascade:module edits only the module's pins | 1 |
 | deps:cascade:module moves only the operator module's catalog and core | the offline test set SHALL cover it | The offline test set covers deps:cascade:module | 1 |
 | The operator module's pin move opens its own pull request | `module-deps.yml` runs `task -x deps:cascade:module` on `repository_dispatch` `upstream-released` and `workflow_dispatch` | module-deps.yml opens one pull request for the module's pin move | 1 |
-| The operator module's pin move opens its own pull request | when the tree changed: push `module/deps` with the release App's token; open or update one PR so its CI runs | module-deps.yml opens one pull request for the module's pin move | 2 |
+| The operator module's pin move opens its own pull request | when the tree changed: push `module/deps` with the release App's token; open or update one PR so its CI runs; the dry-run condition of the old last sentence ("the repository variable `CASCADE_DRY_RUN` is not exactly `false`") copied in front as "Unless ... " so the body keeps its exception | module-deps.yml opens one pull request for the module's pin move | 2 |
 | The operator module's pin move opens its own pull request | bot-only branch rebuilt from `main`; human commit: add own commit, never rewrite | The module/deps branch is rebuilt only while it holds bot commits | 1 |
 | The operator module's pin move opens its own pull request | title and body from the resolver with `module-classes` (all shipped) and `module-pins.sh` (two keyed rows); each key appears once | The module pull request title and body come from the resolver | 1 |
 | The operator module's pin move opens its own pull request | PR changes no file outside `modules/opm_operator/`, so its squash commit proposes a module release and no operator release | The module pull request changes only the module directory | 1 |
@@ -281,7 +281,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | deps:cascade is tested offline in required CI and online on demand | 910 | 296, 345, 318 |
 | Title and body come from the shared resolver and the contract's path classes | 801 | 171, 276, 370 |
 | deps:cascade:module moves only the operator module's catalog and core | 1238 | 482, 267, 110, 414, 88 |
-| The operator module's pin move opens its own pull request | 1182 | 322, 210, 448, 163, 156 |
+| The operator module's pin move opens its own pull request | 1182 | 395, 210, 448, 163, 156 |
 
 ### Ledger: operator-module-release
 
@@ -400,7 +400,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | Every module release publishes the install manifest rendered from it | render at default values, instance `opm-operator`, namespace `opm-operator-system`, platform from the module's pins, no cluster | The install manifest is the module's render at its defaults | 1 |
 | Every module release publishes the install manifest rendered from it | write `install.yaml`, Namespace and CRDs first; attach to the draft release | install.yaml is attached to the draft release with the Namespace and CRDs first | 1 |
 | Every module release publishes the install manifest rendered from it | render and upload in a job apart from the publish | The render and the upload run apart from the publish | 1 |
-| Every module release publishes the install manifest rendered from it | manifest names the module's tag and digest; job checks before upload | The install manifest names the operator image the module names | 1 |
+| Every module release publishes the install manifest rendered from it | manifest names the module's tag and digest; the job (old text: "a job apart from the publish") checks before upload; the body names that job in the words of the old text | The install manifest names the operator image the module names | 1 |
 | Every module release publishes the install manifest rendered from it | `kubectl apply --server-side` on a cluster with no operator yields a running operator | The install manifest yields a running operator | 1 |
 | Every module release publishes the install manifest rendered from it | a PR changing the module or the render scripts proves this on kind | The install manifest yields a running operator | 2 |
 | Module releases are drafts until every asset is attached | module package sets `draft: true` and `force-tag-creation: true` | A module release stays a draft with one tag until it is recovered or published | 1 |
@@ -439,7 +439,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The module's identity version has one writer | 867 | 390, 181, 116, 217 |
 | Module release gate | 1843 | 134, 154, 272, 357, 232, 392, 339, 154, 245 |
 | The module publishes its tagged source once | 1152 | 277, 129, 299, 442, 97 |
-| Every module release publishes the install manifest rendered from it | 894 | 255, 173, 134, 153, 248 |
+| Every module release publishes the install manifest rendered from it | 894 | 255, 173, 134, 161, 248 |
 | Module releases are drafts until every asset is attached | 809 | 397, 134, 276 |
 | A stranded module draft is recovered by dispatch | 1644 | 241, 281, 267, 181, 399, 133, 158, 92 |
 | Only this repository's module release publishes under the module path | 519 | 262, 151, 104 |
@@ -514,12 +514,12 @@ Clause table (old clause, new requirement, sentence of its body):
 | Events emitted when objects are left behind | a later reconcile of the same wait MUST NOT emit again | A LeftBehind event is emitted only by a committed run | 2 |
 | Events emitted when objects are left behind | a prune or cleanup that failed for another entry MUST NOT emit it; the retry judges again | A failed prune or cleanup emits no LeftBehind event | 1 |
 | Events emitted when objects are left behind | none for an absent object or a kept PVC, which has its own event | No LeftBehind event for an absent object or a kept claim | 1 |
-| Events emitted when an object is adopted by another instance | one Warning `AdoptedElsewhere`, action `Apply`, when a rendering reconcile finds a nonzero number of rendered objects refused as `adopted-elsewhere` that differs from the number `Ready` stated before | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 1 |
+| Events emitted when an object is adopted by another instance | one Warning `AdoptedElsewhere`, action `Apply`, "when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile" (whole old condition, copied unchanged) | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 1 |
 | Events emitted when an object is adopted by another instance | citation `status-conditions`, "The Ready message counts the objects adopted by another instance" (moves to the no-event requirement, where the Ready message carries the state) | No AdoptedElsewhere event while the count is unchanged | 1 |
-| Events emitted when an object is adopted by another instance | holds whether the reconcile applies, restores or is a no-op | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | 1 |
+| Events emitted when an object is adopted by another instance | "This holds whether the reconcile applies, restores or is a no-op." (old sentence, copied) with the same old condition as the row above, copied unchanged, as its subject | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | 1 |
 | Events emitted when an object is adopted by another instance | states the count; the library's message for each object unchanged; within the `ApplyRefused` limits (limits restated) | The AdoptedElsewhere event states the count and the library messages | 1 |
 | Events emitted when an object is adopted by another instance | same number as before, or a skipped render, emits none; `Ready` carries the state between events | No AdoptedElsewhere event while the count is unchanged | 1 |
-| Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012), whole, on each of the four | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 2 |
+| Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012): whole on the count, the message and the no-event requirements; `Source: enhancement 0012.` (title dropped, no issue or PR reference lost) on the two that carry the old condition, because the whole line does not fit 500 with the whole condition | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 2 |
 | The event of a stalled render failure stays inside the event note limit | stalled render or package load Warning event: message at most 1024 chars | A stalled render failure event carries at most 1024 characters | 1 |
 | The event of a stalled render failure stays inside the event note limit | when the failure's message fits: the `Ready` message | A stalled render failure event carries at most 1024 characters | 2 |
 | The event of a stalled render failure stays inside the event note limit | findings overflow: text in front plus whole findings, end `; and <N> more findings` | A stalled render event message that does not fit keeps whole findings | 1 |
@@ -529,7 +529,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | Events emitted while a deletion waits | one Warning `DeletionBlocked`, action `Delete`, when the wait becomes blocked | A DeletionBlocked event is emitted when a deletion wait becomes blocked | 1 |
 | Events emitted while a deletion waits | each event carries the message of the condition | A DeletionInProgress event is emitted when a deletion wait starts | 2 |
 | Events emitted while a deletion waits | MUST NOT repeat either while `Ready` already carries the reason | A DeletionInProgress event is emitted when a deletion wait starts | 3 |
-| Events emitted while a deletion waits | a deletion blocked at its first reconcile emits `DeletionBlocked` only | A DeletionBlocked event is emitted when a deletion wait becomes blocked | 4 |
+| Events emitted while a deletion waits | a deletion blocked at its first reconcile emits `DeletionBlocked` only (old sentence, copied; it is in both bodies, so neither states its rule without the exception) | A DeletionBlocked event is emitted when a deletion wait becomes blocked; A DeletionInProgress event is emitted when a deletion wait starts | 4 |
 | Events emitted when a deletion is released without confirmation | one Warning `DeletionUnconfirmed`, action `Delete`, in the reconcile that removes the finalizer without reading every object (two cases) | A DeletionUnconfirmed event is emitted when a deletion is released unread | 1 |
 | Events emitted when a deletion is released without confirmation | message states the number of unread objects, says why, says they may still exist | The DeletionUnconfirmed message states the count, the reason and the doubt | 1 |
 | Events emitted when a deletion is released without confirmation | emitted before the finalizer is removed | A DeletionUnconfirmed event is emitted when a deletion is released unread | 2 |
@@ -543,10 +543,23 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | Events emitted when claims are kept | 845 | 319, 221, 333 |
 | Events emitted when a claim recreate is refused | 545 | 234, 326 |
 | Events emitted when objects are left behind | 1509 | 271, 281, 362, 380, 146, 149 |
-| Events emitted when an object is adopted by another instance | 969 | 495, 444, 492, 467 |
+| Events emitted when an object is adopted by another instance | 969 | 345, 370, 492, 467 |
 | The event of a stalled render failure stays inside the event note limit | 714 | 358, 278, 154 |
-| Events emitted while a deletion waits | 507 | 303, 382 |
+| Events emitted while a deletion waits | 507 | 393, 382 |
 | Events emitted when a deletion is released without confirmation | 606 | 366, 261 |
+
+## Strength table
+
+Every sentence that gained SHALL, MUST or MAY in this unit (DECISIONS.md 2026-10-19 16:20 and 17:05).
+Old text from `origin/main`. All other keywords are the old ones.
+
+| Requirement (new) | Sentence | Old sentence, no keyword |
+| --- | --- | --- |
+| No ClaimsKept event when nothing was kept | "The controller MUST NOT emit a `ClaimsKept` event when nothing was kept: ..." | "No `ClaimsKept` event is emitted when nothing was kept: ..." (events-emission, "Events emitted when claims are kept") |
+| No LeftBehind event for an absent object or a kept claim | "The controller MUST NOT emit a `LeftBehind` event for an object that was already absent or for a kept PersistentVolumeClaim, ..." | "none for an absent object or a kept PVC, which has its own event" |
+| No AdoptedElsewhere event while the count is unchanged | "A reconcile that finds the same number as before, or that skips its render, MUST emit no `AdoptedElsewhere` event: ..." | "A reconcile that finds the same number as before, or that skips its render, emits none: ..." |
+| Recovery never moves a tag or edits a release by hand | "Recovery SHALL never move, delete or re-create a tag and SHALL never edit a release by hand." | "Recovery never moves, deletes or re-creates a tag and never edits a release by hand" |
+| The module version follows the 0.x bump rule on the v0 path and the sentences kept without a keyword | none gained; "A module release is breaking when ..." and the recovery sentences stay without a keyword, beside a SHALL | (no change) |
 
 ## The gate
 
