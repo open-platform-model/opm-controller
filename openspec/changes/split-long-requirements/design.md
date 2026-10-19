@@ -556,10 +556,11 @@ Old text from `origin/main`. All other keywords are the old ones.
 | Requirement (new) | Sentence | Old sentence, no keyword |
 | --- | --- | --- |
 | No ClaimsKept event when nothing was kept | "The controller MUST NOT emit a `ClaimsKept` event when nothing was kept: ..." | "No `ClaimsKept` event is emitted when nothing was kept: ..." (events-emission, "Events emitted when claims are kept") |
-| No LeftBehind event for an absent object or a kept claim | "The controller MUST NOT emit a `LeftBehind` event for an object that was already absent or for a kept PersistentVolumeClaim, ..." | "none for an absent object or a kept PVC, which has its own event" |
+| No LeftBehind event for an absent object or a kept claim | "The controller MUST NOT emit a `LeftBehind` event for an object that was already absent or for a kept PersistentVolumeClaim, which has its own event." | "No `LeftBehind` event is emitted for an object that was already absent or for a kept PersistentVolumeClaim, which has its own event." (events-emission, "Events emitted when objects are left behind") |
 | No AdoptedElsewhere event while the count is unchanged | "A reconcile that finds the same number as before, or that skips its render, MUST emit no `AdoptedElsewhere` event: ..." | "A reconcile that finds the same number as before, or that skips its render, emits none: ..." |
 | Recovery never moves a tag or edits a release by hand | "Recovery SHALL never move, delete or re-create a tag and SHALL never edit a release by hand." | "Recovery never moves, deletes or re-creates a tag and never edits a release by hand" |
-| The module version follows the 0.x bump rule on the v0 path and the sentences kept without a keyword | none gained; "A module release is breaking when ..." and the recovery sentences stay without a keyword, beside a SHALL | (no change) |
+| The recovery dispatch publishes, attaches and releases in order | "A recovery dispatch SHALL run, in order: the publish, ..." | "In order: the publish, ..." (operator-module-release, "A stranded module draft is recovered by dispatch"); the subject "A recovery dispatch" comes from the sentence before it |
+| The module version follows the 0.x bump rule on the v0 path | none gained; "A module release is breaking when ..." stays without a keyword, beside a SHALL | (no change) |
 
 ## The gate
 
