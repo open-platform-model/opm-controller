@@ -77,12 +77,7 @@ The controller MUST configure a custom workqueue rate limiter with a 1s base del
 - **THEN** the workqueue rate limiter applies at least a 1s delay before the next attempt
 
 ### Requirement: Registry fetch failures are transient wherever they occur
-
-When a render fails, the ModuleInstance and ModulePackage reconcilers SHALL classify the failure by its type, never by its message text, with one shared classification so the two cannot drift. A failure is transient when its error chain holds the library's typed registry fetch failure (`*oerrors.FetchError`, of any `Kind`: unreachable, not found, unauthorized or other) and holds none of the typed terminal causes (an identity mismatch, a wrong artifact kind, a structurally invalid package, a missing required field, unresolved platform demands, unmatched components). This holds for every kernel call the render makes: module acquisition, values compile, instance synthesis, the render build and the package load.
-
-A transient failure SHALL set `Ready=False` with reason `ResolutionFailed`, SHALL NOT set `Stalled=True`, SHALL emit a Warning event carrying the error message, and SHALL produce the outcome `FailedTransient`, so the object requeues on the exponential backoff capped at 5 minutes and `status.nextRetryAt` and `failureCounters.reconcile` follow the transient path.
-
-Every other failure SHALL set `Ready=False` and `Stalled=True` and produce `FailedStalled`, requeued on the 30-minute recheck. Its reason follows the typed cause; a failure during module acquisition or package load that carries no other typed cause is `ResolutionFailed`. The status message SHALL be the error's message unchanged.
+As in requirement "A render failure is classified by its type, never by its message text": A failure SHALL be transient when its error chain holds the library's typed registry fetch failure (`*oerrors.FetchError`, of any `Kind`: unreachable, not found, unauthorized or other) and holds none of the typed terminal causes (an identity mismatch, a wrong artifact kind, a structurally invalid package, a missing required field, unresolved platform demands, unmatched components).
 
 #### Scenario: Registry outage during ModuleInstance acquisition retries on the backoff
 
@@ -141,10 +136,7 @@ Every other failure SHALL set `Ready=False` and `Stalled=True` and produce `Fail
 - **THEN** the failure is classified by its typed cause alone: with none, the object reports `Stalled=True` on the 30-minute recheck
 
 ### Requirement: A render timeout retries on the backoff
-
-When a ModuleInstance or ModulePackage render does not finish within `--render-timeout`, or a reconcile finds that an earlier timed-out render of the same object is still running, the reconciler SHALL classify the attempt as a timeout before any other render classification, whatever error the render returned. A timeout SHALL set `Ready=False` with reason `RenderTimedOut` and `Reconciling=True`, SHALL NOT set `Stalled=True`, SHALL emit a Warning event with reason `RenderTimedOut` carrying the message, and SHALL produce the outcome `FailedTransient`, so the object requeues on the exponential backoff capped at 5 minutes and `status.nextRetryAt`, `failureCounters.reconcile` and the history follow the transient path. The message SHALL name the timeout and say that the render's slot stays held until the render returns, or, for a render still running, that no new render was started. Inventory and the last-applied digests SHALL keep the last success, and nothing SHALL be applied or pruned.
-
-A render error that carries `context.DeadlineExceeded` from anything other than the render deadline, for example a registry client's own timeout in a render that returned in time, SHALL keep the classification of "Registry fetch failures are transient wherever they occur".
+As in requirement "A render timeout is classified before any other render failure": A timeout SHALL set `Ready=False` with reason `RenderTimedOut` and `Reconciling=True`, SHALL NOT set `Stalled=True`, SHALL emit a Warning event with reason `RenderTimedOut` carrying the message, and SHALL produce the outcome `FailedTransient`, so the object requeues on the exponential backoff capped at 5 minutes and `status.nextRetryAt`, `failureCounters.reconcile` and the history follow the transient path.
 
 #### Scenario: A ModuleInstance render times out
 
@@ -174,3 +166,53 @@ A render error that carries `context.DeadlineExceeded` from anything other than 
 - **GIVEN** an object reporting `RenderTimedOut`
 - **WHEN** a later render finishes within the timeout
 - **THEN** the object reports `Ready=True`, `status.nextRetryAt` is nil and `failureCounters.reconcile` resets
+
+### Requirement: A render failure is classified by its type, never by its message text
+When a render fails, the ModuleInstance and ModulePackage reconcilers SHALL classify the failure by its type, never by its message text, with one shared classification so the two cannot drift. This holds for every kernel call the render makes: module acquisition, values compile, instance synthesis, the render build and the package load.
+
+#### Scenario: A render failure is classified by its type
+- **WHEN** a render fails
+- **THEN** the ModuleInstance and ModulePackage reconcilers classify the failure by its type, never by its message text, with one shared classification so the two cannot drift
+- **AND** this holds for every kernel call the render makes: module acquisition, values compile, instance synthesis, the render build and the package load
+
+### Requirement: A transient failure sets ResolutionFailed and produces FailedTransient
+As in requirement "Registry fetch failures are transient wherever they occur": A transient failure SHALL set `Ready=False` with reason `ResolutionFailed`, SHALL NOT set `Stalled=True`, SHALL emit a Warning event carrying the error message, and SHALL produce the outcome `FailedTransient`, so the object requeues on the exponential backoff capped at 5 minutes and `status.nextRetryAt` and `failureCounters.reconcile` follow the transient path.
+
+#### Scenario: A transient failure retries on the backoff
+- **WHEN** a failure is transient
+- **THEN** `Ready=False` is set with reason `ResolutionFailed`, `Stalled=True` is not set, a Warning event carries the error message, and the outcome is `FailedTransient`, so the object requeues on the exponential backoff capped at 5 minutes
+
+### Requirement: Every other failure stalls and requeues on the 30-minute recheck
+As in requirement "Registry fetch failures are transient wherever they occur": Every other failure SHALL set `Ready=False` and `Stalled=True` and produce `FailedStalled`, requeued on the 30-minute recheck. Its reason follows the typed cause; a failure during module acquisition or package load that carries no other typed cause is `ResolutionFailed`. The status message SHALL be the error's message unchanged.
+
+#### Scenario: A failure that is not transient stalls
+- **WHEN** a failure is not transient
+- **THEN** `Ready=False` and `Stalled=True` are set, the outcome is `FailedStalled` and the object is requeued on the 30-minute recheck
+
+### Requirement: A render timeout is classified before any other render failure
+When a ModuleInstance or ModulePackage render does not finish within `--render-timeout`, or a reconcile finds that an earlier timed-out render of the same object is still running, the reconciler SHALL classify the attempt as a timeout before any other render classification, whatever error the render returned.
+
+#### Scenario: A render that does not finish is a timeout
+- **WHEN** a ModuleInstance or ModulePackage render does not finish within `--render-timeout`
+- **THEN** the reconciler classifies the attempt as a timeout before any other render classification, whatever error the render returned
+
+### Requirement: The timeout message names the timeout and the render slot
+As in requirement "A render timeout retries on the backoff": The message SHALL name the timeout and say that the render's slot stays held until the render returns, or, for a render still running, that no new render was started.
+
+#### Scenario: The timeout message names the timeout
+- **WHEN** a render times out
+- **THEN** the message names the timeout and says that the render's slot stays held until the render returns, or, for a render still running, that no new render was started
+
+### Requirement: A timeout keeps inventory and digests and applies and prunes nothing
+As in requirement "A render timeout retries on the backoff": Inventory and the last-applied digests SHALL keep the last success, and nothing SHALL be applied or pruned.
+
+#### Scenario: A timeout applies and prunes nothing
+- **WHEN** a render times out
+- **THEN** inventory and the last-applied digests keep the last success, and nothing is applied or pruned
+
+### Requirement: A deadline error that is not the render deadline keeps the registry fetch classification
+A render error that carries `context.DeadlineExceeded` from anything other than the render deadline, for example a registry client's own timeout in a render that returned in time, SHALL keep the classification of "Registry fetch failures are transient wherever they occur".
+
+#### Scenario: A deadline error of another source keeps its classification
+- **WHEN** a render error carries `context.DeadlineExceeded` from anything other than the render deadline, for example a registry client's own timeout in a render that returned in time
+- **THEN** it keeps the classification of "Registry fetch failures are transient wherever they occur"
