@@ -51,7 +51,7 @@ The reconciler SHALL emit the `RenderWarning` events of a render only when the o
 - **THEN** no new warning event is emitted
 
 ### Requirement: RenderWarning text is authored by the operator and keyed on facts
-The event text SHALL be authored by the operator from the render's advisory diagnostic rows; the render carries no message string to pass through. The transition check SHALL be keyed on the facts those rows carry (for skew, the path and both versions; for an unhandled trait, the component and the trait), so that rewording an event does not present an unchanged finding set as changed.
+The `RenderWarning` event text SHALL be authored by the operator from the render's advisory diagnostic rows; the render carries no message string to pass through. The transition check for `RenderWarning` events SHALL be keyed on the facts those rows carry (for skew, the path and both versions; for an unhandled trait, the component and the trait), so that rewording an event does not present an unchanged finding set as changed.
 
 #### Scenario: Rewording does not re-emit
 
@@ -175,7 +175,7 @@ The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and 
 - **THEN** no event with reason `AdoptedElsewhere` is emitted
 
 ### Requirement: The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing
-The controller MUST emit the `AdoptedElsewhere` event under its count rule whether the reconcile applies, restores or is a no-op. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The controller MUST emit the `AdoptedElsewhere` event, when a reconcile finds a nonzero number of refused objects that differs from the number the `Ready` message stated before it, whether the reconcile applies, restores or is a no-op. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: AdoptedElsewhere event on a no-op reconcile
 - **WHEN** a reconcile that renders is a no-op and finds a nonzero number of objects refused as `adopted-elsewhere` that differs from the number the `Ready` message stated before

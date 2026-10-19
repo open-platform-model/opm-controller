@@ -43,7 +43,7 @@
 ## ADDED Requirements
 
 ### Requirement: deps:cascade moves pins in the working tree and reports by exit code
-The repo SHALL provide `task deps:cascade`, which moves opm-operator's upstream pins to the newest published versions in the working tree only. It SHALL NOT commit, push or create a branch. Run as `task -x deps:cascade`, it SHALL exit 0 when the working tree changed, 3 when there was nothing to do, and any other code on error, and it SHALL never turn a failure into 0 or 3.
+The repo SHALL provide `task deps:cascade`, which moves opm-operator's upstream pins to the newest published versions in the working tree only. It SHALL NOT commit, push or create a branch. Run as `task -x deps:cascade`, it SHALL exit 0 when the working tree changed, 3 when there was nothing to do, and any other code on error, and it SHALL never turn a failure into 0 or 3. It SHALL move exactly the library, opm catalog, core and opm CLI pins.
 
 #### Scenario: Up-to-date tree
 - **WHEN** every pin already equals the newest published version the resolver reports

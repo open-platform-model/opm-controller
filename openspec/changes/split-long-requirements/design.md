@@ -211,6 +211,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | deps:cascade moves upstream pins and reports by exit code | provides `task deps:cascade`; moves the upstream pins to the newest published versions in the working tree only | deps:cascade moves pins in the working tree and reports by exit code | 1 |
 | deps:cascade moves upstream pins and reports by exit code | SHALL NOT commit, push or create a branch | deps:cascade moves pins in the working tree and reports by exit code | 2 |
 | deps:cascade moves upstream pins and reports by exit code | exit 0 changed, 3 nothing to do, other code on error; never turn a failure into 0 or 3 | deps:cascade moves pins in the working tree and reports by exit code | 3 |
+| deps:cascade moves upstream pins and reports by exit code | SHALL move exactly these pins (library, opm catalog, core, opm CLI): the closed set | deps:cascade moves pins in the working tree and reports by exit code | 4 |
 | deps:cascade moves upstream pins and reports by exit code | every version decision from the shared resolver (RELEASING.md citation) | deps:cascade takes every version decision from the shared cascade resolver | 1 |
 | deps:cascade moves upstream pins and reports by exit code | resolver found through absolute `CASCADE_RESOLVER`, else `../.github/.github/scripts/cascade/cascade-resolve.sh` | deps:cascade takes every version decision from the shared cascade resolver | 2 |
 | deps:cascade moves upstream pins and reports by exit code | resolver missing: SHALL fail with a message naming both options | deps:cascade takes every version decision from the shared cascade resolver | 3 |
@@ -271,7 +272,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| deps:cascade moves upstream pins and reports by exit code | 779 | 375, 426 |
+| deps:cascade moves upstream pins and reports by exit code | 779 | 446, 426 |
 | deps:cascade resolves everything before it edits | 606 | 239, 155, 255 |
 | deps:cascade moves library, the catalog and core, and the opm CLI | 1680 | 170, 352, 429, 92, 165, 370, 228 |
 | deps:cascade honours frozen and held pins | 538 | 383, 189 |
@@ -386,7 +387,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | Module release gate | fails when `<tag>` is older than the minimum operator version (first release that refuses to reconcile the operator's own instance) | The module release check refuses an operator below the minimum version | 1 |
 | Module release gate | fails when generated CRDs or RBAC differ from the operator source at `<tag>` | The module release check compares generated CRDs and RBAC with the deployed operator | 1 |
 | Module release gate | rationale: module must render exactly the CRDs and permissions of the controller it deploys; `main` can move ahead | The module release check compares generated CRDs and RBAC with the deployed operator | 2 |
-| Module release gate | releases are frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR merges | Module releases are frozen while config differs from the deployed tag | 1 |
+| Module release gate | releases are frozen while the generated CRDs or RBAC under `main`'s `config/` differ from the deployed tag's, until the image-bump PR merges (stated as the effect of the CRD and RBAC check; the check SHALL fail in that state) | Module releases are frozen while config differs from the deployed tag | 1 |
 | Module release gate | check also runs in the publish job before anything is pushed | The module release check runs in the publish job before any push | 1 |
 | Module release gate | no-network checks covered by an offline test run by `Lint` on every PR | An offline test covers the module release checks that need no network | 1 |
 | The module publishes its tagged source once | publish job checks out the tag, installs the opm CLI, runs the release check, runs `opm module publish` | The module publish job publishes the tagged source | 1 |
@@ -436,13 +437,13 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The module is a release unit of its own | 848 | 440, 244, 227 |
 | The module version follows the 0.x bump rule on the v0 path | 762 | 475, 42, 243 |
 | The module's identity version has one writer | 867 | 390, 181, 116, 217 |
-| Module release gate | 1843 | 134, 154, 272, 357, 232, 392, 296, 154, 245 |
+| Module release gate | 1843 | 134, 154, 272, 357, 232, 392, 339, 154, 245 |
 | The module publishes its tagged source once | 1152 | 277, 129, 299, 442, 97 |
-| Every module release publishes the install manifest rendered from it | 894 | 255, 173, 134, 138, 248 |
+| Every module release publishes the install manifest rendered from it | 894 | 255, 173, 134, 153, 248 |
 | Module releases are drafts until every asset is attached | 809 | 397, 134, 276 |
 | A stranded module draft is recovered by dispatch | 1644 | 241, 281, 267, 181, 399, 133, 158, 92 |
 | Only this repository's module release publishes under the module path | 519 | 262, 151, 104 |
-| An operator release opens the PR that moves the module's image | 1519 | 211, 298, 203, 182, 424, 163, 208 |
+| An operator release opens the PR that moves the module's image | 1519 | 211, 298, 216, 195, 437, 163, 208 |
 
 ### Ledger: events-emission
 
@@ -538,11 +539,11 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Render warnings are emitted as events on transition | 768 | 269, 155, 386 |
+| Render warnings are emitted as events on transition | 768 | 269, 155, 429 |
 | Events emitted when claims are kept | 845 | 319, 221, 333 |
 | Events emitted when a claim recreate is refused | 545 | 234, 326 |
 | Events emitted when objects are left behind | 1509 | 271, 281, 362, 380, 146, 149 |
-| Events emitted when an object is adopted by another instance | 969 | 495, 338, 492, 467 |
+| Events emitted when an object is adopted by another instance | 969 | 495, 444, 492, 467 |
 | The event of a stalled render failure stays inside the event note limit | 714 | 358, 278, 154 |
 | Events emitted while a deletion waits | 507 | 303, 382 |
 | Events emitted when a deletion is released without confirmation | 606 | 366, 261 |

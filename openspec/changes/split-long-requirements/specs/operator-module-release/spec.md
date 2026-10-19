@@ -189,10 +189,10 @@ The module release check SHALL fail when the module's generated CRDs or controll
 - **THEN** the check fails naming the CRD, and the module waits for the image-bump PR of the next operator release
 
 ### Requirement: Module releases are frozen while config differs from the deployed tag
-Because the module's generated data follow `main`'s `config/` on every pull request, module releases are frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR of an operator release carrying that change merges. The module release check SHALL fail in that state.
+Because the module's generated data follow `main`'s `config/` on every pull request, module releases are frozen while the generated CRDs or controller RBAC under `main`'s `config/` differ from the deployed tag's, until the image-bump PR of an operator release carrying that change merges. The module release check SHALL fail in that state.
 
 #### Scenario: Release frozen while config differs
-- **WHEN** `main`'s `config/` differs from the deployed operator tag's `config/`
+- **WHEN** the generated CRDs or controller RBAC under `main`'s `config/` differ from the deployed operator tag's
 - **THEN** the module release check fails until the image-bump PR of an operator release carrying that change merges
 
 ### Requirement: The module release check runs in the publish job before any push
@@ -283,7 +283,7 @@ The render and the upload of `install.yaml` SHALL run in a job apart from the pu
 - **THEN** "Re-run failed jobs" re-runs the render and the upload, never the publish
 
 ### Requirement: The install manifest names the operator image the module names
-The install manifest SHALL name the operator image by the tag and digest the module names, and the job SHALL check that before the upload.
+The install manifest SHALL name the operator image by the tag and digest the module names, and the module publish job SHALL check that before the upload.
 
 #### Scenario: Manifest names another image
 
@@ -443,7 +443,7 @@ The module image PR SHALL set the operator release the module deploys to that re
 - **THEN** release-please proposes a module release and no operator release
 
 ### Requirement: The module image run fails when config differs from the operator tag
-When the CRDs or RBAC roles under `config/` at the operator release tag differ from `main`'s, the run SHALL fail naming the files and open no PR, because the module release gate would refuse that module.
+When the CRDs or RBAC roles under `config/` at the operator release tag differ from `main`'s, the module image run SHALL fail naming the files and open no PR, because the module release gate would refuse that module.
 
 #### Scenario: Tag behind main
 
@@ -451,7 +451,7 @@ When the CRDs or RBAC roles under `config/` at the operator release tag differ f
 - **THEN** the run fails naming the CRD file and opens no PR
 
 ### Requirement: The module image run fails for a tag that does not descend from the deployed one
-The run SHALL also fail and open no PR when the operator release tag does not descend from the operator tag the module deploys, so a re-run or a dispatch never moves the module back.
+The module image run SHALL also fail and open no PR when the operator release tag does not descend from the operator tag the module deploys, so a re-run or a dispatch never moves the module back.
 
 #### Scenario: Older operator tag
 
@@ -459,7 +459,7 @@ The run SHALL also fail and open no PR when the operator release tag does not de
 - **THEN** the run fails and opens no PR
 
 ### Requirement: The module image PR title carries the change type
-The PR's title SHALL be `fix(deps): deploy operator <tag> from the operator module`, where `<tag>` is the published operator release. The title SHALL be `fix(deps)!: ...` instead when the operator CHANGELOG sections between the module's previous operator tag and `<tag>` carry a breaking-change entry, or when a CRD under `config/crd/bases` at `<tag>` stops serving a version it served at the module's previous operator tag.
+The module image PR's title SHALL be `fix(deps): deploy operator <tag> from the operator module`, where `<tag>` is the published operator release. The title SHALL be `fix(deps)!: ...` instead when the operator CHANGELOG sections between the module's previous operator tag and `<tag>` carry a breaking-change entry, or when a CRD under `config/crd/bases` at `<tag>` stops serving a version it served at the module's previous operator tag.
 
 #### Scenario: Breaking operator release
 
