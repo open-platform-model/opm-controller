@@ -146,7 +146,7 @@ Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
 - A sentence whose subject was "It" gets the subject of the sentence before it, copied (the "Edit" column shows it).
 - Where a body relies on a sibling for a condition, the condition is copied from the old text in front of its sentence (the "Edit" column shows it).
 - A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`, the identity sentence of `Single-slot identity-keyed store for concurrent read`) is cut at a list boundary; the parts are verbatim and the head is repeated.
-- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block keeps the short form `Source: enhancement 0012.` only for the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance"): its first sentence alone is 335 characters and the whole title takes 208, so no cut keeps the condition with its rule inside 500. The two AdoptedElsewhere bodies of `events-emission` carry the whole line: the first is cut into two requirements, and the second names the first by its exact header for the condition, because the whole condition and the whole line do not fit 500 together.
+- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block that cannot hold its whole line in 500 characters carries it as a `**Source**:` metadata line, which the length check skips: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance"), the first AdoptedElsewhere body of `events-emission`, and the definition body of the verdict identity in `ssa-apply`; the same form holds the line of two order-check bodies of `ssa-apply`. Only the citation is in that line.
 
 Unit 3 (opm-operator-B6) rules of text, for the seven ledgers of unit 3:
 
@@ -481,10 +481,10 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | A failed prune reports nothing | A failed prune or cleanup emits no LeftBehind event, A failed prune reports nothing | no (byte equal, checked by the item 3 command) |
 | Nothing left, no event | A LeftBehind event is emitted when objects are left in the cluster, Nothing left, no event | no (byte equal, checked by the item 3 command) |
 | A waiting deletion reports what it left once | A LeftBehind event is emitted only by a committed run, A waiting deletion reports what it left once | no (byte equal, checked by the item 3 command) |
-| An object is let go | An AdoptedElsewhere event is emitted when the count of adopted objects changes, An object is let go | no (byte equal, checked by the item 3 command) |
+| An object is let go | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing, An object is let go | no (byte equal, checked by the item 3 command) |
 | No event while nothing changes | No AdoptedElsewhere event while the count is unchanged, No event while nothing changes | no (byte equal, checked by the item 3 command) |
 | A second object is let go | The AdoptedElsewhere event states the count and the library messages, A second object is let go | no (byte equal, checked by the item 3 command) |
-| Nothing adopted elsewhere, no event | A Warning event is emitted when the count of adopted objects changes, Nothing adopted elsewhere, no event | no (byte equal, checked by the item 3 command) |
+| Nothing adopted elsewhere, no event | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing, Nothing adopted elsewhere, no event | no (byte equal, checked by the item 3 command) |
 | Twenty unset required values | A stalled render event message that does not fit keeps whole findings, Twenty unset required values | no (byte equal, checked by the item 3 command) |
 | A message that fits | A stalled render failure event carries at most 1024 characters, A message that fits | no (byte equal, checked by the item 3 command) |
 | A long message without findings | A stalled render event message without findings is cut and counted, A long message without findings | no (byte equal, checked by the item 3 command) |
@@ -498,7 +498,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | New scenario | Requirement | Old clause restated |
 | --- | --- | --- |
 | Absent object and kept claim | No LeftBehind event for an absent object or a kept claim | the clause of that requirement body |
-| AdoptedElsewhere event on a no-op reconcile | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | the clause of that requirement body |
+| AdoptedElsewhere event on a no-op reconcile | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | the clause of that requirement body |
 | Message of a released deletion | The DeletionUnconfirmed message states the count, the reason and the doubt | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body):
@@ -529,13 +529,12 @@ Clause table (old clause, new requirement, sentence of its body):
 | Events emitted when objects are left behind | a later reconcile of the same wait MUST NOT emit again | A LeftBehind event is emitted only by a committed run | 2 |
 | Events emitted when objects are left behind | a prune or cleanup that failed for another entry MUST NOT emit it; the retry judges again | A failed prune or cleanup emits no LeftBehind event | 1 |
 | Events emitted when objects are left behind | none for an absent object or a kept PVC, which has its own event | No LeftBehind event for an absent object or a kept claim | 1 |
-| Events emitted when an object is adopted by another instance | one Warning event, "when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile" (whole old condition, copied unchanged; the head is cut before "with reason `AdoptedElsewhere` and action `Apply`", every part verbatim) | A Warning event is emitted when the count of adopted objects changes | 1 |
-| Events emitted when an object is adopted by another instance | one Warning `AdoptedElsewhere`, action `Apply` (the part cut from the row above); the condition is named by the exact header of the requirement that holds it, because the whole old condition and the whole title do not fit 500 together | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 1 |
-| Events emitted when an object is adopted by another instance | citation `status-conditions`, "The Ready message counts the objects adopted by another instance" (moves to the no-event requirement, where the Ready message carries the state) | No AdoptedElsewhere event while the count is unchanged | 1 |
-| Events emitted when an object is adopted by another instance | "This holds whether the reconcile applies, restores or is a no-op." (old sentence, copied) with the old head "MUST emit one `Warning` event with reason `AdoptedElsewhere` and action `Apply`" as its subject; the condition is named by the exact header of the requirement that holds it | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | 1 |
+| Events emitted when an object is adopted by another instance | sentence 1, whole and unchanged: the `Warning` event with reason `AdoptedElsewhere` and action `Apply`, the whole old condition and the citation of `status-conditions` | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | 1 | none |
+| Events emitted when an object is adopted by another instance | the citation `status-conditions`, "The Ready message counts the objects adopted by another instance" (copied from sentence 1 of the old body into the no-event requirement, where the Ready message carries the state) | No AdoptedElsewhere event while the count is unchanged | 1 | none |
+| Events emitted when an object is adopted by another instance | "This holds whether the reconcile applies, restores or is a no-op." (sentence 2, copied unchanged, after sentence 1 in the same body) | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | 2 | none |
 | Events emitted when an object is adopted by another instance | states the count; the library's message for each object unchanged; within the `ApplyRefused` limits (limits restated) | The AdoptedElsewhere event states the count and the library messages | 1 |
 | Events emitted when an object is adopted by another instance | same number as before, or a skipped render, emits none; `Ready` carries the state between events | No AdoptedElsewhere event while the count is unchanged | 1 |
-| Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012): whole on every requirement cut from the old one, the two that carry the old condition included (config.yaml: an enhancement id is never alone) | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 2 |
+| Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012): whole, as a `**Source**:` line on the first requirement, and inline on the other two | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | 3 | none |
 | The event of a stalled render failure stays inside the event note limit | stalled render or package load Warning event: message at most 1024 chars | A stalled render failure event carries at most 1024 characters | 1 |
 | The event of a stalled render failure stays inside the event note limit | when the failure's message fits: the `Ready` message | A stalled render failure event carries at most 1024 characters | 2 |
 | The event of a stalled render failure stays inside the event note limit | findings overflow: text in front plus whole findings, end `; and <N> more findings` | A stalled render event message that does not fit keeps whole findings | 1 |
@@ -559,7 +558,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | Events emitted when claims are kept | 845 | 319, 221, 333 |
 | Events emitted when a claim recreate is refused | 545 | 234, 326 |
 | Events emitted when objects are left behind | 1509 | 271, 281, 362, 380, 146, 149 |
-| Events emitted when an object is adopted by another instance | 969 | 345, 370, 492, 467 |
+| Events emitted when an object is adopted by another instance | 969 | 475, 492, 467 |
 | The event of a stalled render failure stays inside the event note limit | 714 | 358, 278, 154 |
 | Events emitted while a deletion waits | 507 | 393, 382 |
 | Events emitted when a deletion is released without confirmation | 606 | 366, 261 |
@@ -647,6 +646,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The Ready message counts the objects ado... | A reconcile that skips its render MUST leave the message as the last r... | A reconcile that skips its render leaves the Ready message a... | 1 |  +of the `Ready` condition |
 | The Ready message counts the objects ado... | The message MUST NOT carry an enhancement reference. | The Ready message counts the objects adopted by another inst... | 3 | none |
 | The Ready message counts the objects ado... | Source: enhancement 0012 ("The apply guard runs on every apply, refusi... | A reconcile that skips its render leaves the Ready message a... | 2 | none |
+| The Ready message counts the objects ado... | Source: enhancement 0012 ("The apply guard runs on every apply, refusi... | The Ready message counts the objects adopted by another inst... | 4 | the whole line as a `**Source**:` line, with the old title (the id was alone before) |
 | The deletion wait reasons | The `internal/status` package MUST define the reasons `DeletionInProgr... | The deletion wait reasons are defined | 1 | none |
 | The deletion wait reasons | `DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=T... | DeletionInProgress is set while the cleanup waits | 1 | none |
 | The deletion wait reasons | `DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=T... | DeletionBlocked is set when an object has not gone for 10 mi... | 1 | none |
@@ -672,7 +672,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The IdentityChangeUnsettled reason | 520 | 320, 467 |
 | The ApplyRefused reason | 566 | 263, 293, 438 |
 | The deletion wait reasons | 1155 | 295, 170, 405, 475, 453 |
-| The Ready message counts the objects adopted by another instance | 746 | 477, 319 |
+| The Ready message counts the objects adopted by another instance | 746 | 451, 319 |
 
 ### Ledger: kubernetes-tier-adoption
 
@@ -1301,12 +1301,12 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | The read uses the applying client | The read is made by the client that applies | the clause of that requirement body |
 | The install admission input is not set | The controller sets no install admission input in an apply verdict | the clause of that requirement body |
 | One identity for both kinds | The identity of the apply verdict is the same for a ModuleInstance and a ModulePackage | the clause of that requirement body |
-| The verdict identity is the render's or the recorded one | The verdict is asked once per object with the render's identity, or the recorded one when the render carries none | the clause of that requirement body |
-| Verdict identity when none is recorded | The verdict is asked with the instance's identity when no identity is recorded yet or a change is not settled | the clause of that requirement body |
+| The verdict identity is the render's or the recorded one | The verdict is asked with the render's or recorded identity | the clause of that requirement body |
+| Verdict identity when none is recorded | The verdict identity when none is recorded or a change is unsettled | the clause of that requirement body |
 | No earlier identity while a change is unsettled | The earlier identity of an unsettled change is not asked with | the clause of that requirement body |
-| No empty identity and no prune list | The apply verdict is not asked with an empty identity or the prune list | the clause of that requirement body |
-| Objects to apply and no identity | A reconcile with objects to apply and no identity fails | the clause of that requirement body |
-| Empty apply list | A reconcile with an empty apply list asks no verdict | the clause of that requirement body |
+| No empty identity and no prune list | The verdict is not asked with an empty identity or prune list | the clause of that requirement body |
+| Objects to apply and no identity | A reconcile with objects and no identity fails | the clause of that requirement body |
+| Empty apply list | A reconcile with no objects asks no verdict | the clause of that requirement body |
 | A terminating object stops all writes | An object refused as terminating stops all writes | the clause of that requirement body |
 | A foreign object stops all writes | An object refused as foreign-object stops all writes | the clause of that requirement body |
 | Another instance's object stops all writes | An object refused as other-instance stops all writes | the clause of that requirement body |
@@ -1339,10 +1339,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | A claim whose update the API server refuses fails the who... | 1 | sentence 0 is cut at ", and the option MUST be off" so that "the option" has its referent; added: "." |
 | A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | A claim whose update the API server refuses fails the who... | 2 | none |
 | A forced recreate keeps PersistentVol... | When the API server refuses the update of one (the error the forced... | A claim whose update the API server refuses fails the who... | 3 | none |
-| A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | A refused claim update applies, creates and deletes no ob... | 1 | sentence 0 is cut at ", and the option MUST be off" so that "the option" has its referent; added: "." |
-| A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | A refused claim update applies, creates and deletes no ob... | 2 | none |
-| A forced recreate keeps PersistentVol... | When the API server refuses the update of one (the error the forced... | A refused claim update applies, creates and deletes no ob... | 3 | sentence 3 is cut before ", the apply MUST return" so that "In that case" has its referent; added: "." |
-| A forced recreate keeps PersistentVol... | In that case no object of the resource set is applied, created or d... | A refused claim update applies, creates and deletes no ob... | 4 | none |
+| A forced recreate keeps PersistentVol... | In that case no object of the resource set is applied, created or d... | A refused claim update applies, creates and deletes no ob... | 1 | +SHALL (Strength table); the case is named by the exact header of the requirement that holds sentences 2 and 3 in full |
 | A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | A claim is recreated when data deletion is allowed | 1 | none |
 | A forced recreate keeps PersistentVol... | When the option is on, a forced recreate MUST delete and recreate a... | A claim is recreated when data deletion is allowed | 2 | none |
 | A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | The forced recreate of every other kind is unchanged | 1 | none |
@@ -1368,12 +1365,14 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The staged apply order never contradi... | The order in which the staged apply writes two objects of different... | The test suite fails when the pinned versions break the o... | 1 | none |
 | The staged apply order never contradi... | The operator's test suite MUST fail when the two pinned versions br... | The test suite fails when the pinned versions break the o... | 2 | none |
 | The staged apply order never contradi... | Source: enhancement 0012 ("Ordering is kind-class order in the Kube... | The test suite fails when the pinned versions break the o... | 3 | none |
-| The staged apply order never contradi... | The operator's test suite MUST fail when the two pinned versions br... | The check reads the order from the pinned Flux module | 1 | none |
-| The staged apply order never contradi... | The check MUST read Flux's order from the pinned Flux module itself... | The check reads the order from the pinned Flux module | 2 | none |
-| The staged apply order never contradi... | Source: enhancement 0012 ("Ordering is kind-class order in the Kube... | The check reads the order from the pinned Flux module | 3 | none |
-| The staged apply order never contradi... | The operator's test suite MUST fail when the two pinned versions br... | The check covers the kinds of both orders and the kinds o... | 1 | none |
-| The staged apply order never contradi... | The check MUST cover every kind Flux's order names, every kind the ... | The check covers the kinds of both orders and the kinds o... | 2 | none |
-| The staged apply order never contradi... | Source: enhancement 0012 ("Ordering is kind-class order in the Kube... | The check covers the kinds of both orders and the kinds o... | 3 | none |
+| The staged apply order never contradi... | The order in which the staged apply writes two objects of different... | The check reads the order from the pinned Flux module | 1 | none (copied in front so that "this rule" has its referent) |
+| The staged apply order never contradi... | The operator's test suite MUST fail when the two pinned versions br... | The check reads the order from the pinned Flux module | 2 | none |
+| The staged apply order never contradi... | The check MUST read Flux's order from the pinned Flux module itself... | The check reads the order from the pinned Flux module | 3 | none |
+| The staged apply order never contradi... | Source: enhancement 0012 ("Ordering is kind-class order in the Kube... | The check reads the order from the pinned Flux module | 4 | none (a `**Source**:` line) |
+| The staged apply order never contradi... | The order in which the staged apply writes two objects of different... | The check covers the kinds of both orders and the kinds o... | 1 | none (copied in front so that "this rule" has its referent) |
+| The staged apply order never contradi... | The operator's test suite MUST fail when the two pinned versions br... | The check covers the kinds of both orders and the kinds o... | 2 | none |
+| The staged apply order never contradi... | The check MUST cover every kind Flux's order names, every kind the ... | The check covers the kinds of both orders and the kinds o... | 3 | none |
+| The staged apply order never contradi... | Source: enhancement 0012 ("Ordering is kind-class order in the Kube... | The check covers the kinds of both orders and the kinds o... | 4 | none (a `**Source**:` line) |
 | The staged apply order never contradi... | These cases are not a failure by themselves, and the check MUST rep... | The check reports two kinds of equal weight that Flux orders | 1 | list cut at the three cases; the head is repeated; added: "." |
 | The staged apply order never contradi... | Source: enhancement 0012 ("Ordering is kind-class order in the Kube... | The check reports two kinds of equal weight that Flux orders | 2 | none |
 | The staged apply order never contradi... | These cases are not a failure by themselves, and the check MUST rep... | The check reports a kind that only one of the two orders ... | 1 | list cut at the three cases; the head is repeated; added: "." |
@@ -1395,24 +1394,23 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The read is made by the client that applies | 2 | none |
 | An apply is judged by the ownership v... | The controller MUST NOT set the verdict's install admission input. | The controller sets no install admission input in an appl... | 1 | none |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The controller sets no install admission input in an appl... | 2 | none |
-| An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The identity of the apply verdict is the same for a Modul... | 1 | none |
-| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identi... | The identity of the apply verdict is the same for a Modul... | 2 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The identity of the apply verdict is the same for a Modul... | 3 | none |
-| An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The verdict is asked once per object with the render's id... | 1 | sentence 5 is cut at ", and this paragraph" so that "the verdict" has its referent; added: "." |
-| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identi... | The verdict is asked once per object with the render's id... | 2 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict is asked once per object with the render's id... | 3 | none |
-| An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The verdict is asked with the instance's identity when no... | 1 | sentence 5 is cut at ", and this paragraph" so that "the verdict" has its referent; added: "." |
-| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identity. | The verdict is asked with the instance's identity when no... | 2 | sentence 6 is cut at its colon; added: "." |
-| An apply is judged by the ownership v... | This holds when no identity is recorded yet and while an identity c... | The verdict is asked with the instance's identity when no... | 3 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict is asked with the instance's identity when no... | 4 | none |
+| An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The identity of the apply verdict is the same for a Modul... | 1 | "this paragraph" becomes "requirements" and the exact headers of the six requirements that hold the rest of the old paragraph (the six headers are shortened so that the list fits 500); "is the same" becomes "MUST be the same" (Strength table) |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The identity of the apply verdict is the same for a Modul... | 2 | none (a `**Source**:` line) |
+| An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The verdict is asked with the render's or recorded identity | 1 | sentence 5 is cut at ", and this paragraph" so that "the verdict" has its referent; added: "." |
+| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identi... | The verdict is asked with the render's or recorded identity | 2 | none |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict is asked with the render's or recorded identity | 3 | none |
+| An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The verdict identity when none is recorded or a change is unsettled | 1 | sentence 5 is cut at ", and this paragraph" so that "the verdict" has its referent; added: "." |
+| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identity. | The verdict identity when none is recorded or a change is unsettled | 2 | sentence 6 is cut at its colon; added: "." |
+| An apply is judged by the ownership v... | This holds when no identity is recorded yet and while an identity c... | The verdict identity when none is recorded or a change is unsettled | 3 | none |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict identity when none is recorded or a change is unsettled | 4 | none |
 | An apply is judged by the ownership v... | The controller MUST NOT ask with the earlier identity of an unsettl... | The earlier identity of an unsettled change is not asked ... | 1 | none |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The earlier identity of an unsettled change is not asked ... | 2 | none |
-| An apply is judged by the ownership v... | The controller MUST NOT ask the apply verdict with an empty identit... | The apply verdict is not asked with an empty identity or ... | 1 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The apply verdict is not asked with an empty identity or ... | 2 | none |
-| An apply is judged by the ownership v... | A reconcile that has one or more objects to apply and no identity a... | A reconcile with objects to apply and no identity fails | 1 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A reconcile with objects to apply and no identity fails | 2 | none |
-| An apply is judged by the ownership v... | A reconcile whose apply list is empty has no object to judge: it as... | A reconcile with an empty apply list asks no verdict | 1 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A reconcile with an empty apply list asks no verdict | 2 | none |
+| An apply is judged by the ownership v... | The controller MUST NOT ask the apply verdict with an empty identit... | The verdict is not asked with an empty identity or prune list | 1 | none |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict is not asked with an empty identity or prune list | 2 | none |
+| An apply is judged by the ownership v... | A reconcile that has one or more objects to apply and no identity a... | A reconcile with objects and no identity fails | 1 | none |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A reconcile with objects and no identity fails | 2 | none |
+| An apply is judged by the ownership v... | A reconcile whose apply list is empty has no object to judge: it as... | A reconcile with no objects asks no verdict | 1 | none |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A reconcile with no objects asks no verdict | 2 | none |
 | An apply is judged by the ownership v... | When the verdict refuses an object as `terminating`, and the reconc... | An object refused as terminating stops all writes | 1 | list cut at the three reasons; the head is repeated |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | An object refused as terminating stops all writes | 2 | none |
 | An apply is judged by the ownership v... | When the verdict refuses an object as `foreign-object`, and the rec... | An object refused as foreign-object stops all writes | 1 | list cut at the three reasons; the head is repeated |
@@ -1575,7 +1573,9 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | The message form | The refusal message has a fixed form with one finding per unset required value | the clause of that requirement body |
 | The findings come from the typed error tree | The controller words the findings from the kernel typed error tree | the clause of that requirement body |
 | The unset value reports RenderFailed and Stalled | A ModuleInstance with an unset required value reports RenderFailed and Stalled | the clause of that requirement body |
-| The event carries the same text | The event carries the text of the values failure | the clause of that requirement body |
+| The event carries the same text | The identity of the apply verdict is the same for a ModuleInstance and a ModulePackage | "The identity the verdict is asked with MUST be the same for a ModuleInstance and a ModulePackage, and requirements ... are its one definition." | "The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage, and this paragraph is its one definition." (ssa-apply, "An apply is judged by the ownership verdict before its first write") |
+| A refused claim update applies, creates and deletes no object of the set | "In that case no object of the resource set SHALL be applied, created or deleted." | "In that case no object of the resource set is applied, created or deleted." (ssa-apply, "A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed") |
+| The event carries the text of the values failure | the clause of that requirement body |
 | A registry fetch failure keeps its text | A registry fetch failure during synthesis keeps its own text | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):

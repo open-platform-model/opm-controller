@@ -18,7 +18,7 @@
 
 ### Requirement: Events emitted when an object is adopted by another instance
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "A Warning event is emitted when the count of adopted objects changes", "An AdoptedElsewhere event is emitted when the count of adopted objects changes", "The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing", "The AdoptedElsewhere event states the count and the library messages", "No AdoptedElsewhere event while the count is unchanged".
+**Migration**: See "An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing", "The AdoptedElsewhere event states the count and the library messages", "No AdoptedElsewhere event while the count is unchanged".
 
 ### Requirement: The event of a stalled render failure stays inside the event note limit
 **Reason**: Split into requirements that each state one behavior.
@@ -161,24 +161,19 @@ The controller MUST NOT emit a `LeftBehind` event for an object that was already
 - **WHEN** a prune or a deletion cleanup meets an object that was already absent, or keeps a PersistentVolumeClaim
 - **THEN** no event with reason `LeftBehind` is emitted for them
 
-### Requirement: A Warning event is emitted when the count of adopted objects changes
-The controller MUST emit one `Warning` event when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+### Requirement: An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing
+The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and action `Apply` when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile (`status-conditions`, "The Ready message counts the objects adopted by another instance"). This holds whether the reconcile applies, restores or is a no-op.
+**Source**: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Nothing adopted elsewhere, no event
 - **GIVEN** a reconcile in which the verdict allows every rendered object
 - **WHEN** the reconcile completes
 - **THEN** no event with reason `AdoptedElsewhere` is emitted
 
-### Requirement: An AdoptedElsewhere event is emitted when the count of adopted objects changes
-The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and action `Apply` when the condition of requirement "A Warning event is emitted when the count of adopted objects changes" holds. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
-
 #### Scenario: An object is let go
 - **GIVEN** an inventoried ConfigMap `team-a/settings` whose `opmodel.dev/adopt` annotation names another instance
 - **WHEN** a reconcile renders
 - **THEN** one `Warning` event with reason `AdoptedElsewhere` and action `Apply` is emitted, with the library's message for `ConfigMap/team-a/settings`
-
-### Requirement: The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing
-The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and action `Apply` when the condition of requirement "A Warning event is emitted when the count of adopted objects changes" holds. This holds whether the reconcile applies, restores or is a no-op. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: AdoptedElsewhere event on a no-op reconcile
 - **WHEN** a reconcile that renders is a no-op and finds a nonzero number of objects refused as `adopted-elsewhere` that differs from the number the `Ready` message stated before

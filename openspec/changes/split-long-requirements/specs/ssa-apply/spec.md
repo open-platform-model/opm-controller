@@ -204,7 +204,7 @@ The apply MUST take, beside `force`, an option that allows the deletion of data.
 - **THEN** the apply succeeds and the claim keeps its UID
 
 ### Requirement: A refused claim update applies, creates and deletes no object of the set
-The apply MUST take, beside `force`, an option that allows the deletion of data. When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. When the API server refuses the update of one (the error the forced recreate would answer with a delete). In that case no object of the resource set is applied, created or deleted.
+As listed in requirement "A claim whose update the API server refuses fails the whole apply with a named error": In that case no object of the resource set SHALL be applied, created or deleted.
 
 #### Scenario: No object of the set is written after a refused claim update
 - **WHEN** `force` is true, the option is off and the API server refuses the update of a PersistentVolumeClaim of the resource set
@@ -287,14 +287,16 @@ The order in which the staged apply writes two objects of different kinds MUST N
 - **THEN** the check finds no pair of kinds in opposite order and passes
 
 ### Requirement: The check reads the order from the pinned Flux module
-The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST read Flux's order from the pinned Flux module itself (its stage rules and its sort), not from a copy of Flux's kind list, so that a bump of the Flux pin that moves a kind fails the suite without an edit to the check. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
+The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST read Flux's order from the pinned Flux module itself (its stage rules and its sort), not from a copy of Flux's kind list, so that a bump of the Flux pin that moves a kind fails the suite without an edit to the check.
+**Source**: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 #### Scenario: The check reads the pinned module
 - **WHEN** the Flux pin moves a kind
 - **THEN** the suite fails without an edit to the check, because the check reads Flux's order from the pinned Flux module itself
 
 ### Requirement: The check covers the kinds of both orders and the kinds of another owner
-The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST cover every kind Flux's order names, every kind the library's weight table names, the same kind names in an API group of another owner, a custom kind and a custom kind whose name ends in `Class`. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
+The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST cover every kind Flux's order names, every kind the library's weight table names, the same kind names in an API group of another owner, a custom kind and a custom kind whose name ends in `Class`.
+**Source**: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 #### Scenario: The check covers a custom kind whose name ends in Class
 - **WHEN** the check runs
@@ -366,20 +368,21 @@ The controller MUST NOT set the verdict's install admission input. Source: enhan
 - **THEN** the controller does not set the verdict's install admission input
 
 ### Requirement: The identity of the apply verdict is the same for a ModuleInstance and a ModulePackage
-The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage, and this paragraph is its one definition. The controller MUST ask once per object, with the instance's identity: the render's, or the recorded one when the render carries none. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The identity the verdict is asked with MUST be the same for a ModuleInstance and a ModulePackage, and requirements "The verdict is asked with the render's or recorded identity", "The verdict identity when none is recorded or a change is unsettled", "The earlier identity of an unsettled change is not asked with", "The verdict is not asked with an empty identity or prune list", "A reconcile with objects and no identity fails", "A reconcile with no objects asks no verdict" are its one definition.
+**Source**: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: One identity for both kinds
 - **WHEN** a ModuleInstance or a ModulePackage reconcile asks the apply verdict
-- **THEN** it asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
+- **THEN** the identity the verdict is asked with is the same for both
 
-### Requirement: The verdict is asked once per object with the render's identity, or the recorded one when the render carries none
+### Requirement: The verdict is asked with the render's or recorded identity
 The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage. The controller MUST ask once per object, with the instance's identity: the render's, or the recorded one when the render carries none. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: The verdict identity is the render's or the recorded one
 - **WHEN** a ModuleInstance or a ModulePackage reconcile asks the apply verdict for an object
 - **THEN** the controller asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
 
-### Requirement: The verdict is asked with the instance's identity when no identity is recorded yet or a change is not settled
+### Requirement: The verdict identity when none is recorded or a change is unsettled
 The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage. The controller MUST ask once per object, with the instance's identity. This holds when no identity is recorded yet and while an identity change is not settled. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Verdict identity when none is recorded
@@ -393,21 +396,21 @@ The controller MUST NOT ask with the earlier identity of an unsettled change (`s
 - **WHEN** an identity change is not settled
 - **THEN** the controller does not ask with the earlier identity of the unsettled change (`status.previousInstanceUUID`)
 
-### Requirement: The apply verdict is not asked with an empty identity or the prune list
+### Requirement: The verdict is not asked with an empty identity or prune list
 The controller MUST NOT ask the apply verdict with an empty identity, and MUST NOT hand it the list the prune judges with, which holds the earlier identity and for a ModulePackage with no recorded identity ends with no identity. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: No empty identity and no prune list
 - **WHEN** the controller asks the apply verdict
 - **THEN** it does not ask with an empty identity and does not hand it the list the prune judges with
 
-### Requirement: A reconcile with objects to apply and no identity fails
+### Requirement: A reconcile with objects and no identity fails
 A reconcile that has one or more objects to apply and no identity at all MUST fail as a failed apply with nothing written. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Objects to apply and no identity
 - **WHEN** a reconcile has one or more objects to apply and no identity at all
 - **THEN** it fails as a failed apply with nothing written
 
-### Requirement: A reconcile with an empty apply list asks no verdict
+### Requirement: A reconcile with no objects asks no verdict
 A reconcile whose apply list is empty has no object to judge: it asks no verdict and MUST NOT fail for a missing identity. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Empty apply list

@@ -1,7 +1,8 @@
 ## MODIFIED Requirements
 
 ### Requirement: The Ready message counts the objects adopted by another instance
-When a ModuleInstance or ModulePackage reconcile renders, ends `Ready=True` (after an apply, a restore or a no-op) and found one or more rendered objects that the apply verdict refuses as `adopted-elsewhere`, the message of the `Ready` condition MUST state how many rendered objects are adopted by another instance and are not applied. When it found none, the message MUST NOT mention such objects. The message MUST NOT carry an enhancement reference. Source: enhancement 0012.
+When a ModuleInstance or ModulePackage reconcile renders, ends `Ready=True` (after an apply, a restore or a no-op) and found one or more rendered objects that the apply verdict refuses as `adopted-elsewhere`, the message of the `Ready` condition MUST state how many rendered objects are adopted by another instance and are not applied. When it found none, the message MUST NOT mention such objects. The message MUST NOT carry an enhancement reference.
+**Source**: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: The count after a let-go
 - **GIVEN** a Ready instance, two of whose rendered objects are annotated for another instance
