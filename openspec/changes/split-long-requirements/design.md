@@ -80,24 +80,19 @@ before the first split.
 
 **Context**: Rewriting a main spec that an open change also edits makes the open change's
 MODIFIED block replace the shortened text with the old long one and re-add dropped scenarios (a
-c2 leaves it with only the INFO "Archive would refuse"). The human decided
-that the colliding batches run last.
-**Decision**: Purpose-only specs, then B2, B4, B6, B7 (no spec of an open change), then a stop
-for the human to land both open changes, then a fresh inventory, then B1, B3, B5, then the
-`source-resolution` Purpose, then the gate.
+c2 leaves it with only the INFO "Archive would refuse"). The human cut the scope: the open
+changes are ignored, and the colliding batches are left out.
+**Decision**: Purpose-only specs, then B2, B4, B6, B7 (no spec of an open change), then the
+`example-module-publishing` Purpose, then the gate and the archive.
 
 | Unit | Why here | N after it |
 | --- | --- | --- |
 | Purpose for 6 specs | No collision, no length work; removes 6 of the 8 ERRORs on main | 0 |
 | B2, B4, B6, B7 | No spec of these batches is edited by an open change | 28, 56, 84, 112 |
-| Pause: the human lands both open changes | They edit `release-automation` (B1), `container-image-publish` (B3), `operator-module` (B5) and `source-resolution` | |
-| B1, B3, B5 | After the pause, with an inventory re-run first | 140, 168, 196, or the fresh count |
-| `source-resolution` Purpose | Its change must have landed | unchanged |
-| Gate (Taskfile, CI) | Moved to a separate change after the open changes land | unchanged |
+| `example-module-publishing` Purpose | A direct edit of one Purpose; no requirement text changes | 112 |
+| Gate and archive | Last unit of the change | 112 |
 
-**Rationale**: each unit stays independent of the open changes until they land, as the human
-ruled. The last column assumes an unchanged inventory; B1, B3 and B5 re-measure first, and `N`
-is the fresh cumulative count.
+**Rationale**: each unit stays independent of the open changes.
 **Alternative rejected**: all units first, with the open changes moved onto the new text
 afterwards. It breaks their MODIFIED blocks (guide section 3, "unsafe because silent"), and
 editing them is out of scope.
@@ -116,6 +111,12 @@ decision record is edited.
 requirements of the spec. Gate on `origin/main` 7713cc86 in a scratch copy: the ERROR set lost
 those six specs (7 spec items to 1, plus the open change's one); WARNING lines stayed
 equal. The remaining spec ERROR, `source-resolution`, waits for its open change.
+
+`example-module-publishing` had the archive placeholder Purpose ("TBD - created by archiving
+change add-example-test-modules"), a WARNING under `--strict`. Its Purpose is replaced by direct
+edit, with text read from its seven requirements (publish to GHCR on release, per-module
+versioning, idempotent re-publish, release manifests, version bumps, the examples bundle,
+pre-release publishes). Its two long requirements are not rewritten here.
 
 ## The scenario ledger
 
@@ -2515,35 +2516,36 @@ Pass rules:
 - Earlier units: other batches still hold warnings, so `validate --all` exits 1. The unit passes
   when no ERROR item is new and WARNING lines fell by `N`. For the batch's specs also run
   `openspec validate <spec> --type spec --strict --json 2>&1` and read it.
-- Last unit (`LAST=1`): passes when `validate --specs --strict` exits 0 after the archive in the
-  copy and the change passes `validate --strict`. Both open changes have landed by then, so
-  `validate --all --strict` is expected to exit 0 as well; the unit reports its exit code and
-  names the cause if it is not 0.
+- Last unit (`N=112`, `LAST` unset): passes when the change passes `validate --strict`, the
+  archive in the copy exits 0, WARNING lines fell by 112, and no ERROR item is new.
+  `validate --all --strict` still fails on the 84 long requirements and on the open changes; the
+  unit reports its exit code.
 - The 14 review items of guide section 7 run per unit, including the byte-equality command for
   each rewritten requirement.
 
-## The pinned gate (Taskfile and CI): moved out
+## Not in this change
 
-The pinned OpenSpec 1.14.1 gate (`openspec:install` and `openspec:check` tasks and a `Lint` step)
-is not part of this change. It becomes a small separate change and PR after the open changes
-`stop-operator-install-manifest` and `add-cross-namespace-source-grants` land, because a step
-that runs `--all --strict` would fail its own PR while they carry warnings and errors
-That change installs OpenSpec 1.14.1 pinned by version with
-`--ignore-scripts` and no lockfile, and takes the `cli` repo's tasks as the model.
+The human cut the scope. This change rewrites 112 of the 196 long requirements (groups B2, B4,
+B6 and B7) and fixes seven Purposes. It leaves out:
+
+- B1, B3 and B5 (84 long requirements). Their specs are touched or neighbored by the open
+  changes `stop-operator-install-manifest` and `add-cross-namespace-source-grants`.
+- The `source-resolution` Purpose, which belongs to `add-cross-namespace-source-grants`.
+- The pinned OpenSpec 1.14.1 gate (`openspec:install` and `openspec:check` tasks and a `Lint`
+  step). It becomes a separate change and PR, because a step that runs `--all --strict` would
+  fail its own PR while 84 long requirements and the open changes carry warnings and errors.
+  That change installs OpenSpec 1.14.1 pinned by version with `--ignore-scripts` and no lockfile,
+  and takes the `cli` repo's tasks as the model.
 
 ## Risks / Trade-offs
 
 - A rewrite that loses a rule while the validator is green. Counter: ledger, byte-equality
   command, clause table, and a review per unit (guide section 7).
-- The two open changes move text before B1, B3 and B5. Counter: the pause and the fresh
-  inventory. An "Archive would refuse" line is reported, never repaired by editing the other
-  change.
-- Section count: 11 task groups (9 units plus a pause and the final gate), against the config's "at most about seven sections" rule. The
-  groups are mechanical units of one kind, each ends green, and the swarm sets one change per repo run as several units. The proposal gate may ask instead for two
-  changes (before and after the open changes land).
+- The two open changes edit specs that this change leaves alone. An "Archive would refuse" line
+  is reported, never repaired by editing the other change.
+- Section count: 6 task groups remain, within the config's "at most about seven sections" rule.
 - No new trust boundary, secret or personal data.
 
 ## Open Questions
 
-- Does the proposal gate accept 11 groups in one change, or want two changes?
-- The counts of B1, B3 and B5 are known only after the fresh inventory.
+None.

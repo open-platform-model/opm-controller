@@ -8,7 +8,7 @@ own scenarios. This change rewrites the long requirements of this repo so that `
 pass again with no loss of rules.
 
 Today `openspec validate --all --strict` under 1.14.1 reports 196 requirements over 500
-characters in 44 main specs, and 8 ERRORs. Seven ERRORs are specs without a `## Purpose`. A
+characters in 44 main specs (this change rewrites 112 of them), and 8 ERRORs. Seven ERRORs are specs without a `## Purpose`. A
 placeholder Purpose ("TBD - created by archiving change ...") is a second warning kind that also
 fails `--strict`. The eighth ERROR sits in the open change `stop-operator-install-manifest`; its
 author fixes it (see Scope).
@@ -39,20 +39,25 @@ Specs by batch (counts are long requirements, from `explore/T1.3.md` and re-meas
   `registration-removal-guard`, `test-registry-lifecycle`, `workflow-hardening`, `docs-bundle`,
   `inventory-bridge`, `live-flux-e2e`, `module-acquisition`, `operator-resource-reference`,
   `platform-gated-rendering`, `registration-activation`, `transformer-registration-crd`.
-- **opm-operator-B1 (28), B3 (28), B5 (28) run last.** They hold specs that the open changes
-  `stop-operator-install-manifest` and `add-cross-namespace-source-grants` touch or sit near
-  (B1: `release-automation`, `finalizer-and-deletion`, `instance-health`; B3:
-  `reconcile-loop-assembly`, `registration-acceptance`, `example-test-modules`,
-  `container-image-publish`; B5: `prune-stale-resources`, `cascade-receiver`, `drift-detection`,
-  `modulepackage-kernel-rendering`, `operator-module`, `example-module-publishing`). They start
-  after the human lands both open changes, and each starts with a fresh inventory (guide
-  section 8), because the open changes alter lengths and may add long requirements.
-- **Purpose, after the open changes land.** `source-resolution` gets its Purpose in the last
-  group, after `add-cross-namespace-source-grants` lands. `example-module-publishing` gets real
-  Purpose text (an archive placeholder today) in the B5 unit, which already rewrites that spec.
-- **Gate moved out.** The pinned OpenSpec 1.14.1 `openspec validate --all --strict` gate
-  (Taskfile and CI) is not part of this change. It becomes a small separate change and PR after
-  both open changes land (DECISIONS.md 2026-10-19 14:05).
+- **Purpose of `example-module-publishing`.** Real Purpose text replaces its archive placeholder, by direct edit.
+- **Workflow comments.** Seven workflow comments that cite removed requirement names are updated (comment text only).
+
+## Not in this change
+
+The human cut the scope: the two open changes `stop-operator-install-manifest` and
+`add-cross-namespace-source-grants` are not waited for. This change rewrites 112 of the 196 long
+requirements. The other 84 stay long and stay for a later change:
+
+- B1 (`release-automation`, `finalizer-and-deletion`, `instance-health`), B3
+  (`reconcile-loop-assembly`, `registration-acceptance`, `example-test-modules`,
+  `container-image-publish`) and B5 (`prune-stale-resources`, `cascade-receiver`,
+  `drift-detection`, `modulepackage-kernel-rendering`, `operator-module`,
+  `example-module-publishing`). These specs are touched or neighbored by the open changes, whose
+  MODIFIED blocks a rewrite would break.
+- The `## Purpose` of `source-resolution`, which the open change `add-cross-namespace-source-grants` owns.
+- The pinned OpenSpec 1.14.1 `openspec validate --all --strict` gate (Taskfile and CI). It becomes a separate change.
+
+Until those land, `openspec validate --all --strict` still fails on the 84 requirements and on the open changes.
 
 ## Scope
 

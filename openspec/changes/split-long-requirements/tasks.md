@@ -48,50 +48,18 @@ Specs: serviceaccount-impersonation 4, platform-crd 3, platform-module-generatio
 - [x] 5.3 Gate (`N=112`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement. (Unit 5a: gate run with `N=98`. Unit 5b: gate run with `N=112`, `GATE PASS`; the 11 specs of unit 5b show no WARNING.)
 - [x] 5.4 Commit `docs(openspec): split the long requirements of opm-operator-B7`
 
-## 6. Pause for the open changes (the human's step)
+## 10. Purpose of example-module-publishing
 
-- [ ] 6.1 The human lands `stop-operator-install-manifest` (with its 8th ERROR fixed by its author) and `add-cross-namespace-source-grants`. A worker never ticks this and never edits those changes. After it, merge `origin/main` into the branch and go on with section 7.
-
-## 7. opm-operator-B1: 28 requirements
-
-Specs: release-automation 13, finalizer-and-deletion 11, instance-health 4.
-
-- [ ] 7.0 Precondition: the human has landed `stop-operator-install-manifest` and `add-cross-namespace-source-grants`. Merge the base into the branch, then re-run the inventory (`validate --all --strict --json`, count `Requirement text is very long` per spec) and compare with this group. Differences go to the report; `N` becomes the fresh cumulative count.
-- [ ] 7.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
-- [ ] 7.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 7.3 Gate (`N=140`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 7.4 Commit `docs(openspec): split the long requirements of opm-operator-B1`
-
-## 8. opm-operator-B3: 28 requirements
-
-Specs: reconcile-loop-assembly 9, registration-acceptance 9, example-test-modules 7, container-image-publish 3.
-
-- [ ] 8.0 Precondition: the human has landed `stop-operator-install-manifest` and `add-cross-namespace-source-grants`. Merge the base into the branch, then re-run the inventory (`validate --all --strict --json`, count `Requirement text is very long` per spec) and compare with this group. Differences go to the report; `N` becomes the fresh cumulative count.
-- [ ] 8.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
-- [ ] 8.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 8.3 Gate (`N=168`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 8.4 Commit `docs(openspec): split the long requirements of opm-operator-B3`
-
-## 9. opm-operator-B5: 28 requirements
-
-Specs: prune-stale-resources 6, cascade-receiver 5, drift-detection 5, modulepackage-kernel-rendering 5, operator-module 5, example-module-publishing 2.
-
-- [ ] 9.0 Precondition: the human has landed `stop-operator-install-manifest` and `add-cross-namespace-source-grants`. Merge the base into the branch, then re-run the inventory (`validate --all --strict --json`, count `Requirement text is very long` per spec) and compare with this group. Differences go to the report; `N` becomes the fresh cumulative count.
-- [ ] 9.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
-- [ ] 9.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 9.3 Gate (`N=196`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 9.4 Commit `docs(openspec): split the long requirements of opm-operator-B5`
-
-## 10. Purpose of the remaining specs
-
-- [ ] 10.1 `example-module-publishing`: replace the archive placeholder Purpose (a WARNING under `--strict`) with real text read from the spec's requirements. The spec is also in section 9; the Purpose text is recorded in its ledger.
-- [ ] 10.2 `source-resolution`: add its `## Purpose` (now that `add-cross-namespace-source-grants` is landed, the spec's live text is read first). If that change already wrote a Purpose, do nothing and say so.
-- [ ] 10.3 Gate (`N=196` or the fresh total): no new ERROR item; the Purpose ERRORs are gone.
-- [ ] 10.4 Commit `docs(openspec): add Purpose text to source-resolution and example-module-publishing`
+- [ ] 10.1 `example-module-publishing`: replace the archive placeholder Purpose (a WARNING under `--strict`) with real text read from the spec's requirements, by direct edit of `## Purpose`. The spec's two long requirements are not rewritten in this change (see "Not in this change" in `proposal.md`).
 
 ## 11. Final gate and archive
 
-The pinned OpenSpec 1.14.1 gate (Taskfile and CI) is not part of this change. It moves to a separate change and PR after `stop-operator-install-manifest` and `add-cross-namespace-source-grants` land (DECISIONS.md 2026-10-19 14:05).
+The pinned OpenSpec 1.14.1 gate (Taskfile and CI) is not part of this change. It moves to a separate change and PR.
 
-- [ ] 11.1 Final gate (`LAST=1`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; `validate --specs --strict` exit 0; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (expected exit 0 on main after both open changes).
+- [ ] 11.0 Update the seven workflow comments that cite requirement names this change removed (comment text only), in its own `ci` commit. Remove the swarm decision times from `design.md`.
+- [ ] 11.1 Final gate (`N=112`, `LAST` unset, base `origin/main`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; WARNING lines fall by 112; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (it still fails on the 84 long requirements of B1, B3 and B5 and on the open changes).
 - [ ] 11.2 Archive the change on this branch (`openspec-archive-change`), so the archive commit rides the PR. Commit `docs(openspec): archive split-long-requirements`
+
+## Not in this change
+
+Groups B1, B3 and B5 (84 requirements) and the `source-resolution` Purpose stay out. They wait for the open changes `stop-operator-install-manifest` and `add-cross-namespace-source-grants`. The pinned CI gate is also out. See `proposal.md`.
