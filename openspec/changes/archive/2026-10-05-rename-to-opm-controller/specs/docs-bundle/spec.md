@@ -44,10 +44,10 @@ The repository SHALL declare one docs-kit project, `opm-controller`, in `docs-ki
 - **WHEN** the ModuleInstance sample `config/samples/opmodel.dev_v1alpha1_moduleinstance.yaml` references `testing.opmodel.dev`
 - **THEN** the ModuleInstance page has no Example part, and `opmodel.dev_v1alpha1_moduleinstance_jellyfin.yaml` is not read
 
-#### Scenario: A decision citation stays a link
+#### Scenario: An enhancement citation stays plain text
 
-- **WHEN** a CRD description cites enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")
-- **THEN** the generated page shows `enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")`
+- **WHEN** a CRD description cites `(enhancement 0015)`
+- **THEN** the generated page shows `(enhancement 0015)` as plain text, with no link
 
 #### Scenario: A CRD that is not a CustomResourceDefinition is refused
 
