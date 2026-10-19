@@ -10,7 +10,7 @@
 
 ### Requirement: The render reports the instance's contract demand from the kernel
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "Both kernel renderers report the contract demand of the kernel's render", "An empty demand is reported as an empty, non-nil list", "The demand is read only from a successful render".
+**Migration**: See "Both kernel renderers report the contract demand of the kernel's render", "The operator does not compute the contract demand itself", "An empty demand is reported as an empty, non-nil list", "The demand is read only from a successful render".
 
 ## ADDED Requirements
 
@@ -89,9 +89,7 @@ Each composed warning SHALL name the same facts as before: for skew, the OPM-nam
 - **THEN** the render result carries one operator-composed warning naming that fact, and the render result carries no library-authored message string
 
 ### Requirement: Both kernel renderers report the contract demand of the kernel's render
-Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics: every `#resources` and `#traits` key of every component of the instance, sorted and deduplicated.
-The operator SHALL NOT compute the demand itself by reading the instance's components.
-Source: enhancement 0013.
+Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics: every `#resources` and `#traits` key of every component of the instance, sorted and deduplicated. Source: enhancement 0013 ("The kernel reports every contract a render required, synthesised components included").
 
 #### Scenario: A rendered module reports its components' contracts
 
@@ -102,6 +100,9 @@ Source: enhancement 0013.
 
 - **WHEN** a ModuleInstance and a ModulePackage render instances of the same module
 - **THEN** both results carry the demand the kernel reported for their render, read through the same adapter
+
+### Requirement: The operator does not compute the contract demand itself
+Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics. The operator SHALL NOT compute the demand itself by reading the instance's components. Source: enhancement 0013 ("The kernel reports every contract a render required, synthesised components included").
 
 #### Scenario: No operator walk of the components
 
@@ -118,7 +119,7 @@ Source: enhancement 0013 ("The kernel reports every contract a render required, 
 - **THEN** the result's `RequiredContracts` is an empty, non-nil list
 
 ### Requirement: The demand is read only from a successful render
-The demand SHALL be read only from a successful render; this requirement does not change when the reconciler writes it (see `reconcile-loop-assembly`, "The instance's contract demand is recorded on its status").
+The demand SHALL be read only from a successful render; this requirement does not change when the reconciler writes it (see `reconcile-loop-assembly`, "The instance's contract demand is recorded on its status"). Source: enhancement 0013 ("The kernel reports every contract a render required, synthesised components included").
 
 #### Scenario: A failed render yields no demand
 - **WHEN** a render does not succeed

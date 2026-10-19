@@ -147,7 +147,7 @@ Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
 - A sentence whose subject was "It" gets the subject of the sentence before it, copied (the "Edit" column shows it).
 - Where a body relies on a sibling for a condition, the condition is copied from the old text in front of its sentence (the "Edit" column shows it).
 - A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`, the identity sentence of `Single-slot identity-keyed store for concurrent read`) is cut at a list boundary; the parts are verbatim and the head is repeated.
-- `Source:` lines: the whole line stays where it fits with the whole rule. Where it does not, it becomes `Source: enhancement 0012.` or `Source: enhancement 0013.` (titles dropped, no issue or PR reference lost), and at least one body of the same old requirement carries the whole line.
+- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). Two bodies keep the short form `Source: enhancement 0012.`: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance") and the forced-recreate body of `kubernetes-tier-adoption` ("The forced recreate delete asks no verdict and carries the UID precondition"). Each carries one sentence of the old requirement that, with its title, passes 500 and that cannot be cut; the other bodies of the same old requirements carry the whole line. The supervisor decides whether to accept or to cut those sentences.
 
 ### Ledger: deps-cascade
 
@@ -377,9 +377,6 @@ Clause table (old clause, new requirement, sentence of its body):
 | The module is a release unit of its own | a commit with no file under the module directory proposes no module release | A commit releases only the package whose files it changes | 2 |
 | The module is a release unit of its own | module versions do not follow the operator's or the cli's | The module is a second release-please package | 3 |
 | The module version follows the 0.x bump rule on the v0 path | definition of a breaking module release (three conditions) | Module versions on the v0 path are 0.y.z | 2 |
-| Healthy is independent of Ready | "`Healthy` SHALL be independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." | "`Healthy` is independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." (status-conditions, "The Healthy condition vocabulary") |
-| A failure is transient when its error chain holds a registry fetch failure | "A failure SHALL be transient when its error chain holds ..." | "A failure is transient when its error chain holds ..." (platform-reconciler, "Transient failures retry faster than semantic failures") |
-| The demand is read only from a successful render | "The demand SHALL be read only from a successful render; this requirement does not change when the reconciler writes it ..." | "The demand is read only from a successful render; this requirement does not change when the reconciler writes it ..." (kernel-module-renderer, "The render reports the instance's contract demand from the kernel") |
 | The module version follows the 0.x bump rule on the v0 path | on `@v0` every version `0.y.z`; breaking raises `y` and resets `z`; other releases raise `z`, `feat` included | Module versions on the v0 path are 0.y.z | 1 |
 | The module version follows the 0.x bump rule on the v0 path | first module release `0.1.0` | The first module release is 0.1.0 | 1 |
 | The module version follows the 0.x bump rule on the v0 path | move to `@v1` only with `1.0.0` no earlier than the operator's first GA | The module moves to the v1 path only after operator GA | 1 |
@@ -574,7 +571,7 @@ Form c2 for every requirement below except where marked b: REMOVED under the old
 | Marking Ready leaves Healthy alone | Healthy is independent of Ready, Marking Ready leaves Healthy alone | no (byte equal, checked by the item 3 command) |
 | The helper sets only Healthy | One helper sets Healthy and no other condition, The helper sets only Healthy | no (byte equal, checked by the item 3 command) |
 | A refused claim on a ModuleInstance | A ClaimConflict reconcile does not stall, prune or record, A refused claim on a ModuleInstance | no (byte equal, checked by the item 3 command) |
-| The conflict clears when the render fits the claim again | A refused claim recreate sets the ClaimConflict reason, The conflict clears when the render fits the claim again | no (byte equal, checked by the item 3 command) |
+| The conflict clears when the render fits the claim again | A ClaimConflict reconcile does not stall, prune or record, The conflict clears when the render fits the claim again | no (byte equal, checked by the item 3 command) |
 | Delete recreates the claim | A refused claim recreate sets the ClaimConflict reason, Delete recreates the claim | no (byte equal, checked by the item 3 command) |
 | A claim kept by the delete guard | The ClaimConflict message after the delete guard kept the claim, A claim kept by the delete guard | no (byte equal, checked by the item 3 command) |
 | The reason on a refused second change | The IdentityChangeUnsettled message names the way out, The reason on a refused second change | no (byte equal, checked by the item 3 command) |
@@ -639,10 +636,13 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The Ready message counts the objects ado... | Source: enhancement 0012 ("The apply guard runs on every apply, refusi... | A reconcile that skips its render leaves the Ready message a... | 2 | none |
 | The deletion wait reasons | The `internal/status` package MUST define the reasons `DeletionInProgr... | The deletion wait reasons are defined | 1 | none |
 | The deletion wait reasons | `DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=T... | DeletionInProgress is set while the cleanup waits | 1 | none |
-| The deletion wait reasons | `DeletionBlocked` MUST be set with `Ready=False` and `Stalled=True`: a... | DeletionBlocked is set when an object has not gone for 10 mi... | 1 | none |
-| The deletion wait reasons | Both messages MUST name the remaining objects and their finalizers; th... | DeletionBlocked is set when an object has not gone for 10 mi... | 2 | none |
-| The deletion wait reasons | Both messages MUST name the remaining objects and their finalizers; th... | A deletion wait message lists at most ten objects | 1 | none |
-| The deletion wait reasons | A message MUST list at most ten objects and say how many more remain. | A deletion wait message lists at most ten objects | 2 | none |
+| The deletion wait reasons | `DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=T... | DeletionBlocked is set when an object has not gone for 10 mi... | 1 | none |
+| The deletion wait reasons | `DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=T... | A deletion wait message lists at most ten objects | 1 | none |
+| The deletion wait reasons | `DeletionBlocked` MUST be set with `Ready=False` and `Stalled=True`: a... | DeletionBlocked is set when an object has not gone for 10 mi... | 2 | none |
+| The deletion wait reasons | `DeletionBlocked` MUST be set with `Ready=False` and `Stalled=True`: a... | A deletion wait message lists at most ten objects | 2 | none |
+| The deletion wait reasons | Both messages MUST name the remaining objects and their finalizers; th... | DeletionBlocked is set when an object has not gone for 10 mi... | 3 | none |
+| The deletion wait reasons | Both messages MUST name the remaining objects and their finalizers; th... | A deletion wait message lists at most ten objects | 3 | none |
+| The deletion wait reasons | A message MUST list at most ten objects and say how many more remain. | A deletion wait message lists at most ten objects | 4 | none |
 | The deletion wait reasons | A message MUST list at most ten objects and say how many more remain. | A deletion wait message names the finalizer that holds the o... | 1 | none |
 | The deletion wait reasons | For each object it MUST name at most three finalizers and count the re... | A deletion wait message names the finalizer that holds the o... | 2 | none |
 | The deletion wait reasons | When `foregroundDeletion` is the only finalizer, the message MUST say... | A deletion wait message names the finalizer that holds the o... | 3 | none |
@@ -658,7 +658,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The ClaimConflict reason | 1081 | 388, 326, 401, 452 |
 | The IdentityChangeUnsettled reason | 520 | 320, 467 |
 | The ApplyRefused reason | 566 | 263, 455 |
-| The deletion wait reasons | 1155 | 295, 170, 234, 196, 453 |
+| The deletion wait reasons | 1155 | 295, 170, 405, 475, 453 |
 | The Ready message counts the objects adopted by another instance | 746 | 477, 319 |
 
 ### Ledger: kubernetes-tier-adoption
@@ -667,19 +667,19 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
-| No local copy | The operator takes the Kubernetes object and label code from the library and declares no copy, No local copy | no (byte equal, checked by the item 3 command) |
+| No local copy | The operator takes the Kubernetes object code from the library and declares no copy, No local copy | no (byte equal, checked by the item 3 command) |
 | Lint refuses the old path | Lint refuses an import of the operator's earlier object copy, Lint refuses the old path | no (byte equal, checked by the item 3 command) |
 | Digest and apply objects from one export | The reconciler exports a render once and takes the digest, the objects and the entries from it, Digest and apply objects from one export | no (byte equal, checked by the item 3 command) |
 | Export failure keeps its reason | A failure of the export is reported by the conversion, Export failure keeps its reason | no (byte equal, checked by the item 3 command) |
 | Decode failure keeps its reason | A failure of the export is reported by the conversion, Decode failure keeps its reason | no (byte equal, checked by the item 3 command) |
 | Inventory entries from the same export | The reconciler exports a render once and takes the digest, the objects and the entries from it, Inventory entries from the same export | no (byte equal, checked by the item 3 command) |
-| No local copy | The operator takes the Kubernetes object and label code from the library and declares no copy, No local copy | no (byte equal, checked by the item 3 command) |
-| A copy in the conversion package fails the tests | The operator declares no inventory code beyond the conversion, A copy in the conversion package fails the tests | no (byte equal, checked by the item 3 command) |
+| No local copy | The operator takes the Kubernetes object code from the library and declares no copy, No local copy | no (byte equal, checked by the item 3 command) |
+| A copy in the conversion package fails the tests | A test keeps the inventory conversion package closed, A copy in the conversion package fails the tests | no (byte equal, checked by the item 3 command) |
 | No local evaluator | The Healthy condition code declares no readiness rule of its own, No local evaluator | no (byte equal, checked by the item 3 command) |
 | The prune's outcome is the verdict's | A prune or cleanup delete follows a delete verdict of the library's ownership package, The prune's outcome is the verdict's | no (byte equal, checked by the item 3 command) |
 | A new delete outside the listed places fails the tests | A test keeps the places that may delete a cluster object closed, A new delete outside the listed places fails the tests | no (byte equal, checked by the item 3 command) |
-| A method of the same name on another type is not a delete | A test keeps the places that may delete a cluster object closed, A method of the same name on another type is not a delete | no (byte equal, checked by the item 3 command) |
-| The plan's order and propagation reach the API server unchanged | The deletion plan is built by the library constructor and performed by one function, The plan's order and propagation reach the API server unchanged | no (byte equal, checked by the item 3 command) |
+| A method of the same name on another type is not a delete | A test finds a delete by the type of the receiver, A method of the same name on another type is not a delete | no (byte equal, checked by the item 3 command) |
+| The plan's order and propagation reach the API server unchanged | Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds, The plan's order and propagation reach the API server unchanged | no (byte equal, checked by the item 3 command) |
 | The forced recreate is not a plan step | The forced recreate delete asks no verdict and carries the UID precondition, The forced recreate is not a plan step | no (byte equal, checked by the item 3 command) |
 | The apply's outcome is the verdict's | A write follows an apply verdict of the library's ownership package, The apply's outcome is the verdict's | no (byte equal, checked by the item 3 command) |
 | A new write outside the listed places fails the tests | A test keeps the places that may write a cluster object closed, A new write outside the listed places fails the tests | no (byte equal, checked by the item 3 command) |
@@ -689,19 +689,26 @@ New scenarios (restate a clause of the old body, with words of the old text only
 
 | New scenario | Requirement | Old clause restated |
 | --- | --- | --- |
+| The label code comes from the library | The operator takes the OPM label code from the library and declares no copy | the clause of that requirement body |
 | The stale set and the digests come from the library | The operator computes the inventory stale set and the digests only with the library | the clause of that requirement body |
 | The operator passes the fetched object to the library | The operator judges the readiness of an inventory object only with the library's health package | the clause of that requirement body |
 | The operator's own resources keep their own condition checks | The health package covers applied inventory objects only | the clause of that requirement body |
 | The install admission input is not set | The operator sets no install admission input in a delete verdict | the clause of that requirement body |
-| A delete is an action of the lifecycle transition | Prune and cleanup deletes are lifecycle actions of the library | the clause of that requirement body |
+| A delete is an action of the lifecycle transition | Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds | the clause of that requirement body |
+| One function performs the plan's reads and deletes | One function of the operator performs the deletion plan | the clause of that requirement body |
+| No ownership rule of the operator's own | The operator declares no ownership rule of its own for an apply | the clause of that requirement body |
+| A write is found by the type of the receiver | A test finds a write by the type of the receiver | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
 
 | Old requirement | Old clause | New requirement | Sentence | Edit |
 | --- | --- | --- | --- | --- |
-| The operator uses the library's object a... | The operator SHALL take the Kubernetes resource wrapper over the kerne... | The operator takes the Kubernetes object and label code from... | 1 | none |
-| The operator uses the library's object a... | It SHALL declare no type, constant or function of its own for any of t... | The operator takes the Kubernetes object and label code from... | 2 | none |
-| The operator uses the library's object a... | Its lint SHALL refuse an import of the package path that held its earl... | Lint refuses an import of the operator's earlier object copy | 1 | none |
+| The operator uses the library's object a... | The operator SHALL take the Kubernetes resource wrapper over the kerne... | The operator takes the OPM label code from the library and d... | 1 | -the Kubernetes resource wrapper over the kernel's compiled output, its JSON and unstructured conversion, the duplicate-identity check, |
+| The operator uses the library's object a... | It SHALL declare no type, constant or function of its own for any of t... | The operator takes the Kubernetes object code from the libra... | 2 | -It +The operator |
+| The operator uses the library's object a... | It SHALL declare no type, constant or function of its own for any of t... | The operator takes the OPM label code from the library and d... | 2 | -It +The operator |
+| The operator uses the library's object a... | Its lint SHALL refuse an import of the package path that held its earl... | Lint refuses an import of the operator's earlier object copy | 1 | -Its +The operator's |
+| The operator uses the library's object a... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator takes the Kubernetes object code from the libra... | 3 | none |
+| The operator uses the library's object a... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator takes the OPM label code from the library and d... | 3 | none |
 | The operator uses the library's object a... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | Lint refuses an import of the operator's earlier object copy | 2 | none |
 | The reconciler converts a render with on... | The reconciler SHALL convert a render's resources with one call to the... | The reconciler exports a render once and takes the digest, t... | 1 | none |
 | The reconciler converts a render with on... | It SHALL take the render digest, the unstructured objects it applies a... | The reconciler exports a render once and takes the digest, t... | 2 | -It +The reconciler |
@@ -712,47 +719,56 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The operator uses the library's inventor... | The operator SHALL compute the inventory stale set, the inventory dige... | The operator computes the inventory stale set and the digest... | 1 | none |
 | The operator uses the library's inventor... | It SHALL build inventory entries with that package's `NewEntry`. | The operator computes the inventory stale set and the digest... | 2 | -It +The operator |
 | The operator uses the library's inventor... | It SHALL declare no entry constructor, identity relation, stale-set fu... | The operator declares no inventory code beyond the conversio... | 1 | -It +The operator |
-| The operator uses the library's inventor... | Its only inventory code is the conversion between the API's `Inventory... | The operator declares no inventory code beyond the conversio... | 2 | none |
+| The operator uses the library's inventor... | Its only inventory code is the conversion between the API's `Inventory...` | The operator declares no inventory code beyond the conversion | 2 | none (cut at ", and a test") |
+| The operator uses the library's inventor... | a test of `internal/inventory` SHALL refuse any further export ... unnoticed | A test keeps the inventory conversion package closed | 1 | cut at ", and a test"; "a test" to "A test" |
 | The operator uses the library's inventor... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator computes the inventory stale set and the digest... | 3 | none |
+| The operator uses the library's inventor... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator declares no inventory code beyond the conversio... | 3 | none |
+| The operator uses the library's inventor... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | A test keeps the inventory conversion package closed | 2 | none |
 | The operator judges the health of invent... | The operator SHALL judge the readiness of an object in `status.invento... | The operator judges the readiness of an inventory object onl... | 1 | none |
-| The operator judges the health of invent... | The operator SHALL judge the readiness of an object in `status.invento... | The health package covers applied inventory objects only | 1 | none |
 | The operator judges the health of invent... | The code that computes the `Healthy` condition SHALL read no status fi... | The Healthy condition code declares no readiness rule of its... | 1 | none |
 | The operator judges the health of invent... | The operator fetches each object with its own client and passes it in,... | The operator judges the readiness of an inventory object onl... | 2 | none |
-| The operator judges the health of invent... | This requirement covers applied inventory objects only; the operator's... | The health package covers applied inventory objects only | 2 | none |
+| The operator judges the health of invent... | This requirement covers applied inventory objects only; the operator's... | The health package covers applied inventory objects only | 1 |  +SHALL |
 | The operator judges the health of invent... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The operator judges the readiness of an inventory object onl... | 3 | none |
 | The operator judges the health of invent... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The Healthy condition code declares no readiness rule of its... | 2 | none |
+| The operator judges the health of invent... | Source: enhancement 0012 ("The Kubernetes runtime decisions live in a... | The health package covers applied inventory objects only | 2 | none |
 | The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | A prune or cleanup delete follows a delete verdict of the li... | 1 | none |
 | The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The operator sets no install admission input in a delete ver... | 1 | none |
-| The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | Prune and cleanup deletes are lifecycle actions of the libra... | 1 | none |
 | The operator decides prune and cleanup d... | Every delete of a cluster object that the operator makes in a prune of... | The forced recreate delete asks no verdict and carries the U... | 1 | none |
 | The operator decides prune and cleanup d... | The operator MUST take the kinds that are never deleted from the same... | A prune or cleanup delete follows a delete verdict of the li... | 2 | none |
 | The operator decides prune and cleanup d... | The operator MUST NOT set the verdict's install admission input. | The operator sets no install admission input in a delete ver... | 2 | none |
 | The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A prune or cleanup delete follows a delete verdict of the li... | 3 | none |
 | The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator sets no install admission input in a delete ver... | 3 | none |
-| The operator decides prune and cleanup d... | Each such delete MUST be an action the library's `opm/k8s/lifecycle` t... | Prune and cleanup deletes are lifecycle actions of the libra... | 2 | none |
-| The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | The deletion plan is built by the library constructor and pe... | 1 | none |
-| The operator decides prune and cleanup d... | One function of the operator MUST perform the plan's reads and deletes... | The deletion plan is built by the library constructor and pe... | 2 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test keeps the places that may delete a cluster object clo... | 2 | none |
+| The operator decides prune and cleanup d... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test finds a delete by the type of the receiver | 2 | none |
+| The operator decides prune and cleanup d... | Each such delete MUST be an action the library's `opm/k8s/lifecycle` transition named, ... | Prune and cleanup deletes are lifecycle actions in a plan the library constructor builds | 1 | "Each such delete" replaced by "Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage," copied from the first sentence |
+| The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | Prune and cleanup deletes are lifecycle actions in a plan th... | 2 | none |
+| The operator decides prune and cleanup d... | The operator MUST build each plan with the library's constructor and M... | One function of the operator performs the deletion plan | 1 | none |
+| The operator decides prune and cleanup d... | One function of the operator MUST perform the plan's reads and deletes... | One function of the operator performs the deletion plan | 2 | none |
 | The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced re... | The forced recreate delete asks no verdict and carries the U... | 2 | none |
 | The operator decides prune and cleanup d... | A test MUST keep the list of places that may delete a cluster object c... | A test keeps the places that may delete a cluster object clo... | 1 | none |
-| The operator decides prune and cleanup d... | It MUST find a delete by the type of the receiver, a Kubernetes client... | A test keeps the places that may delete a cluster object clo... | 2 | -It +A test |
+| The operator decides prune and cleanup d... | It MUST find a delete by the type of the receiver, a Kubernetes client... | A test finds a delete by the type of the receiver | 1 | -It +A test |
 | The operator decides every apply only th... | Every write of a cluster object that the operator makes on behalf of a... | A write follows an apply verdict of the library's ownership... | 1 | none |
-| The operator decides every apply only th... | The operator MUST declare no ownership rule of its own for an apply: i... | A write follows an apply verdict of the library's ownership... | 2 | none |
+| The operator decides every apply only th... | The operator MUST declare no ownership rule of its own for an apply: i... | The operator declares no ownership rule of its own for an ap... | 1 | none |
 | The operator decides every apply only th... | The operator MUST NOT set, change or remove the `opmodel.dev/adopt` an... | The operator never writes the adopt annotation | 1 | none |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A write follows an apply verdict of the library's ownership... | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator declares no ownership rule of its own for an ap... | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
 | The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator never writes the adopt annotation | 2 | none |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test keeps the places that may write a cluster object clos... | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test finds a write by the type of the receiver | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
 | The operator decides every apply only th... | A test MUST keep the list of places that may write a cluster object cl... | A test keeps the places that may write a cluster object clos... | 1 | none |
-| The operator decides every apply only th... | It MUST find a write by the type of the receiver, as the test of the d... | A test keeps the places that may write a cluster object clos... | 2 | -It +A test |
+| The operator decides every apply only th... | It MUST find a write by the type of the receiver, as the test of the d... | A test finds a write by the type of the receiver | 1 | -It +A test |
 
 
 Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| The operator uses the library's object and label packages and keeps no copy | 692 | 437, 280 |
+| The operator uses the library's object and label packages and keeps no copy | 692 | 487, 431, 291 |
 | The reconciler converts a render with one export | 816 | 482, 357 |
-| The operator uses the library's inventory package and keeps no copy | 742 | 398, 389 |
-| The operator judges the health of inventory objects only through the library's health package | 925 | 436, 423, 418 |
-| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 446, 217, 440, 406 |
-| The operator decides every apply only through the library's ownership package | 1191 | 383, 409, 427 |
+| The operator uses the library's inventory package and keeps no copy | 742 | 398, 378, 270 |
+| The operator judges the health of inventory objects only through the library's health package | 925 | 436, 423, 360 |
+| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 444, 217, 440, 269, 398 |
+| The operator decides every apply only through the library's ownership package | 1191 | 418, 356, 409, 424, 420 |
 
 ### Ledger: module-instance-ownership
 
@@ -811,7 +827,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The operator skips CLI-owned instances b... | On a CLI-owned instance that is not being deleted the controller MUST... | A live CLI-owned instance keeps its finalizers | 2 | none |
 | The operator skips CLI-owned instances b... | Rationale: only the operator removes its finalizer, and the owner-skip... | A CLI-owned instance that carries the finalizer releases it... | 3 | none |
 | The operator skips CLI-owned instances b... | Without the release the delete never completes. | A CLI-owned instance that carries the finalizer releases it... | 4 | none |
-| The operator acknowledges a CLI-owned in... | On a non-deleting `ModuleInstance` with `spec.owner == cli`, the contr... | A CLI-owned instance is acknowledged with Ready Unknown and... | 1 | -field — +field: |
+| The operator acknowledges a CLI-owned in... | On a non-deleting `ModuleInstance` with `spec.owner == cli`, the contr... | A CLI-owned instance is acknowledged with Ready Unknown and... | 1 | -field (em-dash) +field: |
 | The operator acknowledges a CLI-owned in... | The `internal/status` package MUST expose a `ManagedExternally` reason... | The status package exposes the ManagedExternally reason and... | 1 | none |
 | The operator acknowledges a CLI-owned in... | The acknowledgement MUST be idempotent: reconciling an already-acknowl... | A CLI-owned instance is acknowledged with Ready Unknown and... | 2 | none |
 | The operator recognises the instance tha... | The controller SHALL treat a `ModuleInstance` as the operator's own in... | The fixed coordinates identify the operator's own instance | 1 | none |
@@ -899,7 +915,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Generate and build the singleton Platfor... | The operator SHALL reconcile the `Platform` named `cluster` by generat... | The Platform named cluster is generated, built and recorded... | 1 | none |
 | Generate and build the singleton Platfor... | The reconciler SHALL reconcile only the object named `cluster`; any ot... | Only the Platform named cluster is reconciled | 1 | none |
 | Generate and build the singleton Platfor... | No second, derived copy of the platform exists. | The Platform named cluster is generated, built and recorded... | 2 | none |
-| Generate and build the singleton Platfor... | The package the reconcile generates SHALL be a function of exactly two... | The generated package is a function of the spec and the acti... | 1 | -inputs — +inputs:; -claims — +claims, |
+| Generate and build the singleton Platfor... | The package the reconcile generates SHALL be a function of exactly two... | The generated package is a function of the spec and the acti... | 1 | -inputs (em-dash) +inputs:; -claims (em-dash) +claims, |
 | Generate and build the singleton Platfor... | The waking event's content SHALL NOT be an input: the reconcile comput... | The waking event's content is not an input to the generated... | 2 | none |
 | Generate and build the singleton Platfor... | A reconcile whose inputs resolve to the identity the store already hol... | A reconcile whose inputs resolve to the held identity skips... | 1 | none |
 | Surface build outcome on status | prefix "The reconciler SHALL record the outcome on the `Platform` status:" | every one of the six outcome requirements | 1 | list cut at item boundaries; prefix repeated in each |
@@ -963,7 +979,7 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | A rendered module reports its components' contracts | Both kernel renderers report the contract demand of the kernel's render, A rendered module reports its components' contracts | no (byte equal, checked by the item 3 command) |
 | Both renderers fill the demand the same way | Both kernel renderers report the contract demand of the kernel's render, Both renderers fill the demand the same way | no (byte equal, checked by the item 3 command) |
 | An empty demand is an empty list | An empty demand is reported as an empty, non-nil list, An empty demand is an empty list | no (byte equal, checked by the item 3 command) |
-| No operator walk of the components | Both kernel renderers report the contract demand of the kernel's render, No operator walk of the components | no (byte equal, checked by the item 3 command) |
+| No operator walk of the components | The operator does not compute the contract demand itself, No operator walk of the components | no (byte equal, checked by the item 3 command) |
 
 New scenarios (restate a clause of the old body, with words of the old text only):
 
@@ -981,15 +997,19 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Render a ModuleRelease through the kerne... | Every kernel call SHALL share nothing: acquisition, synthesis and the... | KernelModuleRenderer renders an instance through the kernel... | 2 | none |
 | Render a ModuleRelease through the kerne... | Values SHALL reach synthesis as a stack of values sources, each carryi... | Values reach synthesis as a stack of values sources with an... | 1 | none |
 | Render a ModuleRelease through the kerne... | No acquisition or synthesis call SHALL pass a per-call registry or loa... | No acquisition or synthesis call passes a per-call registry... | 1 | none |
-| Adapt compiled output to operator resour... | The renderer SHALL adapt the single-build render's compiled objects —... | The renderer adapts compiled objects to the library's object... | 1 | -objects — +objects,; -verb — +verb, |
+| Adapt compiled output to operator resour... | The renderer SHALL adapt the single-build render's compiled objects (em-dash)... | The renderer adapts compiled objects to the library's object... | 1 | -objects (em-dash) +objects,; -verb (em-dash) +verb, |
 | Adapt compiled output to operator resour... | The refusal SHALL use the library's duplicate-identity check and SHALL... | The refusal of duplicate identities builds no resource | 1 | -SHALL use the library's duplicate-identity check and SHALL carry its error unchanged, naming each shared identity once and every component and transformer that |
 | Adapt compiled output to operator resour... | The render SHALL report no message strings. | The renderer composes the result's warnings from the advisor... | 1 | none |
 | Adapt compiled output to operator resour... | The renderer SHALL compose the result's warnings itself from the rende... | The renderer composes the result's warnings from the advisor... | 2 | none |
-| Adapt compiled output to operator resour... | Each composed warning SHALL name the same facts as before — for skew,... | The renderer composes the result's warnings from the advisor... | 3 | -before — +before: |
+| Adapt compiled output to operator resour... | Each composed warning SHALL name the same facts as before (em-dash) for skew,... | The renderer composes the result's warnings from the advisor... | 3 | -before (em-dash) +before: |
 | The render reports the instance's contra... | Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `K... | Both kernel renderers report the contract demand of the kern... | 1 | none |
-| The render reports the instance's contra... | The operator SHALL NOT compute the demand itself by reading the instan... | Both kernel renderers report the contract demand of the kern... | 2 | none |
+| The render reports the instance's contra... | Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `K... | The operator does not compute the contract demand itself | 1 | -diagnostics: every `#resources` and `#traits` key of every component of the instance, sorted and deduplicated. +diagnostics. |
+| The render reports the instance's contra... | The operator SHALL NOT compute the demand itself by reading the instan... | The operator does not compute the contract demand itself | 2 | none |
 | The render reports the instance's contra... | An empty demand SHALL be reported as an empty, non-nil list. | An empty demand is reported as an empty, non-nil list | 1 | none |
+| The render reports the instance's contra... | Source: enhancement 0013 ("The kernel reports every contract a render... | Both kernel renderers report the contract demand of the kern... | 2 | none |
+| The render reports the instance's contra... | Source: enhancement 0013 ("The kernel reports every contract a render... | The operator does not compute the contract demand itself | 3 | none |
 | The render reports the instance's contra... | Source: enhancement 0013 ("The kernel reports every contract a render... | An empty demand is reported as an empty, non-nil list | 2 | none |
+| The render reports the instance's contra... | Source: enhancement 0013 ("The kernel reports every contract a render... | The demand is read only from a successful render | 2 | none |
 | The render reports the instance's contra... | The demand is read only from a successful render; this requirement doe... | The demand is read only from a successful render | 1 | -is +SHALL be |
 
 
@@ -999,7 +1019,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | --- | --- | --- |
 | Render a ModuleRelease through the kernel | 778 | 413, 202, 161 |
 | Adapt compiled output to operator resources | 1352 | 352, 255, 463, 431 |
-| The render reports the instance's contract demand from the kernel | 796 | 440, 175, 211 |
+| The render reports the instance's contract demand from the kernel | 796 | 442, 431, 175, 326 |
 
 ## Strength table
 
@@ -1014,6 +1034,10 @@ Old text from `origin/main`. All other keywords are the old ones.
 | Recovery never moves a tag or edits a release by hand | "Recovery SHALL never move, delete or re-create a tag and SHALL never edit a release by hand." | "Recovery never moves, deletes or re-creates a tag and never edits a release by hand" |
 | The recovery dispatch publishes, attaches and releases in order | "A recovery dispatch SHALL run, in order: the publish, ..." | "In order: the publish, ..." (operator-module-release, "A stranded module draft is recovered by dispatch"); the subject "A recovery dispatch" comes from the sentence before it |
 | The module version follows the 0.x bump rule on the v0 path | none gained; "A module release is breaking when ..." stays without a keyword, beside a SHALL | (no change) |
+| Healthy is independent of Ready | "`Healthy` SHALL be independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." | "`Healthy` is independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." (status-conditions, "The Healthy condition vocabulary") |
+| A failure is transient when its error chain holds a registry fetch failure | "A failure SHALL be transient when its error chain holds ..." | "A failure is transient when its error chain holds ..." (platform-reconciler, "Transient failures retry faster than semantic failures") |
+| The demand is read only from a successful render | "The demand SHALL be read only from a successful render; this requirement does not change when the reconciler writes it ..." | "The demand is read only from a successful render; this requirement does not change when the reconciler writes it ..." (kernel-module-renderer, "The render reports the instance's contract demand from the kernel") |
+| The health package covers applied inventory objects only | "... the operator's own resources (a `dependsOn` ModulePackage, a TransformerRegistration's provider, the `cluster` Platform) SHALL keep their own condition checks." | "... keep their own condition checks." (kubernetes-tier-adoption, "The operator judges the health of inventory objects only through the library's health package") |
 
 ## The gate
 

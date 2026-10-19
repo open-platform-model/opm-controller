@@ -28,7 +28,7 @@ Specs: status-conditions 7, kubernetes-tier-adoption 6, module-instance-ownershi
 - [x] 3.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
 - [x] 3.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
 - [x] 3.3 Gate (`N=56`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 3.4 Commit `docs(openspec): split the long requirements of opm-operator-B4`
+- [x] 3.4 Commit `docs(openspec): split the long requirements of opm-operator-B4`
 
 ## 4. opm-operator-B6: 28 requirements
 

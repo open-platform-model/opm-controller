@@ -107,11 +107,6 @@ The `internal/status` package SHALL provide one helper that sets `Healthy` from 
 ### Requirement: A refused claim recreate sets the ClaimConflict reason
 The status package SHALL define the reason constant `ClaimConflict`. A ModuleInstance or ModulePackage reconcile whose apply refused the forced recreate of a PersistentVolumeClaim MUST set `Ready=False` with reason `ClaimConflict`. The message MUST name the claim as `<namespace>/<name>`, MUST say that the claim was kept, and MUST name the ways out, `spec.dataPolicy: Delete` among them.
 
-#### Scenario: The conflict clears when the render fits the claim again
-- **GIVEN** that ModuleInstance with reason `ClaimConflict`
-- **WHEN** the render goes back to the claim's `storageClassName` and the controller reconciles
-- **THEN** `Ready` is `True`
-
 #### Scenario: Delete recreates the claim
 - **GIVEN** a ModuleInstance with `spec.rollout.forceConflicts: true` and `spec.dataPolicy: Delete`, whose render changes `storageClassName` of a live PersistentVolumeClaim
 - **WHEN** the controller reconciles
@@ -143,6 +138,11 @@ A ModuleInstance or ModulePackage reconcile whose apply refused the forced recre
 - **AND** `Stalled` is not set, and the result asks for a retry after a backoff
 - **AND** the claim has the UID it had
 - **AND** no other object of the render was changed
+
+#### Scenario: The conflict clears when the render fits the claim again
+- **GIVEN** that ModuleInstance with reason `ClaimConflict`
+- **WHEN** the render goes back to the claim's `storageClassName` and the controller reconciles
+- **THEN** `Ready` is `True`
 
 #### Scenario: A ClaimConflict reconcile prunes and records nothing
 - **WHEN** a reconcile ends with reason `ClaimConflict`
@@ -208,6 +208,7 @@ The `internal/status` package MUST define the reasons `DeletionInProgress` and `
 - **THEN** `Ready` is False with reason `DeletionInProgress`, `Reconciling` is True and `Stalled` is absent or False
 
 ### Requirement: DeletionBlocked is set when an object has not gone for 10 minutes
+`DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=True`, never with `Stalled=True`: the cleanup sent every delete and waits for the objects to be gone.
 `DeletionBlocked` MUST be set with `Ready=False` and `Stalled=True`: an object has not gone for 10 minutes. Both messages MUST name the remaining objects and their finalizers; the `DeletionBlocked` message MUST also name the ways out.
 
 #### Scenario: Blocked is stalled and names the way out
@@ -217,7 +218,8 @@ The `internal/status` package MUST define the reasons `DeletionInProgress` and `
 - **AND** the message names the object, its finalizers, and `spec.prune=false` as a way to release the instance
 
 ### Requirement: A deletion wait message lists at most ten objects
-Both messages MUST name the remaining objects and their finalizers; the `DeletionBlocked` message MUST also name the ways out. A message MUST list at most ten objects and say how many more remain.
+`DeletionInProgress` MUST be set with `Ready=False` and `Reconciling=True`, never with `Stalled=True`: the cleanup sent every delete and waits for the objects to be gone.
+`DeletionBlocked` MUST be set with `Ready=False` and `Stalled=True`: an object has not gone for 10 minutes. Both messages MUST name the remaining objects and their finalizers; the `DeletionBlocked` message MUST also name the ways out. A message MUST list at most ten objects and say how many more remain.
 
 #### Scenario: A long list is cut
 - **GIVEN** a deleting ModuleInstance with fifteen deleted objects that still exist
