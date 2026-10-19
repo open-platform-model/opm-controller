@@ -1,3 +1,7 @@
+## Purpose
+
+Defines how `spec.suspend` on a ModuleRelease stops reconciliation, which status is kept while suspended, how resume triggers a full reconcile, and that deletion cleanup still runs.
+
 ## Requirements
 
 ### Requirement: Suspended reconciliation is skipped

@@ -29,22 +29,6 @@ An accepted claim SHALL become active when the `ModuleInstance` named by `spec.p
 - **THEN** it no longer reports that it is waiting on its provider, because the refusal is why it is inactive
 - **AND** a claim refused while already active keeps reporting that it is active
 
-### Requirement: Activation latches against provider health
-
-Once active, a claim SHALL NOT be deactivated because its provider's readiness regressed. The readiness gate SHALL govern initial activation only. A claim leaves the active state by deletion, never by its provider becoming unhealthy.
-
-This is deliberate and not an oversight: the active-claim set is an input to platform-package regeneration, so a flapping provider that toggled the set would regenerate the platform without the provider's catalog and fail every dependent instance's render for the duration. Established CRDs outlive a provider's pods, so an active claim staying active through a provider outage is correct.
-
-#### Scenario: A provider going unready leaves the claim active
-
-- **WHEN** an active claim's provider transitions from `Ready=True` to not ready
-- **THEN** the claim stays active and its status does not flap
-
-#### Scenario: A provider recovering does not re-run the gate
-
-- **WHEN** that provider becomes ready again
-- **THEN** the claim is still active and no activation transition is recorded, because it never left
-
 ### Requirement: Activation is reported on the claim and feeds the generated platform
 
 Activation SHALL be visible in the claim's status. The claim reconciler's activation SHALL write nothing but the claim itself: it SHALL NOT render a workload, change a `Platform` field or write another claim. Activation is not inert, though: an accepted and active claim is an input to the generated platform module, and the Platform reconciler regenerates the module from the set of such claims (capability `registration-driven-regeneration`).
@@ -60,3 +44,23 @@ Activation SHALL be visible in the claim's status. The claim reconciler's activa
 - **WHEN** a claim is both accepted and active
 - **THEN** the Platform reconciler includes the claim in the active-claim set it generates the platform module from
 - **AND** a claim that is refused, or accepted but not active, is not in that set
+
+### Requirement: An active claim stays active when its provider's readiness regresses
+Once active, a claim SHALL NOT be deactivated because its provider's readiness regressed. This is deliberate and not an oversight: the active-claim set is an input to platform-package regeneration, so a flapping provider that toggled the set would regenerate the platform without the provider's catalog and fail every dependent instance's render for the duration.
+
+#### Scenario: A provider going unready leaves the claim active
+
+- **WHEN** an active claim's provider transitions from `Ready=True` to not ready
+- **THEN** the claim stays active and its status does not flap
+
+#### Scenario: A provider recovering does not re-run the gate
+
+- **WHEN** that provider becomes ready again
+- **THEN** the claim is still active and no activation transition is recorded, because it never left
+
+### Requirement: The readiness gate governs initial activation only
+As in requirement "An active claim stays active when its provider's readiness regresses": The readiness gate SHALL govern initial activation only. A claim leaves the active state by deletion, never by its provider becoming unhealthy. Established CRDs outlive a provider's pods, so an active claim staying active through a provider outage is correct.
+
+#### Scenario: The readiness gate does not govern an active claim
+- **WHEN** a claim is already active
+- **THEN** the readiness gate does not govern it, because a claim leaves the active state by deletion, never by its provider becoming unhealthy

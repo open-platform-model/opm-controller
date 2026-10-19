@@ -5,8 +5,8 @@ on:
     branches:
       - main
   # Recovery for an operator module release whose run left the draft
-  # unpublished (operator-module-release, "A stranded module draft is
-  # recovered by dispatch"). Only the module jobs run: they take main's
+  # unpublished (operator-module-release, "The release workflow
+  # accepts a module recovery dispatch"). Only the module jobs run: they take main's
   # scripts and run them against the tag's tree. Dispatch from main.
   workflow_dispatch:
     inputs:
@@ -85,8 +85,8 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   # The operator module's identity.Version has one writer: this job, on the
-  # module's open release PR (operator-module-release, "The module's identity
-  # version has one writer"). release-please writes the proposed version into
+  # module's open release PR (operator-module-release, "The identity-advance
+  # step is the only writer of the module's identity version"). release-please writes the proposed version into
   # the branch's manifest; opm writes it into identity.cue, so the tagged tree
   # is exactly what module-publish pushes. Idempotent: a branch that already
   # declares the version gets no commit.
@@ -820,7 +820,7 @@ jobs:
 
   # After every published operator release, the PR that moves the operator
   # module to it (module-image.yml; operator-module-release, "An operator
-  # release opens the PR that moves the module's image"). It produces no
+  # release opens one pull request on module/operator-image"). It produces no
   # release artifact. Recover a failed run with module-image.yml's dispatch.
   module-image-pr:
     name: Open the operator module image PR
