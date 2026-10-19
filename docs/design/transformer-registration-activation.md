@@ -3,7 +3,7 @@
 Status: Current (2026-09-15). Implemented in
 `internal/controller/transformerregistration_controller.go` (`gateActivation`).
 
-A `TransformerRegistration` reports three states, from enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces"): not
+A `TransformerRegistration` reports three states, from enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces"): not
 yet judged, accepted but inactive, and active. It becomes active when the
 `ModuleInstance` its `spec.providerRef` names reports `Ready=True`. It never
 becomes inactive again. A claim leaves the active state by deletion, and by

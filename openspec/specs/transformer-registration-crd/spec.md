@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the cluster-scoped `TransformerRegistration` custom resource: the shape a provider module's rendered claim lands as, the fields the API server requires of it, the name it must carry, and the RBAC that decides who may create one. This capability covers the kind and its admission-level guarantees only; accepting, activating and acting on a claim are separate capabilities (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces", "The rendered CR's name is instance-derived: dot-joined `namespace.name`" and "One registration per module").
+Define the cluster-scoped `TransformerRegistration` custom resource: the shape a provider module's rendered claim lands as, the fields the API server requires of it, the name it must carry, and the RBAC that decides who may create one. This capability covers the kind and its admission-level guarantees only; accepting, activating and acting on a claim are separate capabilities (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces", "The rendered CR's name is instance-derived: dot-joined `namespace.name`" and "One registration per module").
 
 ## Requirements
 
