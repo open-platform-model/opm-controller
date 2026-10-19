@@ -157,7 +157,7 @@ on the controller. Status subresource patches do not bump
   `status.lastAppliedInputs.renderedAt` keep their values
 
 ### Requirement: Inventory updated only on full success
-The `status.inventory` MUST only be replaced after a fully successful apply (and prune, if enabled). Two narrower writes are allowed. A ModuleInstance reconcile whose digests are unchanged MUST remove the entries of expired Jobs (`drift-detection`, "A missing object is restored") from `status.inventory.entries`, on a `NoOp` and on a restore. A reconcile that renders MUST leave out of the inventory it records, on a `NoOp` as well, the entry of every object the apply verdict refuses as `adopted-elsewhere` (0012:D8:R8). `status.inventory.digest` MUST stay the digest of the rendered set, so after such a removal it is not the digest of the entries listed.
+The `status.inventory` MUST only be replaced after a fully successful apply (and prune, if enabled). Two narrower writes are allowed. A ModuleInstance reconcile whose digests are unchanged MUST remove the entries of expired Jobs (`drift-detection`, "A missing object is restored") from `status.inventory.entries`, on a `NoOp` and on a restore. A reconcile that renders MUST leave out of the inventory it records, on a `NoOp` as well, the entry of every object the apply verdict refuses as `adopted-elsewhere` (enhancement 0012, "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override"). `status.inventory.digest` MUST stay the digest of the rendered set, so after such a removal it is not the digest of the entries listed.
 
 A reconcile that is refused by the apply verdict, or that fails, MUST NOT change `status.inventory`.
 
@@ -480,7 +480,7 @@ When the apply verdict refuses a reconcile (`ssa-apply`, "An apply is judged by 
 - **THEN** nothing is written and `Ready` is `False` with reason `ApplyRefused`
 
 ### Requirement: An allowed object outside the inventory is taken in
-When a rendered object exists, is not in `status.inventory`, and the apply verdict allows it, the reconciler MUST apply it and MUST record it in `status.inventory` in the same reconcile, also when every digest is unchanged. With unchanged digests a ModuleInstance MUST apply only such objects and the restorable missing objects, as a restore does, and MUST NOT rewrite an object that is in the inventory. Source: 0012:D8:R2.
+When a rendered object exists, is not in `status.inventory`, and the apply verdict allows it, the reconciler MUST apply it and MUST record it in `status.inventory` in the same reconcile, also when every digest is unchanged. With unchanged digests a ModuleInstance MUST apply only such objects and the restorable missing objects, as a restore does, and MUST NOT rewrite an object that is in the inventory. Source: enhancement 0012, the apply guard.
 
 #### Scenario: An adopted object is taken in on unchanged digests
 - **GIVEN** a Ready ModuleInstance whose render names a ConfigMap it let go earlier, and a user who sets the ConfigMap's `opmodel.dev/adopt` annotation to this instance's UUID

@@ -24,7 +24,7 @@ import (
 // The Healthy condition is judged here and only here. Every readiness rule
 // is the library's opm/k8s/health: this file fetches the inventory's objects,
 // hands them to it, and maps its verdicts to a condition and a requeue. It
-// reads no field of a fetched object itself (0012:D3:R6), which
+// reads no field of a fetched object itself (enhancement 0012), which
 // TestHealthJudgesOnlyThroughTheLibrary pins.
 
 const (

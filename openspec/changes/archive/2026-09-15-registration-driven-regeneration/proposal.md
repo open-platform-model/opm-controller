@@ -2,7 +2,7 @@
 
 An active `TransformerRegistration` is a claim the operator has judged, accepted and gated on its provider's readiness — and nothing reads it. The generated platform package is still a pure function of the Platform CR's spec alone, so a provider module that installs successfully and registers successfully still cannot render anything: its catalog is not in the platform the render builds against.
 
-Enhancement 0015 D13 closes that: the generated package is a function of **one tuple** — the Platform CR's spec and the set of accepted-and-active claims — regenerated edge-triggered and level-computed. D17 amends how the operator holds the result: one generated package per D13 identity rather than one per Platform CR generation, because a claim change that leaves the generation unchanged still produces a different package.
+Enhancement 0015 ("The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted") closes that: the generated package is a function of **one tuple** — the Platform CR's spec and the set of accepted-and-active claims — regenerated edge-triggered and level-computed. D17 amends how the operator holds the result: one generated package per D13 identity rather than one per Platform CR generation, because a claim change that leaves the generation unchanged still produces a different package.
 
 This is the change that makes the second transformer path actually reach a render.
 

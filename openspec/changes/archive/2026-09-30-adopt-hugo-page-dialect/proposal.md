@@ -13,9 +13,9 @@ opmodel.dev moves from Astro + Starlight to Hugo + Hextra. The owner ruled that 
 - Nothing else in `docs/site/` changes. The lint (section 4.1 of `orchestration.md`) finds nothing here besides the five `sidebar:` blocks: no `.mdx`, `index.md`, aside, import, component tag, image, link or untagged code fence. A grep finds no "Check against" path under `opmodel.dev/site`, so no planning comment goes stale. Titles, descriptions, types and bodies stay as they are.
 - No rule or doc file in this repo describes the Starlight or Astro page format, so none changes.
 
-This brings the pages in line with the page contract of enhancement 0018: 0018:D7 (the `#Page` shape declares `weight`, not `sidebar`) and 0018:D7:R1 (all five `type` values are already valid). The pages stay in this repo, as 0018:D8 places them.
+This brings the pages in line with the page contract of enhancement 0018: enhancement 0018 ("Every page declares one type, a title and a one-line description") (the `#Page` shape declares `weight`, not `sidebar`) and enhancement 0018 ("Every page declares one type, a title and a one-line description") (all five `type` values are already valid). The pages stay in this repo, as enhancement 0018 ("A page lives in the repository whose change would make it wrong; the site is assembled by section") places them.
 
-**Not in this change:** prose edits and new pages; a `docs/site` lint in this repo's CI (a 0018:D13 follow-up); the `AGENTS.md` references to `docs/STYLE.md`, `docs/TESTING.md` and `docs/TENANCY.md`, none of which exists; rendering the pages (A does that).
+**Not in this change:** prose edits and new pages; a `docs/site` lint in this repo's CI (a enhancement 0018 ("Every writing rule names what checks it, and machine checks run in the owning repository's pull requests") follow-up); the `AGENTS.md` references to `docs/STYLE.md`, `docs/TESTING.md` and `docs/TENANCY.md`, none of which exists; rendering the pages (A does that).
 
 ## Classification
 

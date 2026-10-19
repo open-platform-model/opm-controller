@@ -20,5 +20,5 @@ The operator SHALL provide a `KernelModuleRenderer` that implements the existing
 
 ### Requirement: Render a ModuleRelease through the kernel
 
-**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002 D11/D12).
+**Reason**: Renamed for Release→Instance vocabulary (enhancement 0002, "Renamed Go identifiers carry a doc comment with a `// Was:` old-name breadcrumb" and "The old-name breadcrumb applies to every rename site across code, docs, and specs (extends D11)").
 **Migration**: See the ADDED requirement "Render a ModuleInstance through the kernel".

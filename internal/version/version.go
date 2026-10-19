@@ -21,7 +21,7 @@ limitations under the License.
 // (via extra-files in release-please-config.json), so any build of a tagged
 // commit — container image, local go build, go install — reports the tag's
 // version with no ldflags or Dockerfile cooperation. The PlatformReconciler
-// publishes it to Platform.status.controllerVersion (0006:D24),
+// publishes it to Platform.status.controllerVersion (enhancement 0006),
 // where the CLI's version-skew ceiling reads it.
 package version
 

@@ -12,7 +12,7 @@ The existing `type Current = releasesv1alpha1.Inventory` alias in `internal/inve
 - **THEN** it declares `Current` as an alias of the API's `Inventory` type, not a distinct type
 
 ### Requirement: Inventory entries convert losslessly to and from the library's Entry
-The `internal/inventory` package MUST provide the conversions between `v1alpha1.InventoryEntry` and the library's `inventory.Entry` (`opm/k8s/inventory`), one entry and a slice of entries each way. Group, Kind, Namespace, Name, Version and Component MUST map one to one, so a round trip in either direction returns an equal value. The package MUST declare no identity relation, stale-set function or digest of its own. Those are the library's (0012:D7).
+The `internal/inventory` package MUST provide the conversions between `v1alpha1.InventoryEntry` and the library's `inventory.Entry` (`opm/k8s/inventory`), one entry and a slice of entries each way. Group, Kind, Namespace, Name, Version and Component MUST map one to one, so a round trip in either direction returns an equal value. The package MUST declare no identity relation, stale-set function or digest of its own. Those are the library's (enhancement 0012).
 
 #### Scenario: Round trip from the API entry
 - **WHEN** a `v1alpha1.InventoryEntry` with every field set is converted to `inventory.Entry` and back
@@ -31,7 +31,7 @@ The `internal/inventory` package MUST provide the conversions between `v1alpha1.
 - **THEN** a test parses its non-test files and requires its exported names to be exactly `Current`, `FromEntries`, `FromEntry`, `ToEntries` and `ToEntry`, so any further export fails the tests
 
 ### Requirement: The stale set is the library's component-blind stale set
-The ModuleInstance and ModulePackage reconcilers MUST compute the stale set with `inventory.StaleSet` from `opm/k8s/inventory`, over the previous inventory's entries and the entries of the current render. An entry is stale only when no current entry has the same Group, Kind, Namespace and Name. Version and Component never count, so a component rename or an API version change leaves nothing stale. Stale entries keep the previous inventory's order. Source: 0012:D7:R1.
+The ModuleInstance and ModulePackage reconcilers MUST compute the stale set with `inventory.StaleSet` from `opm/k8s/inventory`, over the previous inventory's entries and the entries of the current render. An entry is stale only when no current entry has the same Group, Kind, Namespace and Name. Version and Component never count, so a component rename or an API version change leaves nothing stale. Stale entries keep the previous inventory's order. Source: enhancement 0012.
 
 #### Scenario: Stale entries detected
 - **WHEN** the previous inventory contains entries A, B, C and the current contains A, C
@@ -51,7 +51,7 @@ The ModuleInstance and ModulePackage reconcilers MUST compute the stale set with
 - **AND** the live object is preserved: server-side apply patches it in place with the new component label, and prune does not delete it
 
 ### Requirement: The inventory digest is the library's canonical digest
-`status.inventory.digest` MUST be `inventory.Digest` from `opm/k8s/inventory` over the entries of the rendered set that the last apply recorded. It equals the digest of `status.inventory.entries`, with one exception: after a ModuleInstance reconcile removed the entry of an expired Job (`drift-detection`, "A missing object is restored"), the entries are fewer and the digest still names the rendered set. A reader MUST compare the stored digest with the digest of a render, and MUST NOT recompute it from the stored entries to decide whether to apply. That digest hashes a versioned canonical encoding of each entry's field values, so it depends neither on the order of the entries nor on the JSON tags of the CRD entry type. Source: 0012:D7:R2/R3.
+`status.inventory.digest` MUST be `inventory.Digest` from `opm/k8s/inventory` over the entries of the rendered set that the last apply recorded. It equals the digest of `status.inventory.entries`, with one exception: after a ModuleInstance reconcile removed the entry of an expired Job (`drift-detection`, "A missing object is restored"), the entries are fewer and the digest still names the rendered set. A reader MUST compare the stored digest with the digest of a render, and MUST NOT recompute it from the stored entries to decide whether to apply. That digest hashes a versioned canonical encoding of each entry's field values, so it depends neither on the order of the entries nor on the JSON tags of the CRD entry type. Source: enhancement 0012.
 
 #### Scenario: Order does not matter
 - **WHEN** the same entries are digested in a different order

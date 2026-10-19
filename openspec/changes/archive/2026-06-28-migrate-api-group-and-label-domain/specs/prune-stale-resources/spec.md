@@ -85,5 +85,5 @@ The controller MUST persist the rendered ModuleInstance's instance UUID on `Modu
 
 ### Requirement: Release UUID persisted on ModuleReleaseStatus
 
-**Reason**: Renamed for Release→Instance vocabulary + label-domain migration (enhancement 0002 D4/D11/D12). The status field `ReleaseUUID → InstanceUUID` and label `module-release.opmodel.dev/uuid → module-instance.opmodel.dev/uuid`.
+**Reason**: Renamed for Release→Instance vocabulary + label-domain migration (enhancement 0002, "The label domain moves to `module-instance.opmodel.dev/*` (resolves OQ2)", "Renamed Go identifiers carry a doc comment with a `// Was:` old-name breadcrumb" and "The old-name breadcrumb applies to every rename site across code, docs, and specs (extends D11)"). The status field `ReleaseUUID → InstanceUUID` and label `module-release.opmodel.dev/uuid → module-instance.opmodel.dev/uuid`.
 **Migration**: See the ADDED requirement "Instance UUID persisted on ModuleInstanceStatus".

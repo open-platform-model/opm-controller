@@ -59,13 +59,13 @@ const backupTraitFQN = "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
 // These specs hold the backup fixture set (test/fixtures/catalogs/backup,
 // test/fixtures/modules/backup_provider, test/fixtures/modules/backup_consumer)
 // to the facts a cluster relies on when it accepts and activates the
-// provider's claim (0015:D3, 0015:D11): the claim backup_provider renders
+// provider's claim (enhancement 0015): the claim backup_provider renders
 // names the backup catalog fixture at its declared build and lists exactly
 // the contracts that catalog implements, and backup_consumer renders through
 // that catalog once it is in the registry and is refused naming the contract
 // while it is not. The literal claim in backup_provider is what the first spec
 // guards: a bump of the backup catalog that skips its re-pin fails here. That
-// literal deviates from 0015:D11:R1 (no field of a rendered registration is
+// literal deviates from enhancement 0015 (no field of a rendered registration is
 // authored) on purpose; the fixture README says why. The last two specs run
 // acceptance on that claim against the catalog as published (core older than
 // the library's ProvidesSince) and against a copy pinned to ProvidesSince, one
@@ -103,7 +103,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		Expect(claim.GetAPIVersion()).To(Equal("opmodel.dev/v1alpha1"))
 		Expect(claim.GetKind()).To(Equal("TransformerRegistration"))
 		Expect(claim.GetName()).To(Equal("default.backup-provider"),
-			"the claim's name is instance-derived (0015:D12)")
+			"the claim's name is instance-derived (enhancement 0015)")
 
 		catalogPath, _, err := unstructured.NestedString(claim.Object, "spec", "catalog")
 		Expect(err).NotTo(HaveOccurred())
@@ -118,11 +118,11 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		Expect(version).To(Equal(backup.Version),
 			"the claim names the backup catalog's declared build: a catalog bump re-pins backup_provider")
 		Expect(ref).To(Equal(map[string]string{"name": "backup-provider", "namespace": "default"}),
-			"providerRef is stamped from the rendering instance (0015:D11)")
+			"providerRef is stamped from the rendering instance (enhancement 0015)")
 
 		// Acceptance resolves the catalog with the claim's own fields, the bare
 		// SemVer opm renders included, and re-derives provides from it
-		// (0015:D11): this is the same call with the same inputs. A library
+		// (enhancement 0015): this is the same call with the same inputs. A library
 		// that resolves only a v-prefixed version fails here, as acceptance
 		// would refuse the claim CatalogUnresolved (opm-controller#210).
 		cat, err := k.AcquireCatalogFromRegistry(ctx, catalogPath, version)
@@ -144,7 +144,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 
 		consumer := fixtures.Must(GinkgoT(), "backup_consumer")
 		_, err := r.RenderModule(ctx, "backup-consumer", "default", consumer.ModulePath, consumer.Tag(), nil)
-		Expect(err).To(HaveOccurred(), "an unprovided load-bearing trait refuses the render (0010:D28)")
+		Expect(err).To(HaveOccurred(), "an unprovided load-bearing trait refuses the render (enhancement 0010)")
 		Expect(err.Error()).To(ContainSubstring(backupTraitFQN), "the refusal names the contract")
 	})
 
@@ -165,7 +165,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		res, err := r.RenderModule(ctx, "backup-consumer", "default", consumer.ModulePath, consumer.Tag(), nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res.RequiredContracts).To(ContainElement(backupTraitFQN),
-			"the consumer's demand names the contract a claim's removal guard counts (0015:D3)")
+			"the consumer's demand names the contract a claim's removal guard counts (enhancement 0015)")
 		Expect(res.Resources).To(HaveLen(1), "an emptyDir renders nothing; the backup policy is the one object")
 
 		obj := res.Resources[0]
@@ -189,7 +189,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 	// field, and the library falls back to a deprecated fold over
 	// #transformers. The fold is removed before GA, after catalog_opm is
 	// republished against a newer core. Acceptance compares that set with the
-	// claim for exact equality (0015:D11), so each path must accept the same
+	// claim for exact equality (enhancement 0015), so each path must accept the same
 	// valid claim. Each spec asserts the facts that pick its path, so a
 	// fixture or library move that breaks a premise fails here naming it. On
 	// a catalog pinned at or after ProvidesSince the fold and the field give
@@ -227,7 +227,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		platformCore := platformCorePin(store)
 		Expect(semver.Compare(platformCore, "v"+schema.ProvidesSince)).To(BeNumerically(">=", 0),
 			"premise: the generated platform's core %s is not older than ProvidesSince %s, "+
-				"so build compatibility accepts the copy (0015:D8)", platformCore, schema.ProvidesSince)
+				"so build compatibility accepts the copy (enhancement 0015)", platformCore, schema.ProvidesSince)
 
 		pin := catalogCorePin(cat)
 		Expect(semver.Compare(pin, "v"+schema.ProvidesSince)).To(Equal(0),

@@ -10,7 +10,7 @@ Five OpenSpec changes, planned together on 2026-09-30, in four repos. Four of th
 - The library turns a collision into a typed render refusal and decodes it in `Contracts()`.
 - The operator and cli name the collision.
 
-The fifth (E) is independent: it makes the operator's build-compatibility verdict deterministic on a platform carrying two majors of one catalog. The fix is an interim safety net and does not add side-by-side majors; enhancement 0026 D9 later makes two majors legitimate through per-resolution builds (0026 OQ17 and 05-risks recommend both fixes independent of 0026). No change claims a 0026 decision, so none carries an `enhancement.yaml`.
+The fifth (E) is independent: it makes the operator's build-compatibility verdict deterministic on a platform carrying two majors of one catalog. The fix is an interim safety net and does not add side-by-side majors; enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") later makes two majors legitimate through per-resolution builds (an open question of enhancement 0026 and its risks recommend both fixes independent of that enhancement). No change claims a decision of enhancement 0026, so none carries an `enhancement.yaml`.
 
 | ID | Repo | Change | Branch | Wave | Starts when | Merges when |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -118,7 +118,7 @@ Every PR follows its repo's `AGENTS.md`: a body of at most 250 words, no bare `@
 
 ## This change (E)
 
-**Release class.** `fix(controller)`, one section and one commit, PATCH: `fix(controller): judge build compatibility against the provider's own major`. No API, CRD, condition reason, generated file, fixture or library change. No `enhancement.yaml`: the change delivers 0026:D7:R2 and one half of 0026:D9:R7, and claims are decision-granular (a decision is claimed only when every requirement is delivered).
+**Release class.** `fix(controller)`, one section and one commit, PATCH: `fix(controller): judge build compatibility against the provider's own major`. No API, CRD, condition reason, generated file, fixture or library change. No `enhancement.yaml`: the change delivers enhancement 0026 ("The shared-path requirement check runs per render against the consumer's pins, and at acceptance against the platform floors") and one half of enhancement 0026 ("A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog"), and claims are decision-granular (a decision is claimed only when every requirement is delivered).
 
 **Worktree setup (opm-operator).**
 
@@ -144,7 +144,7 @@ Every PR follows its repo's `AGENTS.md`: a body of at most 250 words, no bare `@
 
 - **Red first, no red commit.** Specs 1 to 3 loop 200 calls each and count deviations. Record the old code's counts under `gates` as `<focus> on the old index -> fail (expected): <spec>: <count>`. A pass on the old code means the loop is too short, not that the bug is absent. Spec 4 is a single `judge()` and fails on the old code only about 87% of the time; record what was observed.
 - The specs use global Gomega (`GinkgoT().TempDir()`, `Expect`), so they are `It` specs in the existing build-compatibility `Describe`, never a plain `func Test`.
-- **Closure, not enable flag.** A disabled entry's major counts as present: it is in the generated `cue.mod` (library `platformmodule.Roots` roots every registry entry). This reading of 0026:D9:R7's "admitted entry" is a user decision in flight; if the supervisor reports enabled-only instead, stop and report, because `buildIncompatibility` would need the enable flags.
+- **Closure, not enable flag.** A disabled entry's major counts as present: it is in the generated `cue.mod` (library `platformmodule.Roots` roots every registry entry). This reading of the "admitted entry" wording of enhancement 0026 is a user decision in flight; if the supervisor reports enabled-only instead, stop and report, because `buildIncompatibility` would need the enable flags.
 - **Scope is one file plus its test.** `conservativeRefusal`, `inOPMNamespace` and `platformRequirements` stay byte-identical; `docs/site/diagnostics/operator-conditions.md` and `internal/status/conditions.go` stay true as written. Do not touch `hack/fixtures.sh` or `test/fixtures/fixtures.go` (byte-identical copies of the cli's).
 - Commit messages are not Markdown: glue every major to its path (`opmodel.dev/catalogs/opm@v5`), never a bare at-sign followed by a name, and no body line starting with a word followed by an opening parenthesis (the squash body reaches release-please).
 

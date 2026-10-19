@@ -9,7 +9,7 @@
 #                         opm-examples.tar.gz for a controller tag (v*): the install
 #                         manifest is the module's render, published by the module release.
 #                         A controller module release is published with make_latest=false:
-#                         it never takes the repository's "latest" mark (0021:D11:R12).
+#                         it never takes the repository's "latest" mark (enhancement 0021, "The controller's install artifact is a registry module on its own version train").
 set -euo pipefail
 [ $# -eq 2 ] || { echo "::error::usage: $0 assert-draft|assert-published|publish TAG"; exit 2; }
 mode=$1 tag=$2

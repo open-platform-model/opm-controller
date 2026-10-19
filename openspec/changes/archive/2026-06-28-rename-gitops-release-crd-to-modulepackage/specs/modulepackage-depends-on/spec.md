@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-<!-- Renamed from `release-depends-on` (0002 D2/D10); the spec dir is `git mv`'d at archive. -->
+<!-- Renamed from `release-depends-on` (enhancement 0002, "Scope is cross-cutting; the GitOps `Release` CRD is renamed to `ModulePackage` (supersedes D1)" and "Every `release`-named file and directory is renamed on disk (extends D8 to the filesystem)"); the spec dir is `git mv`'d at archive. -->
 
 ### Requirement: DependsOn ordering
 The `ModulePackageReconciler` MUST check `spec.dependsOn` references before proceeding with reconciliation. If any referenced ModulePackage is not `Ready=True`, the reconciler MUST requeue without proceeding.

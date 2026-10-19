@@ -511,7 +511,7 @@ func ReconcileModuleInstance(
 	identities := planIdentities(mi.Status.InstanceUUID, mi.Status.PreviousInstanceUUID, renderedUUID, false)
 
 	// Persist the contracts this instance's components demand (enhancement
-	// 0015:D3/D16), as the kernel's render reported them. Written here
+	// 0015), as the kernel's render reported them. Written here
 	// rather than in the success path because the demand is a fact about
 	// the render, not about the apply: a regenerated platform re-enqueues
 	// every instance, and the render that follows is frequently a no-op for
@@ -535,7 +535,7 @@ func ReconcileModuleInstance(
 	}
 
 	// Phase 4a: judge the rendered claims before anything reaches the cluster
-	// (0015:D16). A provider upgrade whose re-rendered
+	// (enhancement 0015). A provider upgrade whose re-rendered
 	// TransformerRegistration drops a contract instances still demand is
 	// withheld from the apply list, so the accepted claim keeps serving its
 	// dependents. Every other rendered resource applies as usual, and the
@@ -586,7 +586,7 @@ func ReconcileModuleInstance(
 	applyRM, applyClient, impErr := buildApplyClient(ctx, params, &mi)
 	effectiveSA, _ := resolveEffectiveSA(mi.Spec.ServiceAccountName, params.DefaultServiceAccount)
 
-	// Phase 4b: the apply guard (0012:D8:R1). Every object of the apply list
+	// Phase 4b: the apply guard (enhancement 0012). Every object of the apply list
 	// is read once, live and as the identity that applies, and judged by the
 	// library's apply verdict with the instance's identity: the render's, or
 	// the recorded one. Never the earlier identity of an unsettled change,
@@ -634,7 +634,7 @@ func ReconcileModuleInstance(
 	applyList, isNoOp, restoring := planRestore(ctx, isNoOp, missing, guard.takenIn, applyList)
 
 	// A refusal of the verdict refuses the whole reconcile, before the
-	// identity is stored and before any write (0012:D8:R1, R5): nothing is
+	// identity is stored and before any write (enhancement 0012): nothing is
 	// applied and nothing is pruned, so the cluster never holds half of a
 	// render and the retry judges the same state again. Not stalled: the
 	// remedy is on another object and no watch reports it, so the bounded
@@ -703,7 +703,7 @@ func ReconcileModuleInstance(
 
 	// A refused upgrade is reported here, on the instance whose render
 	// produced the claim, because the instance's apply is what was refused
-	// (0015:D16). The claim's own conditions are left alone:
+	// (enhancement 0015). The claim's own conditions are left alone:
 	// acceptance owns them, and a claim whose stored spec was never replaced
 	// has nothing new to report.
 	//
@@ -739,7 +739,7 @@ func ReconcileModuleInstance(
 
 	// Only a restore has expired Jobs: it records the rendered inventory
 	// without them. An object another instance adopted is in no inventory
-	// this instance records (0012:D8:R8); it stays in the cluster.
+	// this instance records (enhancement 0012); it stays in the cluster.
 	newEntries = withoutEntries(withoutEntries(converted.entries, expired), judgedObjects(letGo))
 
 	// Phase 6: Prune stale resources (only if spec.prune=true and apply succeeded).
@@ -1141,7 +1141,7 @@ func forgetExpiredJobs(ctx context.Context, mi *releasesv1alpha1.ModuleInstance,
 
 // forgetLetGo removes from the entries of mi's inventory, on a NoOp, the
 // objects the apply verdict let go: another instance adopted them, so this
-// instance no longer holds them (0012:D8:R8). They stay in the cluster. The
+// instance no longer holds them (enhancement 0012). They stay in the cluster. The
 // digest and the revision stay, as in forgetExpiredJobs.
 func forgetLetGo(ctx context.Context, mi *releasesv1alpha1.ModuleInstance, letGo []*unstructured.Unstructured) {
 	inv := mi.Status.Inventory

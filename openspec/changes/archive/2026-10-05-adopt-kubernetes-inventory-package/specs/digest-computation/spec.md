@@ -1,13 +1,13 @@
 ## REMOVED Requirements
 
 ### Requirement: Render digest computation
-**Reason**: The render digest is no longer the operator's. It is `RenderDigest` in the library's `opm/k8s/inventory`, which leaves out the `app.kubernetes.io/managed-by` value so the cli and the operator digest one render alike (0012:D6). The bytes this requirement pinned to the operator's earlier digest change once, so its golden scenario cannot hold.
+**Reason**: The render digest is no longer the operator's. It is `RenderDigest` in the library's `opm/k8s/inventory`, which leaves out the `app.kubernetes.io/managed-by` value so the cli and the operator digest one render alike (enhancement 0012, "Labels are stamped by the CUE render; the shared render digest ignores the runtime-name label value"). The bytes this requirement pinned to the operator's earlier digest change once, so its golden scenario cannot hold.
 **Migration**: The stored `lastAppliedRenderDigest` and `lastAttemptedRenderDigest` change once (proposal, Migration note). See "The render digest is the library's".
 
 ## ADDED Requirements
 
 ### Requirement: The render digest is the library's
-The render digest the reconcilers record (`lastAttemptedRenderDigest`, `lastAppliedRenderDigest` and history entries) MUST be `RenderDigest` from the library's `opm/k8s/inventory` over the render's one `object.Export`. It MUST be computed from the exported JSON after the rendered CUE values are dropped. The `internal/status` package MUST NOT declare a render digest of its own. A failure to compute it MUST be reported as a render failure (`RenderFailed`) with the step "computing render digest". Source: 0012:D6:R2/R3.
+The render digest the reconcilers record (`lastAttemptedRenderDigest`, `lastAppliedRenderDigest` and history entries) MUST be `RenderDigest` from the library's `opm/k8s/inventory` over the render's one `object.Export`. It MUST be computed from the exported JSON after the rendered CUE values are dropped. The `internal/status` package MUST NOT declare a render digest of its own. A failure to compute it MUST be reported as a render failure (`RenderFailed`) with the step "computing render digest". Source: enhancement 0012 ("Labels are stamped by the CUE render; the shared render digest ignores the runtime-name label value").
 
 #### Scenario: Order-independent
 - **WHEN** the same resources are rendered in a different order

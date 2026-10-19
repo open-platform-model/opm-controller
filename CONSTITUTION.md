@@ -25,12 +25,12 @@ This document is the reader-friendly reference for the principles that shape con
 > CUE module delivery now uses CUE's native OCI module resolution instead of Flux
 > source-controller. See change `cue-native-module-release` for context.
 
-For CUE module acquisition, the controller MUST use CUE's native module system to resolve modules from OCI registries. The controller synthesizes a `#ModuleRelease` CUE package at reconcile time that imports the target module via standard CUE import paths. CUE handles OCI resolution, dependency resolution, and caching.
+For CUE module acquisition, the controller MUST use CUE's native module system to resolve modules from OCI registries. The controller synthesizes a `#ModuleInstance` CUE package at reconcile time that imports the target module via standard CUE import paths. CUE handles OCI resolution, dependency resolution, and caching.
 
 - CUE's module system handles OCI transport and dependency resolution
 - The controller synthesizes release packages, not custom transport
 - OPM owns semantic evaluation and rendering
-- The `internal/source/` package handles Flux source-controller artifact fetching for the `Release` pipeline (a separate acquisition path from CUE-native module resolution)
+- The `internal/source/` package handles Flux source-controller artifact fetching for the `ModulePackage` pipeline (a separate acquisition path from CUE-native module resolution)
 
 ---
 
@@ -39,8 +39,8 @@ For CUE module acquisition, the controller MUST use CUE's native module system t
 The codebase MUST preserve clear package boundaries:
 
 - `internal/controller/` handles reconcile orchestration, watches, and event handling
-- `internal/synthesis/` handles CUE release package generation for module resolution
-- `internal/source/` handles Flux artifact interaction (used by the `Release` pipeline)
+- `internal/moduleacquire/` handles module acquisition from the OCI registry, through the library Kernel
+- `internal/source/` handles Flux artifact interaction (used by the `ModulePackage` pipeline)
 - `internal/render/` handles CUE evaluation and object generation
 - `internal/apply/` handles server-side apply and prune behavior
 - `internal/inventory/` handles ownership and previously-applied resource tracking

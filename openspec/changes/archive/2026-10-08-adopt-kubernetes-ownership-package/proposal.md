@@ -1,6 +1,6 @@
 ## Why
 
-The library holds one ownership rule for Kubernetes objects (`opm/k8s/ownership`, library v1.0.0-beta.7), and the cli judges every apply, prune and delete with it (cli#347, cli#349). The operator still decides with code of its own: its prune compares labels in `internal/apply/prune.go`, it sends no delete precondition, it knows nothing of the adopt annotation, and its apply has no ownership guard at all. So the two managers judge the same object differently, and the operator can prune an object a user is handing to another instance (enhancement 0012:D4, 0012:D8).
+The library holds one ownership rule for Kubernetes objects (`opm/k8s/ownership`, library v1.0.0-beta.7), and the cli judges every apply, prune and delete with it (cli#347, cli#349). The operator still decides with code of its own: its prune compares labels in `internal/apply/prune.go`, it sends no delete precondition, it knows nothing of the adopt annotation, and its apply has no ownership guard at all. So the two managers judge the same object differently, and the operator can prune an object a user is handing to another instance (enhancement 0012, "The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 ## What Changes
 
@@ -13,12 +13,12 @@ Why this half is safe to ship alone: it narrows what the operator deletes, makes
 This change:
 
 - **BREAKING** Every delete of a prune of stale objects and of a deletion cleanup, for a ModuleInstance or a ModulePackage, is judged by `ownership.CanDelete`. The label checks in `internal/apply/prune.go` go.
-- **BREAKING** An object whose `opmodel.dev/adopt` annotation names another instance is never deleted. It is left in the cluster and leaves `status.inventory` (0012:D8:R8).
+- **BREAKING** An object whose `opmodel.dev/adopt` annotation names another instance is never deleted. It is left in the cluster and leaves `status.inventory` (enhancement 0012, "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 - **BREAKING** A Namespace or a CustomResourceDefinition is matched by group and kind, as the library does, not by kind alone.
 - Every delete carries the UID precondition of the object that was read: in a prune, in a deletion cleanup and in the forced recreate of `spec.rollout.forceConflicts`. The forced recreate asks no ownership question (owner decision of 2026-10-08); it deletes exactly the object that was read. A delete the API server refuses on the precondition is a failed delete and is retried.
 - **BREAKING** After an identity change (a changed `spec.module.path`), the status holds the earlier and the new identity until a reconcile has applied and pruned with success (owner decision of 2026-10-08). The stale prune and the deletion cleanup accept an object that carries either. So the stale objects of the earlier identity are deleted, where today they are abandoned, and an instance deleted in that window leaves nothing behind.
 - **BREAKING** A second identity change before the first is settled is refused: `Ready=False`, `Stalled`, reason `IdentityChangeUnsettled`.
-- A ModulePackage records its instance identity (0012:D8:R4, owner decision of 2026-10-03), so its prune and deletion compare identities as a ModuleInstance's do. Today they compare none.
+- A ModulePackage records its instance identity (enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override"), owner decision of 2026-10-03), so its prune and deletion compare identities as a ModuleInstance's do. Today they compare none.
 - A prune or a deletion cleanup that leaves objects behind emits one event with reason `LeftBehind`, with the library's message for each object: `Normal` when only Namespaces or CustomResourceDefinitions were left, `Warning` otherwise. Today a skip is a log line only.
 - The resource manager's client refuses a delete of a collection, and a test lists the allowed delete call sites, so no delete can go out without a precondition unseen.
 

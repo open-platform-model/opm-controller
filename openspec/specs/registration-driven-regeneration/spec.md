@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define what the controller-generated platform package is a function of once claims can be active, what wakes it, how it is identified, and how long a generated package remains readable. Enhancement 0015 D13 states the function and the triggers; D17 states the unit the controller holds.
+Define what the controller-generated platform package is a function of once claims can be active, what wakes it, how it is identified, and how long a generated package remains readable. Enhancement 0015 ("The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted") states the function and the triggers; D17 states the unit the controller holds.
 
 Judging a claim is not part of this capability. Acceptance and activation decide `status.accepted` and `status.active`; this capability consumes the result.
 

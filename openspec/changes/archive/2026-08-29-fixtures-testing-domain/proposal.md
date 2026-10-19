@@ -41,7 +41,7 @@ Reachability is *not* the motivation — these have been anonymously pullable fr
   hello_web 0.1.3, podinfo 0.1.4, redis 0.1.7); a new coordinate is a fresh repository, so the first
   publish always succeeds.
 - **Each fixture becomes a real publishable artifact**: a new `identity/identity.cue` is the single
-  source of path and version, and `module.cue`'s `metadata` derives from it (0010 D38 / 0011 D12).
+  source of path and version, and `module.cue`'s `metadata` derives from it (enhancement 0010 ("A module declares a version, supplied by an identity subpackage") and enhancement 0011 ("Modules carry an identity subpackage and a version; `version set` and `--version` behave identically on both artifact types")).
 - **Publishing moves to `opm module publish`**, installed in CI from a pinned cli release, so every
   publish gate runs over the fixtures — the pipeline the official templates already use.
 - **The grep version contract is retired.** `.tasks/examples.yaml` read the first `version:` literal
@@ -50,7 +50,7 @@ Reachability is *not* the motivation — these have been anonymously pullable fr
   fixture without an identity package is a hard error rather than a silent skip.
 - **The prerelease path stops being a `sed` rewrite.** It stages a copy and calls
   `opm module version set`, which is offline and surgical, so the declared version and the tag agree
-  for the acquire-time identity check (0010 D11). `opm module publish --version` cannot serve here: it
+  for the acquire-time identity check (enhancement 0010, "Identity is verified where artifacts are read"). `opm module publish --version` cannot serve here: it
   *asserts* a declared version rather than filling one, and ours carries a default.
 - **A dispatchable `publish-fixtures.yml` is added**, mirroring the cli's. Neither the release nor the
   e2e workflow can bootstrap a new coordinate, and the registry-backed specs resolve from GHCR, so a

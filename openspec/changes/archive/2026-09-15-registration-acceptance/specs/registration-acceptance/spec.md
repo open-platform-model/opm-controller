@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the claim-to-verdict path: what acceptance fetches, what it compares it against, which claims it refuses, and what each refusal names. A claim carries no author-trusted data (enhancement 0015 D11), so acceptance re-derives every fact it judges rather than reading it off the CR.
+Define the claim-to-verdict path: what acceptance fetches, what it compares it against, which claims it refuses, and what each refusal names. A claim carries no author-trusted data (enhancement 0015, "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"), so acceptance re-derives every fact it judges rather than reading it off the CR.
 
 This capability decides one transition — whether a claim is accepted. Activation, the finalizer, the shrink refusal and regeneration on the accepted set are separate capabilities.
 
@@ -22,7 +22,7 @@ The operator SHALL reconcile every `TransformerRegistration`, recording the outc
 
 ### Requirement: The claimed artifact must be a catalog
 
-Acceptance SHALL acquire the artifact named by `spec.catalog` at `spec.version` and SHALL refuse the claim unless that artifact is a `#Catalog` (enhancement 0015 D10). The refusal SHALL be structural — the kind gate the acquisition applies — rather than a rule this repo maintains. An artifact that cannot be resolved at all SHALL be refused distinguishably from one that resolves and is the wrong kind, since the first is a registry or coordinate problem and the second is an authoring one.
+Acceptance SHALL acquire the artifact named by `spec.catalog` at `spec.version` and SHALL refuse the claim unless that artifact is a `#Catalog` (enhancement 0015, "The claim names a published catalog artifact, and only that; transformers never ship inside module artifacts and never ride the CR"). The refusal SHALL be structural — the kind gate the acquisition applies — rather than a rule this repo maintains. An artifact that cannot be resolved at all SHALL be refused distinguishably from one that resolves and is the wrong kind, since the first is a registry or coordinate problem and the second is an authoring one.
 
 #### Scenario: A module artifact is refused
 
@@ -36,7 +36,7 @@ Acceptance SHALL acquire the artifact named by `spec.catalog` at `spec.version` 
 
 ### Requirement: The claimed provider set is re-derived and compared for exact equality
 
-Acceptance SHALL derive the provider-fulfilled contract set from the acquired catalog and SHALL compare it to `spec.provides` for exact equality, refusing drift in either direction and naming both lists (enhancement 0015 D11). A claim listing a contract the catalog does not implement, and a claim omitting one it does, SHALL both be refused. Acceptance SHALL NOT accept a subset, because partial registration would leave the remainder reported as unfulfilled with no indication that the provider withheld it.
+Acceptance SHALL derive the provider-fulfilled contract set from the acquired catalog and SHALL compare it to `spec.provides` for exact equality, refusing drift in either direction and naming both lists (enhancement 0015, "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A claim listing a contract the catalog does not implement, and a claim omitting one it does, SHALL both be refused. Acceptance SHALL NOT accept a subset, because partial registration would leave the remainder reported as unfulfilled with no indication that the provider withheld it.
 
 #### Scenario: A claim listing an unimplemented contract is refused
 
@@ -55,7 +55,7 @@ Acceptance SHALL derive the provider-fulfilled contract set from the acquired ca
 
 ### Requirement: The claim must come from the instance it names
 
-Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (enhancement 0015 D11's check deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance — a hand-applied stray, which would otherwise point a later health gate at the wrong package.
+Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (the claim-origin check of enhancement 0015, deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance — a hand-applied stray, which would otherwise point a later health gate at the wrong package.
 
 The check SHALL be grounded in the inventory rather than in the claim's labels. D11 suggests the owner labels, but measured, a rendered claim carries an instance *name* label and no namespace-bearing or uuid label, while `providerRef` carries a namespace and a name; a label-only check would therefore admit a stray placed by any instance sharing the provider's name in another namespace — the exact substitution the check exists to stop. The inventory is already this repo's ownership record by constitutional principle.
 
@@ -78,7 +78,7 @@ An instance whose inventory has not settled SHALL leave the claim awaiting a ver
 
 ### Requirement: A second claim for one provider is refused naming the claimant
 
-When more than one claim names the same provider catalog, acceptance SHALL accept at most one and SHALL refuse the others naming the claimant that holds it (enhancement 0015 D12). The refusal SHALL identify the competing claim by name, so an operator can see which object to remove. The decision SHALL be stable: which claim holds acceptance SHALL NOT change from one reconcile to the next while both exist.
+When more than one claim names the same provider catalog, acceptance SHALL accept at most one and SHALL refuse the others naming the claimant that holds it (enhancement 0015, "The rendered CR's name is instance-derived: dot-joined `namespace.name`"). The refusal SHALL identify the competing claim by name, so an operator can see which object to remove. The decision SHALL be stable: which claim holds acceptance SHALL NOT change from one reconcile to the next while both exist.
 
 #### Scenario: The second claim is refused naming the first
 
@@ -92,7 +92,7 @@ When more than one claim names the same provider catalog, acceptance SHALL accep
 
 ### Requirement: A build-incompatible provider is refused at acceptance
 
-Acceptance SHALL compare the catalog's committed requirements against the platform's resolved versions, per shared OPM-namespace path, and SHALL refuse the claim when the catalog requires a version greater than the platform's within the same major, or any version in a different major (enhancement 0015 D8). The refusal SHALL happen here rather than at render, where the failure would name an unrelated module instance. The refusal message SHALL state that the comparison is conservative — a requirement records what the provider was tidied against, not what it uses — and that lowering the requirement is the author's fix.
+Acceptance SHALL compare the catalog's committed requirements against the platform's resolved versions, per shared OPM-namespace path, and SHALL refuse the claim when the catalog requires a version greater than the platform's within the same major, or any version in a different major (enhancement 0015, "A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline"). The refusal SHALL happen here rather than at render, where the failure would name an unrelated module instance. The refusal message SHALL state that the comparison is conservative — a requirement records what the provider was tidied against, not what it uses — and that lowering the requirement is the author's fix.
 
 #### Scenario: A provider requiring a newer build is refused
 

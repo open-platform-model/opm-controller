@@ -2,7 +2,7 @@
 
 ## Context
 
-Enhancement 0006/D24 requires the operator to self-publish its version to `Platform.status.operatorVersion`; the mechanism was left to this slice. The operator has no version identity today: nothing in `Makefile`, `Dockerfile`, or `.github/workflows/release.yml` tells the binary its version. The repo releases via release-please (`release-please-config.json`, `versioning: prerelease`, current manifest `1.0.0-alpha.2`); the `PlatformReconciler` writes status through a Flux `SerialPatcher` on both its success and failure paths.
+Enhancement 0006 ("CRD/operator version skew: CLI-≥-cluster invariant, gate-only (CRD field-presence floor + operator-version ceiling via `Platform.status`); resolves OQ4") requires the operator to self-publish its version to `Platform.status.operatorVersion`; the mechanism was left to this slice. The operator has no version identity today: nothing in `Makefile`, `Dockerfile`, or `.github/workflows/release.yml` tells the binary its version. The repo releases via release-please (`release-please-config.json`, `versioning: prerelease`, current manifest `1.0.0-alpha.2`); the `PlatformReconciler` writes status through a Flux `SerialPatcher` on both its success and failure paths.
 
 ## Goals / Non-Goals
 
@@ -14,7 +14,7 @@ Enhancement 0006/D24 requires the operator to self-publish its version to `Platf
 
 **Non-Goals:**
 
-- No CLI-side ceiling check (C1's scope, 0006/D33).
+- No CLI-side ceiling check (C1's scope, enhancement 0006 ("Slice B2 ships install/uninstall only: the missing-CRD apply gate moves to C1; the CLI-wide field manager constant becomes `opm-cli` in B2")).
 - No ldflags/Dockerfile `ARG` plumbing — explicitly rejected (see decision 1).
 - No stamping from `ModuleInstanceReconciler` — the Platform is the one guaranteed-fresh publish point (D24 chose it because its store is the render input the operator always reconciles).
 

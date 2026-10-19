@@ -3,7 +3,7 @@
 Define the cluster-scoped singleton `Platform` custom resource: its CRD shape
 (spec projecting core `#Platform`, status carrying conditions and
 `observedGeneration`), its singleton enforcement, and its registration in the
-runtime scheme without a reconciler.
+runtime scheme, where a controller reconciles it (capability `platform-reconciler`).
 
 ## Requirements
 
@@ -99,16 +99,16 @@ guarantees at most one `Platform` can exist.
 - **WHEN** `kubectl get platform` runs against a reconciled Platform
 - **THEN** the output includes a `Controller` column showing `.status.controllerVersion`
 
-### Requirement: Platform registered in the scheme without a reconciler
+### Requirement: Platform is registered in the scheme and reconciled
 
-The controller SHALL register `Platform` and `PlatformList` with the runtime scheme
-so the types are serializable and installable. This change SHALL NOT register any
-controller/reconciler for `Platform`; applying a `Platform` resource produces no
-reconciliation and no cluster mutations.
+The controller SHALL register `Platform` and `PlatformList` with the runtime scheme so the types are serializable and installable. The manager SHALL also run a controller for `Platform` that reconciles the singleton named `cluster` (capability `platform-reconciler`), and it SHALL be woken by a change to the `Platform` spec and by a change to the set of accepted and active `TransformerRegistration` claims.
 
-#### Scenario: Types registered, no reconcile
+#### Scenario: Types are registered in the scheme
 
-- **WHEN** the manager starts with this change
-- **THEN** `Platform`/`PlatformList` are registered in the scheme
-- **AND** no controller watches `Platform`
-- **AND** applying a `Platform` named `cluster` triggers no reconcile and changes nothing in the cluster
+- **WHEN** the manager starts
+- **THEN** `Platform` and `PlatformList` are registered in the scheme
+
+#### Scenario: A Platform named cluster is reconciled
+
+- **WHEN** the manager runs and a `Platform` named `cluster` is applied
+- **THEN** the Platform controller reconciles it and records the outcome on `status.conditions`

@@ -1,6 +1,6 @@
 ## Why
 
-Enhancement 0015 D3 gives transformers a second path onto a platform: a cluster-scoped `TransformerRegistration` CR that a provider module ships among its rendered resources, gated by the RBAC the operator already enforces through tenant impersonation. `catalog_opm` published the authoring half in `opm 4.3.0` (D9): a `transformer-registration@v1alpha1` contract and a transformer that renders the CR with D12's instance-derived name and D11's stamped `providerRef`. Nothing in this repo knows that kind exists, so a provider module applying one today fails on an unknown kind.
+Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") gives transformers a second path onto a platform: a cluster-scoped `TransformerRegistration` CR that a provider module ships among its rendered resources, gated by the RBAC the operator already enforces through tenant impersonation. `catalog_opm` published the authoring half in `opm 4.3.0` (D9): a `transformer-registration@v1alpha1` contract and a transformer that renders the CR with D12's instance-derived name and D11's stamped `providerRef`. Nothing in this repo knows that kind exists, so a provider module applying one today fails on an unknown kind.
 
 `open-platform-model/opm-operator` issue 132 records what this side must match, and one thing it cannot delegate: `spec.catalog`, `spec.version` and `spec.provides` are required fields in the CUE contract, but CUE reports a missing required field as an *incomplete value*, not an error. Measured 2026-09-14 at cue v0.17.1: a component omitting `catalog` passes `cue vet ./...` and fails only under `cue export`. A claim can therefore reach the cluster with a field missing, so the CRD must carry its own `required` and validation rather than trusting the catalog.
 
@@ -31,7 +31,7 @@ Should we start with the first? This proposal describes change 1; the other thre
 
 - **API types and controllers**: `api/v1alpha1/` gains one type. The Platform controller gains RBAC markers only; its `Reconcile` is untouched in this change.
 - **Downstream consumers**: none in-cluster yet. No module renders a registration today, because no provider catalog exists; a claim can only arrive by hand until change 2 and a provider module land.
-- **`catalog_opm`**: the group, version and kind literals in `opm/transformers/transformer_registration_transformer.cue` must equal the CRD's exactly. Both sides are `v1alpha1`, which promises nothing (0010 D34), so they can still move together.
+- **`catalog_opm`**: the group, version and kind literals in `opm/transformers/transformer_registration_transformer.cue` must equal the CRD's exactly. Both sides are `v1alpha1`, which promises nothing (enhancement 0010, "Contract API versions follow the Kubernetes ladder, and the promise is keyed to the level"), so they can still move together.
 - **SemVer**: MINOR. One new API type, no change to an existing one.
 - **Complexity (Principle VII)**: the added surface is one CRD and one ClusterRole. The alternative D3 rejected, registering by annotation on a namespaced object, would put a cluster-scoped privilege on a tenant-writable field.
 

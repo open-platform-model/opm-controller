@@ -167,7 +167,7 @@ A PersistentVolumeClaim that the deletion cleanup keeps MUST NOT keep the cleanu
 - **AND** the finalizer is NOT removed and the controller requeues
 
 ### Requirement: Deletion cleanup judges every object with the delete verdict
-With `spec.prune` true, the deletion cleanup of a ModuleInstance or a ModulePackage MUST ask the library's delete verdict for every inventory entry and MUST delete an object only when the verdict says proceed, with a precondition on the UID of the object that was judged. It MUST judge with `status.instanceUUID`, and with `status.previousInstanceUUID` when it is set: an object that carries either identity is the instance's own. Source: 0012:D4:R1, 0012:D8:R8; owner decision of 2026-10-08 (both identities are kept until the prune succeeded).
+With `spec.prune` true, the deletion cleanup of a ModuleInstance or a ModulePackage MUST ask the library's delete verdict for every inventory entry and MUST delete an object only when the verdict says proceed, with a precondition on the UID of the object that was judged. It MUST judge with `status.instanceUUID`, and with `status.previousInstanceUUID` when it is set: an object that carries either identity is the instance's own. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override"); owner decision of 2026-10-08 (both identities are kept until the prune succeeded).
 
 With an empty `status.instanceUUID` the cleanup MUST ask the verdict with no identity. The verdict then compares no UUID label, and it leaves in place every object that carries an adopt annotation, also one that names this instance, because no identity is known to compare it with.
 
@@ -203,7 +203,7 @@ An object the verdict skips MUST be left in the cluster and MUST NOT hold the fi
 - **AND** the next cleanup reads the object that now holds the name and judges it
 
 ### Requirement: Deletion cleanup runs the library's deletion plan
-With `spec.prune` true, the deletion cleanup of a ModuleInstance or a ModulePackage MUST delete an inventory object only when the library's deletion transition (`opm/k8s/lifecycle`) names that delete as the next action. Source: 0012:D4:R1.
+With `spec.prune` true, the deletion cleanup of a ModuleInstance or a ModulePackage MUST delete an inventory object only when the library's deletion transition (`opm/k8s/lifecycle`) names that delete as the next action. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 The cleanup MUST send each delete in the order the plan gives, descending kind weight, and MUST add no ordering of its own. Each delete MUST carry the propagation policy the action names, Foreground, and the action's UID precondition.
 
@@ -232,7 +232,7 @@ A PersistentVolumeClaim that `spec.dataPolicy` keeps MUST NOT be an entry of any
 - **THEN** ConfigMap `team-a/old` is deleted
 
 ### Requirement: The cleanup finalizer follows the library's hold verdict
-The controller MUST remove the cleanup finalizer of a deleting ModuleInstance or ModulePackage only after the library's hold verdict (`lifecycle.MayReleaseHold`) said release for every plan of the cleanup, in this reconcile or in an earlier reconcile of the same deletion (requirement "A wait survives the loss of the ServiceAccount"). Source: 0012:D4:R1.
+The controller MUST remove the cleanup finalizer of a deleting ModuleInstance or ModulePackage only after the library's hold verdict (`lifecycle.MayReleaseHold`) said release for every plan of the cleanup, in this reconcile or in an earlier reconcile of the same deletion (requirement "A wait survives the loss of the ServiceAccount"). Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 The verdict's inputs MUST be: prune from `spec.prune`; force-orphan true only when the annotation `opm.dev/force-delete-orphan` is the literal `"true"`; the deleting identity as available, missing (the ServiceAccount does not exist) or failed (any other impersonation error). The verdict MUST be asked with the plans as they are built, that is without the PersistentVolumeClaims that `spec.dataPolicy` keeps.
 

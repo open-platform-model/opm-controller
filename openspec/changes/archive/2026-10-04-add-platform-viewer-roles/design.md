@@ -1,6 +1,6 @@
 ## Context
 
-`config/rbac/` holds the operator's own roles (manager, leader election, metrics) and four roles it ships for users: the scaffolded `moduleinstance-{admin,editor,viewer}-role` and the deliberately unbound `transformerregistration-admin-role` (0015:D3). `config/rbac/kustomization.yaml` lists them; `config/default` adds the `opm-operator-` name prefix; `task operator:installer` renders `dist/install.yaml`, and the release workflow re-renders it with the digest-pinned image. The operator module (`modules/opm_operator`) reads every role in that kustomization through `hack/operator-module/generate.sh` into `zz_generated_rbac.cue`, and renders the user-facing roles as raw objects from the `adminRoles` list in `components.cue`; its render test pins the exact role set and object count.
+`config/rbac/` holds the operator's own roles (manager, leader election, metrics) and four roles it ships for users: the scaffolded `moduleinstance-{admin,editor,viewer}-role` and the deliberately unbound `transformerregistration-admin-role` (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces"). `config/rbac/kustomization.yaml` lists them; `config/default` adds the `opm-operator-` name prefix; `task operator:installer` renders `dist/install.yaml`, and the release workflow re-renders it with the digest-pinned image. The operator module (`modules/opm_operator`) reads every role in that kustomization through `hack/operator-module/generate.sh` into `zz_generated_rbac.cue`, and renders the user-facing roles as raw objects from the `adminRoles` list in `components.cue`; its render test pins the exact role set and object count.
 
 Platform and TransformerRegistration are cluster-scoped; ModulePackage and ModuleInstance are namespaced.
 
@@ -13,7 +13,7 @@ Platform and TransformerRegistration are cluster-scoped; ModulePackage and Modul
 
 **Non-Goals:**
 
-- Editor or admin roles for Platform or ModulePackage. 0030 asks for reads only; writes arrive with the self-service kinds (0027) or the marketplace.
+- Editor or admin roles for Platform or ModulePackage. the request for viewer roles asks for reads only; writes arrive with the self-service kinds (0027) or the marketplace.
 - Changing `transformerregistration-admin-role`, which grants create/update/patch/delete but no get/list/watch. A platform admin who binds it today also needs read; the new viewer role supplies it, and widening the admin role is a separate decision.
 
 ## Decisions
@@ -48,7 +48,7 @@ The API server serves only `get`, `update` and `patch` on a `status` subresource
 ### Aggregation into the built-in `view` role
 
 **Context**: The task asked to decide, with evidence, whether the roles carry `rbac.authorization.k8s.io/aggregate-to-view`.
-**Explored**: 0030's question register lists OQ6 ("do the operator's viewer roles aggregate into the built-in `view` role?") as `Status: open`, `Blocking: acceptance`; 0030:D11 itself defers it to OQ6. The mechanics: `view` is most often bound per namespace with a RoleBinding, which cannot grant cluster-scoped kinds, so aggregating Platform and TransformerRegistration reads reaches only holders of a cluster-wide `view` binding, while aggregating ModulePackage reads hands every namespace viewer that namespace's packages (source reference, path, ServiceAccount name, inventory, history). The operator's existing roles carry no aggregation label (read from `config/rbac/`).
+**Explored**: the question register of the viewer-roles request lists one question ("do the operator's viewer roles aggregate into the built-in `view` role?") as `Status: open`, `Blocking: acceptance`; the request's own decision defers it to that question. The mechanics: `view` is most often bound per namespace with a RoleBinding, which cannot grant cluster-scoped kinds, so aggregating Platform and TransformerRegistration reads reaches only holders of a cluster-wide `view` binding, while aggregating ModulePackage reads hands every namespace viewer that namespace's packages (source reference, path, ServiceAccount name, inventory, history). The operator's existing roles carry no aggregation label (read from `config/rbac/`).
 **Decision**: Ship without any `aggregate-to-*` label.
 **Rationale**: The question is open and owned by the enhancement, not by this change. The two choices are not symmetric: adding the label later is a pure grant and needs no migration, while removing it later silently withdraws access from users who came to rely on it. Shipping unaggregated is the side that can be revisited.
 

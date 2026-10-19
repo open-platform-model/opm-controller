@@ -5,7 +5,7 @@ One PR, title `docs(site): generate the operator resource reference`. The archiv
 ## 1. Kind doc comments (api/v1alpha1, CRDs, dist)
 
 - [x] 1.1 Open the doc comments of `ModuleInstance`, `ModulePackage`, `Platform` and `TransformerRegistration` with a sentence saying what the kind does, from facts the existing comments state (design.md, "Kind summaries"); move the rest to following paragraphs.
-- [x] 1.2 Drop the kubebuilder scaffold condition list from `ModuleInstanceStatus.Conditions`; write the `RequiredContracts` citation as `0015:D3/D16`.
+- [x] 1.2 Drop the kubebuilder scaffold condition list from `ModuleInstanceStatus.Conditions`; write the `RequiredContracts` citation as enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost").
 - [x] 1.3 `task dev:manifests dev:generate` and `task operator:installer`; the CRD and `dist/install.yaml` diffs are descriptions only.
 - [x] 1.4 `task dev:fmt dev:vet dev:lint dev:test` green, then commit `docs(api): open each kind's doc comment with what it does`.
 

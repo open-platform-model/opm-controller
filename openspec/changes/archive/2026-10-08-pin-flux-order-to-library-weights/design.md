@@ -128,7 +128,7 @@ If `Apply` retries because discovery served the new kind late, a retried attempt
 Both tests fail through one message builder per test, with this content:
 
 ```text
-Flux's staged apply order contradicts the library's kind weights (0012:D5:R1).
+Flux's staged apply order contradicts the library's kind weights (enhancement 0012).
 Flux:    github.com/fluxcd/pkg/ssa <version>
 Library: github.com/open-platform-model/library <version>
 
@@ -148,7 +148,7 @@ What to do:
     fix it in the library and hold the bump.
 ```
 
-The comparison test reads the two versions from the operator's `go.mod` (`golang.org/x/mod/modfile`, a direct requirement already), because a test binary carries no dependency versions in its build info; when `go.mod` cannot be read the line says `version not found, see go.mod`. The observed test names the two module paths and points at `go.mod`. The reference `0012:D5:R1` is in a test message that only maintainers read, never in a string a user sees.
+The comparison test reads the two versions from the operator's `go.mod` (`golang.org/x/mod/modfile`, a direct requirement already), because a test binary carries no dependency versions in its build info; when `go.mod` cannot be read the line says `version not found, see go.mod`. The observed test names the two module paths and points at `go.mod`. The reference enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle") is in a test message that only maintainers read, never in a string a user sees.
 
 ### 7. Where the rule is specified
 

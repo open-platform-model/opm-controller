@@ -1,6 +1,6 @@
 # platform-crd (delta)
 
-`PlatformStatus` gains `operatorVersion` (slice A6 of enhancement 0006, D24).
+`PlatformStatus` gains `operatorVersion` (slice A6 of enhancement 0006 ("CRD/operator version skew: CLI-≥-cluster invariant, gate-only (CRD field-presence floor + operator-version ceiling via `Platform.status`); resolves OQ4")).
 
 ## MODIFIED Requirements
 
@@ -9,7 +9,7 @@
 `PlatformStatus` SHALL carry a `conditions []metav1.Condition` list (list-map
 keyed by `type`), an `observedGeneration` field, and an optional
 `operatorVersion` string field the reconciler stamps with the running
-operator's version (enhancement 0006 D24 — read by the CLI's version-skew
+operator's version (enhancement 0006 ("CRD/operator version skew: CLI-≥-cluster invariant, gate-only (CRD field-presence floor + operator-version ceiling via `Platform.status`); resolves OQ4") — read by the CLI's version-skew
 ceiling), following the existing CRD status conventions in this repo. The
 status SHALL accommodate a `Materialized` condition that a later reconciler
 sets. The CRD SHALL expose an `Operator` printcolumn sourced from

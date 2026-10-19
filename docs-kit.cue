@@ -35,7 +35,6 @@ bundles: "opm-controller": {
 				Platform:                "platform"
 				TransformerRegistration: "transformerregistration"
 			}
-			citations: "link"
 		},
 	]
 }

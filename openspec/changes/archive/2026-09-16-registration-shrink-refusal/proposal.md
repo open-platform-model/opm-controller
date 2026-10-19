@@ -1,6 +1,6 @@
 ## Why
 
-Enhancement 0015 D16: *"Taking a contract away from instances that depend on it is refused regardless of the door it comes through: deletion (D3's finalizer) or update."* `registration-removal-guard` shut the deletion door. The update door is still open.
+Enhancement 0015 ("Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost"): *"Taking a contract away from instances that depend on it is refused regardless of the door it comes through: deletion (D3's finalizer) or update."* `registration-removal-guard` shut the deletion door. The update door is still open.
 
 A provider upgrade whose re-rendered claim drops a contract from `spec.provides` is accepted today, because acceptance checks that `provides` matches what the catalog implements — and after a genuine shrink it does. The platform regenerates without that contract's provider, and every instance demanding it starts failing its render, attributed to the consumer rather than to the upgrade that caused it. That is the misattribution D8 already refused for build-incompatible providers.
 

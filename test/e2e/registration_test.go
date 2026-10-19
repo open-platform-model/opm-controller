@@ -35,7 +35,7 @@ import (
 
 // This spec drives a claim rendered by a real provider module through the
 // deployed controller: the claim reconciler accepts and activates it
-// (0015:D3, 0015:D11), and the platform reconciler builds its catalog into the
+// (enhancement 0015), and the platform reconciler builds its catalog into the
 // generated platform package. It covers both spellings a claim's
 // spec.version can carry. opm renders a bare SemVer; a v-prefixed one reaches
 // a cluster only through a hand edit of a live claim, which the CRD admits.
@@ -345,7 +345,7 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 
 		By("waiting for the claim to be gone")
 		// Nothing renders against the backup catalog, so the removal guard
-		// (0015:D3) has nothing to protect and releases the claim.
+		// (enhancement 0015) has nothing to protect and releases the claim.
 		_, err = kubectl("wait", "--for=delete", "transformerregistration/"+claimName, "--timeout=2m")
 		Expect(err).NotTo(HaveOccurred(), "the claim was not pruned, or its removal guard was not released")
 	})

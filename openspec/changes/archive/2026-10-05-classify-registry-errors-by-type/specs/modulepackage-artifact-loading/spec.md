@@ -1,7 +1,7 @@
 ## REMOVED Requirements
 
 ### Requirement: CUE evaluation with registry resolution
-**Reason**: Its scenario "Package that fails to load without a typed cause retries" turns false: with the library's typed fetch failures (library `v1.0.0-beta.6`, 0021:D8:R12) a package load that fails for a cause other than a registry fetch (a CUE syntax error, a non-concrete package) stalls. OpenSpec refuses a MODIFIED that drops a scenario, so the requirement is replaced under a new name.
+**Reason**: Its scenario "Package that fails to load without a typed cause retries" turns false: with the library's typed fetch failures (library `v1.0.0-beta.6`, enhancement 0021 ("A beta line reaches GA only when its exit criteria hold")) a package load that fails for a cause other than a registry fetch (a CUE syntax error, a non-concrete package) stalls. OpenSpec refuses a MODIFIED that drops a scenario, so the requirement is replaced under a new name.
 **Migration**: "CUE evaluation with typed registry failure classification" below keeps the registry configuration, the successful evaluation, the dependency resolution failure, the evaluation error and the structurally invalid package, and replaces the retry of an untyped load failure with its stall.
 
 ## ADDED Requirements

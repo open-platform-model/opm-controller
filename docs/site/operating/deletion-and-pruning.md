@@ -193,7 +193,7 @@ Check against: cli/internal/kubernetes/delete.go, cli/internal/inventory/stale.g
 
 <!-- The inventory is authoritative because labels can be edited or adopted by other tools, and because a deterministic render lets the controller recompute desired state instead of storing manifests. ownerReferences were not used. Modules render cluster-scoped objects (ClusterRoles, CRDs) that a namespaced ModuleInstance cannot legally own. And an ownerReference garbage-collects its dependent whatever `spec.prune` says; Kubernetes has no reference that does not collect. Rewrite without decision numbers.
 
-Check against: opm-controller/adr/002-authoritative-inventory-model.md, enhancements/0012/01-problem.md -->
+Check against: opm-controller/adr/002-authoritative-inventory-model.md, enhancement 0012 (the Kubernetes library tier) -->
 
 ### Why the controller keeps resources by default
 

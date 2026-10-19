@@ -235,7 +235,7 @@ func deletesClusterObjects(selection *types.Selection, writer *types.Interface, 
 // The list of places that may delete a cluster object is closed: the deletion
 // plan runner, which deletes only what the library's plan names, and the
 // resource manager's delete guard. A delete anywhere else would go out
-// without a verdict or a precondition (0012:D4:R1).
+// without a verdict or a precondition (enhancement 0012).
 func TestDeleteCallSitesAreClosed(t *testing.T) {
 	// The number of deletes each file may hold: the runner's one DELETE, and
 	// the guard's two (with and without a UID precondition). A further
@@ -287,7 +287,7 @@ func TestDeleteCallMatcher(t *testing.T) {
 }
 
 // The list of places that may create or change a cluster object is closed
-// (0012:D4:R2). Objects of an instance are written by one call, the staged
+// (enhancement 0012). Objects of an instance are written by one call, the staged
 // apply, which the reconcilers reach only after the library's apply verdict.
 // Every other listed call writes no instance object: a dry run, or a status
 // or finalizer patch of one of the controller's own kinds.
@@ -357,7 +357,7 @@ func TestWriteCallMatcher(t *testing.T) {
 
 // The controller never names the adopt annotation: it is read only inside the
 // library's verdicts, so no code of the controller can set, change or remove
-// it (0012:D8:R6).
+// it (enhancement 0012).
 func TestNoFileNamesTheAdoptAnnotation(t *testing.T) {
 	root, err := filepath.Abs(moduleRoot)
 	if err != nil {

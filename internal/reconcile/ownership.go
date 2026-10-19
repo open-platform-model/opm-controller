@@ -48,7 +48,7 @@ type guardedApply struct {
 	adopted int
 }
 
-// guardApply runs the apply guard over applyList (0012:D8:R1): one live read
+// guardApply runs the apply guard over applyList (enhancement 0012): one live read
 // per object through reader, the reader of the identity that applies, and the
 // library's apply verdict with identity. identity is the instance's own (the
 // render's, or the recorded one): never the earlier identity of an unsettled

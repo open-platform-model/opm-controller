@@ -105,7 +105,7 @@ The release workflow SHALL declare a workflow-level concurrency group keyed by t
 - **THEN** every upload step and the publish job fail with a message naming the count, and neither release is published
 
 ### Requirement: Release assets upload only to a draft release
-Every step that uploads an asset to the GitHub Release (`install.yaml` of a module release, `opm-examples.tar.gz`, the example manifests) SHALL first confirm that the single release for the tag is a draft and SHALL fail without uploading when it is published. Replacing an existing asset (`--clobber`) SHALL be used only on a draft. Every GitHub CLI call in the release workflow SHALL name the repository explicitly. Source: 0021:D10:R8.
+Every step that uploads an asset to the GitHub Release (`install.yaml` of a module release, `opm-examples.tar.gz`, the example manifests) SHALL first confirm that the single release for the tag is a draft and SHALL fail without uploading when it is published. Replacing an existing asset (`--clobber`) SHALL be used only on a draft. Every GitHub CLI call in the release workflow SHALL name the repository explicitly. Source: enhancement 0021 ("Release tags are immutable").
 
 #### Scenario: Upload to the draft
 - **WHEN** the example publishing job uploads `opm-examples.tar.gz` for a release that is still a draft
@@ -143,7 +143,7 @@ The release workflow SHALL contain a publish job (`publish-release`) that depend
 - **THEN** its GitHub Release carries `opm-examples.tar.gz` and no `install.yaml`
 
 ### Requirement: Release tags are never moved, deleted or re-created
-No workflow, task or script in this repository SHALL move, delete or re-create a git tag or delete a GitHub Release. A failed run before publish SHALL be recovered by re-running its failed jobs; a wrong published release SHALL be fixed by releasing the next version. Source: 0021:D10:R1.
+No workflow, task or script in this repository SHALL move, delete or re-create a git tag or delete a GitHub Release. A failed run before publish SHALL be recovered by re-running its failed jobs; a wrong published release SHALL be fixed by releasing the next version. Source: enhancement 0021 ("Release tags are immutable").
 
 #### Scenario: Workflows carry no tag mutation
 - **WHEN** `.github/workflows/`, `.github/scripts/`, `Taskfile.yml`, `.tasks/` and `hack/` are searched for `git tag`, a `git push` of a tag ref (`refs/tags/`, `--tags`, `--mirror`, a delete or force refspec), `gh release delete`, `gh release edit --tag`/`--target`, or a write to the git refs API

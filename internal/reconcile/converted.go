@@ -93,14 +93,14 @@ func renderDigestFailure(err error) *conversionError {
 	return &conversionError{reason: status.RenderFailedReason, step: "computing render digest", err: err}
 }
 
-// staleEntries is the library's component-blind stale set (0012:D7) over
+// staleEntries is the library's component-blind stale set (enhancement 0012) over
 // the API entries: every previous entry no current entry names the same
 // object as, in previous order, never nil.
 func staleEntries(previous, current []releasesv1alpha1.InventoryEntry) []releasesv1alpha1.InventoryEntry {
 	return inventory.FromEntries(k8sinventory.StaleSet(inventory.ToEntries(previous), inventory.ToEntries(current)))
 }
 
-// inventoryDigestOf is the library's inventory digest (0012:D7) of the API
+// inventoryDigestOf is the library's inventory digest (enhancement 0012) of the API
 // entries: a canonical field-by-field encoding, independent of entry order
 // and of the CRD type's JSON tags.
 func inventoryDigestOf(entries []releasesv1alpha1.InventoryEntry) string {

@@ -10,7 +10,7 @@ Line numbers are at `eeba6f5` (opm-operator#250, after #249, #251 and #252); re-
 
 **Apply.** `apply.Apply` (`internal/apply/apply.go:64-77`) runs `rm.ApplyAllStaged(ctx, resources, opts)` under `applyWithDiscoveryRetry`, with one whole-set dry-run per Flux stage. This change leaves it exactly as it is: the apply order does not change.
 
-The other half of the adoption, applying in the library's kind-class order (0012:D4:R3, 0012:D5:R1), follows in a later change. Library `v1.0.0-beta.6`'s weight table disagrees with Flux v0.77.0's on several kinds (the library's `opm/k8s/object/flux_order_test.go` lists them): it applies webhook configurations before custom resources, which breaks a first install of a module whose webhook has `failurePolicy: Fail` (cert-manager), and it places LimitRange, ResourceQuota, PriorityClass, RuntimeClass, the other class kinds, StorageClass, PodDisruptionBudget and CronJob differently. A library change first aligns its table with Flux wherever Flux defines an order. The operator then keeps `ApplyAllStaged` and pins the rule "an engine's staging may refine the library order and never contradict it" with a test that Flux's staged order never contradicts the library's.
+The other half of the adoption, applying in the library's kind-class order (enhancement 0012, "The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle"), follows in a later change. Library `v1.0.0-beta.6`'s weight table disagrees with Flux v0.77.0's on several kinds (the library's `opm/k8s/object/flux_order_test.go` lists them): it applies webhook configurations before custom resources, which breaks a first install of a module whose webhook has `failurePolicy: Fail` (cert-manager), and it places LimitRange, ResourceQuota, PriorityClass, RuntimeClass, the other class kinds, StorageClass, PodDisruptionBudget and CronJob differently. A library change first aligns its table with Flux wherever Flux defines an order. The operator then keeps `ApplyAllStaged` and pins the rule "an engine's staging may refine the library order and never contradict it" with a test that Flux's staged order never contradicts the library's.
 
 Reconcile phase impact: Render (types only), Status (digest computed from the one export, bytes unchanged), Prune (label import only). Source, Apply and Inventory are untouched.
 
@@ -18,12 +18,12 @@ Reconcile phase impact: Render (types only), Status (digest computed from the on
 
 **Goals:**
 
-- No copy of the library's object or label decisions in the operator, and a lint rule that refuses importing one back (0012:D3:R6).
+- No copy of the library's object or label decisions in the operator, and a lint rule that refuses importing one back (enhancement 0012, "The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module").
 - No change to the apply order, the render digest, the inventory, any condition, reason or message.
 
 **Non-Goals:**
 
-- Apply order (0012:D4:R3): follows after the library weight change described in Context.
+- Apply order (enhancement 0012, "The library owns the whole deletion sequence but only the per-object verdict and the order for apply"): follows after the library weight change described in Context.
 - Delete and prune order (moves with the deletion protocol).
 - `opm/k8s/inventory`, `opm/k8s/ownership`, `opm/k8s/health` adoption.
 
@@ -39,7 +39,7 @@ One intended change: a value that exports to JSON `null` used to become an `Unst
 ### D2. Lint refuses the old path
 
 **Decision**: `.golangci.yml` enables `depguard` with one rule, `no-local-kubernetes-tier-copy`, `list-mode: lax`, over all files, denying `github.com/open-platform-model/opm-operator/pkg/core` with a description naming `opm/k8s/object` and `opm/k8s/labels`.
-**Rationale**: 0012:D3:R6 asks the frontend's own checks to refuse a reintroduced copy. The package path is what a copy would be reintroduced under; a copy under a new path is left to review.
+**Rationale**: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module") asks the frontend's own checks to refuse a reintroduced copy. The package path is what a copy would be reintroduced under; a copy under a new path is left to review.
 
 ## Risks / Trade-offs
 

@@ -19,7 +19,7 @@ import (
 
 // The tests in this file guard one rule: Flux's staged apply, which is the
 // controller's only apply order, may refine the order the library's kind
-// weights give and never contradicts it (0012:D5:R1). Flux's order is read
+// weights give and never contradicts it (enhancement 0012). Flux's order is read
 // by calling the pinned Flux module (its stage rules, its sorter and its
 // ReconcileOrder variable), so a Flux bump that moves a kind fails here.
 // This file holds no copy of Flux's kind list.
@@ -249,7 +249,7 @@ func moduleVersion(path string) string {
 // modules and what the maintainer does next.
 func contradictionMessage(pairs []orderPair) string {
 	var b strings.Builder
-	b.WriteString("Flux's staged apply order contradicts the library's kind weights (0012:D5:R1).\n")
+	b.WriteString("Flux's staged apply order contradicts the library's kind weights (enhancement 0012).\n")
 	fmt.Fprintf(&b, "Flux:    %s %s\n", fluxModule, moduleVersion(fluxModule))
 	fmt.Fprintf(&b, "Library: %s %s\n\n", libraryModule, moduleVersion(libraryModule))
 	b.WriteString("Flux applies the first kind before the second; the library weighs the first above the second:\n")

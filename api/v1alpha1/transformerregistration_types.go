@@ -22,7 +22,7 @@ import (
 )
 
 // TransformerRegistrationSpec defines a provider module's claim that its
-// catalog implements platform contracts (0015:D3).
+// catalog implements platform contracts (enhancement 0015).
 //
 // Every field is required at the CRD level, deliberately duplicating the
 // catalog-side contract rather than trusting it. CUE reports a missing
@@ -35,7 +35,7 @@ type TransformerRegistrationSpec struct {
 	// (e.g. "opmodel.dev/catalogs/k8up@v1"). It names a catalog, never a
 	// module: a catalog is what carries transformers, so a claim naming a
 	// module names nothing that could implement a contract. Acceptance
-	// refuses a non-catalog artifact structurally (0015:D10).
+	// refuses a non-catalog artifact structurally (enhancement 0015).
 	// +kubebuilder:validation:MinLength=1
 	// +required
 	Catalog string `json:"catalog"`
@@ -50,16 +50,18 @@ type TransformerRegistrationSpec struct {
 	// Provides lists every provider-fulfilled contract FQN the named catalog
 	// claims to implement.
 	//
-	// Required but MAY be empty. A provider catalog implementing no
-	// provider-fulfilled contract is a claim acceptance refuses on its merits,
-	// naming the catalog it re-derived from, not a malformed object. The CRD
-	// is the wrong place to encode a rule the reconciler states better.
+	// Required but MAY be empty: the CRD sets no minimum on its length.
+	// Acceptance compares the list with the contracts re-derived from the
+	// catalog, for exact equality. An empty list therefore passes for a
+	// catalog that implements no provider-fulfilled contract, and is refused
+	// with reason ProvidesMismatch, naming both lists, for any other catalog.
+	// The CRD is the wrong place to encode a rule the reconciler states better.
 	// +required
 	Provides []string `json:"provides"`
 
 	// ProviderRef identifies the ModuleInstance that rendered this claim. It
 	// is stamped from the rendering instance and never authored, so a module
-	// cannot claim to be another provider (0015:D11).
+	// cannot claim to be another provider (enhancement 0015).
 	// +required
 	ProviderRef ProviderReference `json:"providerRef"`
 }
@@ -67,7 +69,7 @@ type TransformerRegistrationSpec struct {
 // TransformerRegistrationStatus defines the observed state of a
 // TransformerRegistration.
 //
-// Acceptance and activation are separate states (0015:D3): a
+// Acceptance and activation are separate states (enhancement 0015): a
 // stored claim is not yet judged, accepted but inactive, or active. The
 // acceptance reconciler writes conditions, accepted and observedGeneration;
 // active stays false until an accepted claim's provider is serving.
@@ -115,10 +117,10 @@ type TransformerRegistrationStatus struct {
 //
 // It is the cluster-scoped claim a provider module ships among its rendered
 // resources, the second path by which transformers reach a platform
-// (0015:D3); the first is a subscription in Platform.spec.registry.
+// (enhancement 0015); the first is a subscription in Platform.spec.registry.
 //
 // metadata.name is the dot-joined "<namespace>.<name>" of the claiming
-// instance (0015:D12). A namespace cannot contain a dot, so the
+// instance (enhancement 0015). A namespace cannot contain a dot, so the
 // join is collision-free and two instances of one provider module produce two
 // distinct claims, the second refused at acceptance naming the claimant,
 // rather than contending for one object.

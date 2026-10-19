@@ -14,8 +14,8 @@ updates:
       # docs-kit's publish.yml moves only with .opm-docs-version, after the site bumps (docs-kit C5, C12).
       - dependency-name: "open-platform-model/docs-kit*"
       # The cascade workflows, actions and resolver move together, one .github SHA per repo,
-      # only through a ci(deps) pin PR (Phase 3 wiring contract 2.4; .github README
-      # "Pinning and bumps"); a Dependabot bump would move one reference alone.
+      # only through a ci(deps) pin PR (Phase 3 wiring contract 2.4; .github
+      # references/cascade-pinning.md); a Dependabot bump would move one reference alone.
       - dependency-name: "open-platform-model/.github*"
   - package-ecosystem: "gomod"
     directory: "/"
@@ -26,7 +26,7 @@ updates:
       # titled. Retitle it fix(deps) only for a security fix the image must ship
       # (workspace RELEASING.md, "Dependabot PRs"); until the owner applies the
       # PR_TITLE squash setting, merge that retitled PR with
-      # gh pr merge --squash --subject "<PR title> (#N)" --body '' (root AGENTS.md,
+      # gh pr merge --squash --subject "<PR title> (#N)" --body '' (references/release-units.md,
       # "Beta line"), or the squash keeps the build(deps) commit subject. deps would
       # release: it is a visible section in release-please-config.json.
       prefix: "build"

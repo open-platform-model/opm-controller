@@ -16,8 +16,8 @@ import (
 // TestPackage_ExportsExactlyItsSurface pins this package to the conversion
 // boundary: the Current alias and the four conversions between the API entry
 // and the library's inventory.Entry. An identity relation, a stale set or a
-// digest belongs to the library's opm/k8s/inventory (0012:D7), so any other
-// export, under any name, fails here (0012:D3:R6). Methods count as
+// digest belongs to the library's opm/k8s/inventory (enhancement 0012), so any other
+// export, under any name, fails here (enhancement 0012). Methods count as
 // Type.Method.
 func TestPackage_ExportsExactlyItsSurface(t *testing.T) {
 	files, err := os.ReadDir(".")

@@ -9,7 +9,7 @@ import (
 )
 
 // The skew policy the Platform reconciler records beside the generated module
-// (0019:D7/D18): Refuse maps to the kernel's SkewRefuse, everything else
+// (enhancement 0019): Refuse maps to the kernel's SkewRefuse, everything else
 // (Warn, unset) to the SkewWarn default. The CRD enum keeps other values out.
 func TestResolveSkewPolicy(t *testing.T) {
 	ptr := func(s string) *string { return &s }

@@ -1,0 +1,26 @@
+name: Cite lint
+
+# The comment rule of the enhancements store, run by the reusable workflow of
+# open-platform-model/.github. The tool commit is that workflow's own pin; the
+# wiring check (.tasks/cascade/wiring-check.yaml, kind cite-lint) holds this
+# call to the plain shape. `task cite-lint` runs the same tool with the same
+# excludes; change both lists together.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+jobs:
+  cite-lint:
+    name: Cite lint
+    permissions:
+      contents: read
+    uses: open-platform-model/.github/.github/workflows/cite-lint.yml@a2a13733f34f952d81e6f08b84c743cc2efb86e9 # .github main
+    with:
+      paths: .
+      exclude: |
+        test/fixtures/modules/
+        test/fixtures/catalogs/

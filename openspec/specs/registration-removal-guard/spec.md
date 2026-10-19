@@ -1,6 +1,6 @@
 ## Purpose
 
-Define what stops a provider abandoning its dependents: when a `TransformerRegistration` may not be deleted, when a re-rendered one may not be applied, and what each refusal tells the operator. Enhancement 0015 D3 and D16 treat deletion and shrinking as the same act through two doors; this capability governs both.
+Define what stops a provider abandoning its dependents: when a `TransformerRegistration` may not be deleted, when a re-rendered one may not be applied, and what each refusal tells the operator. Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost") treat deletion and shrinking as the same act through two doors; this capability governs both.
 
 **The shrinking door is bounded to writes the controller makes.** The refusal site is the controller's own apply path: a claim is rendered output, so the controller is its writer and can decline to write, which takes effect while the previously accepted claim is still the stored one. Neither of the alternatives was needed — a validating webhook would change the install surface this controller ships, and D16's hold-last-good fallback would give a claim two answers to what it provides. The cost is that a writer who is not the controller is outside the guarantee: editing a claim directly requires platform-admin RBAC, which ships unbound. A webhook would stack on top of this without undoing it, and is its own decision.
 

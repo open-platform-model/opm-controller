@@ -14,7 +14,7 @@ Reconcile phase impact: Render only. Source, Apply, Prune and Inventory are unto
 
 **Goals:**
 
-- No operator code computes contract demand; both renderers report the kernel's list (0013:D24).
+- No operator code computes contract demand; both renderers report the kernel's list (enhancement 0013, "The kernel reports every contract a render required, synthesised components included").
 - No user-visible change: the demand pins pass unchanged, and every failure reads as before.
 
 **Non-Goals:**

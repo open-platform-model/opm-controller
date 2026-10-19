@@ -27,7 +27,7 @@ import (
 // subscriptions. The controller generates a platform CUE module from it on its
 // own disk (a cue.mod pinning every subscribed catalog and a platform.cue
 // carrying each catalog by import) and builds that module; the CR stays the
-// API and the module is derived state (0019:D6).
+// API and the module is derived state (enhancement 0019).
 type PlatformSpec struct {
 	// Type is the informational discriminator for the platform (core
 	// #Platform.type). It is required and shown in the Type column of
@@ -40,13 +40,13 @@ type PlatformSpec struct {
 	// Registry is the set of catalog subscriptions keyed by major-suffixed
 	// catalog CUE module path (e.g. "opmodel.dev/catalogs/opm@v2"), projecting
 	// core #Platform.#registry. The key's major must agree with the major of
-	// the subscribed version (0010:D14).
+	// the subscribed version (enhancement 0010).
 	// +optional
 	Registry map[string]Subscription `json:"registry,omitempty"`
 
 	// SkewPolicy is the controller's response to catalog version skew: a
 	// module whose cue.mod requires a newer build of an OPM-namespace path
-	// (core or a catalog) than the platform pins (0019:D7/D18).
+	// (core or a catalog) than the platform pins (enhancement 0019).
 	// "Warn" (the default when unset) renders against the platform's build
 	// and reports the skew as a RenderWarning event on the workload; "Refuse"
 	// refuses the render before evaluation and the workload reports
@@ -82,12 +82,12 @@ type Subscription struct {
 
 	// Version names exactly one published catalog build as a bare SemVer
 	// string (e.g. "2.0.0-alpha.3") — the platform module IS the resolution
-	// (0010:D14); there is no range or allow/deny vocabulary. The
+	// (enhancement 0010); there is no range or allow/deny vocabulary. The
 	// version's major must agree with the subscription key's `@vN` suffix.
 	// The controller uses it twice: as the generated cue.mod pin and as the
 	// entry's stamped expected version, which unifies with the imported
 	// catalog's own version so wrong bytes fail the build naming the entry
-	// (0019:D13).
+	// (enhancement 0019).
 	// CRD-required is safe against the stored pre-reshape singleton: API
 	// server validation ratcheting keeps status-subresource patches working
 	// against a stored object lacking the field (measured in
@@ -99,7 +99,7 @@ type Subscription struct {
 
 // PlatformStatus defines the observed state of Platform. RegistryEntrySource
 // names how a catalog reached the platform's resolved registry: the two paths
-// transformers take to a platform (0015:D3).
+// transformers take to a platform (enhancement 0015).
 // +kubebuilder:validation:Enum=Subscription;Registration
 type RegistryEntrySource string
 
@@ -152,7 +152,7 @@ type PlatformStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
 	// packageIdentity identifies the generated platform package by the two
-	// inputs it is a function of (0015:D13): this CR's
+	// inputs it is a function of (enhancement 0015): this CR's
 	// generation and the sorted set of active claims' catalog coordinates.
 	// The same inputs always produce the same value and any change to either
 	// produces a different one.
@@ -220,7 +220,7 @@ type PlatformStatus struct {
 
 	// controllerVersion is the version of the controller that last patched this
 	// Platform's status, stamped on every reconcile regardless of outcome
-	// (0006:D24). The CLI reads it as the version-skew ceiling;
+	// (enhancement 0006). The CLI reads it as the version-skew ceiling;
 	// absence means no controller has reconciled the Platform (solo cluster).
 	// +optional
 	ControllerVersion string `json:"controllerVersion,omitempty"`

@@ -146,7 +146,7 @@ func (i identityState) unread() status.Unread {
 
 // runDeletionCleanup is the deletion cleanup of a ModuleInstance and of a
 // ModulePackage. The cleanup finalizer comes off only on a release verdict of
-// the library's hold verdict (lifecycle.MayReleaseHold, 0012:D4:R1), asked
+// the library's hold verdict (lifecycle.MayReleaseHold, enhancement 0012), asked
 // for every plan of the cleanup, with the plans as built: without the
 // PersistentVolumeClaims spec.dataPolicy keeps.
 //

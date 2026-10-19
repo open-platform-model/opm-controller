@@ -83,7 +83,7 @@ metadata: {
 
 	// Every acquired catalog carries its committed module file, which the
 	// build-compatibility check reads. This one requires nothing, so it is
-	// compatible with any platform; the 0015:D8 specs supply their own.
+	// compatible with any platform; the build-compatibility specs (enhancement 0015) supply their own.
 	cat.Source = catalogSourceRequiring(nil)
 	return cat
 }
@@ -105,7 +105,7 @@ func catalogSourceRequiring(deps map[string]string) *module.Source {
 // the specs below reach the checks rather than parking on PlatformNotReady.
 // The platform resolves core, which the default provider catalog does not
 // require, so nothing here refuses on build compatibility, and its enabled
-// subscriptions provide no contract, so nothing here refuses on 0015:D2 either.
+// subscriptions provide no contract, so nothing here refuses on the one-provider rule (enhancement 0015) either.
 func acceptanceReconciler(catalogs CatalogAcquirer) *TransformerRegistrationReconciler {
 	store := platformstore.NewStore()
 	store.SetGenerated(platformstore.Generated{

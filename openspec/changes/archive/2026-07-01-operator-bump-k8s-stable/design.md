@@ -1,11 +1,11 @@
 ## Context
 
-`opm-operator` currently pins `k8s.io/*` at v0.35.2 and `sigs.k8s.io/controller-runtime` at v0.23.3. The CLI (a sibling repo in the same workspace) is already on `k8s.io/*` v0.36.0. Enhancement [0006](../../../../enhancements/0006/) recorded this skew as "Problem 3" (`research/findings.md`) and scoped closing it as slice A1 — independent prep work with no dependents, motivated by keeping the two repos on one k8s line as their dependency surface grows, rather than by any current build failure (D13/D31 mean the CLI doesn't import `opm-operator` or `controller-runtime` at all today, so there is no live MVS conflict this fixes right now).
+`opm-operator` currently pins `k8s.io/*` at v0.35.2 and `sigs.k8s.io/controller-runtime` at v0.23.3. The CLI (a sibling repo in the same workspace) is already on `k8s.io/*` v0.36.0. Enhancement 0006 recorded this skew as "Problem 3" (`research/findings.md`) and scoped closing it as slice A1 — independent prep work with no dependents, motivated by keeping the two repos on one k8s line as their dependency surface grows, rather than by any current build failure (D13/D31 mean the CLI doesn't import `opm-operator` or `controller-runtime` at all today, so there is no live MVS conflict this fixes right now).
 
 Investigated during the `openspec-explore` session that preceded this change:
 
 - The module proxy confirms `sigs.k8s.io/controller-runtime@v0.24.1` pins `k8s.io/* v0.36.0` directly in its own `go.mod` — an exact match to the CLI's current line, not a guess.
-- `controller-runtime@v0.24.1` requires `go 1.26.0`. `opm-operator`'s current `go` directive is `1.26.2`, already above that floor — no directive bump needed here, correcting the plan's original wording in `enhancements/0006/planned-changes.md`, which called for "aligning the go directive" as part of this slice.
+- `controller-runtime@v0.24.1` requires `go 1.26.0`. `opm-operator`'s current `go` directive is `1.26.2`, already above that floor — no directive bump needed here, correcting the plan's original wording in the planned changes of enhancement 0006, which called for "aligning the go directive" as part of this slice.
 - `controller-runtime` v0.24.0's release notes list one breaking change beyond the k8s.io bump itself: removal of the deprecated webhook custom-path builder function. `opm-operator` ships no webhooks (`grep` found no `webhook.CustomDefaulter`, no `ctrl.NewWebhookManagedBy`, no `*webhook*` files) — this removal does not touch this repo.
 - v0.24.1 itself is a bug-fix release over v0.24.0 (one cherry-picked SSA typed-error regression fix) — it is the correct target, not v0.24.0.
 - Neither the Kubernetes 1.36 release notes nor the client-go v0.36.0 release notes gave a complete, groppable list of client-library-level deprecations/removals. That residual uncertainty is not resolvable by more research; it's resolved empirically by the validation gates below.
@@ -39,7 +39,7 @@ opm-operator/internal/apply imports
 - No `go` directive change (not needed — see Context).
 - No webhook work of any kind (none exists; none is being added).
 - No change to `opm-operator`'s own API types, CRDs, or reconcile logic.
-- Not attempting to also bump the CLI or `library` — this slice is `opm-operator`-only, per `enhancements/0006/planned-changes.md` A1.
+- Not attempting to also bump the CLI or `library` — this slice is `opm-operator`-only, per the planned changes of enhancement 0006 A1.
 - Not a vehicle for any *other* pending dependency bump beyond the k8s.io/controller-runtime/Flux set this change is now coupled to — still scoped per Principle VIII (Small Batch Sizes); the widening documented here is a forced coupling discovered during implementation, not an invitation to bundle unrelated upgrades.
 
 ## Decisions
@@ -56,7 +56,7 @@ opm-operator/internal/apply imports
 
 **Decision:** Leave `go 1.26.2` unchanged in `go.mod`.
 
-**Alternatives considered:** Bump to match some other line, per the original A1 wording in `enhancements/0006/planned-changes.md` ("align the go directive"). Rejected: `opm-operator`'s directive (1.26.2) already exceeds both `controller-runtime v0.24.1`'s requirement (1.26.0) and the CLI's own directive (1.26.0) — there is nothing to align, and bumping further would be an unrelated, unmotivated change.
+**Alternatives considered:** Bump to match some other line, per the original A1 wording in the planned changes of enhancement 0006 ("align the go directive"). Rejected: `opm-operator`'s directive (1.26.2) already exceeds both `controller-runtime v0.24.1`'s requirement (1.26.0) and the CLI's own directive (1.26.0) — there is nothing to align, and bumping further would be an unrelated, unmotivated change.
 
 **Rationale:** Confirmed directly against the module's `go.mod` via the proxy rather than assumed; avoids unnecessary churn (Principle VII).
 
@@ -137,7 +137,7 @@ Four files touched, all mechanical, behavior-preserving (verified against `schem
 - **[Risk] Indirect dependency churn** (`sigs.k8s.io/apiserver-network-proxy/konnectivity-client`, `sigs.k8s.io/kustomize/api`, `sigs.k8s.io/kustomize/kyaml`, `sigs.k8s.io/structured-merge-diff/v6`, `k8s.io/kube-openapi`, etc.) moves versions underneath this bump without being the direct target. → **Mitigation:** let `go get`/`go mod tidy` resolve these via MVS naturally rather than hand-pinning each one; review the full `go.sum` diff for anything surprising (e.g., a major-version jump) before merging.
 - **[Risk] Wider blast radius than originally scoped** — this change now touches five Flux packages in addition to `k8s.io/*`/`controller-runtime`, discovered mid-implementation rather than planned upfront. → **Mitigation:** D4's approach (ride Flux's own tested combination) plus D5/D6's subpackage-level review are the mitigation; still, this PR deserves a more careful review pass than the originally-scoped "trivial prep slice" — flag this explicitly in the PR description so reviewers don't under-scrutinize it based on the change's origin as a small prep task.
 - **[Trade-off] This slice, by itself, unblocks nothing else in enhancement 0006** (`planned-changes.md` lists no dependents on A1) — it's pure technical-debt prevention, not feature-enabling work, and its original motivation (`research/findings.md` "Problem 3") was already soft even before this widening, since D13 (and later D31) removed the Go-level coupling between the CLI and `opm-operator` that made "keep both repos on one k8s line" more than a coherence nicety. Accepted regardless: having gone this far into the coupled Flux bump, finishing it now is cheaper than abandoning partial work and re-discovering the same coupling later.
-- **[Risk] Downstream consumers pin their own Flux/operator versions independently of this change** — e.g. `opm-kind-demo`'s README states it pins "Flux toolkit version, opm-operator version... No surprise upgrades." Those pins don't move just because `opm-operator`'s internal Go dependencies do; they need their own coordinated check/bump once this change ships, and — per D7 — `opm-operator`'s own e2e suite provides no live coverage of the operator-vs-real-Flux-source-controller interaction to lean on for that check. → **Mitigation:** out of scope for this change by design (Principle VIII); tracked as a new cross-repo audit slice in `enhancements/0006/planned-changes.md` and a corresponding warning in `enhancements/0006/05-risks.md`, so it isn't silently dropped.
+- **[Risk] Downstream consumers pin their own Flux/operator versions independently of this change** — e.g. `opm-kind-demo`'s README states it pins "Flux toolkit version, opm-operator version... No surprise upgrades." Those pins don't move just because `opm-operator`'s internal Go dependencies do; they need their own coordinated check/bump once this change ships, and — per D7 — `opm-operator`'s own e2e suite provides no live coverage of the operator-vs-real-Flux-source-controller interaction to lean on for that check. → **Mitigation:** out of scope for this change by design (Principle VIII); tracked as a new cross-repo audit slice in the planned changes of enhancement 0006 and a corresponding warning in the risks of enhancement 0006, so it isn't silently dropped.
 
 ## Migration Plan
 
@@ -149,4 +149,4 @@ Four files touched, all mechanical, behavior-preserving (verified against `schem
 
 ## Open Questions
 
-None outstanding — see `enhancements/0006/03-decisions.md` OQ15/OQ16 for the separate, unrelated open questions this exploration surfaced (CLI/operator stale-set divergence; operator apply-time collision guard). Neither affects this change.
+None outstanding — see the open questions of enhancement 0006 for the separate, unrelated open questions this exploration surfaced (CLI/operator stale-set divergence; operator apply-time collision guard). Neither affects this change.

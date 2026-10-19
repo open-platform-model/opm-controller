@@ -52,7 +52,7 @@ func isTerminalCause(err error) bool {
 // IsTransientFailure reports a failure a later attempt may get past with
 // nothing changed: a registry fetch or dependency resolution failure the
 // library typed (*oerrors.FetchError, any Kind: unreachable, not found,
-// unauthorized or other, 0021:D8:R12), with no typed terminal cause in the
+// unauthorized or other, enhancement 0021), with no typed terminal cause in the
 // chain. It holds in every phase of a render (module acquisition, values
 // compile, instance synthesis, the render build, the package load), because
 // the library classifies at each site where a registry interaction leaves
@@ -76,7 +76,7 @@ func IsTransientFailure(err error) bool {
 }
 
 // isSkewRefusal reports whether err is a render refused before evaluation by
-// the Refuse skew policy (*oerrors.SkewError, 0019:D7/D18). The
+// the Refuse skew policy (*oerrors.SkewError, enhancement 0019). The
 // kernel joins one SkewError per skewed path; the first is enough to classify.
 func isSkewRefusal(err error) bool {
 	_, ok := errors.AsType[*oerrors.SkewError](err)
@@ -85,7 +85,7 @@ func isSkewRefusal(err error) bool {
 
 // isDuplicateIdentities reports whether err is the adapter's refusal of a
 // render whose objects share one Kubernetes apply identity
-// (*object.DuplicateIdentitiesError, 0015:D15). The render adapter
+// (*object.DuplicateIdentitiesError, enhancement 0015). The render adapter
 // returns it bare, and errors.AsType still finds it through a wrap.
 func isDuplicateIdentities(err error) bool {
 	_, ok := errors.AsType[*object.DuplicateIdentitiesError](err)

@@ -211,7 +211,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # The version tag always names the image first pushed under it
-      # (0021:D10:R3). absent: build and push. reuse: a previous attempt of
+      # (enhancement 0021, "Release tags are immutable"). absent: build and push. reuse: a previous attempt of
       # this release already pushed it from the release commit, so push
       # nothing under it and reuse its digest. Anything else fails here.
       - name: Probe the release version tag
@@ -486,7 +486,7 @@ jobs:
       contents: read
     steps:
       - name: Notify downstream
-        uses: open-platform-model/.github/.github/actions/cascade-notify@0f9c6ac2c9b752a79f4874f637ef9955bcf00c13 # .github main
+        uses: open-platform-model/.github/.github/actions/cascade-notify@a2a13733f34f952d81e6f08b84c743cc2efb86e9 # .github main
         with:
           tag: ${{ needs.release-please.outputs.tag_name }}
           client-id: ${{ vars.CASCADE_APP_CLIENT_ID }}

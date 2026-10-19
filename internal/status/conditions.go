@@ -16,7 +16,7 @@ const (
 	DriftedCondition        = "Drifted"
 
 	// ActiveCondition reports whether an accepted TransformerRegistration's
-	// provider is serving, the second of the three states 0015:D3
+	// provider is serving, the second of the three states enhancement 0015
 	// defines. It is a separate condition from Ready because the two axes are
 	// independent: Ready carries the acceptance verdict, and a claim can be
 	// accepted and not yet active. Once Active=True it never goes False again
@@ -25,8 +25,8 @@ const (
 
 	// ContractsFulfilledCondition reports whether every provider-fulfilled
 	// contract the effective platform package defines has a provider
-	// (0015:D18). It is a separate condition from Ready because
-	// 0015:D18 makes an unfulfilled contract a report and never a refusal: the
+	// (enhancement 0015). It is a separate condition from Ready because
+	// enhancement 0015 makes an unfulfilled contract a report and never a refusal: the
 	// package is generated, recorded and rendered against either way, so
 	// folding this into Ready would turn a report into a gate. It describes
 	// the package renders consume, which is why it is written on both
@@ -52,14 +52,14 @@ const (
 	RenderFailedReason     = "RenderFailed"
 	// SkewRefusedReason: Ready=False, the platform's skew policy is Refuse and
 	// the module requires a newer catalog build than the platform pins
-	// (0019:D7/D18). The fix is a platform pin bump or a module
+	// (enhancement 0019). The fix is a platform pin bump or a module
 	// downgrade, so it is distinct from RenderFailed.
 	SkewRefusedReason = "SkewRefused"
 	// DuplicateIdentitiesReason: Ready=False, two or more rendered objects
 	// share one Kubernetes apply identity (apiVersion, kind, namespace,
 	// name), so the render is refused before apply and the message names
 	// each identity and every producing component and transformer
-	// (0015:D15). Distinct from RenderFailed because nothing failed to
+	// (enhancement 0015). Distinct from RenderFailed because nothing failed to
 	// evaluate and the platform is not at fault: the module author removes
 	// or renames a component.
 	DuplicateIdentitiesReason = "DuplicateIdentities"
@@ -99,13 +99,13 @@ const (
 	// running. Retried on the bounded backoff.
 	RenderTimedOutReason = "RenderTimedOut"
 
-	// Platform-specific reasons (0019:D6: the reconciler generates
+	// Platform-specific reasons (enhancement 0019: the reconciler generates
 	// and builds the platform module).
 	GeneratedReason      = "Generated"      // Ready=True: the platform module was generated and built.
 	GenerateFailedReason = "GenerateFailed" // Ready=False: the module could not be written to disk.
 	BuildFailedReason    = "BuildFailed"    // Ready=False: a dependency did not resolve, the module did not build, or its contract inventory could not be read.
 
-	// Inventory reasons (0015:D5, D18: the reconciler reads the
+	// Inventory reasons (enhancement 0015: the reconciler reads the
 	// built platform's contract inventory before recording the package).
 	// The three refusals carry a reason each rather than one shared
 	// "inventory" reason because the fix differs: a collision is resolved by
@@ -131,7 +131,7 @@ const (
 	// majors of one catalog are two, whether or not the defining catalog is
 	// enabled), so no routing exists for it; the message names each
 	// contract, its defining catalog when one is enabled and the providing
-	// registry entries (0010:D37, kept by 0015:D2; D18 makes this the one
+	// registry entries (enhancements 0010 and 0015; it is the one
 	// inventory report that refuses generation). Reported after
 	// ContractCollisions and ahead of ComparablePredicates, with every
 	// finding in the message, so one fix pass sees them all. Also the
@@ -143,15 +143,15 @@ const (
 	// inventory is not discriminated — two enabled transformers have
 	// comparable match predicates over a shared catalog-fulfilled contract,
 	// so every component the narrower matches is also matched by the
-	// broader and both would render (0015:D5). Distinct from
+	// broader and both would render (enhancement 0015). Distinct from
 	// OverSubscribedContracts because nothing is over-subscribed: the
 	// catalogs route fine and the transformers cannot be told apart.
-	// Refused rather than arbitrated: 0015:D5 takes no most-specific-wins rule.
+	// Refused rather than arbitrated: enhancement 0015 takes no most-specific-wins rule.
 	ComparablePredicatesReason = "ComparablePredicates"
 
 	// UnfulfilledContractsReason: ContractsFulfilled=False, the effective
 	// package defines provider-fulfilled contracts nothing on the platform
-	// implements (0015:D18). Never moves Ready — it names what
+	// implements (enhancement 0015). Never moves Ready — it names what
 	// a future module demanding the contract would wait for, not a fault in
 	// the package that was generated.
 	UnfulfilledContractsReason = "UnfulfilledContracts"
@@ -179,7 +179,7 @@ const (
 	DependenciesNotReadyReason = "DependenciesNotReady"
 	PlatformNotReadyReason     = "PlatformNotReady"
 
-	// TransformerRegistration-specific reasons (0015:D3: a claim
+	// TransformerRegistration-specific reasons (enhancement 0015: a claim
 	// carries a verdict). Every refusal gets a reason of its own: a claimant
 	// acts on the reason, and collapsing two causes into one sends them to
 	// the wrong fix.
@@ -190,17 +190,17 @@ const (
 	// CatalogUnresolvedReason: the claimed coordinate resolves to nothing. A
 	// registry or coordinate problem, distinct from CatalogWrongKind, which
 	// is an authoring one — collapsing the two sends the claimant to the
-	// wrong fix (0015:D10).
+	// wrong fix (enhancement 0015).
 	CatalogUnresolvedReason = "CatalogUnresolved"
 	CatalogWrongKindReason  = "CatalogWrongKind"
 
 	// ProvidesMismatchReason: the contract set re-derived from the catalog is
-	// not exactly what the claim lists (0015:D11).
+	// not exactly what the claim lists (enhancement 0015).
 	ProvidesMismatchReason = "ProvidesMismatch"
 
 	// ProviderMismatchReason: the claim did not come from the ModuleInstance
 	// its providerRef names — the instance is absent, or its inventory
-	// settled without this claim (0015:D11).
+	// settled without this claim (enhancement 0015).
 	ProviderMismatchReason = "ProviderMismatch"
 
 	// ProviderInventoryPendingReason: Ready=Unknown, the naming instance has
@@ -209,13 +209,13 @@ const (
 
 	// BuildIncompatibleReason: the claimed catalog requires a shared
 	// OPM-namespace path at a version the platform did not resolve to
-	// (0015:D8). Refused at acceptance rather than at render,
+	// (enhancement 0015). Refused at acceptance rather than at render,
 	// where the failure would name an unrelated module instance.
 	BuildIncompatibleReason = "BuildIncompatible"
 
 	// ProviderReadyReason: Active=True, the provider ModuleInstance the claim
 	// names reports Ready=True, so its CRDs exist and its transformers can be
-	// rendered against (0015:D3). Latched: the claim keeps this
+	// rendered against (enhancement 0015). Latched: the claim keeps this
 	// condition through a later provider outage.
 	ProviderReadyReason = "ProviderReady"
 
@@ -227,7 +227,7 @@ const (
 
 	// ContractSubscribedReason: the claim provides a contract an enabled
 	// Platform.spec.registry subscription's catalog already provides
-	// (0015:D2). Distinct from ContractClaimed because the fix is
+	// (enhancement 0015). Distinct from ContractClaimed because the fix is
 	// a different object: a platform edit, not a module removal.
 	ContractSubscribedReason = "ContractSubscribed"
 
@@ -237,12 +237,12 @@ const (
 	ContractClaimedReason = "ContractClaimed"
 
 	// DuplicateClaimReason: another claim already holds this provider catalog
-	// (0015:D12). The message names the holder, so an operator
+	// (enhancement 0015). The message names the holder, so an operator
 	// can see which object to remove.
 	DuplicateClaimReason = "DuplicateClaim"
 
 	// DependentsRemainReason: the claim's deletion is blocked because
-	// instances still demand contracts it provides (0015:D3).
+	// instances still demand contracts it provides (enhancement 0015).
 	// The message names how many, so the operator's next action is to
 	// remove those instances rather than to guess what is holding the
 	// object. It is not an acceptance verdict: a blocked claim stays
@@ -250,7 +250,7 @@ const (
 	// block exists to protect.
 	//
 	// The same reason reports a refused provider upgrade on the provider's
-	// ModuleInstance (0015:D16): a re-rendered claim dropping a
+	// ModuleInstance (enhancement 0015): a re-rendered claim dropping a
 	// still-demanded contract is withheld from apply, and the instance is
 	// Ready=False naming the claim, the contracts and the count. Both doors
 	// refuse the same act — taking a contract away from instances that

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: The operator decides prune and cleanup deletes only through the library's ownership package
-Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST follow a delete verdict of the library's `opm/k8s/ownership` package on a live read of that object. The operator MUST take the kinds that are never deleted from the same package. The operator MUST NOT set the verdict's install admission input. Source: 0012:D4:R1.
+Every delete of a cluster object that the operator makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST follow a delete verdict of the library's `opm/k8s/ownership` package on a live read of that object. The operator MUST take the kinds that are never deleted from the same package. The operator MUST NOT set the verdict's install admission input. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 The one other delete the operator makes, the delete inside a forced recreate, asks no verdict and MUST carry the UID precondition (capability `ssa-apply`).
 

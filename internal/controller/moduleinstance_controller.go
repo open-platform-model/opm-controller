@@ -107,7 +107,7 @@ type ModuleInstanceReconciler struct {
 	ReconcileInterval time.Duration
 
 	// warnings remembers each instance's last render warnings so RenderWarning
-	// events are emitted on transition only (0019:D18).
+	// events are emitted on transition only (enhancement 0019).
 	warnings opmreconcile.WarningTracker
 }
 

@@ -7,7 +7,7 @@ The controller's docs bundle, `docs/opm-controller`: the authored pages under `d
 
 ### Requirement: The controller publishes one docs bundle
 
-The repository SHALL declare one docs-kit project, `opm-controller`, in `docs-kit.cue`: placed in a site version's `/docs/` tree, owning `reference/controller/`, versioned from tags with the prefix `v`, built from a `markdown` source over `docs/site` and a `crd` source over `config/crd/bases` with samples from `config/samples` (picked by kubebuilder file name, those referencing `testing.opmodel.dev` hidden, the two kubebuilder scaffold labels stripped) in the section layout at `reference/controller/`, the section weight 7, one `reconciledBy` entry per kind, and decision citations turned into links. The bundle SHALL carry the authored pages under `docs/site/` and the generated resource reference together (docs-kit DESIGN decision 20). `task docs:bundle` SHALL build it into `out/opm-controller/` and `task docs:bundle:check` SHALL build and lint it without publishing.
+The repository SHALL declare one docs-kit project, `opm-controller`, in `docs-kit.cue`: placed in a site version's `/docs/` tree, owning `reference/controller/`, versioned from tags with the prefix `v`, built from a `markdown` source over `docs/site` and a `crd` source over `config/crd/bases` with samples from `config/samples` (picked by kubebuilder file name, those referencing `testing.opmodel.dev` hidden, the two kubebuilder scaffold labels stripped) in the section layout at `reference/controller/`, the section weight 7, one `reconciledBy` entry per kind, and enhancement citations left as plain text, not links. The bundle SHALL carry the authored pages under `docs/site/` and the generated resource reference together (docs-kit DESIGN decision 20). `task docs:bundle` SHALL build it into `out/opm-controller/` and `task docs:bundle:check` SHALL build and lint it without publishing.
 
 #### Scenario: The bundle holds both kinds of page
 
@@ -19,10 +19,10 @@ The repository SHALL declare one docs-kit project, `opm-controller`, in `docs-ki
 - **WHEN** the ModuleInstance sample `config/samples/opmodel.dev_v1alpha1_moduleinstance.yaml` references `testing.opmodel.dev`
 - **THEN** the ModuleInstance page has no Example part, and `opmodel.dev_v1alpha1_moduleinstance_jellyfin.yaml` is not read
 
-#### Scenario: A decision citation stays a link
+#### Scenario: An enhancement citation stays plain text
 
-- **WHEN** a CRD description cites `0015:D3/D16`
-- **THEN** the generated page shows `[0015:D3/D16](/enhancements/0015/decisions/)`
+- **WHEN** a CRD description cites `(enhancement 0015)`
+- **THEN** the generated page shows `(enhancement 0015)` as plain text, with no link
 
 #### Scenario: A CRD that is not a CustomResourceDefinition is refused
 

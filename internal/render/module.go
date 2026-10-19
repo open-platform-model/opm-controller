@@ -17,7 +17,7 @@ type RenderResult struct {
 	// (renderWarnings) from the diagnostics' rows: effectively-optional unhandled
 	// traits and, under the Warn skew policy, catalog version skew. Unresolved
 	// demands (undemandable resources, unhandled load-bearing traits) refuse the
-	// render instead of landing here (0010:D28). The reconciler emits them as
+	// render instead of landing here (enhancement 0010). The reconciler emits them as
 	// RenderWarning events on transition, keyed on the rows below rather than on
 	// these strings.
 	Warnings []string
@@ -28,21 +28,21 @@ type RenderResult struct {
 	UnhandledTraits map[string][]string
 
 	// ResolvedVersions are the per-path version rows the build reports
-	// (0019:D18): for every OPM-namespace path the instance module requires,
+	// (enhancement 0019): for every OPM-namespace path the instance module requires,
 	// the build it asked for and the build the platform carries. Plain data;
 	// the reconciler logs them at debug level, and a row marked Newer is the
 	// fact behind a skew warning.
 	ResolvedVersions []kernel.ResolvedVersion
 
 	// RequiredContracts is the kernel's contract demand for the instance
-	// (0013:D24): every #resources and #traits key of every component,
+	// (enhancement 0013): every #resources and #traits key of every component,
 	// sorted and deduplicated, in the keyspace
 	// TransformerRegistration.spec.provides carries. The render build
 	// computes it from the instance alone and does not narrow it by the
 	// platform, so it does not move when the platform does. Never nil. The
 	// reconciler persists it on status.requiredContracts, where the claim
 	// reconciler's removal guard intersects it with a claim's provides to
-	// count that claim's dependents (0015:D3/D16).
+	// count that claim's dependents (enhancement 0015).
 	RequiredContracts []string
 
 	// ModuleVersion is the version the rendered instance's source module
@@ -53,7 +53,7 @@ type RenderResult struct {
 	ModuleVersion string
 
 	// PlatformIdentity is the identity of the generated platform package this
-	// render built against, in its string form (0015:D13, D17):
+	// render built against, in its string form (enhancement 0015):
 	// the Platform CR generation plus a digest of the active claims' catalog
 	// coordinates. A render holds its package under a lease for its whole
 	// duration, so this is the exact registry state the render consumed, even

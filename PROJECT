@@ -14,10 +14,10 @@ resources:
     namespaced: true
   controller: true
   domain: opmodel.dev
-  # Was: group: releases (resolved group releases.opmodel.dev) — enhancement 0002 D5
+  # Was: group: releases (resolved group releases.opmodel.dev) — enhancement 0002
   # moves the API group to the bare domain opmodel.dev.
   group: ""
-  # Was: kind: ModuleRelease — enhancement 0002 D3 renames the CRD to ModuleInstance.
+  # Was: kind: ModuleRelease — enhancement 0002 renames the CRD to ModuleInstance.
   kind: ModuleInstance
   path: github.com/open-platform-model/opm-controller/api/v1alpha1
   version: v1alpha1

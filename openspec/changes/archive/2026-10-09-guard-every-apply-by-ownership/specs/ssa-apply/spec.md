@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: An apply is judged by the ownership verdict before its first write
-Before the first write of a reconcile, the controller MUST read every object of the apply list and MUST ask the apply verdict of the library's `opm/k8s/ownership` package for it, with the instance's identity and with whether `status.inventory` lists the object (matched by group, kind, namespace and name). This holds for a ModuleInstance and a ModulePackage, for the apply of a changed render and for a restore. Source: 0012:D8:R1, 0012:D8:R2, 0012:D8:R5, 0012:D8:R8.
+Before the first write of a reconcile, the controller MUST read every object of the apply list and MUST ask the apply verdict of the library's `opm/k8s/ownership` package for it, with the instance's identity and with whether `status.inventory` lists the object (matched by group, kind, namespace and name). This holds for a ModuleInstance and a ModulePackage, for the apply of a changed render and for a restore. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 The read MUST be made by the client that applies: the impersonated ServiceAccount when one is effective, the controller's own identity otherwise. The controller MUST NOT set the verdict's install admission input.
 

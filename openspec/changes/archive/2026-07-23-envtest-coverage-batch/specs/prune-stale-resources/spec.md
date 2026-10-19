@@ -1,6 +1,6 @@
 # Delta: prune-stale-resources (envtest-coverage-batch)
 
-No behavior change. The ownership-guard requirement gains the CLI-manager-identity tolerance scenario (enhancement 0006 D40's post-handoff window), test-pinning what `core.IsOPMManagedBy` already accepts. The requirement text also corrects post-0002 naming drift: the label is `module-instance.opmodel.dev/uuid` (was `module-release.opmodel.dev/uuid`) and the identity comes from `ModuleInstanceStatus.InstanceUUID` — naming only, the code already used these names.
+No behavior change. The ownership-guard requirement gains the CLI-manager-identity tolerance scenario (the post-handoff window of enhancement 0006), test-pinning what `core.IsOPMManagedBy` already accepts. The requirement text also corrects post-0002 naming drift: the label is `module-instance.opmodel.dev/uuid` (was `module-release.opmodel.dev/uuid`) and the identity comes from `ModuleInstanceStatus.InstanceUUID` — naming only, the code already used these names.
 
 ## MODIFIED Requirements
 
@@ -46,7 +46,7 @@ For each entry in the stale set that passes safety exclusions (Namespace, CRD), 
 
 #### Scenario: Delete resource still carrying the CLI manager identity
 
-- **GIVEN** a stale entry for ConfigMap `team-a/example` and a live ConfigMap with `app.kubernetes.io/managed-by=opm-cli` and a UUID label matching the reconciling instance (the post-handoff window: applied by the CLI, removed from the module before any relabeling reconcile ran — enhancement 0006 D40)
+- **GIVEN** a stale entry for ConfigMap `team-a/example` and a live ConfigMap with `app.kubernetes.io/managed-by=opm-cli` and a UUID label matching the reconciling instance (the post-handoff window: applied by the CLI, removed from the module before any relabeling reconcile ran — enhancement 0006 ("Handoff success is 'inventory-stable reconcile', not byte-no-op (the managed-by relabel is expected and reported; no cross-actor digest comparison); amends D7.5"))
 - **WHEN** the controller runs Prune with the matching `ownerUUID`
 - **THEN** the ConfigMap is deleted (all OPM manager identities are accepted by `core.IsOPMManagedBy`)
 - **AND** `PruneResult.Deleted` is incremented

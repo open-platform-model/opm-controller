@@ -11,7 +11,7 @@ surfacing the build outcome on the `Platform` status.
 
 The controller SHALL reconcile the `Platform` named `cluster` by generating its platform CUE module on the controller's own disk, building it through the kernel's shape-gated platform loader, and recording the generated module (its package identity, directory, built platform) together with the resolved skew policy (`spec.skewPolicy`, `Warn` when unset) in the process-local store. The reconciler SHALL reconcile only the object named `cluster`; any other name SHALL be ignored without error. No second, derived copy of the platform exists.
 
-The package the reconcile generates SHALL be a function of exactly two inputs — the CR's spec and the set of accepted-and-active `TransformerRegistration` claims — and the reconciler SHALL be woken by a change to either (enhancement 0015 D13). The waking event's content SHALL NOT be an input: the reconcile computes from the current state of both, so a stale, duplicated or reordered event yields the package the current state implies. A reconcile whose inputs resolve to the identity the store already holds, for a module directory that still exists, SHALL skip regeneration and still report the outcome on status; this is what bounds a burst of claim activations to one build rather than one per claim.
+The package the reconcile generates SHALL be a function of exactly two inputs — the CR's spec and the set of accepted-and-active `TransformerRegistration` claims — and the reconciler SHALL be woken by a change to either (enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"). The waking event's content SHALL NOT be an input: the reconcile computes from the current state of both, so a stale, duplicated or reordered event yields the package the current state implies. A reconcile whose inputs resolve to the identity the store already holds, for a module directory that still exists, SHALL skip regeneration and still report the outcome on status; this is what bounds a burst of claim activations to one build rather than one per claim.
 
 #### Scenario: Valid platform is generated
 
@@ -71,7 +71,7 @@ The reconciler SHALL record the outcome on the `Platform` status: `Ready=True` w
 
 The store SHALL hold at most one current generated-module record, keyed on the package identity it was built for, safe for a single writer and many readers. Readers SHALL obtain the record through a lease that they release when their render completes; the store SHALL report which identities are leased. Superseded module directories SHALL be removed only when no lease holds their identity.
 
-The identity SHALL be derived from the `Platform` CR's generation and the sorted set of active claims' catalog coordinates, so two packages built from the same inputs carry the same identity and any change to either input yields a different one (enhancement 0015 D13, D17).
+The identity SHALL be derived from the `Platform` CR's generation and the sorted set of active claims' catalog coordinates, so two packages built from the same inputs carry the same identity and any change to either input yields a different one (enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted" and "The generated-platform record survives the render-parity enhancement and is held per package identity, not per Platform CR generation").
 
 #### Scenario: A spec change replaces the slot
 

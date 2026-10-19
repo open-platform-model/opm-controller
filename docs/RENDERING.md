@@ -33,7 +33,7 @@ value is held between renders and nothing grows with render count.
 
 Before the rendered objects become resources, the adapter checks their apply
 identities and refuses the whole render when two objects share one
-(0015:D15), so nothing partial is ever applied.
+(enhancement 0015, "One registration per module"), so nothing partial is ever applied.
 
 ## `--max-concurrent-renders`
 
@@ -428,7 +428,7 @@ verbosity 1.
 
 A generated platform module that builds is not yet a package renders may
 consume. The reconciler reads the built platform's contract inventory first,
-and three of its reports withhold the package (0015:D5, D18):
+and three of its reports withhold the package (enhancement 0015, "Comparable predicates within one catalog-fulfilled bucket are refused, not arbitrated" and "An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation"):
 
 - `ContractCollisions`: more than one enabled registry entry defines one
   contract key, most often two majors of one catalog enabled side by side

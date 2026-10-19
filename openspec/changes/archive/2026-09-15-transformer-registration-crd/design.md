@@ -2,7 +2,7 @@
 
 ## Context
 
-See `proposal.md` § Why, and `open-platform-model/opm-operator` issue 132 for the catalog-side contract this must match. The decisions are `enhancements/0015` D3 (the CR and its RBAC gate), D12 (the instance-derived name) and D15 (one registration per module); the pre-drafted shapes are that entry's `contracts/contracts.cue`.
+See `proposal.md` § Why, and `open-platform-model/opm-operator` issue 132 for the catalog-side contract this must match. The decisions are those of enhancement 0015 on the CR and its RBAC gate, the instance-derived name and one registration per module; the pre-drafted shapes are that entry's `contracts/contracts.cue`.
 
 Current state, read 2026-09-15:
 
@@ -88,7 +88,7 @@ The kind lands in `api/v1alpha1` alongside the other three types, so its group i
 
 `catalog_opm` `opm` 4.3.0 renders `apiVersion: opm.opmodel.dev/v1alpha1`, a different
 group, and issue 132 records that spelling as the literal to match. It is wrong on the
-operator's side of the contract, not a constraint on it: enhancement 0002 D5 moved this
+operator's side of the contract, not a constraint on it: enhancement 0002 ("The operator Kubernetes API group is renamed to `opmodel.dev`") moved this
 repo from `releases.opmodel.dev` to a flat, kind-agnostic `opmodel.dev` and explicitly
 rejected kind-specific and prefixed groups, at the cost of a full cluster migration.
 Honouring the catalog's literal would reopen that decision and add a second API group
