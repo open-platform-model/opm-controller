@@ -13,8 +13,8 @@ placeholder Purpose ("TBD - created by archiving change ...") is a second warnin
 fails `--strict`. The eighth ERROR sits in the open change `stop-operator-install-manifest`; its
 author fixes it (see Scope).
 
-The rewrite follows the swarm guide `design/T2.1.md`. Its rule is
-that a rewrite is a split or a move into scenarios: the body itself gets shorter, and no rule is
+The rewrite follows one rule:
+a rewrite is a split or a move into scenarios: the body itself gets shorter, and no rule is
 lost or changed.
 
 ## What Changes

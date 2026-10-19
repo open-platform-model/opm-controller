@@ -16,7 +16,7 @@ change does not touch them: `add-cross-namespace-source-grants` (specs
 `cross-namespace-source-grants` and `source-resolution`) and `stop-operator-install-manifest`
 (specs `container-image-publish`, `operator-module`, `release-automation`).
 
-The swarm guide `design/T2.1.md` holds the rules. This file applies
+The rules of the rewrite are: copy whole sentences of the old body, state one behavior in each requirement, keep every scenario byte for byte. This file applies
 them to this repo and does not restate them in full.
 
 ## Goals / Non-Goals
@@ -145,8 +145,8 @@ Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
 - Em-dash characters of the old bodies (four places: `module-instance-ownership` "The operator acknowledges a CLI-owned instance with a single condition", `platform-reconciler` "Generate and build the singleton Platform on reconcile", `kernel-module-renderer` "Adapt compiled output to operator resources", twice) are written as `:` or `,` in the new bodies, because the workspace bans the character. The word and the order stay.
 - A sentence whose subject was "It" gets the subject of the sentence before it, copied (the "Edit" column shows it).
 - Where a body relies on a sibling for a condition, the condition is copied from the old text in front of its sentence (the "Edit" column shows it).
-- A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`, the identity sentence of `Single-slot identity-keyed store for concurrent read`) is cut at a list boundary; the parts are verbatim and the head is repeated.
-- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block that cannot hold its whole line in 500 characters carries it as a `**Source**:` metadata line, which the length check skips: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance"), the first AdoptedElsewhere body of `events-emission`, and the definition body of the verdict identity in `ssa-apply`; the same form holds the line of two order-check bodies of `ssa-apply`. Only the citation is in that line.
+- A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`) is cut at a list boundary; the parts are verbatim and the head is repeated.
+- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block that cannot hold its whole line in 500 characters carries it as a `**Source**:` metadata line, which the length check skips: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance"), the first AdoptedElsewhere body of `events-emission`, and the definition body of the verdict identity in `ssa-apply`; the same form holds the line of two order-check bodies of `ssa-apply`, the identity body of `platform-reconciler` (its sentence is over 500 with the citation), and four bodies of the apply requirement of `kubernetes-tier-adoption`, which carry both 0012 titles. Only the citation is in that line.
 
 Unit 3 (opm-operator-B6) rules of text, for the seven ledgers of unit 3:
 
@@ -410,8 +410,8 @@ Clause table (old clause, new requirement, sentence of its body):
 | Module release gate | fails when the proposed version breaks the v0 rules (reference now names the three requirements) | The module release check verifies the module version | 1 |
 | Module release gate | fails when `<tag>` is older than the minimum operator version (first release that refuses to reconcile the operator's own instance) | The module release check refuses an operator below the minimum version | 1 |
 | Module release gate | fails when generated CRDs or RBAC differ from the operator source at `<tag>` | The module release check compares generated CRDs and RBAC with the deployed operator | 1 |
-| Module release gate | rationale: module must render exactly the CRDs and permissions of the controller it deploys; `main` can move ahead | The module release check compares generated CRDs and RBAC with the deployed operator | 2 |
-| Module release gate | releases are frozen while the generated CRDs or RBAC under `main`'s `config/` differ from the deployed tag's, until the image-bump PR merges (stated as the effect of the CRD and RBAC check; the check SHALL fail in that state) | Module releases are frozen while config differs from the deployed tag | 1 |
+| Module release gate | rationale, with its head "The last check exists because": module must render exactly the CRDs and permissions of the controller it deploys; `main` can move ahead | The module release check compares generated CRDs and RBAC with the deployed operator | 2 |
+| Module release gate | releases are frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR of an operator release carrying that change merges (the old sentence, whole; SHALL added) | Module releases are frozen while config differs from the deployed tag | 1 |
 | Module release gate | check also runs in the publish job before anything is pushed | The module release check runs in the publish job before any push | 1 |
 | Module release gate | no-network checks covered by an offline test run by `Lint` on every PR | An offline test covers the module release checks that need no network | 1 |
 | The module publishes its tagged source once | publish job checks out the tag, installs the opm CLI, runs the release check, runs `opm module publish` | The module publish job publishes the tagged source | 1 |
@@ -451,7 +451,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | An operator release opens the PR that moves the module's image | fail, no PR, when `<tag>` does not descend from the deployed tag | The module image run fails for a tag that does not descend from the deployed one | 1 |
 | An operator release opens the PR that moves the module's image | title `fix(deps): deploy operator <tag> ...` | The module image PR title carries the change type | 1 |
 | An operator release opens the PR that moves the module's image | title `fix(deps)!: ...` on a breaking CHANGELOG entry or a CRD that stops serving a version | The module image PR title carries the change type | 2 |
-| An operator release opens the PR that moves the module's image | `workflow_dispatch` with `tag` does the same for a published release, for recovery | The module image workflow accepts a dispatch for recovery | 1 |
+| An operator release opens the PR that moves the module's image | `workflow_dispatch` with `tag` does the same for a published release, for recovery (the named reference "An operator release opens one pull request on module/operator-image" in front, for "the same") | The module image workflow accepts a dispatch for recovery | 1 |
 | An operator release opens the PR that moves the module's image | bot-only branch rebuilt from `main`; human commit: add on top, never rewrite | The module/operator-image branch is rebuilt only while it holds bot commits | 1 |
 
 Lengths (old body, new bodies; characters by the guide's rule):
@@ -461,13 +461,13 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The module is a release unit of its own | 848 | 440, 244, 227 |
 | The module version follows the 0.x bump rule on the v0 path | 762 | 475, 42, 243 |
 | The module's identity version has one writer | 867 | 390, 181, 116, 217 |
-| Module release gate | 1843 | 134, 154, 272, 357, 232, 392, 339, 154, 245 |
+| Module release gate | 1843 | 134, 154, 272, 357, 232, 422, 250, 154, 245 |
 | The module publishes its tagged source once | 1152 | 277, 129, 299, 442, 97 |
 | Every module release publishes the install manifest rendered from it | 894 | 255, 173, 134, 161, 248 |
 | Module releases are drafts until every asset is attached | 809 | 397, 134, 276 |
 | A stranded module draft is recovered by dispatch | 1644 | 241, 281, 267, 181, 399, 133, 158, 92 |
 | Only this repository's module release publishes under the module path | 519 | 262, 151, 104 |
-| An operator release opens the PR that moves the module's image | 1519 | 211, 298, 216, 195, 437, 163, 208 |
+| An operator release opens the PR that moves the module's image | 1519 | 211, 298, 216, 195, 437, 195, 208 |
 
 ### Ledger: events-emission
 
@@ -541,7 +541,7 @@ Clause table (old clause, new requirement, sentence of its body):
 | Events emitted when an object is adopted by another instance | sentence 1, whole and unchanged: the `Warning` event with reason `AdoptedElsewhere` and action `Apply`, the whole old condition and the citation of `status-conditions` | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | 1 | none |
 | Events emitted when an object is adopted by another instance | the citation `status-conditions`, "The Ready message counts the objects adopted by another instance" (copied from sentence 1 of the old body into the no-event requirement, where the Ready message carries the state) | No AdoptedElsewhere event while the count is unchanged | 1 | none |
 | Events emitted when an object is adopted by another instance | "This holds whether the reconcile applies, restores or is a no-op." (sentence 2, copied unchanged, after sentence 1 in the same body) | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | 2 | none |
-| Events emitted when an object is adopted by another instance | states the count; the library's message for each object unchanged; within the `ApplyRefused` limits (limits restated) | The AdoptedElsewhere event states the count and the library messages | 1 |
+| Events emitted when an object is adopted by another instance | states the count; the library's message for each object unchanged; within the `ApplyRefused` limits (the old words "within the limits of the `ApplyRefused` event", nothing restated) | The AdoptedElsewhere event states the count and the library messages | 1 |
 | Events emitted when an object is adopted by another instance | same number as before, or a skipped render, emits none; `Ready` carries the state between events | No AdoptedElsewhere event while the count is unchanged | 1 |
 | Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012): whole, as a `**Source**:` line on the first requirement, and inline on the other two | An AdoptedElsewhere event is emitted when the count of adopted objects changes, whether the reconcile applies, restores or does nothing | 3 | none |
 | The event of a stalled render failure stays inside the event note limit | stalled render or package load Warning event: message at most 1024 chars | A stalled render failure event carries at most 1024 characters | 1 |
@@ -567,7 +567,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | Events emitted when claims are kept | 845 | 319, 221, 333 |
 | Events emitted when a claim recreate is refused | 545 | 234, 326 |
 | Events emitted when objects are left behind | 1509 | 271, 281, 362, 380, 146, 149 |
-| Events emitted when an object is adopted by another instance | 969 | 475, 492, 467 |
+| Events emitted when an object is adopted by another instance | 969 | 475, 370, 467 |
 | The event of a stalled render failure stays inside the event note limit | 714 | 358, 278, 154 |
 | Events emitted while a deletion waits | 507 | 393, 382 |
 | Events emitted when a deletion is released without confirmation | 606 | 366, 261 |
@@ -775,17 +775,17 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced recreate, asks no verdict ... | The forced recreate delete asks no verdict | 2 | "and MUST carry the UID precondition (capability `ssa-apply`)" left out of this block (list cut at the "and") |
 | The operator decides prune and cleanup d... | The one other delete the operator makes, the delete inside a forced recreate, ... MUST carry the UID precondition (capability `ssa-apply`). | The forced recreate delete carries the UID precondition | 1 | "asks no verdict and" left out (list cut); the subject is repeated |
 | The operator decides prune and cleanup d... | A test MUST keep the list of places that may delete a cluster object c... | A test keeps the places that may delete a cluster object clo... | 1 | none |
-| The operator decides prune and cleanup d... | It MUST find a delete by the type of the receiver, a Kubernetes client... | A test finds a delete by the type of the receiver | 1 | -It +A test |
+| The operator decides prune and cleanup d... | It MUST find a delete by the type of the receiver, a Kubernetes client... | A test finds a delete by the type of the receiver | 1 | -It +As in requirement "A test keeps the places that may delete a cluster object closed": It (a named reference; the sentence is verbatim) |
 | The operator decides every apply only th... | Every write of a cluster object that the operator makes on behalf of a... | A write follows an apply verdict of the library's ownership... | 1 | none |
 | The operator decides every apply only th... | The operator MUST declare no ownership rule of its own for an apply: i... | The operator declares no ownership rule of its own for an ap... | 1 | none |
 | The operator decides every apply only th... | The operator MUST NOT set, change or remove the `opmodel.dev/adopt` an... | The operator never writes the adopt annotation | 1 | none |
-| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A write follows an apply verdict of the library's ownership... | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
-| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator declares no ownership rule of its own for an ap... | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A write follows an apply verdict of the library's ownership... | 2 | none (the whole old Source line, as a `**Source**:` line; all titles kept) |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator declares no ownership rule of its own for an ap... | 2 | none (the whole old Source line, as a `**Source**:` line; all titles kept) |
 | The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | The operator never writes the adopt annotation | 2 | none |
-| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test keeps the places that may write a cluster object clos... | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
-| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test finds a write by the type of the receiver | 2 | -library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test keeps the places that may write a cluster object clos... | 2 | none (the whole old Source line, as a `**Source**:` line; all titles kept) |
+| The operator decides every apply only th... | Source: enhancement 0012 ("The library owns the whole deletion sequenc... | A test finds a write by the type of the receiver | 2 | none (the whole old Source line, as a `**Source**:` line; all titles kept) |
 | The operator decides every apply only th... | A test MUST keep the list of places that may write a cluster object cl... | A test keeps the places that may write a cluster object clos... | 1 | none |
-| The operator decides every apply only th... | It MUST find a write by the type of the receiver, as the test of the d... | A test finds a write by the type of the receiver | 1 | -It +A test |
+| The operator decides every apply only th... | It MUST find a write by the type of the receiver, as the test of the d... | A test finds a write by the type of the receiver | 1 | -It +As in requirement "A test keeps the places that may write a cluster object closed": It (a named reference; the sentence is verbatim) |
 
 
 Lengths (old body, new bodies; characters by the guide's rule):
@@ -796,8 +796,8 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | The reconciler converts a render with one export | 816 | 482, 357 |
 | The operator uses the library's inventory package and keeps no copy | 742 | 398, 378, 270 |
 | The operator judges the health of inventory objects only through the library's health package | 925 | 436, 423, 360 |
-| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 429, 276, 348, 484, 266, 269, 398 |
-| The operator decides every apply only through the library's ownership package | 1191 | 418, 356, 409, 424, 420 |
+| The operator decides prune and cleanup deletes only through the library's ownership package | 1472 | 468, 454, 429, 276, 348, 484, 266, 269, 479 |
+| The operator decides every apply only through the library's ownership package | 1191 | 209, 147, 409, 215, 291 |
 
 ### Ledger: module-instance-ownership
 
@@ -913,7 +913,7 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | A refusal surfaces a structured verdict | A contract collision sets Ready False with reason ContractCollisions, A refusal surfaces a structured verdict | no (byte equal, checked by the item 3 command) |
 | Failure preserves last-good generated platform | Every outcome sets observedGeneration and a failure keeps the last good module, Failure preserves last-good generated platform | no (byte equal, checked by the item 3 command) |
 | A spec change replaces the slot | The package identity is derived from the generation and the active claims, A spec change replaces the slot | no (byte equal, checked by the item 3 command) |
-| A claim change replaces the slot without a spec change | The generated-platform record is held per package identity, A claim change replaces the slot without a spec change | no (byte equal, checked by the item 3 command) |
+| A claim change replaces the slot without a spec change | The package identity is derived from the generation and the active claims, A claim change replaces the slot without a spec change | no (byte equal, checked by the item 3 command) |
 | A leased package survives the swap | Readers lease the record and superseded directories are removed only when unleased, A leased package survives the swap | no (byte equal, checked by the item 3 command) |
 | Concurrent reads are safe | The store holds at most one generated-module record, Concurrent reads are safe | no (byte equal, checked by the item 3 command) |
 | Failure requeues instead of stalling indefinitely | A build failure requeues after a bounded interval and keeps the last good module, Failure requeues instead of stalling indefinitely | no (byte equal, checked by the item 3 command) |
@@ -961,8 +961,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Single-slot identity-keyed store for con... | The store SHALL hold at most one current generated-module record, keye... | The store holds at most one generated-module record | 1 | none |
 | Single-slot identity-keyed store for con... | Readers SHALL obtain the record through a lease that they release when... | Readers lease the record and superseded directories are remo... | 1 | none |
 | Single-slot identity-keyed store for con... | Superseded module directories SHALL be removed only when no lease hold... | Readers lease the record and superseded directories are remo... | 2 | none |
-| Single-slot identity-keyed store for con... | The identity SHALL be derived from the `Platform` CR's generation and... | The package identity is derived from the generation and the... | 1 | -accepted" and "The generated-platform record survives the render-parity enhancement and is held per package identity, not per Platform CR generation"). +accept |
-| Single-slot identity-keyed store for con... | The identity SHALL be derived from the `Platform` CR's generation and... | The generated-platform record is held per package identity | 1 | -platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted" and "The |
+| Single-slot identity-keyed store for con... | The identity SHALL be derived from the `Platform` CR's generation and... | The package identity is derived from the generation and the... | 1 | the parenthetical moved to a `**Source**:` line that holds both titles (a citation, not rule text) |
 | Build failures requeue on a bounded inte... | When closure derivation, generation or the build fails, the `PlatformR... | A build failure requeues after a bounded interval and keeps... | 1 | none |
 | Build failures requeue on a bounded inte... | The reconciler SHALL set the failure reason (`BuildFailed` or `Generat... | A build failure requeues after a bounded interval and keeps... | 2 | none |
 | Build failures requeue on a bounded inte... | Each reconcile SHALL resolve module files for closure derivation throu... | Each reconcile resolves module files through a source built... | 1 | none |
@@ -986,7 +985,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | --- | --- | --- |
 | Generate and build the singleton Platform on reconcile | 1379 | 426, 110, 377, 354, 268 |
 | Surface build outcome on status | 1387 | 243, 275, 143, 293, 296, 237, 189, 136 |
-| Single-slot identity-keyed store for concurrent read | 936 | 156, 234, 404, 401 |
+| Single-slot identity-keyed store for concurrent read | 936 | 156, 234, 245 |
 | Build failures requeue on a bounded interval | 675 | 338, 336 |
 | Transient failures retry faster than semantic failures | 844 | 250, 382, 347 |
 | Subscription mapping and build failures | 519 | 127, 391 |
@@ -1426,7 +1425,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | An object refused as foreign-object stops all writes | 2 | none |
 | An apply is judged by the ownership v... | When the verdict refuses an object as `other-instance`, and the rec... | An object refused as other-instance stops all writes | 1 | list cut at the three reasons; the head is repeated |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | An object refused as other-instance stops all writes | 2 | none |
-| An apply is judged by the ownership v... | When the verdict refuses an object as `terminating`, `foreign-objec... | A refused object is left as it is | 1 | the head of sentence 12 is copied as context; the subject is kept; added: ", the" |
+| An apply is judged by the ownership v... | When the verdict refuses an object as `terminating`, `foreign-objec... | A refused object is left as it is | 1 | the condition of sentence 12 ("and the reconcile would write that object or the object exists and is not in `status.inventory`") is copied in front of the sentence, as the old text has it; the subject is kept |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A refused object is left as it is | 2 | none |
 | An apply is judged by the ownership v... | When the verdict refuses an object as `adopted-elsewhere`, the cont... | An object adopted elsewhere is not applied and the others... | 1 | none |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | An object adopted elsewhere is not applied and the others... | 2 | none |
@@ -1452,7 +1451,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed | 1256 | 175, 243, 363, 467, 378, 229, 422, 216 |
 | A forced recreate deletes exactly the object that was read | 680 | 449, 314, 251 |
 | The staged apply order never contradicts the library's kind weights | 1917 | 322, 390, 444, 404, 486, 465, 324, 435, 351, 293, 394 |
-| An apply is judged by the ownership verdict before its first write | 3220 | 417, 482, 493, 354, 275, 478, 436, 461, 428, 437, 331, 331, 477, 480, 480, 341, 343, 466, 488, 452, 383, 385 |
+| An apply is judged by the ownership verdict before its first write | 3220 | 417, 482, 493, 354, 275, 478, 436, 461, 428, 437, 331, 331, 477, 480, 480, 438, 343, 466, 488, 452, 383, 385 |
 
 ### Ledger: library-kernel-runtime
 
@@ -2468,7 +2467,7 @@ Old text from `origin/main`. All other keywords are the old ones.
 | No AdoptedElsewhere event while the count is unchanged | "A reconcile that finds the same number as before, or that skips its render, MUST emit no `AdoptedElsewhere` event: ..." | "A reconcile that finds the same number as before, or that skips its render, emits none: ..." |
 | Recovery never moves a tag or edits a release by hand | "Recovery SHALL never move, delete or re-create a tag and SHALL never edit a release by hand." | "Recovery never moves, deletes or re-creates a tag and never edits a release by hand" |
 | The recovery dispatch publishes, attaches and releases in order | "A recovery dispatch SHALL run, in order: the publish, ..." | "In order: the publish, ..." (operator-module-release, "A stranded module draft is recovered by dispatch"); the subject "A recovery dispatch" comes from the sentence before it |
-| The module version follows the 0.x bump rule on the v0 path | none gained; "A module release is breaking when ..." stays without a keyword, beside a SHALL | (no change) |
+| Module versions on the v0 path are 0.y.z | none gained; "A module release is breaking when ..." stays without a keyword, beside a SHALL | (no change) |
 | Healthy is independent of Ready | "`Healthy` SHALL be independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." | "`Healthy` is independent of `Ready`: no helper that sets `Ready`, `Reconciling` or `Stalled` changes it, except that ..." (status-conditions, "The Healthy condition vocabulary") |
 | A failure is transient when its error chain holds a registry fetch failure | "A failure SHALL be transient when its error chain holds ..." | "A failure is transient when its error chain holds ..." (platform-reconciler, "Transient failures retry faster than semantic failures") |
 | The demand is read only from a successful render | "The demand SHALL be read only from a successful render; this requirement does not change when the reconciler writes it ..." | "The demand is read only from a successful render; this requirement does not change when the reconciler writes it ..." (kernel-module-renderer, "The render reports the instance's contract demand from the kernel") |
@@ -2485,6 +2484,7 @@ Old text from `origin/main`. All other keywords are the old ones.
 | The restore of ServiceAccount RBAC alone is not a trigger | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) SHALL NOT be a trigger; ..." | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) is not a trigger; ..." (serviceaccount-impersonation, "A created ServiceAccount wakes the instances that impersonate it") |
 | The materialize-era reasons are retired | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) SHALL be retired." | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) are retired." (platform-module-generation, "The generated module is validated by building it") |
 | Registry fetch failures are transient wherever they occur | "A failure SHALL be transient when its error chain holds the library's typed registry fetch failure ..." | "A failure is transient when its error chain holds the library's typed registry fetch failure ..." (reconcile-backoff, "Registry fetch failures are transient wherever they occur") |
+| Module releases are frozen while config differs from the deployed tag | "..., module releases SHALL be frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR of an operator release carrying that change merges." | "..., module releases are frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR of an operator release carrying that change merges." (operator-module-release, "Module release gate") |
 
 ## The gate
 
@@ -2492,7 +2492,7 @@ The gate of guide section 6 runs in a scratch copy of the worktree's `openspec/`
 the worktree. It uses the pinned CLI (1.14.1) and `jq`. Values for this repo:
 
 ```bash
-WT=/var/home/emil/dev/open-platform-model/agent-swarm/openspec-requirement-split/worktrees/opm-operator-split-long-requirements
+WT=<worktree>
 CH=split-long-requirements
 S=<scratch folder under the session scratchpad>
 N=<requirements rewritten on the branch so far, earlier units included>

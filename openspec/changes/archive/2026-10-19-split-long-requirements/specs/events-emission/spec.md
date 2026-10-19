@@ -180,7 +180,7 @@ The controller MUST emit one `Warning` event with reason `AdoptedElsewhere` and 
 - **THEN** one `Warning` event with reason `AdoptedElsewhere` and action `Apply` is emitted
 
 ### Requirement: The AdoptedElsewhere event states the count and the library messages
-The `AdoptedElsewhere` event MUST state the count and MUST carry the library's message for each object, unchanged, within the limits of the `ApplyRefused` event (at most ten objects, and fewer when the messages would take the event past 1024 characters; then the number of the rest). Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The `AdoptedElsewhere` event MUST state the count and MUST carry the library's message for each object, unchanged, within the limits of the `ApplyRefused` event. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: A second object is let go
 - **GIVEN** the instance above, and a second rendered object that a user annotates for another instance

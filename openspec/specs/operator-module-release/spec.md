@@ -144,7 +144,7 @@ The module release check SHALL fail when the `<tag>` of the module's operator im
 - **THEN** the check fails naming both tags
 
 ### Requirement: The module release check compares generated CRDs and RBAC with the deployed operator
-The module release check SHALL fail when the module's generated CRDs or controller RBAC differ from what the operator source at the `<tag>` of the module's operator image reference generates. A module release must render exactly the CRDs the controller it deploys serves and exactly the cluster permissions that controller declares, and `main` can move ahead of the deployed operator release.
+The module release check SHALL fail when the module's generated CRDs or controller RBAC differ from what the operator source at the `<tag>` of the module's operator image reference generates. The last check exists because a module release must render exactly the CRDs the controller it deploys serves and exactly the cluster permissions that controller declares, and `main` can move ahead of the deployed operator release.
 
 #### Scenario: CRDs ahead of the deployed operator
 
@@ -152,11 +152,11 @@ The module release check SHALL fail when the module's generated CRDs or controll
 - **THEN** the check fails naming the CRD, and the module waits for the image-bump PR of the next operator release
 
 ### Requirement: Module releases are frozen while config differs from the deployed tag
-Because the module's generated data follow `main`'s `config/` on every pull request, module releases are frozen while the generated CRDs or controller RBAC under `main`'s `config/` differ from the deployed tag's, until the image-bump PR of an operator release carrying that change merges. The module release check SHALL fail in that state.
+Because the module's generated data follow `main`'s `config/` on every pull request, module releases SHALL be frozen while `main`'s `config/` differs from the deployed tag's, until the image-bump PR of an operator release carrying that change merges.
 
 #### Scenario: Release frozen while config differs
-- **WHEN** the generated CRDs or controller RBAC under `main`'s `config/` differ from the deployed operator tag's
-- **THEN** the module release check fails until the image-bump PR of an operator release carrying that change merges
+- **WHEN** `main`'s `config/` differs from the deployed tag's
+- **THEN** module releases are frozen until the image-bump PR of an operator release carrying that change merges
 
 ### Requirement: The module release check runs in the publish job before any push
 The module release check SHALL also run in the module publish job before anything is pushed, so a release merged past a red check still publishes nothing.
@@ -430,7 +430,7 @@ The module image PR's title SHALL be `fix(deps): deploy operator <tag> from the 
 - **THEN** the PR title carries `!`, and merging it makes the module's next release raise the minor
 
 ### Requirement: The module image workflow accepts a dispatch for recovery
-A `workflow_dispatch` with a `tag` input SHALL run the module image workflow for a published operator release, for recovery, under the same rules as a release run.
+As in requirement "An operator release opens one pull request on module/operator-image": A `workflow_dispatch` with a `tag` input SHALL do the same for a published operator release, for recovery.
 
 #### Scenario: Draft operator release
 

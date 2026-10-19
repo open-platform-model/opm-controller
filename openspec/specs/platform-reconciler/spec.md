@@ -174,15 +174,13 @@ Superseded module directories SHALL be removed only when no lease holds their id
 - **THEN** the leased package's directory is not removed until the lease is released, and is removed by a later reconcile once unleased
 
 ### Requirement: The package identity is derived from the generation and the active claims
-The identity SHALL be derived from the `Platform` CR's generation and the sorted set of active claims' catalog coordinates, so two packages built from the same inputs carry the same identity and any change to either input yields a different one (enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted").
+The identity SHALL be derived from the `Platform` CR's generation and the sorted set of active claims' catalog coordinates, so two packages built from the same inputs carry the same identity and any change to either input yields a different one.
+**Source**: enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted" and "The generated-platform record survives the render-parity enhancement and is held per package identity, not per Platform CR generation".
 
 #### Scenario: A spec change replaces the slot
 
 - **WHEN** the Platform spec changes (new generation M) and builds successfully
 - **THEN** the store returns the record for the identity carrying generation M and the prior record is no longer current
-
-### Requirement: The generated-platform record is held per package identity
-The identity SHALL be derived from the `Platform` CR's generation and the sorted set of active claims' catalog coordinates, so two packages built from the same inputs carry the same identity and any change to either input yields a different one (enhancement 0015, "The generated-platform record survives the render-parity enhancement and is held per package identity, not per Platform CR generation").
 
 #### Scenario: A claim change replaces the slot without a spec change
 

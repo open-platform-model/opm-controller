@@ -474,7 +474,7 @@ When the verdict refuses an object as `other-instance`, and the reconcile would 
 - **THEN** the controller writes nothing in that reconcile: it applies no object, stores no identity and prunes nothing
 
 ### Requirement: A refused object is left as it is
-When the verdict refuses an object as `terminating`, `foreign-object` or `other-instance`, the refused object MUST be left as it is. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+When the verdict refuses an object as `terminating`, `foreign-object` or `other-instance`, and the reconcile would write that object or the object exists and is not in `status.inventory`, the refused object MUST be left as it is. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: The refused object is untouched
 - **WHEN** the verdict refuses an object as `terminating`, `foreign-object` or `other-instance`
