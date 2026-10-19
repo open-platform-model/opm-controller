@@ -1874,14 +1874,15 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | Stored legacy singleton remains serviceable | A subscription without a version never reaches a platform build, Stored legacy singleton remains serviceable | no (byte equal, checked by the item 3 command) |
 | Status subresource present | PlatformStatus carries conditions, observedGeneration and operatorVersion, Status subresource present | no (byte equal, checked by the item 3 command) |
 | Operator printcolumn | PlatformStatus carries conditions, observedGeneration and operatorVersion, Operator printcolumn | no (byte equal, checked by the item 3 command) |
-| Status reflects the generate-and-build outcome | The Ready and ContractsFulfilled conditions carry the documented reasons, Status reflects the generate-and-build outcome | no (byte equal, checked by the item 3 command) |
-| Status carries the contract report | The Ready and ContractsFulfilled conditions carry the documented reasons, Status carries the contract report | no (byte equal, checked by the item 3 command) |
+| Status reflects the generate-and-build outcome | The Ready and ContractsFulfilled conditions carry their reasons, Status reflects the generate-and-build outcome | no (byte equal, checked by the item 3 command) |
+| Status carries the contract report | The Ready and ContractsFulfilled conditions carry their reasons, Status carries the contract report | no (byte equal, checked by the item 3 command) |
 
 New scenarios (restate a clause of the old body, with words of the old text only):
 
 | New scenario | Requirement | Old clause restated |
 | --- | --- | --- |
 | The skewPolicy is not part of the generated module | PlatformSpec carries type, registry and skewPolicy and generates the platform module from type and registry | the clause of that requirement body |
+| The field documentation names every reason | The documentation of the conditions field names every reason | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
 
@@ -1895,9 +1896,9 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Subscription shape | Whether `version` is schema-`required` or schema-optional follows t... | A subscription without a version never reaches a platform... | 2 | the em-dash is written as ":" |
 | Subscription shape |  admission in the required posture, the reconciler before any regis... | A subscription without a version never reaches a platform... | 3 | none |
 | PlatformStatus carries conditions and... | `PlatformStatus` SHALL carry `conditions` (a `metav1.Condition` lis... | PlatformStatus carries conditions, observedGeneration and... | 1 | none |
-| PlatformStatus carries conditions and... | The Ready condition SHALL summarise module generation: `Ready=True`... | The Ready and ContractsFulfilled conditions carry the doc... | 1 | none |
-| PlatformStatus carries conditions and... | A `ContractsFulfilled` condition SHALL report the effective package... | The Ready and ContractsFulfilled conditions carry the doc... | 2 | none |
-| PlatformStatus carries conditions and... | The field's documentation SHALL name every reason. | The Ready and ContractsFulfilled conditions carry the doc... | 3 | none |
+| PlatformStatus carries conditions and... | The Ready condition SHALL summarise module generation: `Ready=True`... | The Ready and ContractsFulfilled conditions carry their r... | 1 | none |
+| PlatformStatus carries conditions and... | A `ContractsFulfilled` condition SHALL report the effective package... | The Ready and ContractsFulfilled conditions carry their r... | 2 | none |
+| PlatformStatus carries conditions and... | The field's documentation SHALL name every reason. | The documentation of the conditions field names every reason | 1 | added the named reference: As in requirement "PlatformStatus carries conditions, observedGeneration and operatorVersion": |
 
 Lengths (old body, new bodies; characters by the guide's rule):
 
@@ -1905,7 +1906,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | --- | --- | --- |
 | PlatformSpec projects core #Platform | 564 | 305, 258 |
 | Subscription shape | 726 | 351, 373 |
-| PlatformStatus carries conditions and observedGeneration | 609 | 128, 480 |
+| PlatformStatus carries conditions and observedGeneration | 609 | 128, 429, 145 |
 
 ### Ledger: platform-module-generation
 
@@ -2027,7 +2028,7 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 
 | Old requirement | Old clause | New requirement | Sentence | Edit |
 | --- | --- | --- | --- | --- |
-| Registry fetch failures are transient... | A failure | Registry fetch failures are transient wherever they occur | 1 | added "SHALL be" (Strength table) |
+| Registry fetch failures are transient... | A failure | Registry fetch failures are transient wherever they occur | 1 | added the named reference: As in requirement "A render failure is classified by its type, never by its message text":; added "SHALL be" (Strength table) |
 | Registry fetch failures are transient... |  transient when its error chain holds the library's typed registry ... | Registry fetch failures are transient wherever they occur | 2 | none |
 | Registry fetch failures are transient... | When a render fails, the ModuleInstance and ModulePackage reconcile... | A render failure is classified by its type, never by its ... | 1 | none |
 | Registry fetch failures are transient... | This holds for every kernel call the render makes: module acquisiti... | A render failure is classified by its type, never by its ... | 2 | none |
@@ -2043,7 +2044,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Registry fetch failures are transient wherever they occur | 1412 | 384, 338, 442, 409 |
+| Registry fetch failures are transient wherever they occur | 1412 | 475, 338, 442, 409 |
 | A render timeout retries on the backoff | 1270 | 494, 310, 227, 168, 273 |
 
 ### Ledger: registration-driven-regeneration

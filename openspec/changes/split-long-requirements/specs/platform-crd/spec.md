@@ -10,7 +10,7 @@
 
 ### Requirement: PlatformStatus carries conditions and observedGeneration
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "PlatformStatus carries conditions, observedGeneration and operatorVersion", "The Ready and ContractsFulfilled conditions carry the documented reasons".
+**Migration**: See "PlatformStatus carries conditions, observedGeneration and operatorVersion", "The Ready and ContractsFulfilled conditions carry their reasons", "The documentation of the conditions field names every reason".
 
 
 ## ADDED Requirements
@@ -80,8 +80,8 @@ A subscription without a version SHALL never reach a platform build. Whether `ve
 - **WHEN** `kubectl get platform` runs against a reconciled Platform
 - **THEN** the output includes an `Operator` column showing `.status.operatorVersion`
 
-### Requirement: The Ready and ContractsFulfilled conditions carry the documented reasons
-The Ready condition SHALL summarise module generation: `Ready=True` reason `Generated`; `Ready=False` reason `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates`. A `ContractsFulfilled` condition SHALL report the effective package's unfulfilled provider-fulfilled contracts without affecting Ready (reasons `UnfulfilledContracts`, `ContractsFulfilled`, `NoContractsDefined`). The field's documentation SHALL name every reason.
+### Requirement: The Ready and ContractsFulfilled conditions carry their reasons
+The Ready condition SHALL summarise module generation: `Ready=True` reason `Generated`; `Ready=False` reason `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates`. A `ContractsFulfilled` condition SHALL report the effective package's unfulfilled provider-fulfilled contracts without affecting Ready (reasons `UnfulfilledContracts`, `ContractsFulfilled`, `NoContractsDefined`).
 
 #### Scenario: Status reflects the generate-and-build outcome
 
@@ -92,3 +92,10 @@ The Ready condition SHALL summarise module generation: `Ready=True` reason `Gene
 
 - **WHEN** the Platform reconciles to `Ready=True`
 - **THEN** `status.conditions` carries a `ContractsFulfilled` condition with one of the reasons `UnfulfilledContracts`, `ContractsFulfilled` or `NoContractsDefined`
+
+### Requirement: The documentation of the conditions field names every reason
+As in requirement "PlatformStatus carries conditions, observedGeneration and operatorVersion": The field's documentation SHALL name every reason.
+
+#### Scenario: The field documentation names every reason
+- **WHEN** the `conditions` field of `PlatformStatus` is documented
+- **THEN** its documentation names every reason

@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Registry fetch failures are transient wherever they occur
-A failure SHALL be transient when its error chain holds the library's typed registry fetch failure (`*oerrors.FetchError`, of any `Kind`: unreachable, not found, unauthorized or other) and holds none of the typed terminal causes (an identity mismatch, a wrong artifact kind, a structurally invalid package, a missing required field, unresolved platform demands, unmatched components).
+As in requirement "A render failure is classified by its type, never by its message text": A failure SHALL be transient when its error chain holds the library's typed registry fetch failure (`*oerrors.FetchError`, of any `Kind`: unreachable, not found, unauthorized or other) and holds none of the typed terminal causes (an identity mismatch, a wrong artifact kind, a structurally invalid package, a missing required field, unresolved platform demands, unmatched components).
 
 #### Scenario: Registry outage during ModuleInstance acquisition retries on the backoff
 
