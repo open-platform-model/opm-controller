@@ -138,7 +138,7 @@ format) and the clause or scenario THEN line that carries each. Rules of the led
   default or an exact value may move this way. A clause that adds or changes a condition stays
   in the body. A separate behavior goes to b or c2.
 
-Ledgers written so far: unit 1 (opm-operator-B2), unit 2 (opm-operator-B4) and unit 3 (opm-operator-B6), below.
+Ledgers written so far: unit 1 (opm-operator-B2), unit 2 (opm-operator-B4), unit 3 (opm-operator-B6) and unit 4a (the first five specs of opm-operator-B7: `serviceaccount-impersonation`, `platform-crd`, `platform-module-generation`, `reconcile-backoff`, `registration-driven-regeneration`), below.
 
 Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
 
@@ -155,6 +155,15 @@ Unit 3 (opm-operator-B6) rules of text, for the seven ledgers of unit 3:
 - A list of rules that cannot fit moves into a scenario: the six parts of the render input key and the seven skip conditions. The body keeps the SHALL, repeats the old subject and names the scenario.
 - Three bodies gained one RFC 2119 keyword where the old sentence had none; the Strength table lists them. Where a sibling sentence carries the keyword, the sibling is copied as context instead.
 - A "Subject" of the old text ("It", "Both fields") is replaced by a subject copied from the same old requirement (the Edit column shows it).
+
+Unit 4a (opm-operator-B7, first five specs; 14 requirements) rules of text, for the five ledgers of unit 4a:
+
+- The header of the `ssa-apply` requirement "A claim whose update the API server refuses fails the whole apply with a named error" is renamed "A claim whose update the API server refuses returns a named error" in its own commit before the 14 requirements (DECISIONS.md 2026-10-20 01:35). Its body says that the apply returns an error that names the claim, the fields and the API server's message; the rule that no object is written is in the requirement "A refused claim update applies, creates and deletes no object of the set". Every exact-header reference in this change (that delta, its migration line, its ledger and clause rows) uses the new header. The six-header identity list of "The identity of the apply verdict is the same for a ModuleInstance and a ModulePackage" does not hold this header.
+- A body that relies on a sibling for its subject or condition names the sibling by its exact header, in the form `As in requirement "<header>": <old sentence>` (DECISIONS.md 2026-10-19 16:55). The prefix is the only added text of such a body. It is used where the old text says "this stall", "both", "other", "the annotation" or "the message", and where a sentence has no subject of its own.
+- A list whose lead sentence is a head ("the controller MUST:" with bullets, "The Ready condition SHALL reflect the outcome:" with items, "The registry SHALL be resolved from BOTH ...:" with two entries) is cut at an item boundary: the head is repeated and the bullet lines or items are verbatim. The first sentence of `platform-module-generation` "The reconciler generates a platform module from the CR" is over 500 on its own; it is cut at the boundaries of its own list (the `cue.mod/module.cue` path, the core pin with the catalogs, the `platform.cue` entry), each part with the head repeated. The dependency sentence of that requirement is cut at its ";" (the closure, then the module-file source); its roots are named by the exact headers of the two requirements that hold them. A closing "." replaces the "," or ";" that ended the cut item.
+- The two em-dashes of `registration-driven-regeneration` and the one of `platform-crd` are written as "," and ":" in the bodies, because the workspace bans the character.
+- `reconcile-backoff` keeps both headers (form b), because other specs cite them by exact text (see its ledger). The parent bodies are the sentences that carry the header's rule; every other rule is an ADDED requirement with a restatement scenario in words of the old body.
+- Five sentences gained a keyword (Strength table). Where a body already holds a SHALL, a sentence without a keyword stays as it was (`platform-crd`: two bodies).
 
 ### Ledger: deps-cascade
 
@@ -1653,6 +1662,11 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | --- | --- | --- |
 | A reconcile whose digests match is not a no-op | A reconcile whose digests match applies the objects the verdict allows when one is outside the inventory or another instance adopts an object | the clause of that requirement body |
 | Matching digests apply the rendered set | A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it | the clause of that requirement body |
+| Two cases of a missing deletion-cleanup ServiceAccount are not the DeletionSAMissing stall | "Two cases SHALL NOT be this stall, because ..." | "Two cases are not this stall, because ..." (serviceaccount-impersonation, "Deletion-cleanup SA-missing stalls with distinct reason") |
+| Both cases remove the finalizer and warn DeletionUnconfirmed | "In both the finalizer SHALL be removed, the controller's own client SHALL still never be used, and a `Warning` event with reason `DeletionUnconfirmed` SHALL say what could not be read." | "In both the finalizer is removed, the controller's own client is still never used, and a `Warning` event with reason `DeletionUnconfirmed` says what could not be read." (same requirement) |
+| The restore of ServiceAccount RBAC alone is not a trigger | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) SHALL NOT be a trigger; ..." | "The restore of a ServiceAccount's RBAC alone (a Role or a binding) is not a trigger; ..." (serviceaccount-impersonation, "A created ServiceAccount wakes the instances that impersonate it") |
+| The materialize-era reasons are retired | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) SHALL be retired." | "The materialize-era reasons (`Materialized`, `MaterializeFailed`) are retired." (platform-module-generation, "The generated module is validated by building it") |
+| Registry fetch failures are transient wherever they occur | "A failure SHALL be transient when its error chain holds ..." | "A failure is transient when its error chain holds ..." (reconcile-backoff, same requirement) |
 | A second identity change is refused | The identity fields are written, kept and cleared as on a ModuleInstance | the clause of that requirement body |
 | The earlier identity is not asked with | A ModulePackage reconcile never asks the verdict with the earlier identity of an unsettled change | the clause of that requirement body |
 | No empty identity | A ModulePackage reconcile never asks the verdict with an empty identity | the clause of that requirement body |
@@ -1759,6 +1773,314 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | Old requirement | Old | New |
 | --- | --- | --- |
 | The render digest is the library's | 628 | 348, 434, 204, 467 |
+
+### Ledger: serviceaccount-impersonation
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Identity seen by the apiserver | An impersonated request reaches the apiserver as the ServiceAccount user with its groups, Identity seen by the apiserver | no (byte equal, checked by the item 3 command) |
+| No group is sent | The controller names no group on an impersonated request, No group is sent | no (byte equal, checked by the item 3 command) |
+| Group-subject RoleBinding authorizes apply | An RBAC binding on a ServiceAccount group authorises the impersonated request, Group-subject RoleBinding authorizes apply | no (byte equal, checked by the item 3 command) |
+| ServiceAccount without a binding is refused | An RBAC binding on a ServiceAccount group authorises the impersonated request, ServiceAccount without a binding is refused | no (byte equal, checked by the item 3 command) |
+| SA deleted before finalizer can prune | A missing deletion-cleanup ServiceAccount stalls with DeletionSAMissing, SA deleted before finalizer can prune | no (byte equal, checked by the item 3 command) |
+| Other impersonation errors keep existing behavior | A missing deletion-cleanup ServiceAccount stalls with DeletionSAMissing, Other impersonation errors keep existing behavior | no (byte equal, checked by the item 3 command) |
+| ServiceAccount removed while the cleanup waits | Two cases of a missing deletion-cleanup ServiceAccount are not the DeletionSAMissing stall, ServiceAccount removed while the cleanup waits | no (byte equal, checked by the item 3 command) |
+| Only kept claims and no ServiceAccount | Both cases remove the finalizer and warn DeletionUnconfirmed, Only kept claims and no ServiceAccount | no (byte equal, checked by the item 3 command) |
+| Orphan annotation releases a stuck deletion | The orphan annotation skips prune and removes the finalizer, Orphan annotation releases a stuck deletion | no (byte equal, checked by the item 3 command) |
+| Orphan annotation ignored for non-SA-missing stall | The orphan annotation takes effect only for a missing ServiceAccount and only with the value true, Orphan annotation ignored for non-SA-missing stall | no (byte equal, checked by the item 3 command) |
+| Annotation value other than "true" is treated as absent | The orphan annotation takes effect only for a missing ServiceAccount and only with the value true, Annotation value other than "true" is treated as absent | no (byte equal, checked by the item 3 command) |
+| A created ServiceAccount enqueues the instances that name it | A created ServiceAccount enqueues the instances stalled on it, A created ServiceAccount enqueues the instances that name it | no (byte equal, checked by the item 3 command) |
+| The flag default counts as the effective ServiceAccount | A created ServiceAccount enqueues the instances stalled on it, The flag default counts as the effective ServiceAccount | no (byte equal, checked by the item 3 command) |
+| A healthy instance is not enqueued | A created ServiceAccount enqueues no instance that is not stalled on it, A healthy instance is not enqueued | no (byte equal, checked by the item 3 command) |
+| Instances the ServiceAccount cannot change are not enqueued | A created ServiceAccount enqueues no instance it cannot change, Instances the ServiceAccount cannot change are not enqueued | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The stall message names the ServiceAccount and lists the recovery options | The DeletionSAMissing message names the ServiceAccount and the recovery options | the clause of that requirement body |
+| The stalled release keeps its finalizer and warns once | The DeletionSAMissing stall keeps the finalizer and warns once | the clause of that requirement body |
+| Both deletion paths stall alike | The DeletionSAMissing stall applies to both deletion paths | the clause of that requirement body |
+| The orphan exit warns and clears the inventory | The orphan annotation emits OrphanedOnDeletion and clears the inventory | the clause of that requirement body |
+| An instance being deleted and one stalled on the apply path are both enqueued | A created ServiceAccount enqueues an instance being deleted and one stalled on the apply path | the clause of that requirement body |
+| An update or a deletion of a ServiceAccount enqueues nothing | A created ServiceAccount enqueues no instance it cannot change | the clause of that requirement body |
+| A restored Role or binding enqueues nothing | The restore of ServiceAccount RBAC alone is not a trigger | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Impersonated identity has the Service... | An impersonated request MUST reach the apiserver as the user `syste... | An impersonated request reaches the apiserver as the Serv... | 1 | none |
+| Impersonated identity has the Service... | An impersonated request MUST reach the apiserver as the user `syste... | The controller names no group on an impersonated request | 1 | none |
+| Impersonated identity has the Service... | The controller MUST NOT name a group on an impersonated request; th... | The controller names no group on an impersonated request | 2 | none |
+| Impersonated identity has the Service... | An impersonated request MUST reach the apiserver as the user `syste... | An RBAC binding on a ServiceAccount group authorises the ... | 1 | none |
+| Impersonated identity has the Service... | An RBAC binding whose subject is one of these groups MUST authorise... | An RBAC binding on a ServiceAccount group authorises the ... | 2 | none |
+| Deletion-cleanup SA-missing stalls wi... | When the deletion cleanup path attempts to build an impersonated cl... | A missing deletion-cleanup ServiceAccount stalls with Del... | 1 | none |
+| Deletion-cleanup SA-missing stalls wi... | - NOT silently fall back to the controller's own client. | A missing deletion-cleanup ServiceAccount stalls with Del... | 2 | none |
+| Deletion-cleanup SA-missing stalls wi... | - Stall the release with `Ready=False` and condition reason `Deleti... | A missing deletion-cleanup ServiceAccount stalls with Del... | 3 | none |
+| Deletion-cleanup SA-missing stalls wi... | - Requeue on the stalled-recheck interval, not the tight transient ... | A missing deletion-cleanup ServiceAccount stalls with Del... | 4 | none |
+| Deletion-cleanup SA-missing stalls wi... | When the deletion cleanup path attempts to build an impersonated cl... | The DeletionSAMissing message names the ServiceAccount an... | 1 | none |
+| Deletion-cleanup SA-missing stalls wi... | - Populate the condition message with the SA's namespaced name and ... | The DeletionSAMissing message names the ServiceAccount an... | 2 | none |
+| Deletion-cleanup SA-missing stalls wi... | When the deletion cleanup path attempts to build an impersonated cl... | The DeletionSAMissing stall keeps the finalizer and warns... | 1 | none |
+| Deletion-cleanup SA-missing stalls wi... | - Retain the finalizer. | The DeletionSAMissing stall keeps the finalizer and warns... | 2 | none |
+| Deletion-cleanup SA-missing stalls wi... | - Emit a `Warning` event with reason `DeletionSAMissing` on the Rea... | The DeletionSAMissing stall keeps the finalizer and warns... | 3 | none |
+| Deletion-cleanup SA-missing stalls wi... | This behavior MUST apply symmetrically to both `ModuleRelease` and ... | The DeletionSAMissing stall applies to both deletion paths | 1 | added the named reference: As in requirements "A missing deletion-cleanup ServiceAccount stalls with DeletionSAMissing", "The DeletionSAMissing message names the ServiceAccount and the recovery options" and "The DeletionSAMissing stall keeps the finalizer and warns once": |
+| Deletion-cleanup SA-missing stalls wi... | Two cases | Two cases of a missing deletion-cleanup ServiceAccount ar... | 1 | added the named reference: As in requirement "A missing deletion-cleanup ServiceAccount stalls with DeletionSAMissing":; added "SHALL NOT be" (Strength table) |
+| Deletion-cleanup SA-missing stalls wi... |  this stall, because the missing ServiceAccount has nothing left to... | Two cases of a missing deletion-cleanup ServiceAccount ar... | 2 | none |
+| Deletion-cleanup SA-missing stalls wi... | In both the finalizer | Both cases remove the finalizer and warn DeletionUnconfirmed | 1 | added the named reference: As in requirement "Two cases of a missing deletion-cleanup ServiceAccount are not the DeletionSAMissing stall":; added "SHALL be" (Strength table) |
+| Deletion-cleanup SA-missing stalls wi... |  removed, the controller's own client | Both cases remove the finalizer and warn DeletionUnconfirmed | 2 | added "SHALL" (Strength table) |
+| Deletion-cleanup SA-missing stalls wi... |  still never | Both cases remove the finalizer and warn DeletionUnconfirmed | 3 | none |
+| Deletion-cleanup SA-missing stalls wi... |  used, and a `Warning` event with reason `DeletionUnconfirmed` | Both cases remove the finalizer and warn DeletionUnconfirmed | 4 | added "be"; added "SHALL say" (Strength table) |
+| Deletion-cleanup SA-missing stalls wi... |  what could not be read. | Both cases remove the finalizer and warn DeletionUnconfirmed | 5 | none |
+| Orphan-exit annotation removes finali... | When a release is in the `DeletionSAMissing` stall state AND the an... | The orphan annotation skips prune and removes the finalizer | 1 | none |
+| Orphan-exit annotation removes finali... | - Skip prune entirely. | The orphan annotation skips prune and removes the finalizer | 2 | none |
+| Orphan-exit annotation removes finali... | - Remove the finalizer. | The orphan annotation skips prune and removes the finalizer | 3 | none |
+| Orphan-exit annotation removes finali... | When a release is in the `DeletionSAMissing` stall state AND the an... | The orphan annotation emits OrphanedOnDeletion and clears... | 1 | none |
+| Orphan-exit annotation removes finali... | - Emit a `Warning` event with reason `OrphanedOnDeletion` naming th... | The orphan annotation emits OrphanedOnDeletion and clears... | 2 | none |
+| Orphan-exit annotation removes finali... | The annotation MUST only take effect when the deletion cleanup impe... | The orphan annotation takes effect only for a missing Ser... | 1 | added the named reference: As in requirement "The orphan annotation skips prune and removes the finalizer": |
+| Orphan-exit annotation removes finali... | Any annotation value other than the literal string `"true"` MUST be... | The orphan annotation takes effect only for a missing Ser... | 2 | none |
+| A created ServiceAccount wakes the in... | When a ServiceAccount is created, the controller MUST enqueue every... | A created ServiceAccount enqueues the instances stalled o... | 1 | none |
+| A created ServiceAccount wakes the in... | Such an instance then recovers without waiting for its stalled rech... | A created ServiceAccount enqueues the instances stalled o... | 2 | none |
+| A created ServiceAccount wakes the in... | When a ServiceAccount is created, the controller MUST enqueue every... | A created ServiceAccount enqueues an instance being delet... | 1 | none |
+| A created ServiceAccount wakes the in... | This holds for an instance being deleted and for one stalled on the... | A created ServiceAccount enqueues an instance being delet... | 2 | none |
+| A created ServiceAccount wakes the in... | The controller MUST NOT enqueue an instance that is not stalled on ... | A created ServiceAccount enqueues no instance that is not... | 1 | none |
+| A created ServiceAccount wakes the in... | The controller MUST NOT enqueue an instance the ServiceAccount cann... | A created ServiceAccount enqueues no instance it cannot c... | 1 | added the named reference: As in requirement "A created ServiceAccount enqueues the instances stalled on it": |
+| A created ServiceAccount wakes the in... | The restore of a ServiceAccount's RBAC alone (a Role or a binding) | The restore of ServiceAccount RBAC alone is not a trigger | 1 | added the named reference: As in requirement "A created ServiceAccount enqueues the instances stalled on it":; added "SHALL NOT be" (Strength table) |
+| A created ServiceAccount wakes the in... |  a trigger; an instance stalled with `ImpersonationFailed` on a for... | The restore of ServiceAccount RBAC alone is not a trigger | 2 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Impersonated identity has the ServiceAccount's groups | 547 | 258, 393, 412 |
+| Deletion-cleanup SA-missing stalls with distinct reason | 1386 | 472, 355, 314, 338, 451, 296 |
+| Orphan-exit annotation removes finalizer on SA-missing | 794 | 208, 419, 408 |
+| A created ServiceAccount wakes the instances that impersonate it | 1263 | 430, 438, 256, 386, 280 |
+
+### Ledger: platform-crd
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Skew policy defaults to Warn | PlatformSpec carries type, registry and skewPolicy and generates the platform module from type and registry, Skew policy defaults to Warn | no (byte equal, checked by the item 3 command) |
+| Minimal valid platform spec | PlatformSpec carries type, registry and skewPolicy and generates the platform module from type and registry, Minimal valid platform spec | no (byte equal, checked by the item 3 command) |
+| type is required | PlatformSpec carries type, registry and skewPolicy and generates the platform module from type and registry, type is required | no (byte equal, checked by the item 3 command) |
+| Invalid skew policy is rejected at admission | skewPolicy answers a catalog requirement newer than the pinned build and is validated at admission, Invalid skew policy is rejected at admission | no (byte equal, checked by the item 3 command) |
+| Scalar subscription accepted | The registry maps catalog paths to subscriptions of one published version, Scalar subscription accepted | no (byte equal, checked by the item 3 command) |
+| Filter rejected | The registry maps catalog paths to subscriptions of one published version, Filter rejected | no (byte equal, checked by the item 3 command) |
+| Stored legacy singleton remains serviceable | A subscription without a version never reaches a platform build, Stored legacy singleton remains serviceable | no (byte equal, checked by the item 3 command) |
+| Status subresource present | PlatformStatus carries conditions, observedGeneration and operatorVersion, Status subresource present | no (byte equal, checked by the item 3 command) |
+| Operator printcolumn | PlatformStatus carries conditions, observedGeneration and operatorVersion, Operator printcolumn | no (byte equal, checked by the item 3 command) |
+| Status reflects the generate-and-build outcome | The Ready and ContractsFulfilled conditions carry the documented reasons, Status reflects the generate-and-build outcome | no (byte equal, checked by the item 3 command) |
+| Status carries the contract report | The Ready and ContractsFulfilled conditions carry the documented reasons, Status carries the contract report | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The skewPolicy is not part of the generated module | PlatformSpec carries type, registry and skewPolicy and generates the platform module from type and registry | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| PlatformSpec projects core #Platform | `PlatformSpec` SHALL carry `type` (required, informational discrimi... | PlatformSpec carries type, registry and skewPolicy and ge... | 1 | none |
+| PlatformSpec projects core #Platform | The operator generates a platform CUE module from `type` and `regis... | PlatformSpec carries type, registry and skewPolicy and ge... | 2 | none |
+| PlatformSpec projects core #Platform | `skewPolicy` is the operator's response when a module's declared ca... | skewPolicy answers a catalog requirement newer than the p... | 1 | none |
+| Subscription shape | `PlatformSpec.Registry` SHALL map major-suffixed catalog module pat... | The registry maps catalog paths to subscriptions of one p... | 1 | none |
+| Subscription shape | A subscription without a version SHALL never reach a platform build. | A subscription without a version never reaches a platform... | 1 | none |
+| Subscription shape | Whether `version` is schema-`required` or schema-optional follows t... | A subscription without a version never reaches a platform... | 2 | the em-dash is written as ":" |
+| Subscription shape |  admission in the required posture, the reconciler before any regis... | A subscription without a version never reaches a platform... | 3 | none |
+| PlatformStatus carries conditions and... | `PlatformStatus` SHALL carry `conditions` (a `metav1.Condition` lis... | PlatformStatus carries conditions, observedGeneration and... | 1 | none |
+| PlatformStatus carries conditions and... | The Ready condition SHALL summarise module generation: `Ready=True`... | The Ready and ContractsFulfilled conditions carry the doc... | 1 | none |
+| PlatformStatus carries conditions and... | A `ContractsFulfilled` condition SHALL report the effective package... | The Ready and ContractsFulfilled conditions carry the doc... | 2 | none |
+| PlatformStatus carries conditions and... | The field's documentation SHALL name every reason. | The Ready and ContractsFulfilled conditions carry the doc... | 3 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| PlatformSpec projects core #Platform | 564 | 305, 258 |
+| Subscription shape | 726 | 351, 373 |
+| PlatformStatus carries conditions and observedGeneration | 609 | 128, 480 |
+
+### Ledger: platform-module-generation
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Core pin follows the library | The operator carries no core-pin constant of its own, Core pin follows the library | no (byte equal, checked by the item 3 command) |
+| A two-catalog CR generates a two-entry module | The registry has one entry per authored subscription, A two-catalog CR generates a two-entry module | no (byte equal, checked by the item 3 command) |
+| An active claim's catalog is pinned and imported | The registry has one entry per accepted and active claim, An active claim's catalog is pinned and imported | no (byte equal, checked by the item 3 command) |
+| An authored subscription wins over a claim naming its catalog | An authored subscription wins over a claim naming its catalog, An authored subscription wins over a claim naming its catalog | no (byte equal, checked by the item 3 command) |
+| A transitive dependency is pinned in the closure | The dependency list is the full closure of the pinned modules, A transitive dependency is pinned in the closure | no (byte equal, checked by the item 3 command) |
+| A disabled subscription is generated disabled | A disabled subscription is generated disabled and still pinned and imported, A disabled subscription is generated disabled | no (byte equal, checked by the item 3 command) |
+| Deterministic regeneration | Regeneration is deterministic, Deterministic regeneration | no (byte equal, checked by the item 3 command) |
+| A claimless platform generates what its spec alone implies | A Platform with no active claim generates the module its spec alone produces, A claimless platform generates what its spec alone implies | no (byte equal, checked by the item 3 command) |
+| Clean build sets Ready | The reconciler builds the generated module, reads its inventory and sets Ready=True when the gate passes, Clean build sets Ready | no (byte equal, checked by the item 3 command) |
+| Nonexistent pin surfaces on the CR | A build that fails sets Ready=False with reason BuildFailed, Nonexistent pin surfaces on the CR | no (byte equal, checked by the item 3 command) |
+| A failed build keeps the last good module | A failed or refused reconcile leaves the previously recorded module in place, A failed build keeps the last good module | no (byte equal, checked by the item 3 command) |
+| A built but refused module keeps the last good module | A failed or refused reconcile leaves the previously recorded module in place, A built but refused module keeps the last good module | no (byte equal, checked by the item 3 command) |
+| Two identities for one generation get separate directories | Each package's module is written to a directory named by the package identity, Two identities for one generation get separate directories | no (byte equal, checked by the item 3 command) |
+| A crash mid-write leaves no current module | Generation writes into a staging directory and renames it into place, A crash mid-write leaves no current module | no (byte equal, checked by the item 3 command) |
+| Superseded packages are pruned | After a successful build the platform directory keeps only the current and the leased packages, Superseded packages are pruned | no (byte equal, checked by the item 3 command) |
+| A leased package survives the prune | After a successful build the platform directory keeps only the current and the leased packages, A leased package survives the prune | no (byte equal, checked by the item 3 command) |
+| Restart regenerates from the CR | The platform directory is emptied at manager start, Restart regenerates from the CR | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| The module carries a cue.mod at the reserved path | The generated platform module has a cue.mod/module.cue at the reserved module path | the clause of that requirement body |
+| The cue.mod pins core and every catalog the registry names | The generated cue.mod pins core at the library's release and every catalog the registry names | the clause of that requirement body |
+| The platform.cue carries one importing entry per catalog | The generated platform.cue embeds core.#Platform with one registry entry per catalog | the clause of that requirement body |
+| The module-file source comes from the operator's configuration | The module-file source is constructed from the operator's configuration | the clause of that requirement body |
+| A module that could not be written is GenerateFailed | A module that could not be written sets Ready=False with reason GenerateFailed | the clause of that requirement body |
+| A refused module sets the refusal's reason | A module that built and was refused by the gate sets Ready=False with the refusal's reason | the clause of that requirement body |
+| The materialize-era reasons are not used | The materialize-era reasons are retired | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated platform module has a cue.mod/module.cue at... | 1 | none |
+| The reconciler generates a platform m... | a `cue.mod/module.cue` under the fixed reserved-unpublished module ... | The generated platform module has a cue.mod/module.cue at... | 2 | added "." |
+| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated cue.mod pins core at the library's release ... | 1 | none |
+| The reconciler generates a platform m... | pinning core at the library's verified core release (the version ca... | The generated cue.mod pins core at the library's release ... | 2 | added "." |
+| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated platform.cue embeds core.#Platform with one... | 1 | none |
+| The reconciler generates a platform m... | a `platform.cue` embedding `core.#Platform` with one `#registry` en... | The generated platform.cue embeds core.#Platform with one... | 2 | none |
+| The reconciler generates a platform m... | The operator SHALL carry no core-pin constant of its own. | The operator carries no core-pin constant of its own | 1 | none |
+| The reconciler generates a platform m... | The registry SHALL be resolved from BOTH of the two paths transform... | The registry has one entry per authored subscription | 1 | none |
+| The reconciler generates a platform m... | one entry per subscription the CR's `spec.registry` authored, with ... | The registry has one entry per authored subscription | 2 | added "." |
+| The reconciler generates a platform m... | The registry SHALL be resolved from BOTH of the two paths transform... | The registry has one entry per accepted and active claim | 1 | none |
+| The reconciler generates a platform m... | one entry per accepted-and-active `TransformerRegistration` claim, ... | The registry has one entry per accepted and active claim | 2 | none |
+| The reconciler generates a platform m... | A catalog is one `#registry` key, so a catalog named by an authored... | An authored subscription wins over a claim naming its cat... | 1 | none |
+| The reconciler generates a platform m... | The dependency list SHALL be the full closure: beyond those roots i... | The dependency list is the full closure of the pinned mod... | 1 | added the named reference: As in requirements "The registry has one entry per authored subscription" and "The registry has one entry per accepted and active claim":; added "." |
+| The reconciler generates a platform m... | the module-file source SHALL be constructed from the operator's con... | The module-file source is constructed from the operator's... | 1 | added the named reference: As in requirement "The dependency list is the full closure of the pinned modules": |
+| The reconciler generates a platform m... | A disabled subscription (`enable: false`) SHALL be generated with `... | A disabled subscription is generated disabled and still p... | 1 | none |
+| The reconciler generates a platform m... | Regeneration SHALL be deterministic: the same inputs produce byte-i... | Regeneration is deterministic | 1 | none |
+| The reconciler generates a platform m... | A Platform with no active claim SHALL generate the module its spec ... | A Platform with no active claim generates the module its ... | 1 | none |
+| The generated module is validated by ... | After writing the module, the reconciler SHALL build it through the... | The reconciler builds the generated module, reads its inv... | 1 | none |
+| The generated module is validated by ... | The Ready condition SHALL reflect the outcome: | The reconciler builds the generated module, reads its inv... | 2 | none |
+| The generated module is validated by ... | Ready=True with reason `Generated` when the build succeeds and the ... | The reconciler builds the generated module, reads its inv... | 3 | added "." |
+| The generated module is validated by ... | The Ready condition SHALL reflect the outcome: | A build that fails sets Ready=False with reason BuildFailed | 1 | none |
+| The generated module is validated by ... | Ready=False with reason `BuildFailed`, with the error naming the fa... | A build that fails sets Ready=False with reason BuildFailed | 2 | added "." |
+| The generated module is validated by ... | The Ready condition SHALL reflect the outcome: | A module that could not be written sets Ready=False with ... | 1 | none |
+| The generated module is validated by ... | Ready=False with reason `GenerateFailed` when the module could not ... | A module that could not be written sets Ready=False with ... | 2 | added "." |
+| The generated module is validated by ... | The Ready condition SHALL reflect the outcome: | A module that built and was refused by the gate sets Read... | 1 | none |
+| The generated module is validated by ... | Ready=False with reason `ContractCollisions`, `OverSubscribedContra... | A module that built and was refused by the gate sets Read... | 2 | none |
+| The generated module is validated by ... | The materialize-era reasons (`Materialized`, `MaterializeFailed`) | The materialize-era reasons are retired | 1 | added "SHALL be" (Strength table) |
+| The generated module is validated by ... |  retired. | The materialize-era reasons are retired | 2 | none |
+| The generated module is validated by ... | A failed or refused reconcile SHALL leave the previously recorded m... | A failed or refused reconcile leaves the previously recor... | 1 | none |
+| The generated module lives in a per-i... | The operator SHALL write each package's module under a manager-conf... | Each package's module is written to a directory named by ... | 1 | none |
+| The generated module lives in a per-i... | Generation SHALL write into a staging directory and rename it into ... | Generation writes into a staging directory and renames it... | 1 | none |
+| The generated module lives in a per-i... | After a successful build the operator SHALL keep the current packag... | After a successful build the platform directory keeps onl... | 1 | none |
+| The generated module lives in a per-i... | At manager start the operator SHALL empty the platform directory; t... | The platform directory is emptied at manager start | 1 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| The reconciler generates a platform module from the CR | 2750 | 300, 470, 308, 57, 480, 472, 314, 432, 239, 160, 379, 82 |
+| The generated module is validated by building it | 1189 | 474, 358, 133, 191, 83, 91 |
+| The generated module lives in a per-identity directory and is swapped whole | 1243 | 459, 188, 355, 238 |
+
+### Ledger: reconcile-backoff
+
+Form b for both requirements below: MODIFIED keeps the old header, every old scenario and a shorter body; the splits are ADDED under new names. The headers cannot be renamed, because `grep -rn --exclude-dir=archive` finds "Registry fetch failures are transient wherever they occur" in `platform-reconciler`, `module-instance-synthesis`, `modulepackage-artifact-loading` and `modulepackage-reconcile-loop`, and "A render timeout retries on the backoff" in `library-kernel-runtime`. A live scenario never moves from a MODIFIED parent to an ADDED block, so the parent keeps all of them and each ADDED block carries a restatement scenario of its own. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each. The kept header "Registry fetch failures are transient wherever they occur" says where the rule holds; its body states the rule by the error chain, which does not depend on the call, and the ADDED requirement "A render failure is classified by its type, never by its message text" keeps the list of kernel calls.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Registry outage during ModuleInstance acquisition retries on the backoff | Registry fetch failures are transient wherever they occur, Registry outage during ModuleInstance acquisition retries on the backoff | no (byte equal, checked by the item 3 command) |
+| Registry outage while loading a ModulePackage retries on the backoff | Registry fetch failures are transient wherever they occur, Registry outage while loading a ModulePackage retries on the backoff | no (byte equal, checked by the item 3 command) |
+| Registry failure during synthesis or render retries on the backoff | Registry fetch failures are transient wherever they occur, Registry failure during synthesis or render retries on the backoff | no (byte equal, checked by the item 3 command) |
+| Not-found and refused credentials retry on the backoff | Registry fetch failures are transient wherever they occur, Not-found and refused credentials retry on the backoff | no (byte equal, checked by the item 3 command) |
+| Repeated fetch failures cap at five minutes | Registry fetch failures are transient wherever they occur, Repeated fetch failures cap at five minutes | no (byte equal, checked by the item 3 command) |
+| Recovery once the registry answers | Registry fetch failures are transient wherever they occur, Recovery once the registry answers | no (byte equal, checked by the item 3 command) |
+| Typed terminal causes stay stalled | Registry fetch failures are transient wherever they occur, Typed terminal causes stay stalled | no (byte equal, checked by the item 3 command) |
+| Author defect in a package stalls | Registry fetch failures are transient wherever they occur, Author defect in a package stalls | no (byte equal, checked by the item 3 command) |
+| Unclassified acquisition failure stalls | Registry fetch failures are transient wherever they occur, Unclassified acquisition failure stalls | no (byte equal, checked by the item 3 command) |
+| Message text does not classify | Registry fetch failures are transient wherever they occur, Message text does not classify | no (byte equal, checked by the item 3 command) |
+| A ModuleInstance render times out | A render timeout retries on the backoff, A ModuleInstance render times out | no (byte equal, checked by the item 3 command) |
+| A ModulePackage render times out | A render timeout retries on the backoff, A ModulePackage render times out | no (byte equal, checked by the item 3 command) |
+| Repeated timeouts cap at five minutes | A render timeout retries on the backoff, Repeated timeouts cap at five minutes | no (byte equal, checked by the item 3 command) |
+| A render that fails at its deadline is still a timeout | A render timeout retries on the backoff, A render that fails at its deadline is still a timeout | no (byte equal, checked by the item 3 command) |
+| Recovery after a timeout | A render timeout retries on the backoff, Recovery after a timeout | no (byte equal, checked by the item 3 command) |
+
+New scenarios (restate a clause of the old body, with words of the old text only):
+
+| New scenario | Requirement | Old clause restated |
+| --- | --- | --- |
+| A render failure is classified by its type | A render failure is classified by its type, never by its message text | the clause of that requirement body |
+| A transient failure retries on the backoff | A transient failure sets ResolutionFailed and produces FailedTransient | the clause of that requirement body |
+| A failure that is not transient stalls | Every other failure stalls and requeues on the 30-minute recheck | the clause of that requirement body |
+| A render that does not finish is a timeout | A render timeout is classified before any other render failure | the clause of that requirement body |
+| The timeout message names the timeout | The timeout message names the timeout and the render slot | the clause of that requirement body |
+| A timeout applies and prunes nothing | A timeout keeps inventory and digests and applies and prunes nothing | the clause of that requirement body |
+| A deadline error of another source keeps its classification | A deadline error that is not the render deadline keeps the registry fetch classification | the clause of that requirement body |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| Registry fetch failures are transient... | A failure | Registry fetch failures are transient wherever they occur | 1 | added "SHALL be" (Strength table) |
+| Registry fetch failures are transient... |  transient when its error chain holds the library's typed registry ... | Registry fetch failures are transient wherever they occur | 2 | none |
+| Registry fetch failures are transient... | When a render fails, the ModuleInstance and ModulePackage reconcile... | A render failure is classified by its type, never by its ... | 1 | none |
+| Registry fetch failures are transient... | This holds for every kernel call the render makes: module acquisiti... | A render failure is classified by its type, never by its ... | 2 | none |
+| Registry fetch failures are transient... | A transient failure SHALL set `Ready=False` with reason `Resolution... | A transient failure sets ResolutionFailed and produces Fa... | 1 | added the named reference: As in requirement "Registry fetch failures are transient wherever they occur": |
+| Registry fetch failures are transient... | Every other failure SHALL set `Ready=False` and `Stalled=True` and ... | Every other failure stalls and requeues on the 30-minute ... | 1 | added the named reference: As in requirement "Registry fetch failures are transient wherever they occur": |
+| A render timeout retries on the backoff | A timeout SHALL set `Ready=False` with reason `RenderTimedOut` and ... | A render timeout retries on the backoff | 1 | added the named reference: As in requirement "A render timeout is classified before any other render failure": |
+| A render timeout retries on the backoff | When a ModuleInstance or ModulePackage render does not finish withi... | A render timeout is classified before any other render fa... | 1 | none |
+| A render timeout retries on the backoff | The message SHALL name the timeout and say that the render's slot s... | The timeout message names the timeout and the render slot | 1 | added the named reference: As in requirement "A render timeout retries on the backoff": |
+| A render timeout retries on the backoff | Inventory and the last-applied digests SHALL keep the last success,... | A timeout keeps inventory and digests and applies and pru... | 1 | added the named reference: As in requirement "A render timeout retries on the backoff": |
+| A render timeout retries on the backoff | A render error that carries `context.DeadlineExceeded` from anythin... | A deadline error that is not the render deadline keeps th... | 1 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| Registry fetch failures are transient wherever they occur | 1412 | 384, 338, 442, 409 |
+| A render timeout retries on the backoff | 1270 | 494, 310, 227, 168, 273 |
+
+### Ledger: registration-driven-regeneration
+
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| An active claim's catalog reaches the generated package | The platform package is generated from the Platform spec and the accepted and active claims, An active claim's catalog reaches the generated package | no (byte equal, checked by the item 3 command) |
+| No active claims leaves generation unchanged | The platform package is generated from the Platform spec and the accepted and active claims, No active claims leaves generation unchanged | no (byte equal, checked by the item 3 command) |
+| Generation ignores the waking event's content | Generation computes from the current state, never from the waking event, Generation ignores the waking event's content | no (byte equal, checked by the item 3 command) |
+| A blocked claim's catalog survives regeneration | A claim whose deletion is blocked remains in the active set, A blocked claim's catalog survives regeneration | no (byte equal, checked by the item 3 command) |
+| A released claim leaves the active set | A claim whose deletion is blocked remains in the active set, A released claim leaves the active set | no (byte equal, checked by the item 3 command) |
+| The union shows both sources | The Platform status carries the union of the authored subscriptions and the active claims' catalogs with the source of each entry, The union shows both sources | no (byte equal, checked by the item 3 command) |
+| The union follows the active set | The Platform status carries the union of the authored subscriptions and the active claims' catalogs with the source of each entry, The union follows the active set | no (byte equal, checked by the item 3 command) |
+| A disabled subscription is listed as not registering | The Platform status shows the pinned version and whether the transformers of an entry register, A disabled subscription is listed as not registering | no (byte equal, checked by the item 3 command) |
+
+Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
+
+| Old requirement | Old clause | New requirement | Sentence | Edit |
+| --- | --- | --- | --- | --- |
+| The generated package is a function o... | The operator SHALL generate the platform package from exactly two i... | The platform package is generated from the Platform spec ... | 1 | none |
+| The generated package is a function o... | A platform with no active claims SHALL generate the package it woul... | The platform package is generated from the Platform spec ... | 2 | none |
+| The generated package is a function o... | The operator SHALL generate the platform package from exactly two i... | Generation computes from the current state, never from th... | 1 | none |
+| The generated package is a function o... | A claim whose deletion is blocked SHALL remain in the active set un... | A claim whose deletion is blocked remains in the active set | 1 | none |
+| The effective registry is readable fr... | `Platform` status SHALL carry the resolved union of the registry th... | The Platform status carries the union of the authored sub... | 1 | none |
+| The effective registry is readable fr... | `Platform` status SHALL carry the resolved union of the registry th... | The Platform status shows the pinned version and whether ... | 1 | none |
+| The effective registry is readable fr... | An entry SHALL also carry the version the package pins it at and wh... | The Platform status shows the pinned version and whether ... | 2 | the two em-dashes are written as "," |
+| The effective registry is readable fr... |  it is still pinned and imported | The Platform status shows the pinned version and whether ... | 3 | the two em-dashes are written as "," |
+| The effective registry is readable fr... |  but contributes no transformer, and a union read without that dist... | The Platform status shows the pinned version and whether ... | 4 | none |
+
+Lengths (old body, new bodies; characters by the guide's rule):
+
+| Old requirement | Old | New |
+| --- | --- | --- |
+| The generated package is a function of the platform spec and the active-claim set | 865 | 261, 324, 435 |
+| The effective registry is readable from the Platform | 607 | 309, 469 |
 
 ## Strength table
 
