@@ -6,7 +6,7 @@
 
 ### Requirement: Render concurrency is a manager flag bounded by memory
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The manager takes --max-concurrent-renders and builds one pool of render slots", "A reconcile holds a render slot from the renderer call to the dropped values", "Each controller uses the render flag as its maximum concurrent reconciles", "A reconcile whose wait for a slot is cancelled returns the context error", "The Platform controller stays serial and takes no slot", "The flag help states the memory sizing rule".
+**Migration**: See "The manager takes --max-concurrent-renders and builds one pool of render slots", "A reconcile holds a render slot from the renderer call to the dropped values", "No reconcile holds a rendered CUE value without a slot", "Each controller uses the render flag as its maximum concurrent reconciles", "A reconcile whose wait for a slot is cancelled returns the context error", "The Platform controller stays serial and takes no slot", "The flag help states the memory sizing rule".
 
 ### Requirement: Rendered values are dropped after conversion
 **Reason**: Split into requirements that each state one behavior.
@@ -66,7 +66,7 @@ The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHA
 - **THEN** one renders while the other waits for the slot, and both reach Ready
 
 ### Requirement: A reconcile holds a render slot from the renderer call to the dropped values
-A reconcile SHALL take a slot before it calls its renderer (platform lease, acquisition, synthesis and render), SHALL hold it while the result is exported for apply (render digest and conversion to unstructured objects), and SHALL release it only after the rendered CUE values are dropped, on success, on error and on a panic that the controller runtime recovers. So no reconcile holds a rendered CUE value without a slot, and the flag bounds the builds resident in the process.
+A reconcile SHALL take a slot before it calls its renderer (platform lease, acquisition, synthesis and render), SHALL hold it while the result is exported for apply (render digest and conversion to unstructured objects), and SHALL release it only after the rendered CUE values are dropped, on success, on error and on a panic that the controller runtime recovers.
 
 #### Scenario: Conversion runs while the slot is held
 
@@ -77,6 +77,13 @@ A reconcile SHALL take a slot before it calls its renderer (platform lease, acqu
 
 - **WHEN** a renderer panics while a reconcile holds a render slot and the controller runtime recovers the panic
 - **THEN** the slot is free again, and the next render of either kind takes it without waiting
+
+### Requirement: No reconcile holds a rendered CUE value without a slot
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. So no reconcile holds a rendered CUE value without a slot, and the flag bounds the builds resident in the process.
+
+#### Scenario: No rendered value without a slot
+- **WHEN** a reconcile holds a rendered CUE value
+- **THEN** it holds a slot, and the flag bounds the builds resident in the process
 
 ### Requirement: Each controller uses the render flag as its maximum concurrent reconciles
 The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. Each of the two controllers SHALL also use the flag as its maximum concurrent reconciles, so phases outside the render are not serialised behind the other kind's renders.
@@ -101,7 +108,7 @@ The Platform controller SHALL stay serial and SHALL take no slot.
 - **THEN** it stays serial and takes no slot
 
 ### Requirement: The flag help states the memory sizing rule
-The flag's help SHALL state the memory sizing rule (per-render cost grows with component count) and that the bound is shared by both kinds, so the value is chosen against the pod's memory limit.
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. The flag's help SHALL state the memory sizing rule (per-render cost grows with component count) and that the bound is shared by both kinds, so the value is chosen against the pod's memory limit.
 
 #### Scenario: The flag help states the sizing rule
 - **WHEN** the manager prints the flag's help
@@ -141,7 +148,7 @@ The manager SHALL accept `--render-timeout` (a duration, default `10m`) and SHAL
 - **THEN** it logs the invalid value and exits before starting any controller
 
 ### Requirement: A render runs under the render deadline while it holds its slot
-While a ModuleInstance or ModulePackage reconcile holds its render slot, the renderer call (platform lease, acquisition, synthesis, the render build) and the export of the result for apply SHALL run under a context whose deadline is that timeout. The wait for a slot SHALL NOT count against it, and the reconcile's own context, which the status patch, events, apply and prune use, SHALL carry no such deadline.
+The manager SHALL accept `--render-timeout` (a duration, default `10m`). While a ModuleInstance or ModulePackage reconcile holds its render slot, the renderer call (platform lease, acquisition, synthesis, the render build) and the export of the result for apply SHALL run under a context whose deadline is that timeout. The wait for a slot SHALL NOT count against it, and the reconcile's own context, which the status patch, events, apply and prune use, SHALL carry no such deadline.
 
 #### Scenario: Queued renders are not timed out
 
@@ -171,7 +178,7 @@ When the deadline passes before the render returns, the reconcile SHALL stop wai
 - **THEN** the object's status is patched with the failure, because the patch uses the reconcile's context and not the expired render context
 
 ### Requirement: An abandoned render keeps its slot until it returns
-The render SHALL keep its slot until it really returns (at the next stage boundary when its current I/O honours cancellation, otherwise when that I/O returns), so `--max-concurrent-renders` still bounds the builds held in memory.
+When the deadline passes before the render returns, the reconcile SHALL stop waiting for it and record the attempt (see reconcile-backoff, "A render timeout retries on the backoff"). The render SHALL keep its slot until it really returns (at the next stage boundary when its current I/O honours cancellation, otherwise when that I/O returns), so `--max-concurrent-renders` still bounds the builds held in memory.
 
 #### Scenario: A timed-out render keeps its slot until it returns
 
@@ -229,7 +236,7 @@ The operator SHALL log a timed-out render with its timeout, and SHALL log when a
 - **THEN** the operator logs it with its timeout, and logs when the abandoned render returns, with how long it ran
 
 ### Requirement: The render timeout flag help states that the slot stays held
-The flag's help SHALL state that the slot stays held until the render returns and that `0` disables the deadline.
+The manager SHALL accept `--render-timeout` (a duration, default `10m`) and SHALL refuse a negative value at startup. The flag's help SHALL state that the slot stays held until the render returns and that `0` disables the deadline.
 
 #### Scenario: The timeout flag help
 - **WHEN** the manager prints the flag's help

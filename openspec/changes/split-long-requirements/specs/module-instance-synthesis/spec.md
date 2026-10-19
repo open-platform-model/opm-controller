@@ -132,7 +132,7 @@ The message SHALL be `synthesizing release: Kernel.SynthesizeInstance: instance 
 - **THEN** the message is `synthesizing release: Kernel.SynthesizeInstance: instance "<name>": not fully concrete: ` followed by one finding for every unset required value, `values.<field>: incomplete value <type> (<file>:<line>:<column>)` with the position of its `#config` declaration, joined by `; `, and a nested field is named by its full path (`values.db.host`)
 
 ### Requirement: A value a component reads is named like a value no component reads
-A value a component reads SHALL be named like a value no component reads, and the message SHALL NOT name the place in a component that reads it.
+The message SHALL be `synthesizing release: Kernel.SynthesizeInstance: instance "<name>": not fully concrete: ` followed by one finding for every unset required value, `values.<field>: incomplete value <type> (<file>:<line>:<column>)` with the position of its `#config` declaration, joined by `; `. A value a component reads SHALL be named like a value no component reads, and the message SHALL NOT name the place in a component that reads it.
 
 #### Scenario: Three unset values, one read by a component, one nested
 
@@ -146,7 +146,7 @@ A value a component reads SHALL be named like a value no component reads, and th
 - **THEN** the message names `values.db.host` and `values.greeting` and does not name `values.note`
 
 ### Requirement: The controller words the findings from the kernel typed error tree
-The controller SHALL word the findings from the kernel's typed error tree; the kernel's own text names the first finding and counts the rest.
+The message SHALL be `synthesizing release: Kernel.SynthesizeInstance: instance "<name>": not fully concrete: ` followed by one finding for every unset required value, `values.<field>: incomplete value <type> (<file>:<line>:<column>)` with the position of its `#config` declaration, joined by `; `. The controller SHALL word the findings from the kernel's typed error tree; the kernel's own text names the first finding and counts the rest.
 
 #### Scenario: The findings come from the typed error tree
 - **WHEN** the kernel refuses a ModuleInstance with several unset required values
@@ -168,7 +168,7 @@ When instance synthesis refuses the values of a ModuleInstance, the message on t
 - **THEN** the message names both fields, each with its positions
 
 ### Requirement: The event carries the text of the values failure
-The event SHALL carry the same text within the event note limit (capability `events-emission`).
+When instance synthesis refuses the values of a ModuleInstance, the message on the `Ready` condition SHALL carry the kernel's error text up to its first finding, followed by every finding the kernel reported, each with the positions the kernel attributed it to. The event SHALL carry the same text within the event note limit (capability `events-emission`).
 
 #### Scenario: The event carries the same text
 - **WHEN** instance synthesis refuses the values of a ModuleInstance

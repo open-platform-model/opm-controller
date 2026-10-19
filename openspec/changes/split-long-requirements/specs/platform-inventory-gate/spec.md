@@ -2,7 +2,7 @@
 
 ### Requirement: An over-subscribed platform is refused at generation
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The reconciler reads the contract inventory of the built platform before recording the package", "An over-subscribed platform is refused with the reason OverSubscribedContracts", "A contract provided by more than one enabled registry entry refuses the package", "The over-subscription message names the contracts, the catalogs and the providers", "A collision changes the reason of an over-subscribed platform", "The over-subscription count is the one core computes", "The over-subscription finding is printed only for an over-subscribed contract".
+**Migration**: See "The reconciler reads the contract inventory of the built platform before recording the package", "An over-subscribed platform is refused with the reason OverSubscribedContracts", "A contract provided by more than one enabled registry entry refuses the package", "The over-subscription message names the contracts, the catalogs and the providers", "A collision changes the reason of an over-subscribed platform", "The over-subscription count is the one core computes", "The operator does not recount the over-subscription", "The over-subscription finding is printed only for an over-subscribed contract".
 
 ### Requirement: An undiscriminated platform is refused at generation
 **Reason**: Split into requirements that each state one behavior.
@@ -59,7 +59,7 @@ When any provider-fulfilled contract is provided by more than one enabled regist
 - **THEN** the reason is `ContractCollisions` and the message carries the over-subscription finding after the collision finding
 
 ### Requirement: The over-subscription count is the one core computes
-The count SHALL be the platform's own, as core computes it and the render build refuses on: every transformer of every enabled registry entry counts, a provider is identified by its registry entry (the catalog module path with its major), and a contract counts whether or not an enabled catalog defines it. The operator SHALL NOT recount it, so the generation gate and the render refusal fire on the same platforms.
+When any provider-fulfilled contract is provided by more than one enabled registry entry, the reconciler SHALL refuse the package. The count SHALL be the platform's own, as core computes it and the render build refuses on: every transformer of every enabled registry entry counts, a provider is identified by its registry entry (the catalog module path with its major), and a contract counts whether or not an enabled catalog defines it.
 
 #### Scenario: Two majors of one provider catalog are refused
 
@@ -70,6 +70,13 @@ The count SHALL be the platform's own, as core computes it and the render build 
 
 - **WHEN** the catalog defining a provider-fulfilled contract is disabled or absent and two enabled registry entries provide that contract
 - **THEN** the Platform reports `Ready=False` with reason `OverSubscribedContracts`, the message names the contract and both providing registry entries with no defining catalog, and no package is recorded for that tuple
+
+### Requirement: The operator does not recount the over-subscription
+When any provider-fulfilled contract is provided by more than one enabled registry entry, the reconciler SHALL refuse the package. The operator SHALL NOT recount it, so the generation gate and the render refusal fire on the same platforms. "It" is the count of the requirement "The over-subscription count is the one core computes".
+
+#### Scenario: The operator does not recount
+- **WHEN** a provider-fulfilled contract is provided by more than one enabled registry entry
+- **THEN** the operator does not recount it, so the generation gate and the render refusal fire on the same platforms
 
 ### Requirement: The over-subscription finding is printed only for an over-subscribed contract
 The over-subscription finding SHALL be printed only when the inventory lists an over-subscribed contract. An inventory that is not routable while listing neither an over-subscribed contract nor a colliding key SHALL still be refused (fail closed), with reason `OverSubscribedContracts` and a message saying the platform is not routable and the inventory names no over-subscribed or colliding contract.
@@ -100,7 +107,7 @@ When the built platform's inventory reports a pair of enabled transformers whose
 - **THEN** the Platform reports `Ready=False` with reason `ComparablePredicates`, the message names the broader FQN, the narrower FQN and the shared contract, and no package is recorded for that tuple
 
 ### Requirement: No arbitration orders comparable transformers
-No arbitration, ordering or most-specific-wins SHALL be applied.
+When the built platform's inventory reports a pair of enabled transformers whose match predicates are comparable over a shared catalog-fulfilled contract, the reconciler SHALL refuse the package. No arbitration, ordering or most-specific-wins SHALL be applied.
 
 #### Scenario: No arbitration of a comparable pair
 - **WHEN** the built platform's inventory reports a comparable pair
@@ -212,7 +219,7 @@ The refusal SHALL hold whatever the inventory's other verdicts read: a colliding
 - **THEN** the Platform reports `Ready=False` with reason `ContractCollisions` and the message carries the collision finding and the comparable-pair finding
 
 ### Requirement: A platform whose enabled entries define every contract key once is not refused for collisions
-A platform whose enabled entries define every contract key once SHALL NOT be refused on this ground.
+After a generated platform module builds, when the built platform's contract inventory reports any colliding contract key (a key that the catalogs of more than one enabled registry entry list, as two majors of one catalog do), the reconciler SHALL refuse the package: `Ready=False` with reason `ContractCollisions`. A platform whose enabled entries define every contract key once SHALL NOT be refused on this ground.
 
 #### Scenario: Every contract key defined once
 - **WHEN** the enabled entries define every contract key once

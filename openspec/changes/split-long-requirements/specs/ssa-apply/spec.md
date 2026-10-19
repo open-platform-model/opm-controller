@@ -143,7 +143,7 @@ Before the first write of a reconcile, the controller MUST read every object of 
 ## ADDED Requirements
 
 ### Requirement: The discovery retry runs at a fixed interval within a bound
-The `internal/apply` package MUST retry at a fixed interval, MUST NOT start a new attempt once a bounded time (10 seconds) has passed since the first retryable failure, and MUST give every attempt the caller's context unchanged.
+In the retry that the requirement "Custom resources wait for discovery of a CRD in the same set" states, the `internal/apply` package MUST retry at a fixed interval, MUST NOT start a new attempt once a bounded time (10 seconds) has passed since the first retryable failure, and MUST give every attempt the caller's context unchanged.
 
 #### Scenario: The retry interval is fixed and bounded
 - **WHEN** a staged apply fails only because the API server does not serve a kind yet and a CRD in the same set defines it
@@ -157,7 +157,7 @@ When a staged apply fails only because the API server does not serve a kind yet,
 - **THEN** the `internal/apply` package does not retry it
 
 ### Requirement: Apply returns the no-match error when the retry ends
-The `internal/apply` package MUST retry at a fixed interval, MUST NOT start a new attempt once a bounded time (10 seconds) has passed since the first retryable failure, and MUST give every attempt the caller's context unchanged. When the bound or the caller's context ends while the error is still a no-match, `Apply` MUST return that no-match error, wrapped as any other apply failure is.
+In the retry that the requirement "Custom resources wait for discovery of a CRD in the same set" states, the `internal/apply` package MUST retry at a fixed interval, MUST NOT start a new attempt once a bounded time (10 seconds) has passed since the first retryable failure, and MUST give every attempt the caller's context unchanged. When the bound or the caller's context ends while the error is still a no-match, `Apply` MUST return that no-match error, wrapped as any other apply failure is.
 
 #### Scenario: The retry ends on a no-match error
 - **WHEN** the bound or the caller's context ends while the error is still a no-match
@@ -182,7 +182,7 @@ The apply MUST take, beside `force`, an option that allows the deletion of data,
 - **THEN** the apply does not delete a PersistentVolumeClaim of the core API group
 
 ### Requirement: The apply checks every claim of the set before it applies or deletes any object
-When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. Before it applies or deletes any object, it MUST check every such claim of the resource set that exists in the cluster.
+The apply MUST take, beside `force`, an option that allows the deletion of data, and the option MUST be off at its zero value. When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. Before it applies or deletes any object, it MUST check every such claim of the resource set that exists in the cluster.
 
 #### Scenario: Every claim is checked first
 - **WHEN** a resource set holds claims that exist in the cluster
@@ -212,7 +212,7 @@ The apply MUST take, beside `force`, an option that allows the deletion of data,
 - **THEN** the apply succeeds and the claim has a new UID and the new `storageClassName`
 
 ### Requirement: The forced recreate of every other kind is unchanged
-The forced recreate of every other kind MUST delete and recreate as before, with the precondition of the requirement "A forced recreate deletes exactly the object that was read".
+The apply MUST take, beside `force`, an option that allows the deletion of data, and the option MUST be off at its zero value. When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. The forced recreate of every other kind MUST delete and recreate as before, with the precondition of the requirement "A forced recreate deletes exactly the object that was read".
 
 #### Scenario: Another kind is recreated as before
 - **GIVEN** a live immutable ConfigMap and a resource set that changes its data
@@ -365,7 +365,7 @@ The identity the verdict is asked with is the same for a ModuleInstance and a Mo
 - **WHEN** a ModuleInstance or a ModulePackage reconcile asks the apply verdict
 - **THEN** it asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
 
-### Requirement: The verdict is asked with the recorded identity when no identity is recorded or a change is unsettled
+### Requirement: The verdict is asked once per object with the render's identity, or the recorded one when the render carries none
 The controller MUST ask once per object, with the instance's identity: the render's, or the recorded one when the render carries none. This holds when no identity is recorded yet and while an identity change is not settled. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Verdict identity when none is recorded

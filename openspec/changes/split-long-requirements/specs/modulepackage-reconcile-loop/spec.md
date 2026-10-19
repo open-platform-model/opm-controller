@@ -1,8 +1,25 @@
-## REMOVED Requirements
+## MODIFIED Requirements
 
 ### Requirement: No-op detection
-**Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The ReleaseReconciler detects no-op reconciliations by the four digests", "A reconcile whose digests match applies the objects the verdict allows when an object is adopted by another instance", "A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it".
+The `ReleaseReconciler` MUST detect no-op reconciliations when source artifact revision, config, render, and inventory digests all match the last applied values.
+
+#### Scenario: All digests match
+- **WHEN** source artifact digest, config digest, render digest, and inventory digest all match the last applied values
+- **AND** every rendered object that exists is in `status.inventory` and none is adopted by another instance
+- **THEN** the controller skips apply and prune, keeps `Ready=True`, and requeues with interval
+
+#### Scenario: All digests match and an object was adopted by another instance
+- **GIVEN** a Ready ModulePackage and an inventoried ConfigMap that a user annotates `opmodel.dev/adopt` with another instance's UUID
+- **WHEN** a reconcile renders with matching digests
+- **THEN** the ConfigMap is not written, `status.inventory` no longer lists it and `Ready` stays `True`
+
+#### Scenario: Matching digests, an object to take in and an inventoried object being deleted
+- **GIVEN** a Ready ModulePackage with matching digests, a rendered ConfigMap that exists outside `status.inventory` with the package's adopt annotation, and an inventoried ConfigMap that carries a deletion timestamp
+- **WHEN** a reconcile renders
+- **THEN** nothing is written and the package reports `Ready=False` with reason `ApplyRefused`
+- **AND** once the inventoried ConfigMap is gone, the retry applies the render, creates it again and takes the other in
+
+## REMOVED Requirements
 
 ### Requirement: Status always patched
 **Reason**: Split into requirements that each state one behavior.
@@ -14,34 +31,23 @@
 
 ### Requirement: A ModulePackage guards every apply by ownership
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "A ModulePackage reconcile judges every rendered object with the instance's identity", "A ModulePackage reconcile never asks the verdict with the earlier identity of an unsettled change", "A ModulePackage reconcile never asks the verdict with an empty identity", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the ssa-apply requirement", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement", "The read is made by the client that applies and a skipped render reads nothing", "A ModulePackage reconcile that renders fails when the verdict could not be asked", "The failure reason is ImpersonationFailed or ApplyFailed", "A failed ModulePackage reconcile writes nothing and keeps the inventory".
+**Migration**: See "A ModulePackage reconcile judges every rendered object with the instance's identity", "A ModulePackage reconcile never asks the verdict with the earlier identity of an unsettled change", "A ModulePackage reconcile never asks the verdict with an empty identity", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the ssa-apply requirement", "A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement", "The read is made by the client that applies and a skipped render reads nothing", "A reconcile that renders fails when the verdict could not be asked", "The failure reason is ImpersonationFailed when the ServiceAccount is missing or the read is Forbidden", "The failure reason is ApplyFailed on the backoff otherwise", "A failed ModulePackage reconcile writes nothing and keeps the inventory".
 
 ## ADDED Requirements
 
-### Requirement: The ReleaseReconciler detects no-op reconciliations by the four digests
-The `ReleaseReconciler` MUST detect no-op reconciliations when source artifact revision, config, render, and inventory digests all match the last applied values.
-
-#### Scenario: All digests match
-- **WHEN** source artifact digest, config digest, render digest, and inventory digest all match the last applied values
-- **AND** every rendered object that exists is in `status.inventory` and none is adopted by another instance
-- **THEN** the controller skips apply and prune, keeps `Ready=True`, and requeues with interval
-
-### Requirement: A reconcile whose digests match applies the objects the verdict allows when an object is adopted by another instance
+### Requirement: A reconcile whose digests match applies the objects the verdict allows when one is outside the inventory or another instance adopts an object
 The `ReleaseReconciler` MUST detect no-op reconciliations when source artifact revision, config, render, and inventory digests all match the last applied values. A reconcile whose digests match is not a no-op when a rendered object that the apply verdict allows exists outside `status.inventory`, or when an inventoried object is adopted by another instance: it then applies the objects the verdict allows and records the inventory without the adopted object.
 
-#### Scenario: All digests match and an object was adopted by another instance
-- **GIVEN** a Ready ModulePackage and an inventoried ConfigMap that a user annotates `opmodel.dev/adopt` with another instance's UUID
-- **WHEN** a reconcile renders with matching digests
-- **THEN** the ConfigMap is not written, `status.inventory` no longer lists it and `Ready` stays `True`
+#### Scenario: A reconcile whose digests match is not a no-op
+- **WHEN** a reconcile whose digests match finds a rendered object that the apply verdict allows outside `status.inventory`, or an inventoried object adopted by another instance
+- **THEN** it applies the objects the verdict allows and records the inventory without the adopted object
 
 ### Requirement: A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it
 A reconcile whose digests match is not a no-op when a rendered object that the apply verdict allows exists outside `status.inventory`, or when an inventoried object is adopted by another instance. Such a reconcile SHALL apply the rendered set, so an inventoried object that is being deleted refuses it (`ssa-apply`, "An apply is judged by the ownership verdict before its first write"): nothing is written and `Ready` is `False` with reason `ApplyRefused` until that object is gone.
 
-#### Scenario: Matching digests, an object to take in and an inventoried object being deleted
-- **GIVEN** a Ready ModulePackage with matching digests, a rendered ConfigMap that exists outside `status.inventory` with the package's adopt annotation, and an inventoried ConfigMap that carries a deletion timestamp
-- **WHEN** a reconcile renders
-- **THEN** nothing is written and the package reports `Ready=False` with reason `ApplyRefused`
-- **AND** once the inventoried ConfigMap is gone, the retry applies the render, creates it again and takes the other in
+#### Scenario: Matching digests apply the rendered set
+- **WHEN** a reconcile whose digests match finds a rendered object that the apply verdict allows outside `status.inventory`, or an inventoried object adopted by another instance
+- **THEN** it applies the rendered set, so an inventoried object that is being deleted refuses it: nothing is written and `Ready` is `False` with reason `ApplyRefused` until that object is gone
 
 ### Requirement: The ReleaseReconciler patches the status at the end of every reconcile attempt
 The `ReleaseReconciler` MUST patch `Release.status` at the end of every reconcile attempt, including NoOp. The status shape mirrors ModuleRelease: conditions, digests, inventory, history, failure counters, `nextRetryAt`, and `lastAppliedInputs`.
@@ -154,27 +160,27 @@ A ModulePackage reconcile that renders MUST judge every rendered object with the
 ### Requirement: A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement
 A ModulePackage reconcile that renders MUST judge every rendered object with the library's apply verdict before its first write, exactly as a ModuleInstance reconcile does (`reconcile-loop-assembly`, "A reconcile the apply verdict refuses is retried and not stalled"). Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
-#### Scenario: A refused package reconcile is retried and not stalled
-- **WHEN** the apply verdict refuses an object of a ModulePackage reconcile
-- **THEN** the reconcile is retried and not stalled, exactly as a ModuleInstance reconcile does
+#### Scenario: A ModulePackage reconcile judges as a ModuleInstance reconcile does under the loop assembly
+- **WHEN** a ModulePackage reconcile renders
+- **THEN** it judges every rendered object with the library's apply verdict before its first write, exactly as a ModuleInstance reconcile does
 
 ### Requirement: The read is made by the client that applies and a skipped render reads nothing
-The read MUST be made by the client that applies. A reconcile that skips its render MUST NOT read the objects. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+A ModulePackage reconcile that renders MUST judge every rendered object with the library's apply verdict before its first write. The read MUST be made by the client that applies. A reconcile that skips its render MUST NOT read the objects. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: A skipped render reads nothing
 - **GIVEN** a ModulePackage whose render inputs are unchanged inside the drift render interval
 - **WHEN** the controller reconciles
 - **THEN** no rendered object is read for the verdict
 
-### Requirement: A ModulePackage reconcile that renders fails when the verdict could not be asked
+### Requirement: A reconcile that renders fails when the verdict could not be asked
 A ModulePackage has no drift check to report a verdict that could not be asked. So a reconcile that renders MUST fail, also when every digest matches, when the client that applies cannot be built or the read of a rendered object fails for a reason other than that the object does not exist. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Matching digests and a verdict that could not be asked
 - **WHEN** a ModulePackage reconcile that renders cannot build the client that applies, or the read of a rendered object fails for a reason other than that the object does not exist, also when every digest matches
 - **THEN** the reconcile fails
 
-### Requirement: The failure reason is ImpersonationFailed or ApplyFailed
-So a reconcile that renders MUST fail: `Stalled=True` with reason `ImpersonationFailed` when the ServiceAccount is missing or the read is Forbidden under an effective ServiceAccount, `Ready=False` with reason `ApplyFailed` on the backoff otherwise. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+### Requirement: The failure reason is ImpersonationFailed when the ServiceAccount is missing or the read is Forbidden
+So a reconcile that renders MUST fail, as listed in requirement "A reconcile that renders fails when the verdict could not be asked": `Stalled=True` with reason `ImpersonationFailed` when the ServiceAccount is missing or the read is Forbidden under an effective ServiceAccount. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Matching digests and an unreadable object
 - **GIVEN** a Ready ModulePackage with matching digests whose effective ServiceAccount may no longer get ConfigMaps
@@ -185,6 +191,13 @@ So a reconcile that renders MUST fail: `Stalled=True` with reason `Impersonation
 - **GIVEN** a Ready ModulePackage with matching digests whose effective ServiceAccount was deleted
 - **WHEN** a reconcile renders
 - **THEN** the package reports `Stalled=True` with reason `ImpersonationFailed` and is not a `NoOp`
+
+### Requirement: The failure reason is ApplyFailed on the backoff otherwise
+So a reconcile that renders MUST fail, as listed in requirement "A reconcile that renders fails when the verdict could not be asked": `Ready=False` with reason `ApplyFailed` on the backoff otherwise. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+
+#### Scenario: Another failure to ask the verdict is ApplyFailed
+- **WHEN** a reconcile that renders must fail, the ServiceAccount is not missing and the read is not Forbidden under an effective ServiceAccount
+- **THEN** the package reports `Ready=False` with reason `ApplyFailed` on the backoff
 
 ### Requirement: A failed ModulePackage reconcile writes nothing and keeps the inventory
 So a reconcile that renders MUST fail, also when every digest matches, when the client that applies cannot be built or the read of a rendered object fails for a reason other than that the object does not exist. It MUST write nothing and MUST keep `status.inventory`. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").

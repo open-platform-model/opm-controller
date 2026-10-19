@@ -16,7 +16,7 @@ change does not touch them: `add-cross-namespace-source-grants` (specs
 `cross-namespace-source-grants` and `source-resolution`) and `stop-operator-install-manifest`
 (specs `container-image-publish`, `operator-module`, `release-automation`).
 
-The swarm guide `design/T2.1.md` (approved 2026-10-19 13:40) holds the rules. This file applies
+The swarm guide `design/T2.1.md` holds the rules. This file applies
 them to this repo and does not restate them in full.
 
 ## Goals / Non-Goals
@@ -80,7 +80,7 @@ before the first split.
 
 **Context**: Rewriting a main spec that an open change also edits makes the open change's
 MODIFIED block replace the shortened text with the old long one and re-add dropped scenarios (a
-c2 leaves it with only the INFO "Archive would refuse"). The human decided on 2026-10-19 10:50
+c2 leaves it with only the INFO "Archive would refuse"). The human decided
 that the colliding batches run last.
 **Decision**: Purpose-only specs, then B2, B4, B6, B7 (no spec of an open change), then a stop
 for the human to land both open changes, then a fresh inventory, then B1, B3, B5, then the
@@ -109,8 +109,7 @@ decision record is edited.
 
 ## Purpose fixes by direct edit
 
-`openspec archive` ignores a delta Purpose for an existing spec (DECISIONS.md 2026-10-19 14:00,
-verified in the CLI's `specs-apply`). A Purpose is therefore a direct edit of `## Purpose` in
+`openspec archive` ignores a delta Purpose for an existing spec (verified in the CLI's `specs-apply`). A Purpose is therefore a direct edit of `## Purpose` in
 `openspec/specs/<spec>/spec.md`, in its own commit, and is recorded here. Unit 1 added a
 `## Purpose` above `## Requirements` to `artifact-fetch`, `catalog-registry-resolution`,
 `failure-counters`, `history-tracking`, `metrics` and `suspend-resume`. Each text was read from the
@@ -147,13 +146,13 @@ Unit 2 (opm-operator-B4) rules of text, for the five ledgers below:
 - A sentence whose subject was "It" gets the subject of the sentence before it, copied (the "Edit" column shows it).
 - Where a body relies on a sibling for a condition, the condition is copied from the old text in front of its sentence (the "Edit" column shows it).
 - A sentence over 500 on its own (`Reason constants`, the outcome list of `Surface build outcome on status`, the identity sentence of `Single-slot identity-keyed store for concurrent read`) is cut at a list boundary; the parts are verbatim and the head is repeated.
-- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block keeps the short form `Source: enhancement 0012.` only where one sentence of the old requirement, with its title, passes 500 characters and has no clause boundary that keeps its condition with its rule: the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance", 335 plus 208) and the two AdoptedElsewhere bodies of `events-emission` (319 plus 208; 278 plus 65 plus 208).
+- `Source:` lines: the whole line stays where it fits with the rule it supports, and bodies are split further until it fits (the enhancement id is never alone, `openspec/config.yaml`). The old `Source:` line covers the whole old requirement, so every split block of that requirement carries it (the library-owns-the-deletion-sequence title for the prune and cleanup deletes; the apply guard title for the Ready message). A block keeps the short form `Source: enhancement 0012.` only for the Ready message body of `status-conditions` ("The Ready message counts the objects adopted by another instance"): its first sentence alone is 335 characters and the whole title takes 208, so no cut keeps the condition with its rule inside 500. The two AdoptedElsewhere bodies of `events-emission` are cut into two requirements each, and every one carries the whole line; the second of each pair names the first by its exact header for the condition, because the whole condition and the whole line do not fit 500 together.
 
 Unit 3 (opm-operator-B6) rules of text, for the seven ledgers of unit 3:
 
 - A sentence that does not fit with its `Source:` line, or that is over 500 on its own, is cut at a list or clause boundary: every part is a substring of the old sentence, the head is repeated, and the Edit column lists the added punctuation. The cut places are the list of reasons, the list of inputs, the list of citations and the list of outcomes that the old sentence itself held.
 - The old `Source:` line covers the whole old requirement, so every block cut from a requirement that has one carries it whole: `render-input-key` (two requirements), `ssa-apply` (three), `modulepackage-reconcile-loop` (two) and `digest-computation` (one). No block of unit 3 uses the short form.
-- A list of rules that cannot fit moves into a scenario (15:15): the six parts of the render input key and the seven skip conditions. The body keeps the SHALL, repeats the old subject and names the scenario.
+- A list of rules that cannot fit moves into a scenario: the six parts of the render input key and the seven skip conditions. The body keeps the SHALL, repeats the old subject and names the scenario.
 - Three bodies gained one RFC 2119 keyword where the old sentence had none; the Strength table lists them. Where a sibling sentence carries the keyword, the sibling is copied as context instead.
 - A "Subject" of the old text ("It", "Both fields") is replaced by a subject copied from the same old requirement (the Edit column shows it).
 
@@ -485,7 +484,7 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | An object is let go | An AdoptedElsewhere event is emitted when the count of adopted objects changes, An object is let go | no (byte equal, checked by the item 3 command) |
 | No event while nothing changes | No AdoptedElsewhere event while the count is unchanged, No event while nothing changes | no (byte equal, checked by the item 3 command) |
 | A second object is let go | The AdoptedElsewhere event states the count and the library messages, A second object is let go | no (byte equal, checked by the item 3 command) |
-| Nothing adopted elsewhere, no event | An AdoptedElsewhere event is emitted when the count of adopted objects changes, Nothing adopted elsewhere, no event | no (byte equal, checked by the item 3 command) |
+| Nothing adopted elsewhere, no event | A Warning event is emitted when the count of adopted objects changes, Nothing adopted elsewhere, no event | no (byte equal, checked by the item 3 command) |
 | Twenty unset required values | A stalled render event message that does not fit keeps whole findings, Twenty unset required values | no (byte equal, checked by the item 3 command) |
 | A message that fits | A stalled render failure event carries at most 1024 characters, A message that fits | no (byte equal, checked by the item 3 command) |
 | A long message without findings | A stalled render event message without findings is cut and counted, A long message without findings | no (byte equal, checked by the item 3 command) |
@@ -500,6 +499,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | --- | --- | --- |
 | Absent object and kept claim | No LeftBehind event for an absent object or a kept claim | the clause of that requirement body |
 | AdoptedElsewhere event on a no-op reconcile | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | the clause of that requirement body |
+| A changed count emits the event | The AdoptedElsewhere event is emitted when the count of adopted objects differs | the clause of that requirement body |
 | Message of a released deletion | The DeletionUnconfirmed message states the count, the reason and the doubt | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body):
@@ -530,12 +530,14 @@ Clause table (old clause, new requirement, sentence of its body):
 | Events emitted when objects are left behind | a later reconcile of the same wait MUST NOT emit again | A LeftBehind event is emitted only by a committed run | 2 |
 | Events emitted when objects are left behind | a prune or cleanup that failed for another entry MUST NOT emit it; the retry judges again | A failed prune or cleanup emits no LeftBehind event | 1 |
 | Events emitted when objects are left behind | none for an absent object or a kept PVC, which has its own event | No LeftBehind event for an absent object or a kept claim | 1 |
-| Events emitted when an object is adopted by another instance | one Warning `AdoptedElsewhere`, action `Apply`, "when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile" (whole old condition, copied unchanged) | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 1 |
+| Events emitted when an object is adopted by another instance | one Warning event, "when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile" (whole old condition, copied unchanged; the head is cut before "with reason `AdoptedElsewhere` and action `Apply`", every part verbatim) | A Warning event is emitted when the count of adopted objects changes | 1 |
+| Events emitted when an object is adopted by another instance | one Warning `AdoptedElsewhere`, action `Apply` (the part cut from the row above); the condition is named by the exact header of the requirement that holds it, because the whole old condition and the whole title do not fit 500 together | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 1 |
+| Events emitted when an object is adopted by another instance | the `AdoptedElsewhere` event, "when a reconcile that renders finds a number of rendered objects that the apply verdict refuses as `adopted-elsewhere`, that number is not zero, and it differs from the number the `Ready` message stated before the reconcile" (whole old condition, copied unchanged) | The AdoptedElsewhere event is emitted when the count of adopted objects differs | 1 |
 | Events emitted when an object is adopted by another instance | citation `status-conditions`, "The Ready message counts the objects adopted by another instance" (moves to the no-event requirement, where the Ready message carries the state) | No AdoptedElsewhere event while the count is unchanged | 1 |
-| Events emitted when an object is adopted by another instance | "This holds whether the reconcile applies, restores or is a no-op." (old sentence, copied) with the same old condition as the row above, copied unchanged, as its subject | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | 1 |
+| Events emitted when an object is adopted by another instance | "This holds whether the reconcile applies, restores or is a no-op." (old sentence, copied) with the emit sentence of the row above as its subject; the condition is named by the exact header of the requirement that holds it | The AdoptedElsewhere event is emitted whether the reconcile applies, restores or does nothing | 1 |
 | Events emitted when an object is adopted by another instance | states the count; the library's message for each object unchanged; within the `ApplyRefused` limits (limits restated) | The AdoptedElsewhere event states the count and the library messages | 1 |
 | Events emitted when an object is adopted by another instance | same number as before, or a skipped render, emits none; `Ready` carries the state between events | No AdoptedElsewhere event while the count is unchanged | 1 |
-| Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012): whole on the count, the message and the no-event requirements; `Source: enhancement 0012.` (title dropped, no issue or PR reference lost) on the two that carry the old condition, because the whole line does not fit 500 with the whole condition | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 2 |
+| Events emitted when an object is adopted by another instance | `Source:` line (enhancement 0012): whole on every requirement cut from the old one, the two that carry the old condition included (config.yaml: an enhancement id is never alone) | An AdoptedElsewhere event is emitted when the count of adopted objects changes | 2 |
 | The event of a stalled render failure stays inside the event note limit | stalled render or package load Warning event: message at most 1024 chars | A stalled render failure event carries at most 1024 characters | 1 |
 | The event of a stalled render failure stays inside the event note limit | when the failure's message fits: the `Ready` message | A stalled render failure event carries at most 1024 characters | 2 |
 | The event of a stalled render failure stays inside the event note limit | findings overflow: text in front plus whole findings, end `; and <N> more findings` | A stalled render event message that does not fit keeps whole findings | 1 |
@@ -1074,6 +1076,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | More than one provider refuses the package | A contract provided by more than one enabled registry entry refuses the package | the clause of that requirement body |
 | The message names the over-subscribed contract, its defining catalog and its providers | The over-subscription message names the contracts, the catalogs and the providers | the clause of that requirement body |
 | A colliding key changes the reason | A collision changes the reason of an over-subscribed platform | the clause of that requirement body |
+| The operator does not recount | The operator does not recount the over-subscription | the clause of that requirement body |
 | No over-subscribed contract, no finding | The over-subscription finding is printed only for an over-subscribed contract | the clause of that requirement body |
 | No arbitration of a comparable pair | No arbitration orders comparable transformers | the clause of that requirement body |
 | The refused module directory stays until the next generation | A refusal with no last good package leaves the store empty | the clause of that requirement body |
@@ -1091,13 +1094,17 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | An over-subscribed platform is refuse... | When any provider-fulfilled contract is provided by more than one e... | The over-subscription message names the contracts, the ca... | 1 | list cut at "and a message naming"; the head and the refusal are kept; added: ": " / "." |
 | An over-subscribed platform is refuse... | When any provider-fulfilled contract is provided by more than one e... | A collision changes the reason of an over-subscribed plat... | 1 | the condition and the refusal of the first sentence are copied as context; added: "." |
 | An over-subscribed platform is refuse... | When the inventory also reports a colliding contract key, the reaso... | A collision changes the reason of an over-subscribed plat... | 2 | none |
-| An over-subscribed platform is refuse... | The count SHALL be the platform's own, as core computes it and the ... | The over-subscription count is the one core computes | 1 | none |
-| An over-subscribed platform is refuse... | The operator SHALL NOT recount it, so the generation gate and the r... | The over-subscription count is the one core computes | 2 | none |
+| An over-subscribed platform is refuse... | When any provider-fulfilled contract is provided by more than one e... | The over-subscription count is the one core computes | 1 | the condition and the refusal of sentence 1 are copied as context; added: "." |
+| An over-subscribed platform is refuse... | The count SHALL be the platform's own, as core computes it and the ... | The over-subscription count is the one core computes | 2 | none |
+| An over-subscribed platform is refuse... | When any provider-fulfilled contract is provided by more than one e... | The operator does not recount the over-subscription | 1 | the condition and the refusal of sentence 1 are copied as context; added: "." |
+| An over-subscribed platform is refuse... | The operator SHALL NOT recount it, so the generation gate and the r... | The operator does not recount the over-subscription | 2 | none |
+| An over-subscribed platform is refuse... | "It" is the count of the requirement "The over-subscription count i... | The operator does not recount the over-subscription | 3 | requirement named by its exact header: the old sentence says "it" for the count of the sentence before |
 | An over-subscribed platform is refuse... | The over-subscription finding SHALL be printed only when the invent... | The over-subscription finding is printed only for an over... | 1 | none |
 | An over-subscribed platform is refuse... | An inventory that is not routable while listing neither an over-sub... | The over-subscription finding is printed only for an over... | 2 | none |
 | An undiscriminated platform is refuse... | When the built platform's inventory reports a pair of enabled trans... | A platform with comparable transformer predicates is refu... | 1 | list cut at "and a message naming"; added: "." |
 | An undiscriminated platform is refuse... | When the built platform's inventory reports a pair of enabled trans... | The comparable-predicates message names the pair and the ... | 1 | list cut at "and a message naming"; the head and the refusal are kept; added: "." |
-| An undiscriminated platform is refuse... | No arbitration, ordering or most-specific-wins SHALL be applied. | No arbitration orders comparable transformers | 1 | none |
+| An undiscriminated platform is refuse... | When the built platform's inventory reports a pair of enabled trans... | No arbitration orders comparable transformers | 1 | the condition and the refusal of sentence 0 are copied as context; added: "." |
+| An undiscriminated platform is refuse... | No arbitration, ordering or most-specific-wins SHALL be applied. | No arbitration orders comparable transformers | 2 | none |
 | An undiscriminated platform is refuse... | When a platform is both over-subscribed and undiscriminated and no ... | Over-subscription and comparable predicates report together | 1 | none |
 | An undiscriminated platform is refuse... | When a contract key also collides, the reason SHALL be `ContractCol... | Over-subscription and comparable predicates report together | 2 | none |
 | A refusal preserves the effective pac... | A refused generation SHALL behave as a failed build toward everythi... | A refused generation behaves as a failed build outside th... | 1 | none |
@@ -1114,21 +1121,22 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | A platform whose enabled entries shar... | The refusal SHALL hold whatever the inventory's other verdicts read... | The collision refusal holds whatever the other verdicts read | 1 | none |
 | A platform whose enabled entries shar... | `ContractCollisions` SHALL take precedence over `OverSubscribedCont... | ContractCollisions takes precedence over the other refusals | 1 | none |
 | A platform whose enabled entries shar... | When the inventory also reports an over-subscribed contract or a co... | ContractCollisions takes precedence over the other refusals | 2 | none |
-| A platform whose enabled entries shar... | A platform whose enabled entries define every contract key once SHA... | A platform whose enabled entries define every contract ke... | 1 | none |
+| A platform whose enabled entries shar... | After a generated platform module builds, when the built platform's... | A platform whose enabled entries define every contract ke... | 1 | the condition and the refusal of sentence 0 are copied as context; added: "." |
+| A platform whose enabled entries shar... | A platform whose enabled entries define every contract key once SHA... | A platform whose enabled entries define every contract ke... | 2 | none |
 
 Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| An over-subscribed platform is refused at generation | 1901 | 137, 352, 348, 306, 377, 415, 401 |
-| An undiscriminated platform is refused at generation | 904 | 390, 343, 64, 297 |
+| An over-subscribed platform is refused at generation | 1901 | 137, 352, 348, 306, 377, 437, 332, 401 |
+| An undiscriminated platform is refused at generation | 904 | 390, 343, 260, 297 |
 | A refusal preserves the effective package and its status | 678 | 441, 236 |
 | Unfulfilled contracts are reported, never refused | 938 | 488, 449 |
-| A platform whose enabled entries share contract keys is refused at generation | 1356 | 315, 417, 367, 139, 263, 288, 100 |
+| A platform whose enabled entries share contract keys is refused at generation | 1356 | 315, 417, 367, 139, 263, 288, 416 |
 
 ### Ledger: render-input-key
 
-Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each. The two list bodies of "The render input key names what a render is a function of" and "A reconcile skips its render when its inputs are unchanged" move into the scenarios "The six parts of the render input key" and "The skip conditions" (15:15); their bodies keep the SHALL and name the scenario.
+Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each. The two list bodies of "The render input key names what a render is a function of" and "A reconcile skips its render when its inputs are unchanged" move into the scenarios "The six parts of the render input key" and "The skip conditions"; their bodies keep the SHALL and name the scenario.
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
@@ -1172,8 +1180,8 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 
 | Old requirement | Old clause | New requirement | Sentence | Edit |
 | --- | --- | --- | --- | --- |
-| The render input key names what a render is... | the six list items (source digest, config digest, platform package identity, skew policy, operator version, library version) | scenario "The six parts of the render input key" of The render input key has six parts | THEN and AND lines | each item copied unchanged, the final ";" and "." dropped (15:15) |
-| The render input key names what a ren... | The operator SHALL compute a render input key for a ModuleInstance ... | The render input key has six parts | 1 | the list of six parts moves to the scenario "The six parts of the render input key" (15:15); the body keeps the SHALL and names the scenario; added: ", as the scenario "The six parts of the render input key" lists them" / "." |
+| The render input key names what a render is... | the six list items (source digest, config digest, platform package identity, skew policy, operator version, library version) | scenario "The six parts of the render input key" of The render input key has six parts | THEN and AND lines | each item copied unchanged, the final ";" and "." dropped |
+| The render input key names what a ren... | The operator SHALL compute a render input key for a ModuleInstance ... | The render input key has six parts | 1 | the list of six parts moves to the scenario "The six parts of the render input key"; the body keeps the SHALL and names the scenario; added: ", as the scenario "The six parts of the render input key" lists them" / "." |
 | The render input key names what a ren... | Source: owner decision g3 of the kernel-plan walkthrough (2026-10-0... | The render input key has six parts | 2 | none |
 | The render input key names what a ren... | The key's digest SHALL be `sha256:<hex>` over a fixed, versioned en... | The key digest is a fixed encoding of its parts | 1 | none |
 | The render input key names what a ren... | Source: owner decision g3 of the kernel-plan walkthrough (2026-10-0... | The key digest is a fixed encoding of its parts | 2 | none |
@@ -1187,12 +1195,13 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | The key of the last confirming render... | ModuleInstance and ModulePackage SHALL carry an optional `status.la... | An attempt that fails or skips its render leaves the reco... | 1 | none |
 | The key of the last confirming render... | An attempt that fails, is refused, panics, or skips its render SHAL... | An attempt that fails or skips its render leaves the reco... | 2 | none |
 | A reconcile skips its render when its... | Before rendering, a ModuleInstance or ModulePackage reconcile SHALL... | A reconcile computes the key before it renders | 1 | none |
-| A reconcile skips its render when its... | A ModuleInstance or ModulePackage reconcile SHALL skip the render w... | A reconcile skips its render when, and only when, all of ... | 1 | the subject "It" is replaced by the subject of sentence 0; the list of seven conditions moves to the scenario "The skip conditions" (15:15); the body keeps the SHALL and names the scenario; added: "A " / ", as the scenario "The skip conditions" lists them" / "." |
+| A reconcile skips its render when its... | A ModuleInstance or ModulePackage reconcile SHALL skip the render w... | A reconcile skips its render when, and only when, all of ... | 1 | the subject "It" is replaced by the subject of sentence 0; the list of seven conditions moves to the scenario "The skip conditions"; the body keeps the SHALL and names the scenario; added: "A " / ", as the scenario "The skip conditions" lists them" / "." |
 | A reconcile skips its render when its... | Rationale: a render is the most expensive step of a reconcile, and ... | A reconcile skips its render when, and only when, all of ... | 2 | none |
 | A reconcile skips its render when its... | A ModuleInstance or ModulePackage reconcile SHALL skip the render w... | An absent batch Job forces a render because only a render... | 1 | the subject "It" is replaced by the subject of sentence 0; the list of seven conditions is in the scenario "The skip conditions"; added: "A " / ", as the scenario "The skip conditions" lists them" / "." |
 | A reconcile skips its render when its... | The last condition exists because only a render tells whether an ab... | An absent batch Job forces a render because only a render... | 2 | none |
 | A reconcile skips its render when its... | A ModuleInstance or ModulePackage reconcile SHALL skip the render w... | A reconcile that renders for an absent batch Job judges h... | 1 | the subject "It" is replaced by the subject of sentence 0; the list of seven conditions is in the scenario "The skip conditions"; added: "A " / ", as the scenario "The skip conditions" lists them" / "." |
-| A reconcile skips its render when its... | A reconcile that renders for it has judged health once without a pa... | A reconcile that renders for an absent batch Job judges h... | 2 | none |
+| A reconcile skips its render when its... | The last condition exists because only a render tells whether an ab... | A reconcile that renders for an absent batch Job judges h... | 2 | none |
+| A reconcile skips its render when its... | A reconcile that renders for it has judged health once without a pa... | A reconcile that renders for an absent batch Job judges h... | 3 | none |
 | A reconcile skips its render when its... | A ModuleInstance or ModulePackage reconcile SHALL skip the render w... | A failed drift detection skips the render and reports the... | 1 | the subject "It" is replaced by the subject of sentence 0; the list of seven conditions is in the scenario "The skip conditions"; added: "A " / ", as the scenario "The skip conditions" lists them" / "." |
 | A reconcile skips its render when its... | While the last drift detection failed, the missing set is unknown a... | A failed drift detection skips the render and reports the... | 2 | none |
 | A reconcile skips its render when its... | A skipped reconcile SHALL NOT take a render slot, lease the platfor... | A skipped reconcile takes no slot and moves nothing | 1 | none |
@@ -1223,13 +1232,13 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | --- | --- | --- |
 | The render input key names what a render is a function of | 1205 | 359, 388, 273 |
 | The key of the last confirming render is recorded on status | 726 | 392, 403, 261 |
-| A reconcile skips its render when its inputs are unchanged | 2537 | 299, 391, 315, 257, 316, 282, 373, 217 |
+| A reconcile skips its render when its inputs are unchanged | 2537 | 299, 391, 315, 417, 316, 282, 373, 217 |
 | The drift render interval bounds how long a render is skipped | 717 | 450, 371, 439, 402 |
 | An operator or library upgrade renders every object once | 669 | 267, 247, 153 |
 
 ### Ledger: ssa-apply
 
-Form c2 for "A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed" and "The staged apply order never contradicts the library's kind weights". Form b for the other three, because their header is cited: "Custom resources wait for discovery of a CRD in the same set" (quoted by "Staged apply ordering"), "A forced recreate deletes exactly the object that was read" (quoted by the PersistentVolumeClaim requirement) and "An apply is judged by the ownership verdict before its first write" (cited by `modulepackage-reconcile-loop` and `reconcile-loop-assembly`). A form b parent keeps every scenario of its old requirement (18:40), so the ADDED siblings carry new scenarios that restate their clause. The `Source:` line of each of the three old requirements that have one stays whole in every block cut from it. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
+Form c2 for "A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed" and "The staged apply order never contradicts the library's kind weights". Form b for the other three, because their header is cited: "Custom resources wait for discovery of a CRD in the same set" (quoted by "Staged apply ordering"), "A forced recreate deletes exactly the object that was read" (quoted by the PersistentVolumeClaim requirement) and "An apply is judged by the ownership verdict before its first write" (cited by `modulepackage-reconcile-loop` and `reconcile-loop-assembly`). A form b parent keeps every scenario of its old requirement, so the ADDED siblings carry new scenarios that restate their clause. The `Source:` line of each of the three old requirements that have one stays whole in every block cut from it. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each.
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
@@ -1293,7 +1302,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 | The read uses the applying client | The read is made by the client that applies | the clause of that requirement body |
 | The install admission input is not set | The controller sets no install admission input in an apply verdict | the clause of that requirement body |
 | One identity for both kinds | The identity of the apply verdict is the same for a ModuleInstance and a ModulePackage | the clause of that requirement body |
-| Verdict identity when none is recorded | The verdict is asked with the recorded identity when no identity is recorded or a change is unsettled | the clause of that requirement body |
+| Verdict identity when none is recorded | The verdict is asked once per object with the render's identity, or the recorded one when the render carries none | the clause of that requirement body |
 | No earlier identity while a change is unsettled | The earlier identity of an unsettled change is not asked with | the clause of that requirement body |
 | No empty identity and no prune list | The apply verdict is not asked with an empty identity or the prune list | the clause of that requirement body |
 | Objects to apply and no identity | A reconcile with objects to apply and no identity fails | the clause of that requirement body |
@@ -1315,23 +1324,26 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | --- | --- | --- | --- | --- |
 | Custom resources wait for discovery o... | When a staged apply fails only because the API server does not serv... | Custom resources wait for discovery of a CRD in the same set | 1 | none |
 | Custom resources wait for discovery o... | A CRD can report `Established` before API discovery serves its kind. | Custom resources wait for discovery of a CRD in the same set | 2 | none |
-| Custom resources wait for discovery o... | The `internal/apply` package MUST retry at a fixed interval, MUST N... | The discovery retry runs at a fixed interval within a bound | 1 | the subject "It" is replaced by the subject of sentence 0; added: "The " |
+| Custom resources wait for discovery o... | In the retry that the requirement "Custom resources wait for discov... | The discovery retry runs at a fixed interval within a bound | 1 | the subject "It" is replaced by the subject of sentence 0; the retry is named by the exact header of the requirement that holds its condition; added: "In the retry that the requirement "Custom resources wait for discovery of a CRD in the same set" states, the " |
 | Custom resources wait for discovery o... | When a staged apply fails only because the API server does not serv... | The discovery retry covers no other error | 1 | none |
 | Custom resources wait for discovery o... | It MUST NOT retry any other error. | The discovery retry covers no other error | 2 | none |
-| Custom resources wait for discovery o... | The `internal/apply` package MUST retry at a fixed interval, MUST N... | Apply returns the no-match error when the retry ends | 1 | the subject "It" is replaced by the subject of sentence 0; added: "The " |
+| Custom resources wait for discovery o... | In the retry that the requirement "Custom resources wait for discov... | Apply returns the no-match error when the retry ends | 1 | the subject "It" is replaced by the subject of sentence 0; the retry is named by the exact header of the requirement that holds its condition; added: "In the retry that the requirement "Custom resources wait for discovery of a CRD in the same set" states, the " |
 | Custom resources wait for discovery o... | When the bound or the caller's context ends while the error is stil... | Apply returns the no-match error when the retry ends | 2 | none |
 | A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | The data deletion option is off at its zero value and has... | 1 | none |
 | A forced recreate keeps PersistentVol... | When `force` is false, the option has no effect. | The data deletion option is off at its zero value and has... | 2 | none |
 | A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | A forced apply with the option off never deletes a Persis... | 1 | none |
 | A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | A forced apply with the option off never deletes a Persis... | 2 | none |
-| A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | The apply checks every claim of the set before it applies... | 1 | none |
-| A forced recreate keeps PersistentVol... | Before it applies or deletes any object, it MUST check every such c... | The apply checks every claim of the set before it applies... | 2 | none |
+| A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | The apply checks every claim of the set before it applies... | 1 | none |
+| A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | The apply checks every claim of the set before it applies... | 2 | none |
+| A forced recreate keeps PersistentVol... | Before it applies or deletes any object, it MUST check every such c... | The apply checks every claim of the set before it applies... | 3 | none |
 | A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | A claim whose update the API server refuses fails the who... | 1 | none |
 | A forced recreate keeps PersistentVol... | When the API server refuses the update of one (the error the forced... | A claim whose update the API server refuses fails the who... | 2 | none |
 | A forced recreate keeps PersistentVol... | In that case no object of the resource set is applied, created or d... | A claim whose update the API server refuses fails the who... | 3 | none |
 | A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | A claim is recreated when data deletion is allowed | 1 | none |
 | A forced recreate keeps PersistentVol... | When the option is on, a forced recreate MUST delete and recreate a... | A claim is recreated when data deletion is allowed | 2 | none |
-| A forced recreate keeps PersistentVol... | The forced recreate of every other kind MUST delete and recreate as... | The forced recreate of every other kind is unchanged | 1 | none |
+| A forced recreate keeps PersistentVol... | The apply MUST take, beside `force`, an option that allows the dele... | The forced recreate of every other kind is unchanged | 1 | none |
+| A forced recreate keeps PersistentVol... | When `force` is true and the option is off, the apply MUST NOT dele... | The forced recreate of every other kind is unchanged | 2 | none |
+| A forced recreate keeps PersistentVol... | The forced recreate of every other kind MUST delete and recreate as... | The forced recreate of every other kind is unchanged | 3 | none |
 | A forced recreate keeps PersistentVol... | The resource manager MUST refuse on its own to delete a core Persis... | The resource manager refuses to delete a core PersistentV... | 1 | none |
 | A forced recreate deletes exactly the... | When an apply with `force` deletes an object to create it again, th... | A forced recreate deletes exactly the object that was read | 1 | none |
 | A forced recreate deletes exactly the... | The apply MUST NOT ask an ownership verdict for that delete. | A forced recreate deletes exactly the object that was read | 2 | none |
@@ -1382,9 +1394,9 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | An apply is judged by the ownership v... | The identity the verdict is asked with is the same for a ModuleInst... | The identity of the apply verdict is the same for a Modul... | 1 | none |
 | An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identi... | The identity of the apply verdict is the same for a Modul... | 2 | none |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The identity of the apply verdict is the same for a Modul... | 3 | none |
-| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identi... | The verdict is asked with the recorded identity when no i... | 1 | none |
-| An apply is judged by the ownership v... | This holds when no identity is recorded yet and while an identity c... | The verdict is asked with the recorded identity when no i... | 2 | none |
-| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict is asked with the recorded identity when no i... | 3 | none |
+| An apply is judged by the ownership v... | The controller MUST ask once per object, with the instance's identi... | The verdict is asked once per object with the render's id... | 1 | none |
+| An apply is judged by the ownership v... | This holds when no identity is recorded yet and while an identity c... | The verdict is asked once per object with the render's id... | 2 | none |
+| An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The verdict is asked once per object with the render's id... | 3 | none |
 | An apply is judged by the ownership v... | The controller MUST NOT ask with the earlier identity of an unsettl... | The earlier identity of an unsettled change is not asked ... | 1 | none |
 | An apply is judged by the ownership v... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The earlier identity of an unsettled change is not asked ... | 2 | none |
 | An apply is judged by the ownership v... | The controller MUST NOT ask the apply verdict with an empty identit... | The apply verdict is not asked with an empty identity or ... | 1 | none |
@@ -1421,8 +1433,8 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| Custom resources wait for discovery of a CRD in the same set | 766 | 367, 228, 333, 389 |
-| A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed | 1256 | 175, 243, 236, 461, 229, 178, 216 |
+| Custom resources wait for discovery of a CRD in the same set | 766 | 367, 333, 333, 494 |
+| A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed | 1256 | 175, 243, 363, 461, 229, 422, 216 |
 | A forced recreate deletes exactly the object that was read | 680 | 449, 314, 251 |
 | The staged apply order never contradicts the library's kind weights | 1917 | 322, 390, 444, 404, 486, 465, 324, 435, 351, 293, 394 |
 | An apply is judged by the ownership verdict before its first write | 3220 | 417, 482, 493, 354, 275, 478, 432, 428, 437, 331, 331, 477, 480, 480, 341, 343, 466, 488, 452, 383, 385 |
@@ -1461,6 +1473,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 
 | New scenario | Requirement | Old clause restated |
 | --- | --- | --- |
+| No rendered value without a slot | No reconcile holds a rendered CUE value without a slot | the clause of that requirement body |
 | Reconciles outside the render are not serialised | Each controller uses the render flag as its maximum concurrent reconciles | the clause of that requirement body |
 | The Platform controller takes no slot | The Platform controller stays serial and takes no slot | the clause of that requirement body |
 | The flag help states the sizing rule | The flag help states the memory sizing rule | the clause of that requirement body |
@@ -1479,22 +1492,26 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | Single long-lived library Kernel | Concurrency is bounded by that pool on the render paths, and to one... | No lock or ordering gate is held across a kernel call | 2 | none |
 | Render concurrency is a manager flag ... | The manager SHALL accept `--max-concurrent-renders` (integer, defau... | The manager takes --max-concurrent-renders and builds one... | 1 | none |
 | Render concurrency is a manager flag ... | A reconcile SHALL take a slot before it calls its renderer (platfor... | A reconcile holds a render slot from the renderer call to... | 1 | none |
-| Render concurrency is a manager flag ... | So no reconcile holds a rendered CUE value without a slot, and the ... | A reconcile holds a render slot from the renderer call to... | 2 | none |
+| Render concurrency is a manager flag ... | The manager SHALL accept `--max-concurrent-renders` (integer, defau... | No reconcile holds a rendered CUE value without a slot | 1 | none |
+| Render concurrency is a manager flag ... | So no reconcile holds a rendered CUE value without a slot, and the ... | No reconcile holds a rendered CUE value without a slot | 2 | none |
 | Render concurrency is a manager flag ... | The manager SHALL accept `--max-concurrent-renders` (integer, defau... | Each controller uses the render flag as its maximum concu... | 1 | none |
 | Render concurrency is a manager flag ... | Each of the two controllers SHALL also use the flag as its maximum ... | Each controller uses the render flag as its maximum concu... | 2 | none |
 | Render concurrency is a manager flag ... | A reconcile whose wait for a slot ends because its context is cance... | A reconcile whose wait for a slot is cancelled returns th... | 1 | none |
 | Render concurrency is a manager flag ... | The Platform controller SHALL stay serial and SHALL take no slot. | The Platform controller stays serial and takes no slot | 1 | none |
-| Render concurrency is a manager flag ... | The flag's help SHALL state the memory sizing rule (per-render cost... | The flag help states the memory sizing rule | 1 | none |
+| Render concurrency is a manager flag ... | The manager SHALL accept `--max-concurrent-renders` (integer, defau... | The flag help states the memory sizing rule | 1 | none |
+| Render concurrency is a manager flag ... | The flag's help SHALL state the memory sizing rule (per-render cost... | The flag help states the memory sizing rule | 2 | none |
 | Rendered values are dropped after con... | A rendered resource carries the CUE value it was read from, and a h... | The reconcilers drop the rendered CUE-backed resources af... | 1 | none |
 | Rendered values are dropped after con... | The ModuleInstance and ModulePackage reconcilers SHALL therefore dr... | The reconcilers drop the rendered CUE-backed resources af... | 2 | none |
 | Rendered values are dropped after con... | Every later phase (shrink judgment, apply, prune, inventory and sta... | Later phases read the exported data and never the dropped... | 1 | none |
 | A render is bounded by a manager time... | The manager SHALL accept `--render-timeout` (a duration, default `1... | The manager takes --render-timeout and refuses a negative... | 1 | none |
-| A render is bounded by a manager time... | While a ModuleInstance or ModulePackage reconcile holds its render ... | A render runs under the render deadline while it holds it... | 1 | none |
-| A render is bounded by a manager time... | The wait for a slot SHALL NOT count against it, and the reconcile's... | A render runs under the render deadline while it holds it... | 2 | none |
+| A render is bounded by a manager time... | The manager SHALL accept `--render-timeout` (a duration, default `1... | A render runs under the render deadline while it holds it... | 1 | sentence 0 is cut at "and SHALL refuse" so that "that timeout" has its referent; the head is kept; added: "." |
+| A render is bounded by a manager time... | While a ModuleInstance or ModulePackage reconcile holds its render ... | A render runs under the render deadline while it holds it... | 2 | none |
+| A render is bounded by a manager time... | The wait for a slot SHALL NOT count against it, and the reconcile's... | A render runs under the render deadline while it holds it... | 3 | none |
 | A render is bounded by a manager time... | The manager SHALL accept `--render-timeout` (a duration, default `1... | A render timeout of zero disables the deadline | 1 | none |
 | A render is bounded by a manager time... | A value of `0` SHALL disable the deadline, and the render then runs... | A render timeout of zero disables the deadline | 2 | none |
 | A render is bounded by a manager time... | When the deadline passes before the render returns, the reconcile S... | A reconcile stops waiting for a render that passes its de... | 1 | none |
-| A render is bounded by a manager time... | The render SHALL keep its slot until it really returns (at the next... | An abandoned render keeps its slot until it returns | 1 | none |
+| A render is bounded by a manager time... | When the deadline passes before the render returns, the reconcile S... | An abandoned render keeps its slot until it returns | 1 | none |
+| A render is bounded by a manager time... | The render SHALL keep its slot until it really returns (at the next... | An abandoned render keeps its slot until it returns | 2 | none |
 | A render is bounded by a manager time... | A render that returns after its deadline SHALL be treated as timed ... | A render that returns after its deadline is treated as ti... | 1 | none |
 | A render is bounded by a manager time... | A reconcile SHALL NOT read anything the abandoned render writes, an... | A reconcile does not read what an abandoned render writes... | 1 | none |
 | A render is bounded by a manager time... | While a timed-out render of an object is still running, a reconcile... | A timed-out render that is still running blocks a second ... | 1 | none |
@@ -1502,16 +1519,17 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | A render is bounded by a manager time... | A panic in the render before its deadline SHALL be logged at error ... | A panic in the render before its deadline reaches the rec... | 1 | none |
 | A render is bounded by a manager time... | A panic after the reconcile stopped waiting SHALL be logged at erro... | A panic after the reconcile stopped waiting does not stop... | 1 | none |
 | A render is bounded by a manager time... | The operator SHALL log a timed-out render with its timeout, and SHA... | The operator logs a timed-out render and an abandoned ren... | 1 | none |
-| A render is bounded by a manager time... | The flag's help SHALL state that the slot stays held until the rend... | The render timeout flag help states that the slot stays held | 1 | none |
+| A render is bounded by a manager time... | The manager SHALL accept `--render-timeout` (a duration, default `1... | The render timeout flag help states that the slot stays held | 1 | none |
+| A render is bounded by a manager time... | The flag's help SHALL state that the slot stays held until the rend... | The render timeout flag help states that the slot stays held | 2 | none |
 
 Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
 | Single long-lived library Kernel | 881 | 104, 378, 397 |
-| Render concurrency is a manager flag bounded by memory | 1422 | 287, 478, 458, 223, 65, 194 |
+| Render concurrency is a manager flag bounded by memory | 1422 | 287, 363, 402, 458, 223, 65, 482 |
 | Rendered values are dropped after conversion | 752 | 468, 283 |
-| A render is bounded by a manager timeout that keeps its slot | 2491 | 117, 410, 223, 182, 229, 106, 339, 349, 248, 153, 129, 113 |
+| A render is bounded by a manager timeout that keeps its slot | 2491 | 117, 483, 223, 182, 412, 106, 339, 349, 248, 153, 129, 231 |
 
 ### Ledger: module-instance-synthesis
 
@@ -1577,12 +1595,15 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | An unset required config value is ref... | The controller SHALL report the kernel's refusal and SHALL NOT run ... | An unset required config value is refused by instance syn... | 2 | none |
 | An unset required config value is ref... | The message SHALL be `synthesizing release: Kernel.SynthesizeInstan... | The refusal message has a fixed form with one finding per... | 1 | none |
 | An unset required config value is ref... | A nested field SHALL be named by its full path (`values.db.host`). | The refusal message has a fixed form with one finding per... | 2 | none |
-| An unset required config value is ref... | A value a component reads SHALL be named like a value no component ... | A value a component reads is named like a value no compon... | 1 | none |
-| An unset required config value is ref... | The controller SHALL word the findings from the kernel's typed erro... | The controller words the findings from the kernel typed e... | 1 | none |
+| An unset required config value is ref... | The message SHALL be `synthesizing release: Kernel.SynthesizeInstan... | A value a component reads is named like a value no compon... | 1 | none |
+| An unset required config value is ref... | A value a component reads SHALL be named like a value no component ... | A value a component reads is named like a value no compon... | 2 | none |
+| An unset required config value is ref... | The message SHALL be `synthesizing release: Kernel.SynthesizeInstan... | The controller words the findings from the kernel typed e... | 1 | none |
+| An unset required config value is ref... | The controller SHALL word the findings from the kernel's typed erro... | The controller words the findings from the kernel typed e... | 2 | none |
 | An unset required config value is ref... | A ModuleInstance whose `spec.values` leave a required `#config` val... | A ModuleInstance with an unset required value reports Ren... | 1 | none |
 | An unset required config value is ref... | The ModuleInstance SHALL report `Ready=False` and `Stalled=True` wi... | A ModuleInstance with an unset required value reports Ren... | 2 | none |
 | A values failure reports every findin... | When instance synthesis refuses the values of a ModuleInstance, the... | A values failure message carries every finding while it f... | 1 | none |
-| A values failure reports every findin... | The event SHALL carry the same text within the event note limit (ca... | The event carries the text of the values failure | 1 | keyword added where the sentence has none; added: "SHALL carry" |
+| A values failure reports every findin... | When instance synthesis refuses the values of a ModuleInstance, the... | The event carries the text of the values failure | 1 | sentence 0 is cut at ", and SHALL NOT replace" so that "the same text" has its referent; the head is kept; added: "." |
+| A values failure reports every findin... | The event SHALL carry the same text within the event note limit (ca... | The event carries the text of the values failure | 2 | keyword added where the sentence has none; added: "SHALL carry" |
 | A values failure reports every findin... | A registry fetch failure during synthesis SHALL keep its own text. | A registry fetch failure during synthesis keeps its own text | 1 | none |
 | A values failure reports every findin... | A finding caused by a value in `spec.values` SHALL name its positio... | A finding caused by a value in spec.values names its posi... | 1 | none |
 | A values failure reports every findin... | The wording SHALL NOT change how the failure is classified: a value... | The wording of a values failure does not change how it is... | 1 | none |
@@ -1593,18 +1614,18 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | --- | --- | --- |
 | Registry configuration | 1014 | 200, 122, 441, 406 |
 | Status reporting | 1375 | 282, 322, 462, 214, 392 |
-| An unset required config value is refused by instance synthesis | 1065 | 319, 365, 144, 141, 310 |
-| A values failure reports every finding with its positions | 1015 | 492, 95, 66, 102, 260 |
+| An unset required config value is refused by instance synthesis | 1065 | 319, 365, 443, 440, 310 |
+| A values failure reports every finding with its positions | 1015 | 492, 357, 66, 102, 260 |
 
 ### Ledger: modulepackage-reconcile-loop
 
-Form c2 for every requirement below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each old header found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each. The citation `reconcile-loop-assembly`, "A reconcile the apply verdict refuses is retried and not stalled" names a requirement of `reconcile-loop-assembly`, which unit B3 rewrites: that unit must check the quotation again. `grep` found `reconcile-loop-assembly` quoting the header "An apply is judged by the ownership verdict before its first write", which stays (form b).
+Form b for "No-op detection", because `reconcile-loop-assembly` cites its header: it stays as a MODIFIED parent with its short body and its three scenarios, and the two ADDED siblings carry new scenarios that restate their clause. Form c2 for the other three requirements below: REMOVED under the old name, ADDED under new names, new blocks at the end of the spec. `grep -rn --exclude-dir=archive` for each of the other old headers found no reference to fix. Old scenario text is copied by script from `origin/main`; item 3 of the guide checklist shows `same` for each. The citation `reconcile-loop-assembly`, "A reconcile the apply verdict refuses is retried and not stalled" names a requirement of `reconcile-loop-assembly`, which a later unit rewrites: that unit must keep the quotation valid. `reconcile-loop-assembly` also quotes the header "An apply is judged by the ownership verdict before its first write", which stays (form b). A body that cannot hold the condition of a sibling next to its `Source:` line names the sibling by its exact header ("as listed in requirement"): the two failure reasons.
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
-| All digests match | The ReleaseReconciler detects no-op reconciliations by the four digests, All digests match | no (byte equal, checked by the item 3 command) |
-| All digests match and an object was adopted by another instance | A reconcile whose digests match applies the objects the verdict allows when an object is adopted by another instance, All digests match and an object was adopted by another instance | no (byte equal, checked by the item 3 command) |
-| Matching digests, an object to take in and an inventoried object being deleted | A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it, Matching digests, an object to take in and an inventoried object being deleted | no (byte equal, checked by the item 3 command) |
+| All digests match | No-op detection, All digests match | no (byte equal, checked by the item 3 command) |
+| All digests match and an object was adopted by another instance | No-op detection, All digests match and an object was adopted by another instance | no (byte equal, checked by the item 3 command) |
+| Matching digests, an object to take in and an inventoried object being deleted | No-op detection, Matching digests, an object to take in and an inventoried object being deleted | no (byte equal, checked by the item 3 command) |
 | Status updated on failure | The ReleaseReconciler patches the status at the end of every reconcile attempt, Status updated on failure | no (byte equal, checked by the item 3 command) |
 | A skipped interval patches nothing | A reconcile that skips its render is not an attempt and patches only a changed Healthy condition, A skipped interval patches nothing | no (byte equal, checked by the item 3 command) |
 | A skipped interval records a changed health judgement | A reconcile that skips its render is not an attempt and patches only a changed Healthy condition, A skipped interval records a changed health judgement | no (byte equal, checked by the item 3 command) |
@@ -1618,26 +1639,29 @@ Form c2 for every requirement below: REMOVED under the old name, ADDED under new
 | A package is refused on another instance's object | A ModulePackage reconcile judges every rendered object with the instance's identity, A package is refused on another instance's object | no (byte equal, checked by the item 3 command) |
 | A package adopts an annotated object | A ModulePackage reconcile judges every rendered object with the instance's identity, A package adopts an annotated object | no (byte equal, checked by the item 3 command) |
 | A skipped render reads nothing | The read is made by the client that applies and a skipped render reads nothing, A skipped render reads nothing | no (byte equal, checked by the item 3 command) |
-| Matching digests and an unreadable object | The failure reason is ImpersonationFailed or ApplyFailed, Matching digests and an unreadable object | no (byte equal, checked by the item 3 command) |
-| Matching digests and a missing ServiceAccount | The failure reason is ImpersonationFailed or ApplyFailed, Matching digests and a missing ServiceAccount | no (byte equal, checked by the item 3 command) |
+| Matching digests and an unreadable object | The failure reason is ImpersonationFailed when the ServiceAccount is missing or the read is Forbidden, Matching digests and an unreadable object | no (byte equal, checked by the item 3 command) |
+| Matching digests and a missing ServiceAccount | The failure reason is ImpersonationFailed when the ServiceAccount is missing or the read is Forbidden, Matching digests and a missing ServiceAccount | no (byte equal, checked by the item 3 command) |
 
 New scenarios (restate a clause of the old body, with words of the old text only):
 
 | New scenario | Requirement | Old clause restated |
 | --- | --- | --- |
+| A reconcile whose digests match is not a no-op | A reconcile whose digests match applies the objects the verdict allows when one is outside the inventory or another instance adopts an object | the clause of that requirement body |
+| Matching digests apply the rendered set | A reconcile whose digests match applies the rendered set and an inventoried object being deleted refuses it | the clause of that requirement body |
 | A second identity change is refused | The identity fields are written, kept and cleared as on a ModuleInstance | the clause of that requirement body |
 | The earlier identity is not asked with | A ModulePackage reconcile never asks the verdict with the earlier identity of an unsettled change | the clause of that requirement body |
 | No empty identity | A ModulePackage reconcile never asks the verdict with an empty identity | the clause of that requirement body |
 | Judged as a ModuleInstance reconcile does | A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the ssa-apply requirement | the clause of that requirement body |
-| A refused package reconcile is retried and not stalled | A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement | the clause of that requirement body |
-| Matching digests and a verdict that could not be asked | A ModulePackage reconcile that renders fails when the verdict could not be asked | the clause of that requirement body |
+| A ModulePackage reconcile judges as a ModuleInstance reconcile does under the loop assembly | A ModulePackage reconcile judges exactly as a ModuleInstance reconcile does under the reconcile-loop-assembly requirement | the clause of that requirement body |
+| Matching digests and a verdict that could not be asked | A reconcile that renders fails when the verdict could not be asked | the clause of that requirement body |
+| Another failure to ask the verdict is ApplyFailed | The failure reason is ApplyFailed on the backoff otherwise | the clause of that requirement body |
 | A failed reconcile writes nothing | A failed ModulePackage reconcile writes nothing and keeps the inventory | the clause of that requirement body |
 
 Clause table (old clause, new requirement, sentence of its body; "Edit" lists the words that differ from the old sentence):
 
 | Old requirement | Old clause | New requirement | Sentence | Edit |
 | --- | --- | --- | --- | --- |
-| No-op detection | The `ReleaseReconciler` MUST detect no-op reconciliations when sour... | The ReleaseReconciler detects no-op reconciliations by th... | 1 | none |
+| No-op detection | The `ReleaseReconciler` MUST detect no-op reconciliations when sour... | No-op detection | 1 | none |
 | No-op detection | The `ReleaseReconciler` MUST detect no-op reconciliations when sour... | A reconcile whose digests match applies the objects the v... | 1 | none |
 | No-op detection | A reconcile whose digests match is not a no-op when a rendered obje... | A reconcile whose digests match applies the objects the v... | 2 | none |
 | No-op detection | A reconcile whose digests match is not a no-op when a rendered obje... | A reconcile whose digests match applies the rendered set ... | 1 | keyword added where the sentence has none; the condition of "Such a reconcile" is copied from sentence 1; added: ". " / "SHALL apply" |
@@ -1668,14 +1692,17 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A ModulePackage reconcile judges exactly as a ModuleInsta... | 2 | none |
 | A ModulePackage guards every apply by... | A ModulePackage reconcile that renders MUST judge every rendered ob... | A ModulePackage reconcile judges exactly as a ModuleInsta... | 1 | list cut at the two citations; the head and "exactly as" are repeated; added: "(" / ")" / "." |
 | A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A ModulePackage reconcile judges exactly as a ModuleInsta... | 2 | none |
-| A ModulePackage guards every apply by... | The read MUST be made by the client that applies. | The read is made by the client that applies and a skipped... | 1 | none |
-| A ModulePackage guards every apply by... | A reconcile that skips its render MUST NOT read the objects. | The read is made by the client that applies and a skipped... | 2 | none |
-| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The read is made by the client that applies and a skipped... | 3 | none |
-| A ModulePackage guards every apply by... | A ModulePackage has no drift check to report a verdict that could n... | A ModulePackage reconcile that renders fails when the ver... | 1 | none |
-| A ModulePackage guards every apply by... | So a reconcile that renders MUST fail, also when every digest match... | A ModulePackage reconcile that renders fails when the ver... | 2 | the head of sentence 5; added: "." |
-| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A ModulePackage reconcile that renders fails when the ver... | 3 | none |
-| A ModulePackage guards every apply by... | So a reconcile that renders MUST fail: `Stalled=True` with reason `... | The failure reason is ImpersonationFailed or ApplyFailed | 1 | the head and the two outcomes of sentence 5; added: ": " / "." |
-| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The failure reason is ImpersonationFailed or ApplyFailed | 2 | none |
+| A ModulePackage guards every apply by... | A ModulePackage reconcile that renders MUST judge every rendered ob... | The read is made by the client that applies and a skipped... | 1 | sentence 0 is cut at ", with the identity" so that "The read" and "the objects" have their referent; the head is kept; added: "." |
+| A ModulePackage guards every apply by... | The read MUST be made by the client that applies. | The read is made by the client that applies and a skipped... | 2 | none |
+| A ModulePackage guards every apply by... | A reconcile that skips its render MUST NOT read the objects. | The read is made by the client that applies and a skipped... | 3 | none |
+| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The read is made by the client that applies and a skipped... | 4 | none |
+| A ModulePackage guards every apply by... | A ModulePackage has no drift check to report a verdict that could n... | A reconcile that renders fails when the verdict could not... | 1 | none |
+| A ModulePackage guards every apply by... | So a reconcile that renders MUST fail, also when every digest match... | A reconcile that renders fails when the verdict could not... | 2 | the head of sentence 5; added: "." |
+| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A reconcile that renders fails when the verdict could not... | 3 | none |
+| A ModulePackage guards every apply by... | So a reconcile that renders MUST fail, as listed in requirement "A ... | The failure reason is ImpersonationFailed when the Servic... | 1 | list cut between the two reasons; the head is kept; the condition of sentence 5 is named by the exact header of the requirement that holds it; added: ", as listed in requirement "A reconcile that renders fails when the verdict could not be asked"" / ": " / "." |
+| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The failure reason is ImpersonationFailed when the Servic... | 2 | none |
+| A ModulePackage guards every apply by... | So a reconcile that renders MUST fail, as listed in requirement "A ... | The failure reason is ApplyFailed on the backoff otherwise | 1 | list cut between the two reasons; the head is kept; the condition of sentence 5 is named by the exact header of the requirement that holds it; added: ", as listed in requirement "A reconcile that renders fails when the verdict could not be asked"" / ": " / "." |
+| A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | The failure reason is ApplyFailed on the backoff otherwise | 2 | none |
 | A ModulePackage guards every apply by... | So a reconcile that renders MUST fail, also when every digest match... | A failed ModulePackage reconcile writes nothing and keeps... | 1 | the head of sentence 5 is copied as context; added: "." |
 | A ModulePackage guards every apply by... | It MUST write nothing and MUST keep `status.inventory`. | A failed ModulePackage reconcile writes nothing and keeps... | 2 | none |
 | A ModulePackage guards every apply by... | Source: enhancement 0012 ("The apply guard runs on every apply, ref... | A failed ModulePackage reconcile writes nothing and keeps... | 3 | none |
@@ -1687,7 +1714,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 | No-op detection | 741 | 161, 459, 482 |
 | Status always patched | 750 | 245, 410, 200 |
 | A ModulePackage records its instance identity | 1309 | 477, 419, 479, 347, 463 |
-| A ModulePackage guards every apply by ownership | 1429 | 418, 444, 459, 465, 477, 319, 499, 457, 475 |
+| A ModulePackage guards every apply by ownership | 1429 | 418, 444, 459, 465, 477, 448, 499, 486, 408, 475 |
 
 ### Ledger: digest-computation
 
@@ -1730,7 +1757,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 ## Strength table
 
-Every sentence that gained SHALL, MUST or MAY in this unit (DECISIONS.md 2026-10-19 16:20 and 17:05).
+Every sentence that gained SHALL, MUST or MAY in this unit.
 Old text from `origin/main`. All other keywords are the old ones.
 
 | Requirement (new) | Sentence | Old sentence, no keyword |
@@ -1791,7 +1818,7 @@ The pinned OpenSpec 1.14.1 gate (`openspec:install` and `openspec:check` tasks a
 is not part of this change. It becomes a small separate change and PR after the open changes
 `stop-operator-install-manifest` and `add-cross-namespace-source-grants` land, because a step
 that runs `--all --strict` would fail its own PR while they carry warnings and errors
-(DECISIONS.md 2026-10-19 14:05). That change installs OpenSpec 1.14.1 pinned by version with
+That change installs OpenSpec 1.14.1 pinned by version with
 `--ignore-scripts` and no lockfile, and takes the `cli` repo's tasks as the model.
 
 ## Risks / Trade-offs
@@ -1802,8 +1829,7 @@ that runs `--all --strict` would fail its own PR while they carry warnings and e
   inventory. An "Archive would refuse" line is reported, never repaired by editing the other
   change.
 - Section count: 11 task groups (9 units plus a pause and the final gate), against the config's "at most about seven sections" rule. The
-  groups are mechanical units of one kind, each ends green, and DECISIONS.md 2026-10-19 09:50
-  sets one change per repo run as several units. The proposal gate may ask instead for two
+  groups are mechanical units of one kind, each ends green, and the swarm sets one change per repo run as several units. The proposal gate may ask instead for two
   changes (before and after the open changes land).
 - No new trust boundary, secret or personal data.
 
