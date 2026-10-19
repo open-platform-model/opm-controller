@@ -383,11 +383,12 @@ The identity the verdict is asked with is the same for a ModuleInstance and a Mo
 - **THEN** the controller asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
 
 ### Requirement: The verdict identity when none is recorded or a change is unsettled
-The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage. The controller MUST ask once per object, with the instance's identity. This holds when no identity is recorded yet and while an identity change is not settled. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+The identity the verdict is asked with is the same for a ModuleInstance and a ModulePackage. The controller MUST ask once per object, with the instance's identity: the render's, or the recorded one when the render carries none. This holds when no identity is recorded yet and while an identity change is not settled.
+**Source**: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Verdict identity when none is recorded
 - **WHEN** no identity is recorded yet or an identity change is not settled
-- **THEN** the controller asks once per object, with the instance's identity
+- **THEN** the controller asks once per object, with the instance's identity: the render's, or the recorded one when the render carries none
 
 ### Requirement: The earlier identity of an unsettled change is not asked with
 The controller MUST NOT ask with the earlier identity of an unsettled change (`status.previousInstanceUUID`): another record can render that identity, so an object that carries it is not proven to be the instance's own. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
