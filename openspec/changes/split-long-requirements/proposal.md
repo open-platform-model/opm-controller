@@ -13,7 +13,7 @@ placeholder Purpose ("TBD - created by archiving change ...") is a second warnin
 fails `--strict`. The eighth ERROR sits in the open change `stop-operator-install-manifest`; its
 author fixes it (see Scope).
 
-The rewrite follows the swarm guide `design/T2.1.md` (approved 2026-10-19 13:40). Its rule is
+The rewrite follows the swarm guide `design/T2.1.md`. Its rule is
 that a rewrite is a split or a move into scenarios: the body itself gets shorter, and no rule is
 lost or changed.
 
@@ -64,7 +64,7 @@ Until those land, `openspec validate --all --strict` still fails on the 84 requi
 In scope: the specs named above, the Purpose text.
 
 The 8th ERROR (the MODIFIED block of `operator-module` in `stop-operator-install-manifest`
-omits a live scenario) is that change's to fix before it lands (DECISIONS.md 2026-10-19 12:45).
+omits a live scenario) is that change's to fix before it lands.
 This change does not edit that change or `add-cross-namespace-source-grants`. Their ADDED blocks
 over 500 characters belong to their authors.
 
@@ -76,8 +76,7 @@ over 500 characters belong to their authors.
 - Complexity: no new component.
 - Sections: more than about five (see `tasks.md`). Principle VIII allows one PR per change with
   one commit per section; a section that edits specs only ends green under the guide gate
-  and leaves `main` releasable. The change runs as several units on one branch (DECISIONS.md
-  2026-10-19 09:50). The delivery order is a question for the gate (see `design.md`).
+  and leaves `main` releasable. The change runs as several units on one branch.
 - Risk: a rewrite that drops or changes a rule while the validator stays green. The scenario
   ledger and the byte-equality check of the guide (section 7, item 3) are the counter.
 

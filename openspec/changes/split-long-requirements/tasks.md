@@ -8,7 +8,7 @@ Each unit starts by writing its scenario ledger into `design.md` (heading `### L
 
 ## 1. Purpose for the six specs with none
 
-- [x] 1.1 Add a `## Purpose` section of one or two sentences, above `## Requirements`, to `artifact-fetch`, `catalog-registry-resolution`, `failure-counters`, `history-tracking`, `metrics` and `suspend-resume` (6 specs, 0 long requirements; text is read from each spec, never invented from its name). The edit is a direct edit of `## Purpose` in each main spec, because archive ignores a delta Purpose for an existing spec (DECISIONS.md 2026-10-19 14:00); `design.md` records it.
+- [x] 1.1 Add a `## Purpose` section of one or two sentences, above `## Requirements`, to `artifact-fetch`, `catalog-registry-resolution`, `failure-counters`, `history-tracking`, `metrics` and `suspend-resume` (6 specs, 0 long requirements; text is read from each spec, never invented from its name). The edit is a direct edit of `## Purpose` in each main spec, because archive ignores a delta Purpose for an existing spec; `design.md` records it.
 - [x] 1.2 Gate (`N=0`): no new ERROR item, the ERROR set shrinks by those 6 specs, WARNING lines unchanged.
 - [x] 1.3 Commit `docs(openspec): add a Purpose to six specs`
 
@@ -50,13 +50,13 @@ Specs: serviceaccount-impersonation 4, platform-crd 3, platform-module-generatio
 
 ## 10. Purpose of example-module-publishing
 
-- [ ] 10.1 `example-module-publishing`: replace the archive placeholder Purpose (a WARNING under `--strict`) with real text read from the spec's requirements, by direct edit of `## Purpose`. The spec's two long requirements are not rewritten in this change (see "Not in this change" in `proposal.md`).
+- [x] 10.1 `example-module-publishing`: replace the archive placeholder Purpose (a WARNING under `--strict`) with real text read from the spec's requirements, by direct edit of `## Purpose`. The spec's two long requirements are not rewritten in this change (see "Not in this change" in `proposal.md`).
 
 ## 11. Final gate and archive
 
 The pinned OpenSpec 1.14.1 gate (Taskfile and CI) is not part of this change. It moves to a separate change and PR.
 
-- [ ] 11.0 Update the seven workflow comments that cite requirement names this change removed (comment text only), in its own `ci` commit. Remove the swarm decision times from `design.md`.
+- [x] 11.0 Update the seven workflow comments that cite requirement names this change removed (comment text only), in its own `ci` commit. Remove the swarm decision times from `design.md`.
 - [ ] 11.1 Final gate (`N=112`, `LAST` unset, base `origin/main`): in a scratch copy, `validate split-long-requirements --strict` exit 0; archive exit 0; WARNING lines fall by 112; no "Archive would refuse"; no new ERROR item. Report `validate --all --strict` as well (it still fails on the 84 long requirements of B1, B3 and B5 and on the open changes).
 - [ ] 11.2 Archive the change on this branch (`openspec-archive-change`), so the archive commit rides the PR. Commit `docs(openspec): archive split-long-requirements`
 
