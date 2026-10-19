@@ -134,7 +134,7 @@ Before the first write of a reconcile, the controller MUST read every object of 
 
 ### Requirement: A forced recreate keeps PersistentVolumeClaims unless data deletion is allowed
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The data deletion option is off at its zero value and has no effect without force", "A forced apply with the option off never deletes a PersistentVolumeClaim", "The apply checks every claim of the set before it applies or deletes any object", "A claim whose update the API server refuses fails the whole apply with a named error", "A refused claim update applies, creates and deletes no object of the set", "A claim is recreated when data deletion is allowed", "The forced recreate of every other kind is unchanged", "The resource manager refuses to delete a core PersistentVolumeClaim outside a data-deleting apply".
+**Migration**: See "The data deletion option is off at its zero value and has no effect without force", "A forced apply with the option off never deletes a PersistentVolumeClaim", "The apply checks every claim of the set before it applies or deletes any object", "A claim whose update the API server refuses returns a named error", "A refused claim update applies, creates and deletes no object of the set", "A claim is recreated when data deletion is allowed", "The forced recreate of every other kind is unchanged", "The resource manager refuses to delete a core PersistentVolumeClaim outside a data-deleting apply".
 
 ### Requirement: The staged apply order never contradicts the library's kind weights
 **Reason**: Split into requirements that each state one behavior.
@@ -188,7 +188,7 @@ The apply MUST take, beside `force`, an option that allows the deletion of data,
 - **WHEN** a resource set holds claims that exist in the cluster
 - **THEN** the apply checks every such claim before it applies or deletes any object
 
-### Requirement: A claim whose update the API server refuses fails the whole apply with a named error
+### Requirement: A claim whose update the API server refuses returns a named error
 The apply MUST take, beside `force`, an option that allows the deletion of data. When `force` is true and the option is off, the apply MUST NOT delete a PersistentVolumeClaim of the core API group. When the API server refuses the update of one (the error the forced recreate would answer with a delete), the apply MUST return an error that names the claim's namespace and name, the refused field or fields as the API server reports them, and the API server's message.
 
 #### Scenario: A claim with a changed immutable field is kept
@@ -204,7 +204,7 @@ The apply MUST take, beside `force`, an option that allows the deletion of data.
 - **THEN** the apply succeeds and the claim keeps its UID
 
 ### Requirement: A refused claim update applies, creates and deletes no object of the set
-As listed in requirement "A claim whose update the API server refuses fails the whole apply with a named error": In that case no object of the resource set SHALL be applied, created or deleted.
+As listed in requirement "A claim whose update the API server refuses returns a named error": In that case no object of the resource set SHALL be applied, created or deleted.
 
 #### Scenario: No object of the set is written after a refused claim update
 - **WHEN** `force` is true, the option is off and the API server refuses the update of a PersistentVolumeClaim of the resource set
