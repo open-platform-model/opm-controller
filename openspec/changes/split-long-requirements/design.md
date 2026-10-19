@@ -1936,7 +1936,7 @@ New scenarios (restate a clause of the old body, with words of the old text only
 
 | New scenario | Requirement | Old clause restated |
 | --- | --- | --- |
-| The module carries a cue.mod at the reserved path | The generated platform module has a cue.mod/module.cue at the reserved module path | the clause of that requirement body |
+| The module carries a cue.mod at the reserved path | The platform module has a cue.mod/module.cue at the reserved path | the clause of that requirement body |
 | The cue.mod pins core and every catalog the registry names | The generated cue.mod pins core at the library's release and every catalog the registry names | the clause of that requirement body |
 | The platform.cue carries one importing entry per catalog | The generated platform.cue embeds core.#Platform with one registry entry per catalog | the clause of that requirement body |
 | The module-file source comes from the operator's configuration | The module-file source is constructed from the operator's configuration | the clause of that requirement body |
@@ -1950,8 +1950,8 @@ Clause table (old clause, new requirement, sentence of its body; "Edit" lists th
 | --- | --- | --- | --- | --- |
 | The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated platform module has a cue.mod/module.cue at... | 1 | none |
 | The reconciler generates a platform m... | a `cue.mod/module.cue` under the fixed reserved-unpublished module ... | The generated platform module has a cue.mod/module.cue at... | 2 | added "." |
-| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated cue.mod pins core at the library's release ... | 1 | none |
-| The reconciler generates a platform m... | pinning core at the library's verified core release (the version ca... | The generated cue.mod pins core at the library's release ... | 2 | added "." |
+| The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... (head; a `cue.mod/module.cue` under the fixed reserved-unpublished module path ...) | The generated cue.mod pins core at the library's release ... | 1 | the head sentence replaced by the named reference As in requirement "The platform module has a cue.mod/module.cue at the reserved path": and the words "the operator SHALL generate" and the list item's opening "a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`," copied from the old head; no cut inside the list item (DECISIONS.md 2026-10-20 02:40) |
+| The reconciler generates a platform m... | pinning core at the library's verified core release (the version ca... | The generated cue.mod pins core at the library's release ... | 1 | none |
 | The reconciler generates a platform m... | On reconciling the singleton Platform CR, the operator SHALL genera... | The generated platform.cue embeds core.#Platform with one... | 1 | none |
 | The reconciler generates a platform m... | a `platform.cue` embedding `core.#Platform` with one `#registry` en... | The generated platform.cue embeds core.#Platform with one... | 2 | none |
 | The reconciler generates a platform m... | The operator SHALL carry no core-pin constant of its own. | The operator carries no core-pin constant of its own | 1 | none |
@@ -1986,7 +1986,7 @@ Lengths (old body, new bodies; characters by the guide's rule):
 
 | Old requirement | Old | New |
 | --- | --- | --- |
-| The reconciler generates a platform module from the CR | 2750 | 300, 470, 308, 57, 480, 472, 314, 432, 239, 160, 379, 82 |
+| The reconciler generates a platform module from the CR | 2750 | 300, 500, 308, 57, 480, 472, 314, 432, 239, 160, 379, 82 |
 | The generated module is validated by building it | 1189 | 474, 358, 133, 191, 83, 91 |
 | The generated module lives in a per-identity directory and is swapped whole | 1243 | 459, 188, 355, 238 |
 

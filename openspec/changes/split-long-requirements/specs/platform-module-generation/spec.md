@@ -2,7 +2,7 @@
 
 ### Requirement: The reconciler generates a platform module from the CR
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The generated platform module has a cue.mod/module.cue at the reserved module path", "The generated cue.mod pins core at the library's release and every catalog the registry names", "The generated platform.cue embeds core.#Platform with one registry entry per catalog", "The operator carries no core-pin constant of its own", "The registry has one entry per authored subscription", "The registry has one entry per accepted and active claim", "An authored subscription wins over a claim naming its catalog", "The dependency list is the full closure of the pinned modules", "The module-file source is constructed from the operator's configuration", "A disabled subscription is generated disabled and still pinned and imported", "Regeneration is deterministic", "A Platform with no active claim generates the module its spec alone produces".
+**Migration**: See "The platform module has a cue.mod/module.cue at the reserved path", "The generated cue.mod pins core at the library's release and every catalog the registry names", "The generated platform.cue embeds core.#Platform with one registry entry per catalog", "The operator carries no core-pin constant of its own", "The registry has one entry per authored subscription", "The registry has one entry per accepted and active claim", "An authored subscription wins over a claim naming its catalog", "The dependency list is the full closure of the pinned modules", "The module-file source is constructed from the operator's configuration", "A disabled subscription is generated disabled and still pinned and imported", "Regeneration is deterministic", "A Platform with no active claim generates the module its spec alone produces".
 
 ### Requirement: The generated module is validated by building it
 **Reason**: Split into requirements that each state one behavior.
@@ -15,7 +15,7 @@
 
 ## ADDED Requirements
 
-### Requirement: The generated platform module has a cue.mod/module.cue at the reserved module path
+### Requirement: The platform module has a cue.mod/module.cue at the reserved path
 On reconciling the singleton Platform CR, the operator SHALL generate a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`.
 
 #### Scenario: The module carries a cue.mod at the reserved path
@@ -23,7 +23,7 @@ On reconciling the singleton Platform CR, the operator SHALL generate a platform
 - **THEN** the operator generates a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`
 
 ### Requirement: The generated cue.mod pins core at the library's release and every catalog the registry names
-On reconciling the singleton Platform CR, the operator SHALL generate a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): pinning core at the library's verified core release (the version carried by the kernel's default schema module identifier, so the platform embeds the release the render build's glue, promotion and skew check were measured against) and every catalog the module's registry names.
+As in requirement "The platform module has a cue.mod/module.cue at the reserved path": the operator SHALL generate a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`, pinning core at the library's verified core release (the version carried by the kernel's default schema module identifier, so the platform embeds the release the render build's glue, promotion and skew check were measured against) and every catalog the module's registry names.
 
 #### Scenario: The cue.mod pins core and every catalog the registry names
 - **WHEN** the singleton Platform CR is reconciled
