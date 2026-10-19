@@ -34,10 +34,10 @@ Specs: status-conditions 7, kubernetes-tier-adoption 6, module-instance-ownershi
 
 Specs: platform-inventory-gate 5, render-input-key 5, ssa-apply 5, library-kernel-runtime 4, module-instance-synthesis 4, modulepackage-reconcile-loop 4, digest-computation 1.
 
-- [ ] 4.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
-- [ ] 4.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 4.3 Gate (`N=84`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 4.4 Commit `docs(openspec): split the long requirements of opm-operator-B6`
+- [x] 4.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
+- [x] 4.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`. The command prints one false `DIFF` for "Content sensitivity" of `digest-computation`, because the old spec holds two scenarios of that name; a per-requirement byte comparison of all 144 kept scenarios shows none changed.
+- [x] 4.3 Gate (`N=84`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
+- [x] 4.4 Commit `docs(openspec): split the long requirements of opm-operator-B6`
 
 ## 5. opm-operator-B7: 28 requirements
 
