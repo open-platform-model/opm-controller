@@ -8,18 +8,18 @@ Each unit starts by writing its scenario ledger into `design.md` (heading `### L
 
 ## 1. Purpose for the six specs with none
 
-- [ ] 1.1 Add a `## Purpose` section of one or two sentences, above `## Requirements`, to `artifact-fetch`, `catalog-registry-resolution`, `failure-counters`, `history-tracking`, `metrics` and `suspend-resume` (6 specs, 0 long requirements; text is read from each spec, never invented from its name). The edit is a delta per spec, ADDED or MODIFIED as `openspec validate` accepts; if the validator cannot take a Purpose-only delta, the unit reports it and asks.
-- [ ] 1.2 Gate (`N=0`): no new ERROR item, the ERROR set shrinks by those 6 specs, WARNING lines unchanged.
-- [ ] 1.3 Commit `docs(openspec): add a Purpose to six specs`
+- [x] 1.1 Add a `## Purpose` section of one or two sentences, above `## Requirements`, to `artifact-fetch`, `catalog-registry-resolution`, `failure-counters`, `history-tracking`, `metrics` and `suspend-resume` (6 specs, 0 long requirements; text is read from each spec, never invented from its name). The edit is a direct edit of `## Purpose` in each main spec, because archive ignores a delta Purpose for an existing spec (DECISIONS.md 2026-10-19 14:00); `design.md` records it.
+- [x] 1.2 Gate (`N=0`): no new ERROR item, the ERROR set shrinks by those 6 specs, WARNING lines unchanged.
+- [x] 1.3 Commit `docs(openspec): add a Purpose to six specs`
 
 ## 2. opm-operator-B2: 28 requirements
 
 Specs: deps-cascade 10, operator-module-release 10, events-emission 8.
 
-- [ ] 2.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
-- [ ] 2.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 2.3 Gate (`N=28`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 2.4 Commit `docs(openspec): split the long requirements of opm-operator-B2`
+- [x] 2.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another batch.
+- [x] 2.2 Byte-equality command of guide section 7 item 3 for every rewritten requirement: no `DIFF`, no `LOST`.
+- [x] 2.3 Gate (`N=28`): `validate split-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
+- [x] 2.4 Commit `docs(openspec): split the long requirements of opm-operator-B2`
 
 ## 3. opm-operator-B4: 28 requirements
 
