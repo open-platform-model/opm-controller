@@ -1614,6 +1614,288 @@ Notes for the two ledgers above (unit 5):
 - A `Source:` line of the old text is the `**Source**` line of every block split from its requirement; the parenthetical citations stay in the sentence.
 - A new scenario restates a case that the old body names; each is marked "new" in the ledger.
 
+### Ledger: drift-detection
+
+Forms and lengths (old body, then each new body; validator rule, UTF-16 units):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| Drift runs on no-op reconciles | c2 (REMOVED plus ADDED under new names) | 551 | Drift detection runs on every reconcile that renders (102); A reconcile that skips its render runs no drift detection and drift runs once per interval (452) |
+| A withheld resource is excluded from drift detection | c2 (REMOVED plus ADDED under new names) | 563 | Drift detection skips a resource the reconcile withheld from apply (494); The refusal that withheld a resource carries the signal that the operator does not assert it (159) |
+| A missing object is restored | b (MODIFIED parent plus ADDED splits) | 2840 | A missing object is restored (393); The restore step also applies a rendered object that is taken in (359); The restore step leaves an inventoried object alone and a taken-in object out of the dry-run diff (449); A reconcile that restores an object is an apply (285); A Job with a TTL is not restored (233); An expired Job leaves the inventory (442); The controller records no outcome of a Job, and a changed digest applies the Job again (489); A reconcile that skips its render restores nothing and a missing Job waits less (456); A failed dry-run leaves the missing set unknown (146) |
+| A drift check that is refused or has no identity is reported | c2 (REMOVED plus ADDED under new names) | 1176 | A Forbidden read or dry-run sets Drifted to Unknown (346); Forbidden is every 403 answer (324); A ServiceAccount that cannot be impersonated sets Drifted to Unknown (225); A refused or unidentified drift check counts as failed and restores nothing (362); A later drift detection replaces the condition and a successful apply removes it (216) |
+| An object adopted by another instance is excluded from drift detection and from the restore | c2 (REMOVED plus ADDED under new names) | 915 | An object adopted by another instance is neither drift nor restored (282); The read the verdict needs is the one read per object before the dry-run (247); A failed read on unchanged digests is a failed drift check that restores nothing (353) |
+| Drift detection failure increments counter | MODIFIED, only the reference is retargeted (not long) | 393 | same requirement, the quoted header after "those two set it to Unknown" is replaced by the two new headers that hold the two cases |
+
+Form b for "A missing object is restored": the requirement is cited by its header from `inventory-bridge` and `render-input-key`, which this change does not touch, and from `reconcile-loop-assembly`, `instance-health` and two requirements of this spec. Form c2 would orphan the citations of the two untouched specs. The parent keeps its header and every live scenario, byte for byte; the split-off behaviors are ADDED requirements with new scenarios that restate cases of the old body.
+
+`grep -rn --exclude-dir=archive` for the old headers found no stale reference outside this spec except the one retargeted above (`A drift check that is refused or has no identity is reported`, cited by "Drift detection failure increments counter") and the header kept as the parent of form b.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Drift detected during no-op | Drift detection runs on every reconcile that renders, Drift detected during no-op | no (byte equal, checked by the item 3 command) |
+| A skipped render runs no drift detection | A reconcile that skips its render runs no drift detection and drift runs once per interval, A skipped render runs no drift detection | no (byte equal, checked by the item 3 command) |
+| Drift is found once the interval has passed | A reconcile that skips its render runs no drift detection and drift runs once per interval, Drift is found once the interval has passed | no (byte equal, checked by the item 3 command) |
+| A withheld resource does not set Drifted | Drift detection skips a resource the reconcile withheld from apply, A withheld resource does not set Drifted | no (byte equal, checked by the item 3 command) |
+| Real drift is still reported alongside | Drift detection skips a resource the reconcile withheld from apply, Real drift is still reported alongside | no (byte equal, checked by the item 3 command) |
+| Drift returns when the resource stops being withheld | Drift detection skips a resource the reconcile withheld from apply, Drift returns when the resource stops being withheld | no (byte equal, checked by the item 3 command) |
+| A deleted object is created again | A missing object is restored, A deleted object is created again | kept in place under the parent |
+| Only the missing object is applied | A missing object is restored, Only the missing object is applied | kept in place under the parent |
+| A finished Job with a TTL stays absent | A missing object is restored, A finished Job with a TTL stays absent | kept in place under the parent |
+| A Job with a TTL that was removed before it ran | A missing object is restored, A Job with a TTL that was removed before it ran | kept in place under the parent |
+| A Job with a TTL that failed and expired | A missing object is restored, A Job with a TTL that failed and expired | kept in place under the parent |
+| A missing Job without a TTL is created again | A missing object is restored, A missing Job without a TTL is created again | kept in place under the parent |
+| An expired Job beside a deleted object | A missing object is restored, An expired Job beside a deleted object | kept in place under the parent |
+| A restore that fails | A missing object is restored, A restore that fails | kept in place under the parent |
+| Nothing is missing | A missing object is restored, Nothing is missing | kept in place under the parent |
+| A taken-in object is applied by the restore step | A missing object is restored, A taken-in object is applied by the restore step | kept in place under the parent |
+| The ServiceAccount may not dry-run an object | A Forbidden read or dry-run sets Drifted to Unknown, The ServiceAccount may not dry-run an object | no (byte equal, checked by the item 3 command) |
+| The ServiceAccount may not read an object | A Forbidden read or dry-run sets Drifted to Unknown, The ServiceAccount may not read an object | no (byte equal, checked by the item 3 command) |
+| The ServiceAccount may not create a missing object | A Forbidden read or dry-run sets Drifted to Unknown, The ServiceAccount may not create a missing object | no (byte equal, checked by the item 3 command) |
+| A restore runs as the ServiceAccount | A Forbidden read or dry-run sets Drifted to Unknown, A restore runs as the ServiceAccount | no (byte equal, checked by the item 3 command) |
+| The ServiceAccount does not exist | A ServiceAccount that cannot be impersonated sets Drifted to Unknown, The ServiceAccount does not exist | no (byte equal, checked by the item 3 command) |
+| The refusal ends | A later drift detection replaces the condition and a successful apply removes it, The refusal ends | no (byte equal, checked by the item 3 command) |
+| A let-go object is not drift | An object adopted by another instance is neither drift nor restored, A let-go object is not drift | no (byte equal, checked by the item 3 command) |
+| A let-go object is not restored | An object adopted by another instance is neither drift nor restored, A let-go object is not restored | no (byte equal, checked by the item 3 command) |
+| One read per object | The read the verdict needs is the one read per object before the dry-run, One read per object | no (byte equal, checked by the item 3 command) |
+| A refused read on unchanged digests | A failed read on unchanged digests is a failed drift check that restores nothing, A refused read on unchanged digests | no (byte equal, checked by the item 3 command) |
+| Dry-run API failure | Drift detection failure increments counter, Dry-run API failure | no (MODIFIED block, byte equal) |
+| Dry-run refused | Drift detection failure increments counter, Dry-run refused | no (MODIFIED block, byte equal) |
+
+New scenarios (each restates a case the old text names):
+
+| New place | New scenario | Old text that names the case |
+| --- | --- | --- |
+| The refusal that withheld a resource carries the signal that the operator does not assert it | The refusal carries the signal of a withheld resource | "The refusal that withheld the resource carries that signal instead." |
+| The restore step also applies a rendered object that is taken in | A taken-in object is applied when nothing is missing | "The same step SHALL apply the rendered objects that are taken in: objects that exist, are  ..." |
+| The restore step leaves an inventoried object alone and a taken-in object out of the dry-run diff | A taken-in object is left out of the dry-run diff | "Objects that exist and are in `status.inventory` SHALL NOT be applied by this step, so the ..." |
+| A reconcile that restores an object is an apply | A restore is an apply | "A reconcile that restores an object is an apply: its outcome is `Applied`, it records a hi ..." |
+| A Job with a TTL is not restored | A rendered Job with a TTL is not restored | "A `batch/v1` Job whose rendered spec sets `ttlSecondsAfterFinished` SHALL NOT be restored: ..." |
+| An expired Job leaves the inventory | An expired Job is treated as finished | "Such a Job that does not exist while every digest is unchanged is an expired Job, and the  ..." |
+| The controller records no outcome of a Job, and a changed digest applies the Job again | A changed digest applies the Job again | "The controller records no outcome of a Job." |
+| A reconcile that skips its render restores nothing and a missing Job waits less | A skipped render restores nothing | "A reconcile that skips its render has no rendered objects and SHALL NOT restore anything;  ..." |
+| A failed dry-run leaves the missing set unknown | A failed dry-run restores nothing | "A failed dry-run SHALL leave the missing set unknown, and nothing is restored on that reco ..." |
+| Forbidden is every 403 answer | An admission control that denies the dry-run gives DriftCheckForbidden | "`Forbidden` is every 403 answer, not only a missing RBAC verb of the identity: an admissio ..." |
+| A refused or unidentified drift check counts as failed and restores nothing | A refused drift check restores nothing | "Both cases SHALL count as a failed drift detection, SHALL leave the missing set unknown so ..." |
+
+Clauses:
+
+| Old clause | New place | Changed text? |
+| --- | --- | --- |
+| Drift runs on no-op reconciles: Drift detection MUST run on every reconcile that renders, even when digest comparison indicates no-o ... | Drift detection runs on every reconcile that renders | verbatim |
+| Drift runs on no-op reconciles: A reconcile that skips its render because its inputs are unchanged (`render-input-key`) has no rende ... | A reconcile that skips its render runs no drift detection and drift runs once per interval | verbatim |
+| Drift runs on no-op reconciles: The drift render interval (`--drift-render-interval`) bounds how long such skips last, so drift dete ... | A reconcile that skips its render runs no drift detection and drift runs once per interval | keyword: "MUST run" |
+| A withheld resource is excluded from drift detection: Drift detection SHALL skip a resource the reconcile withheld from apply, and its difference from liv ... | Drift detection skips a resource the reconcile withheld from apply | verbatim |
+| A withheld resource is excluded from drift detection: Drift reports that the cluster diverged from what the operator asserts. | Drift detection skips a resource the reconcile withheld from apply | verbatim |
+| A withheld resource is excluded from drift detection: A withheld resource is one the operator is deliberately not asserting, so reporting it as drift woul ... | Drift detection skips a resource the reconcile withheld from apply | punctuation: the em-dash is written as ":" or the cut semicolon as a full stop |
+| A withheld resource is excluded from drift detection: (subject, condition or scope of the old requirement) | The refusal that withheld a resource carries the signal that the operator does not assert it | prefix naming the block that holds the subject, condition or scope |
+| A withheld resource is excluded from drift detection: The refusal that withheld the resource carries that signal instead. | The refusal that withheld a resource carries the signal that the operator does not assert it | keyword: "SHALL carry" |
+| A missing object is restored: An object that the render produces and that does not exist on the cluster is not drift, and the `Dri ... | A missing object is restored | verbatim |
+| A missing object is restored: When a ModuleInstance reconcile renders, finds every digest unchanged, withholds nothing, and its dr ... | A missing object is restored | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | The restore step also applies a rendered object that is taken in | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: The same step SHALL apply the rendered objects that are taken in: objects that exist, are not in `st ... | The restore step also applies a rendered object that is taken in | verbatim |
+| A missing object is restored: It SHALL apply these two sets and only these. | The restore step also applies a rendered object that is taken in | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | The restore step leaves an inventoried object alone and a taken-in object out of the dry-run diff | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: Objects that exist and are in `status.inventory` SHALL NOT be applied by this step, so the `Drifted` ... | The restore step leaves an inventoried object alone and a taken-in object out of the dry-run diff | verbatim |
+| A missing object is restored: A taken-in object SHALL be left out of the dry-run diff of the reconcile that takes it in, so `Drift ... | The restore step leaves an inventoried object alone and a taken-in object out of the dry-run diff | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | A reconcile that restores an object is an apply | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: A reconcile that restores an object is an apply: its outcome is `Applied`, it records a history entr ... | A reconcile that restores an object is an apply | verbatim |
+| A missing object is restored: A failed restore SHALL be classified and retried as a failed apply. | A reconcile that restores an object is an apply | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | A Job with a TTL is not restored | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: A `batch/v1` Job whose rendered spec sets `ttlSecondsAfterFinished` SHALL NOT be restored: the clust ... | A Job with a TTL is not restored | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | An expired Job leaves the inventory | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: Such a Job that does not exist while every digest is unchanged is an expired Job, and the controller ... | An expired Job leaves the inventory | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | The controller records no outcome of a Job, and a changed digest applies the Job again | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: The controller records no outcome of a Job. | The controller records no outcome of a Job, and a changed digest applies the Job again | verbatim |
+| A missing object is restored: A Job with a TTL that was removed before it ran, and one that failed before the cluster removed it,  ... | The controller records no outcome of a Job, and a changed digest applies the Job again | verbatim |
+| A missing object is restored: A reconcile whose digests changed applies every rendered object, the Job included, and records the f ... | The controller records no outcome of a Job, and a changed digest applies the Job again | keyword: "SHALL apply ... SHALL record" |
+| A missing object is restored: (subject, condition or scope of the old requirement) | A reconcile that skips its render restores nothing and a missing Job waits less | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: A reconcile that skips its render has no rendered objects and SHALL NOT restore anything; the drift  ... | A reconcile that skips its render restores nothing and a missing Job waits less | verbatim |
+| A missing object is restored: A missing Job waits less: a ModuleInstance reconcile that reads an inventory Job as absent does not  ... | A reconcile that skips its render restores nothing and a missing Job waits less | verbatim |
+| A missing object is restored: (subject, condition or scope of the old requirement) | A failed dry-run leaves the missing set unknown | prefix naming the block that holds the subject, condition or scope |
+| A missing object is restored: A failed dry-run SHALL leave the missing set unknown, and nothing is restored on that reconcile. | A failed dry-run leaves the missing set unknown | verbatim |
+| A drift check that is refused or has no identity is reported: The controller SHALL read each object through the identity of the dry-run before it sends the dry-ru ... | A Forbidden read or dry-run sets Drifted to Unknown | verbatim |
+| A drift check that is refused or has no identity is reported: When the API server refuses that read or the dry-run as `Forbidden`, the controller SHALL set the `D ... | A Forbidden read or dry-run sets Drifted to Unknown | verbatim |
+| A drift check that is refused or has no identity is reported: (subject, condition or scope of the old requirement) | Forbidden is every 403 answer | prefix naming the block that holds the subject, condition or scope |
+| A drift check that is refused or has no identity is reported: `Forbidden` is every 403 answer, not only a missing RBAC verb of the identity: an admission control  ... | Forbidden is every 403 answer | keyword: "SHALL be" |
+| A drift check that is refused or has no identity is reported: When the effective ServiceAccount cannot be impersonated (it does not exist, or the client cannot be ... | A ServiceAccount that cannot be impersonated sets Drifted to Unknown | verbatim |
+| A drift check that is refused or has no identity is reported: (subject, condition or scope of the old requirement) | A refused or unidentified drift check counts as failed and restores nothing | prefix naming the block that holds the subject, condition or scope |
+| A drift check that is refused or has no identity is reported: Both cases SHALL count as a failed drift detection, SHALL leave the missing set unknown so that noth ... | A refused or unidentified drift check counts as failed and restores nothing | verbatim |
+| A drift check that is refused or has no identity is reported: (subject, condition or scope of the old requirement) | A later drift detection replaces the condition and a successful apply removes it | prefix naming the block that holds the subject, condition or scope |
+| A drift check that is refused or has no identity is reported: A later drift detection that succeeds SHALL replace the condition with its verdict, and a successful ... | A later drift detection replaces the condition and a successful apply removes it | verbatim |
+| An object adopted by another instance is excluded from drift detection and from the restore: Drift detection MUST compare only the objects the apply verdict allows, without the objects taken in ... | An object adopted by another instance is neither drift nor restored | verbatim |
+| An object adopted by another instance is excluded from drift detection and from the restore: An object the verdict refuses as `adopted-elsewhere` MUST NOT be reported as drifted or as missing,  ... | An object adopted by another instance is neither drift nor restored | verbatim |
+| An object adopted by another instance is excluded from drift detection and from the restore: Source: enhancement 0012 (...) | An object adopted by another instance is neither drift nor restored | carried as the **Source** line (full old Source line) |
+| An object adopted by another instance is excluded from drift detection and from the restore: (subject, condition or scope of the old requirement) | The read the verdict needs is the one read per object before the dry-run | prefix naming the block that holds the subject, condition or scope |
+| An object adopted by another instance is excluded from drift detection and from the restore: The read the verdict needs MUST be the one read made per object before the dry-run, so a reconcile t ... | The read the verdict needs is the one read per object before the dry-run | verbatim |
+| An object adopted by another instance is excluded from drift detection and from the restore: Source: enhancement 0012 (...) | The read the verdict needs is the one read per object before the dry-run | carried as the **Source** line (full old Source line) |
+| An object adopted by another instance is excluded from drift detection and from the restore: (subject, condition or scope of the old requirement) | A failed read on unchanged digests is a failed drift check that restores nothing | prefix naming the block that holds the subject, condition or scope |
+| An object adopted by another instance is excluded from drift detection and from the restore: A reconcile with unchanged digests whose read of an object fails MUST report that as a failed drift  ... | A failed read on unchanged digests is a failed drift check that restores nothing | verbatim |
+| An object adopted by another instance is excluded from drift detection and from the restore: Source: enhancement 0012 (...) | A failed read on unchanged digests is a failed drift check that restores nothing | carried as the **Source** line (full old Source line) |
+
+### Ledger: modulepackage-kernel-rendering
+
+Forms and lengths (old body, then each new body; validator rule, UTF-16 units):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| Re-enqueue ModulePackages when the platform becomes ready | c2 (REMOVED plus ADDED under new names) | 1371 | The ModulePackage reconciler watches the Platform (275); ModulePackages are re-enqueued on the fields a package render consumes (408); The Platform status update and an operatorVersion change re-enqueue ModulePackages (459); A Platform update that changes none of the consumed fields enqueues no ModulePackage (496) |
+| Unresolved platform demands classify as resolution failures | c2 (REMOVED plus ADDED under new names) | 1154 | Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused (384); A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed (493); Every classified refusal stalls the object, emits a Warning event and requeues (258); A registry fetch failure is not a refusal and retries on the bounded backoff (269) |
+| A package that leaves a required config value unset is refused | c2 (REMOVED plus ADDED under new names) | 853 | A ModulePackage that leaves a required config value unset is refused when it loads (263); A package value default that does not unify with the config default is refused (252); The refusal of an unset required value is a package load failure, not retried on the registry backoff (344); The message of the refusal carries the prefix, the kernel error text and the findings (303) |
+| Every unset required value of a package is named | c2 (REMOVED plus ADDED under new names) | 799 | The message of a refused ModulePackage names every unset required value with its position (431); A value a component reads is named like a value no component reads (255); The message replaces no finding with a count and the reason stays ResolutionFailed (333) |
+| A package values failure reports every finding with stable positions | c2 (REMOVED plus ADDED under new names) | 1391 | A package load failure lists every finding with its positions (486); Past the limit the message ends with a count of findings (182); A position in a file of the package is relative to the CUE module root (372); The text in front of the findings is the kernel's (478); The wording does not change the classification and a registry fetch failure keeps its own text (196) |
+
+`grep -rn --exclude-dir=archive` for the old headers found no reference outside this spec.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Blocked package retries when the platform is generated | The ModulePackage reconciler watches the Platform, Blocked package retries when the platform is generated | no (byte equal, checked by the item 3 command) |
+| Packages re-render under a new pin set | ModulePackages are re-enqueued on the fields a package render consumes, Packages re-render under a new pin set | no (byte equal, checked by the item 3 command) |
+| An operator upgrade into an already-Ready Platform recovers blocked packages | The Platform status update and an operatorVersion change re-enqueue ModulePackages, An operator upgrade into an already-Ready Platform recovers blocked packages | no (byte equal, checked by the item 3 command) |
+| A message-only status write enqueues no package | A Platform update that changes none of the consumed fields enqueues no ModulePackage, A message-only status write enqueues no package | no (byte equal, checked by the item 3 command) |
+| Package demands contracts the platform does not provide | Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused, Package demands contracts the platform does not provide | no (byte equal, checked by the item 3 command) |
+| Skew refusal is distinct | Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused, Skew refusal is distinct | no (byte equal, checked by the item 3 command) |
+| Duplicate identities are a refusal of their own | A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed, Duplicate identities are a refusal of their own | no (byte equal, checked by the item 3 command) |
+| Over-subscribed provider contract is a render failure | A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed, Over-subscribed provider contract is a render failure | no (byte equal, checked by the item 3 command) |
+| Ordinary evaluation error keeps RenderFailed | A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed, Ordinary evaluation error keeps RenderFailed | no (byte equal, checked by the item 3 command) |
+| Registry fetch failure during the render retries | A registry fetch failure is not a refusal and retries on the bounded backoff, Registry fetch failure during the render retries | no (byte equal, checked by the item 3 command) |
+| Unset required value that no component reads | A ModulePackage that leaves a required config value unset is refused when it loads, Unset required value that no component reads | no (byte equal, checked by the item 3 command) |
+| The value is set | A ModulePackage that leaves a required config value unset is refused when it loads, The value is set | no (byte equal, checked by the item 3 command) |
+| A default that disagrees with the config default | A package value default that does not unify with the config default is refused, A default that disagrees with the config default | no (byte equal, checked by the item 3 command) |
+| Three values are unset, one nested | The message of a refused ModulePackage names every unset required value with its position, Three values are unset, one nested | no (byte equal, checked by the item 3 command) |
+| The component reads the unset value | A value a component reads is named like a value no component reads, The component reads the unset value | no (byte equal, checked by the item 3 command) |
+| Two values are unset | The message replaces no finding with a count and the reason stays ResolutionFailed, Two values are unset | no (byte equal, checked by the item 3 command) |
+| A value of the wrong type | A package load failure lists every finding with its positions, A value of the wrong type | no (byte equal, checked by the item 3 command) |
+| A constraint a value does not meet | A package load failure lists every finding with its positions, A constraint a value does not meet | no (byte equal, checked by the item 3 command) |
+| A field the module does not declare | A package load failure lists every finding with its positions, A field the module does not declare | no (byte equal, checked by the item 3 command) |
+| The same package in another directory | A position in a file of the package is relative to the CUE module root, The same package in another directory | no (byte equal, checked by the item 3 command) |
+| A build failure keeps the kernel's frame | The text in front of the findings is the kernel's, A build failure keeps the kernel's frame | no (byte equal, checked by the item 3 command) |
+| A registry fetch failure keeps its text | The wording does not change the classification and a registry fetch failure keeps its own text, A registry fetch failure keeps its text | no (byte equal, checked by the item 3 command) |
+
+New scenarios (each restates a case the old text names):
+
+| New place | New scenario | Old text that names the case |
+| --- | --- | --- |
+| Every classified refusal stalls the object, emits a Warning event and requeues | A classified refusal stalls the object | "Every classified refusal SHALL set `Ready=False` and `Stalled=True`, emit a Warning event  ..." |
+| The refusal of an unset required value is a package load failure, not retried on the registry backoff | A refused package is a load failure that is not retried on the registry backoff | "The refusal SHALL be the kernel's: the operator SHALL report it as a package load failure, ..." |
+| The message of the refusal carries the prefix, the kernel error text and the findings | The message names the unset value | "The message SHALL be the prefix `loading package: `, the kernel's error text up to its fir ..." |
+| Past the limit the message ends with a count of findings | A message past the limit keeps whole findings | "past that limit it SHALL keep whole findings from the first and end with `; and <N> more f ..." |
+| A position in a file of the package is relative to the CUE module root | A position in any other file is written as the kernel reports it | "A position in a file of the package SHALL be written relative to the package's CUE module  ..." |
+
+Clauses:
+
+| Old clause | New place | Changed text? |
+| --- | --- | --- |
+| Re-enqueue ModulePackages when the platform becomes ready: The `ModulePackage` reconciler SHALL watch the `Platform` resource. | The ModulePackage reconciler watches the Platform | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: On a Platform update, it SHALL re-enqueue all `ModulePackages` only when a field that a package rend ... | The ModulePackage reconciler watches the Platform | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: Platform create and delete events SHALL re-enqueue. | The ModulePackage reconciler watches the Platform | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: (subject, condition or scope of the old requirement) | ModulePackages are re-enqueued on the fields a package render consumes | prefix naming the block that holds the subject, condition or scope |
+| Re-enqueue ModulePackages when the platform becomes ready: A package render reads the same generated platform record as a ModuleInstance render, so the fields  ... | ModulePackages are re-enqueued on the fields a package render consumes | keyword: "SHALL be" |
+| Re-enqueue ModulePackages when the platform becomes ready: - the `Ready` condition's status | ModulePackages are re-enqueued on the fields a package render consumes | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: - the pin set: `status.packageIdentity` or `status.registry` | ModulePackages are re-enqueued on the fields a package render consumes | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: - `spec.skewPolicy` | ModulePackages are re-enqueued on the fields a package render consumes | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: - `status.observedGeneration` | ModulePackages are re-enqueued on the fields a package render consumes | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: - `status.operatorVersion` | ModulePackages are re-enqueued on the fields a package render consumes | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: (subject, condition or scope of the old requirement) | The Platform status update and an operatorVersion change re-enqueue ModulePackages | prefix naming the block that holds the subject, condition or scope |
+| Re-enqueue ModulePackages when the platform becomes ready: The trigger includes the Platform reconciler's own status update, which does not bump the Platform's ... | The Platform status update and an operatorVersion change re-enqueue ModulePackages | keyword: "SHALL include" |
+| Re-enqueue ModulePackages when the platform becomes ready: This lets packages blocked on `PlatformNotReady` retry promptly, not only on their interval requeue. | The Platform status update and an operatorVersion change re-enqueue ModulePackages | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: A `status.operatorVersion` change re-enqueues because, after an operator upgrade, it is the only sta ... | The Platform status update and an operatorVersion change re-enqueue ModulePackages | keyword: "SHALL re-enqueue" |
+| Re-enqueue ModulePackages when the platform becomes ready: (subject, condition or scope of the old requirement) | A Platform update that changes none of the consumed fields enqueues no ModulePackage | prefix naming the block that holds the subject, condition or scope |
+| Re-enqueue ModulePackages when the platform becomes ready: A Platform update that changes none of these fields SHALL NOT enqueue any `ModulePackage`. | A Platform update that changes none of the consumed fields enqueues no ModulePackage | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: Examples are a change to the `Ready` message, a change to its reason while it stays `False`, a `Cont ... | A Platform update that changes none of the consumed fields enqueues no ModulePackage | verbatim |
+| Re-enqueue ModulePackages when the platform becomes ready: A `spec.skewPolicy` edit can render each package once under the previous policy before the `observed ... | A Platform update that changes none of the consumed fields enqueues no ModulePackage | verbatim |
+| Unresolved platform demands classify as resolution failures: (subject, condition or scope of the old requirement) | Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused | suffix naming the block that holds the rest of the cut sentence |
+| Unresolved platform demands classify as resolution failures: The reconciler SHALL classify a refused render by its typed cause: | Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused | verbatim |
+| Unresolved platform demands classify as resolution failures: unresolved platform demands and unmatched components SHALL be `ResolutionFailed`; a catalog-skew ref ... | Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused | punctuation: the em-dash is written as ":" or the cut semicolon as a full stop |
+| Unresolved platform demands classify as resolution failures: (subject, condition or scope of the old requirement) | A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed | suffix naming the block that holds the rest of the cut sentence |
+| Unresolved platform demands classify as resolution failures: The reconciler SHALL classify a refused render by its typed cause: | A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed | verbatim |
+| Unresolved platform demands classify as resolution failures: a render whose compiled objects share one apply identity SHALL be `DuplicateIdentities` with the lib ... | A duplicate identity is DuplicateIdentities and any other refusal is RenderFailed | verbatim |
+| Unresolved platform demands classify as resolution failures: Every classified refusal SHALL set `Ready=False` and `Stalled=True`, emit a Warning event and requeu ... | Every classified refusal stalls the object, emits a Warning event and requeues | verbatim |
+| Unresolved platform demands classify as resolution failures: A registry fetch failure (the library's typed `*oerrors.FetchError`) with no typed terminal cause is ... | A registry fetch failure is not a refusal and retries on the bounded backoff | verbatim |
+| A package that leaves a required config value unset is refused: A ModulePackage whose instance values leave a required `#config` value of its module unset SHALL be  ... | A ModulePackage that leaves a required config value unset is refused when it loads | verbatim |
+| A package that leaves a required config value unset is refused: A required value is a field declared `foo!`, or a field of a bare type with no default. | A ModulePackage that leaves a required config value unset is refused when it loads | verbatim |
+| A package that leaves a required config value unset is refused: (subject, condition or scope of the old requirement) | A package value default that does not unify with the config default is refused | prefix naming the block that holds the subject, condition or scope |
+| A package that leaves a required config value unset is refused: The same SHALL hold for a value that the package's values give a default other than the `#config` de ... | A package value default that does not unify with the config default is refused | verbatim |
+| A package that leaves a required config value unset is refused: (subject, condition or scope of the old requirement) | The refusal of an unset required value is a package load failure, not retried on the registry backoff | prefix naming the block that holds the subject, condition or scope |
+| A package that leaves a required config value unset is refused: The refusal SHALL be the kernel's: the operator SHALL report it as a package load failure, with reas ... | The refusal of an unset required value is a package load failure, not retried on the registry backoff | verbatim |
+| A package that leaves a required config value unset is refused: Nothing SHALL be applied or pruned. | The refusal of an unset required value is a package load failure, not retried on the registry backoff | verbatim |
+| A package that leaves a required config value unset is refused: (subject, condition or scope of the old requirement) | The message of the refusal carries the prefix, the kernel error text and the findings | prefix naming the block that holds the subject, condition or scope |
+| A package that leaves a required config value unset is refused: The message SHALL be the prefix `loading package: `, the kernel's error text up to its first finding ... | The message of the refusal carries the prefix, the kernel error text and the findings | verbatim |
+| Every unset required value of a package is named: When a ModulePackage is refused because its values leave required `#config` values unset, the messag ... | The message of a refused ModulePackage names every unset required value with its position | verbatim |
+| Every unset required value of a package is named: A nested field SHALL be named by its full path. | The message of a refused ModulePackage names every unset required value with its position | verbatim |
+| Every unset required value of a package is named: (subject, condition or scope of the old requirement) | A value a component reads is named like a value no component reads | prefix naming the block that holds the subject, condition or scope |
+| Every unset required value of a package is named: A value a component reads SHALL be named like a value no component reads, and the message SHALL NOT  ... | A value a component reads is named like a value no component reads | verbatim |
+| Every unset required value of a package is named: (subject, condition or scope of the old requirement) | The message replaces no finding with a count and the reason stays ResolutionFailed | prefix naming the block that holds the subject, condition or scope |
+| Every unset required value of a package is named: The message SHALL NOT replace a finding with `(and N more errors)`. | The message replaces no finding with a count and the reason stays ResolutionFailed | verbatim |
+| Every unset required value of a package is named: The controller SHALL word the findings from the kernel's typed error tree. | The message replaces no finding with a count and the reason stays ResolutionFailed | verbatim |
+| Every unset required value of a package is named: The reason SHALL stay `ResolutionFailed` with `Ready=False` and `Stalled=True`. | The message replaces no finding with a count and the reason stays ResolutionFailed | verbatim |
+| A package values failure reports every finding with stable positions: (subject, condition or scope of the old requirement) | A package load failure lists every finding with its positions | suffix naming the block that holds the rest of the cut sentence |
+| A package values failure reports every finding with stable positions: When the load of a ModulePackage fails with findings of the kernel (a value of the wrong type, a con ... | A package load failure lists every finding with its positions | punctuation: the em-dash is written as ":" or the cut semicolon as a full stop |
+| A package values failure reports every finding with stable positions: (subject, condition or scope of the old requirement) | Past the limit the message ends with a count of findings | prefix naming the block that holds the subject, condition or scope |
+| A package values failure reports every finding with stable positions: past that limit it SHALL keep whole findings from the first and end with `; and <N> more findings`. | Past the limit the message ends with a count of findings | verbatim |
+| A package values failure reports every finding with stable positions: (subject, condition or scope of the old requirement) | A position in a file of the package is relative to the CUE module root | prefix naming the block that holds the subject, condition or scope |
+| A package values failure reports every finding with stable positions: A position in a file of the package SHALL be written relative to the package's CUE module root, so n ... | A position in a file of the package is relative to the CUE module root | verbatim |
+| A package values failure reports every finding with stable positions: A position in any other file SHALL be written as the kernel reports it. | A position in a file of the package is relative to the CUE module root | verbatim |
+| A package values failure reports every finding with stable positions: The text in front of the findings is the kernel's and is not changed: for a failure the kernel repor ... | The text in front of the findings is the kernel's | keyword: "SHALL NOT be" |
+| A package values failure reports every finding with stable positions: (subject, condition or scope of the old requirement) | The wording does not change the classification and a registry fetch failure keeps its own text | prefix naming the block that holds the subject, condition or scope |
+| A package values failure reports every finding with stable positions: The wording SHALL NOT change how the failure is classified, and a registry fetch failure SHALL keep  ... | The wording does not change the classification and a registry fetch failure keeps its own text | verbatim |
+
+### Ledger: example-module-publishing
+
+Forms and lengths (old body, then each new body; validator rule, UTF-16 units):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| Example modules published to GHCR on release | c2 (REMOVED plus ADDED under new names) | 802 | Example modules are published to GHCR on a release through a registry mapping that routes both domains (381); Publishing goes through opm module publish so every gate runs over each fixture (335); The declared version is read from the identity package of the module (332) |
+| Pre-release publishes move the declared version with the tag | c2 (REMOVED plus ADDED under new names) | 616 | A pre-release publish tags the artifact and declares the same version (296); A pre-release publish rewrites the declared version on a staged copy without the version flag (410) |
+
+`grep -rn --exclude-dir=archive` for the old headers found no reference outside this spec.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Release triggers module publish | Example modules are published to GHCR on a release through a registry mapping that routes both domains, Release triggers module publish | no (byte equal, checked by the item 3 command) |
+| No publish without a release | Example modules are published to GHCR on a release through a registry mapping that routes both domains, No publish without a release | no (byte equal, checked by the item 3 command) |
+| Fixture missing an identity package | The declared version is read from the identity package of the module, Fixture missing an identity package | no (byte equal, checked by the item 3 command) |
+| Pre-release tag and declared version agree | A pre-release publish tags the artifact and declares the same version, Pre-release tag and declared version agree | no (byte equal, checked by the item 3 command) |
+| Working tree unmodified by a pre-release publish | A pre-release publish rewrites the declared version on a staged copy without the version flag, Working tree unmodified by a pre-release publish | no (byte equal, checked by the item 3 command) |
+
+New scenarios (each restates a case the old text names):
+
+| New place | New scenario | Old text that names the case |
+| --- | --- | --- |
+| Publishing goes through opm module publish so every gate runs over each fixture | A fixture that violates a publish gate fails the release | "Publishing SHALL go through `opm module publish`, installed in CI from a pinned cli releas ..." |
+
+Clauses:
+
+| Old clause | New place | Changed text? |
+| --- | --- | --- |
+| Example modules published to GHCR on release: On an operator release, CI SHALL publish each example module to `ghcr.io/open-platform-model` under  ... | Example modules are published to GHCR on a release through a registry mapping that routes both domains | verbatim |
+| Example modules published to GHCR on release: A mapping missing either domain falls through to a public mirror and fails with 401. | Example modules are published to GHCR on a release through a registry mapping that routes both domains | verbatim |
+| Example modules published to GHCR on release: (subject, condition or scope of the old requirement) | Publishing goes through opm module publish so every gate runs over each fixture | prefix naming the block that holds the subject, condition or scope |
+| Example modules published to GHCR on release: Publishing SHALL go through `opm module publish`, installed in CI from a pinned cli release, so ever ... | Publishing goes through opm module publish so every gate runs over each fixture | verbatim |
+| Example modules published to GHCR on release: (subject, condition or scope of the old requirement) | The declared version is read from the identity package of the module | prefix naming the block that holds the subject, condition or scope |
+| Example modules published to GHCR on release: The declared version SHALL be read from the module's own `identity/` package; it SHALL NOT be passed ... | The declared version is read from the identity package of the module | verbatim |
+| Pre-release publishes move the declared version with the tag: When publishing with a pre-release identifier, the publish step SHALL tag the artifact `v<version>-< ... | A pre-release publish tags the artifact and declares the same version | verbatim |
+| Pre-release publishes move the declared version with the tag: (subject, condition or scope of the old requirement) | A pre-release publish rewrites the declared version on a staged copy without the version flag | prefix naming the block that holds the subject, condition or scope |
+| Pre-release publishes move the declared version with the tag: The declared version SHALL be rewritten on a staged copy of the tree using the identity-package writ ... | A pre-release publish rewrites the declared version on a staged copy without the version flag | verbatim |
+| Pre-release publishes move the declared version with the tag: The publish command's `--version` flag SHALL NOT be used for this: it asserts an already-declared ve ... | A pre-release publish rewrites the declared version on a staged copy without the version flag | verbatim |
+
+Notes for the three ledgers above (unit 6):
+
+- Added words (the only ones): the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table (eight sentences). A sentence without a keyword that explains a rule or states a known limit sits in a block that holds a keyword sentence of the same rule: "A mapping missing either domain ...", "A required value is a field declared ...", "The controller records no outcome of a Job." with the limit of the Job without an outcome, the examples of a Platform update that enqueues nothing.
+- Cut sentences. The classification sentence of "Unresolved platform demands classify as resolution failures" (over 500) is cut at its list of causes: each part repeats the lead "The reconciler SHALL classify a refused render by its typed cause:" and names the other block with "(Requirement: ...)". The sentence that lists the findings of a package load failure (514) is cut before "; past that limit": the first part names the second as a "(Requirement: ...)" line and the second part names the first in its prefix; the semicolon becomes a full stop.
+- "The text in front of the findings is the kernel's ..." (472 characters, with its keyword 483) stays whole in its own block and has no sibling prefix: with one it would pass 500, and a sentence under 500 is not cut. Its header carries the scope.
+- Form b for "A missing object is restored" keeps the header because the requirement is cited by header from specs this change does not touch; its ten scenarios stay under the parent and the eight ADDED blocks carry new scenarios that restate cases of the old body.
+- The em-dash of the withheld-resource body is written as ":". The Source line of "An object adopted by another instance ..." is the **Source** line of its three blocks.
+- The reference in "Drift detection failure increments counter" to the split requirement "A drift check that is refused or has no identity is reported" names the two blocks that hold the two cases ("those two"); the block stays under 500 and keeps its two scenarios.
+
+
 ## Strength table
 
 Every sentence that gains SHALL, MUST or MAY, collected from the clause tables of all units, with
@@ -1660,6 +1942,14 @@ the old sentence.
 | The claim's catalog, version and provides are authored literals | The claim's `catalog`, `version` and `provides` SHALL be authored literals, a deliberate deviation from enhancement 0015 ("Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"): a module fixture cannot import a catalog fixture version that is new in the same pull request, so a derived claim could not land with a `backup` catalog bump. | The claim's `catalog`, `version` and `provides` are authored literals, a deliberate deviation from enhancement 0015 ("Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"): a module fixture cannot import a catalog fixture version that is new in the same pull request, so a derived claim could not land with a `backup` catalog bump. |
 | Prune executes only with an enabled prune, entries to remove and a valid client | prune MUST execute only when (a) `spec.prune=true`, (b) the inventory has entries to remove, and (c) a valid apply/prune client has been obtained. | prune executes only when (a) `spec.prune=true`, (b) the inventory has entries to remove, and (c) a valid apply/prune client has been obtained. |
 | Only the kind PersistentVolumeClaim in the core group is kept | A PersistentVolume, a VolumeSnapshot and a claim-like kind of another API group MUST be pruned like any other resource. | A PersistentVolume, a VolumeSnapshot and a claim-like kind of another API group are pruned like any other resource. |
+| A reconcile that skips its render runs no drift detection and drift runs once per interval | The drift render interval (`--drift-render-interval`) bounds how long such skips last, so drift detection MUST run at most once per interval for an object whose inputs do not change, on the first reco ... | The drift render interval (`--drift-render-interval`) bounds how long such skips last, so drift detection runs at most once per interval for an object whose inputs do not change, on the first reconcil ... |
+| The refusal that withheld a resource carries the signal that the operator does not assert it | The refusal that withheld the resource SHALL carry that signal instead. | The refusal that withheld the resource carries that signal instead. |
+| The controller records no outcome of a Job, and a changed digest applies the Job again | A reconcile whose digests changed SHALL apply every rendered object, the Job included, and SHALL record the full rendered inventory. | A reconcile whose digests changed applies every rendered object, the Job included, and records the full rendered inventory. |
+| Forbidden is every 403 answer | `Forbidden` SHALL be every 403 answer, not only a missing RBAC verb of the identity: an admission control that denies the dry-run with 403, and a controller that may not impersonate the ServiceAccount ... | `Forbidden` is every 403 answer, not only a missing RBAC verb of the identity: an admission control that denies the dry-run with 403, and a controller that may not impersonate the ServiceAccount, give ... |
+| ModulePackages are re-enqueued on the fields a package render consumes | A package render reads the same generated platform record as a ModuleInstance render, so the fields SHALL be the same ones the ModuleInstance Platform watch compares: | A package render reads the same generated platform record as a ModuleInstance render, so the fields are the same ones the ModuleInstance Platform watch compares: |
+| The Platform status update and an operatorVersion change re-enqueue ModulePackages | The trigger SHALL include the Platform reconciler's own status update, which does not bump the Platform's generation. | The trigger includes the Platform reconciler's own status update, which does not bump the Platform's generation. |
+| The Platform status update and an operatorVersion change re-enqueue ModulePackages | A `status.operatorVersion` change SHALL re-enqueue because, after an operator upgrade, it is the only status change the regenerated Platform writes. | A `status.operatorVersion` change re-enqueues because, after an operator upgrade, it is the only status change the regenerated Platform writes. |
+| The text in front of the findings is the kernel's | The text in front of the findings is the kernel's and SHALL NOT be changed: for a failure the kernel reports under `Kernel.AcquireInstanceFromDir: instance "<name>": ` it holds no directory, so the wh ... | The text in front of the findings is the kernel's and is not changed: for a failure the kernel reports under `Kernel.AcquireInstanceFromDir: instance "<name>": ` it holds no directory, so the whole me ... |
 
 ## The gate
 

@@ -72,10 +72,10 @@ Specs: example-test-modules 7, prune-stale-resources 6.
 
 Specs: drift-detection 5, modulepackage-kernel-rendering 5, example-module-publishing 2.
 
-- [ ] 8.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another unit.
-- [ ] 8.2 Byte-equality command of the guide (review item 3) for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 8.3 Gate (`N=82`): `validate split-remaining-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 8.4 Commit `docs(openspec): split the long requirements of drift-detection, modulepackage-kernel-rendering and example-module-publishing`
+- [x] 8.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another unit.
+- [x] 8.2 Byte-equality command of the guide (review item 3) for every rewritten requirement: no `DIFF`, no `LOST`.
+- [x] 8.3 Gate (`N=82`): `validate split-remaining-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
+- [x] 8.4 Commit `docs(openspec): split the long requirements of drift-detection, modulepackage-kernel-rendering and example-module-publishing`
 
 ## 9. The four overlap requirements and the retarget of stop-operator-install-manifest: 4 requirements
 
