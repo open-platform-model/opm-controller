@@ -68,6 +68,7 @@ A forced version SHALL be a `release-as` value on package `"."` of `release-plea
 ### Requirement: Dependabot leaves cuelang.org/go to library releases
 The `gomod` entry of `.github/dependabot.yml` SHALL ignore the dependencies `cuelang.org/go` and `cuelabs.dev/go/oci/ociregistry` (the CUE team's OCI module, whose version the library's `go.mod` sets, `cuelang.org/go` setting only a floor), so the operator's CUE version moves only through a library release.
 Other third-party Go modules SHALL keep their Dependabot updates.
+(Requirement: The operator's CUE version moves only through a library release)
 **Source**: owner decision j4 of the kernel beta.1 plan walkthrough (2026-10-03); workspace RELEASING.md, section "Pin classes".
 
 #### Scenario: New CUE release opens no Dependabot PR
@@ -318,12 +319,19 @@ As in requirement "The opm CLI version is pinned in one file": The pin is a rele
 - **WHEN** the opm CLI pin in `.opm-cli-version` is moved
 - **THEN** moving it is a `ci(deps)` commit and cuts no release
 
-### Requirement: The release-as key repeats its version and crosses a boundary
-As in requirement "Forced version via the release-as config key": While the value stays, release-please SHALL propose exactly that version on every Release PR, so a value left in place after its release re-proposes an already-published version. The key is the required mechanism to cross a boundary the automated bump cannot reach (changing the prerelease label of a suffixed version, for example alpha to beta) and MAY pin an exact version at any crossing.
+### Requirement: A release-as value left in place re-proposes its version
+A forced version SHALL be a `release-as` value on package `"."` of `release-please-config.json`, set by a normal pull request and removed by the next pull request once the GitHub Release for that version is cut. While the value stays, release-please proposes exactly that version on every Release PR, so a value left in place after its release re-proposes an already-published version.
 
 #### Scenario: A value left in place re-proposes its version
 - **WHEN** the `release-as` value stays after the GitHub Release for that version is cut
 - **THEN** release-please proposes exactly that version on every Release PR, so it re-proposes an already-published version
+
+### Requirement: The release-as key crosses a boundary the automated bump cannot reach
+A forced version SHALL be a `release-as` value on package `"."` of `release-please-config.json`, set by a normal pull request and removed by the next pull request once the GitHub Release for that version is cut. The key is the required mechanism to cross a boundary the automated bump cannot reach (changing the prerelease label of a suffixed version, for example alpha to beta) and MAY pin an exact version at any crossing.
+
+#### Scenario: The key crosses a boundary the automated bump cannot reach
+- **WHEN** the prerelease label of a suffixed version must change, for example alpha to beta
+- **THEN** the `release-as` key is the required mechanism to cross that boundary and MAY pin an exact version at any crossing
 
 ### Requirement: A Release-As commit footer is not relied on
 As in requirement "Forced version via the release-as config key": A `Release-As:` commit footer SHALL NOT be relied on: the squash commit on `main` carries only the PR title (`squash_merge_commit_message: BLANK`, workspace RELEASING.md, section "Owner settings"), so a footer in the PR body or a branch commit never reaches `main`.
@@ -408,7 +416,7 @@ As in requirement "The notify-downstream job has exactly one step, the cascade a
 - **THEN** it is read only in the caller-owned `notify-downstream` or `publish` job, as the `private-key` input of the SHA-pinned cascade action
 
 ### Requirement: The operator's CUE version moves only through a library release
-The operator's CUE version SHALL move only through a library release: the library bumps CUE in its own pull request, where the closedness canary runs, and the operator picks the new version up when the release cascade (or a hand-made `fix(deps)` pull request) moves the library pin, whose `go get` of the library raises `cuelang.org/go` by minimal version selection (kept by `go mod tidy`).
+As in requirement "Dependabot leaves cuelang.org/go to library releases": the library bumps CUE in its own pull request, where the closedness canary runs, and the operator picks the new version up when the release cascade (or a hand-made `fix(deps)` pull request) moves the library pin, whose `go get` of the library raises `cuelang.org/go` by minimal version selection (kept by `go mod tidy`). Other third-party Go modules SHALL keep their Dependabot updates.
 **Source**: owner decision j4 of the kernel beta.1 plan walkthrough (2026-10-03); workspace RELEASING.md, section "Pin classes".
 
 #### Scenario: The operator picks up CUE with the library pin
@@ -416,7 +424,7 @@ The operator's CUE version SHALL move only through a library release: the librar
 - **THEN** the operator picks the new CUE version up, because the `go get` of the library raises `cuelang.org/go` by minimal version selection
 
 ### Requirement: The publish job leaves the Pre-release flag unchanged and succeeds on a published release
-As in requirement "Release published once after every release job" (the publish job `publish-release`): It SHALL leave the Pre-release flag set by release-please unchanged. When the release is already published it SHALL succeed without changing anything.
+As in requirement "Release published once after every release job" (a publish job (`publish-release`)): It SHALL leave the Pre-release flag set by release-please unchanged. When the release is already published it SHALL succeed without changing anything.
 
 #### Scenario: The Pre-release flag stays as release-please set it
 - **WHEN** `publish-release` publishes a draft
@@ -427,7 +435,7 @@ As in requirement "Release published once after every release job" (the publish 
 - **THEN** `publish-release` succeeds without changing anything
 
 ### Requirement: Only the cascade notify job and the module's image-bump PR job depend on the publish job
-As in requirement "Release published once after every release job" (the publish job `publish-release`): The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`), neither of which produces a release artifact.
+As in requirement "Release published once after every release job" (a publish job (`publish-release`)): The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`), neither of which produces a release artifact.
 
 #### Scenario: Only two jobs depend on the publish job
 - **WHEN** the jobs that depend on `publish-release` are listed
@@ -445,7 +453,7 @@ As in requirement "Beta prerelease line": A breaking change is still allowed dur
 - **THEN** it advances the `-beta.N` counter and never moves the module path to a new major
 
 ### Requirement: Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule
-As in requirement "Beta prerelease line": Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) SHALL keep the normal SemVer rule: a break is a new major. The operator module's own package follows its 0.x rule instead (`operator-module-release`).
+As in requirement "Beta prerelease line": Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) keep the normal SemVer rule: a break is a new major. The operator module's own package SHALL follow its 0.x rule instead (`operator-module-release`).
 
 #### Scenario: A break on a stable line is a new major
 - **WHEN** a break lands on a stable line (`opmodel.dev/catalogs/opm@v4` or a module fleet)

@@ -42,7 +42,7 @@ While a release is stalled with reason `DeletionSAMissing`, the finalizer MUST r
 A `ModuleInstance` whose deletion is stalled with reason `DeletionSAMissing` MUST be reconciled promptly, not at the next stalled recheck, when either of these happens:
 - its annotation `opm.dev/force-delete-orphan` becomes the literal `"true"`;
 - a ServiceAccount with the name the instance impersonates is created in the instance's namespace.
-The creation of the ServiceAccount is the only trigger of the second case. This requirement covers `ModuleInstance`.
+This requirement covers `ModuleInstance`.
 
 #### Scenario: Setting the orphan annotation releases a stalled deletion without waiting
 
@@ -330,7 +330,7 @@ When a ModuleRelease with `spec.prune=true` is deleted, the finalizer MUST be re
 ### Requirement: A DeletionSAMissing stall ends by a restored ServiceAccount or the orphan annotation
 While a release is stalled with reason `DeletionSAMissing`, the release MUST remain blocked from garbage collection by the apiserver until either:
 - The ServiceAccount is restored in the release's namespace and the next reconcile succeeds in pruning the inventory, OR
-- The operator sets annotation `opm.dev/force-delete-orphan=true` on the release and the next reconcile removes the finalizer via the orphan-exit path.
+- The operator sets annotation `opm.dev/force-delete-orphan=true` on the release and the next reconcile removes the finalizer via the orphan-exit path, OR
 (Requirement: A DeletionSAMissing stall ends when spec.prune is set to false)
 
 #### Scenario: A restored ServiceAccount prunes the inventory
@@ -367,7 +367,7 @@ As in requirement "Recovery signals of a stalled deletion trigger a reconcile": 
 - **THEN** the event itself enqueues the instance and the reconcile that follows prunes as the ServiceAccount
 
 ### Requirement: A ServiceAccount created before its RBAC stalls the deletion with ImpersonationFailed
-As in requirement "Recovery signals of a stalled deletion trigger a reconcile": When the ServiceAccount is created before the RBAC that lets it delete the inventory, the reconcile it triggers is forbidden and the deletion MUST stall with `ImpersonationFailed` until the stalled recheck. This requirement covers `ModuleInstance`.
+As in requirement "Recovery signals of a stalled deletion trigger a reconcile": The creation of the ServiceAccount MUST be the only trigger of the second case. When the ServiceAccount is created before the RBAC that lets it delete the inventory, the reconcile it triggers is forbidden and the deletion stalls with `ImpersonationFailed` until the stalled recheck. This requirement covers `ModuleInstance`.
 
 #### Scenario: The reconcile of an early ServiceAccount is forbidden
 - **GIVEN** a `ModuleInstance` whose deletion is stalled with reason `DeletionSAMissing`
@@ -521,7 +521,7 @@ As in requirement "The finalizer is kept until the deleted objects are gone": Wh
 - **THEN** the reconcile ends without removing the finalizer, sets `Ready=False` and `Reconciling=True` with reason `DeletionInProgress`, and requests a requeue after an interval of at least 1 second and at most 60 seconds
 
 ### Requirement: Each reconcile of a waiting deletion judges the inventory again from the cluster
-As in requirement "The finalizer is kept until the deleted objects are gone": Each such reconcile MUST judge every inventory entry again from the cluster and MUST NOT rely on a stored list of what was deleted.
+As in requirement "A deleted object that still exists holds the finalizer with DeletionInProgress": Each such reconcile MUST judge every inventory entry again from the cluster and MUST NOT rely on a stored list of what was deleted.
 **Source**: owner decision of 2026-10-09 (the finalizer waits until the deleted objects are gone).
 
 #### Scenario: Each reconcile of a waiting deletion judges the inventory again

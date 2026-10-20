@@ -331,21 +331,37 @@ When a ModuleInstance or ModulePackage reconcile panics after its deferred statu
 - **AND** its `inventory` and `lastAppliedRenderDigest` are unchanged from the earlier reconcile
 
 ### Requirement: A panic is recorded in Ready and history
-Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
+As in requirement "A recovered panic is never reported as a success": Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
 - `Ready=False` with reason `ReconcilePanic` and a message that starts with `reconcile panicked: ` followed by the panic value.
-- `Reconciling=True`, and no `Stalled` condition.
 - `lastAttempted*` set for this attempt, and a failure history entry carrying the same message.
-(Requirement: A panic counts one failure) (Requirement: A panic keeps the applied state)
+(Requirement: A panic sets Reconciling and not Stalled)
 
 #### Scenario: A panic is recorded in Ready and history
 - **WHEN** a reconcile panics after its deferred status commit is installed
-- **THEN** the deferred commit records `Ready=False` with reason `ReconcilePanic` and a message that starts with `reconcile panicked: ` followed by the panic value, `Reconciling=True` and no `Stalled` condition, `lastAttempted*` set for this attempt, and a failure history entry carrying the same message
+- **THEN** the deferred commit records `Ready=False` with reason `ReconcilePanic` and a message that starts with `reconcile panicked: ` followed by the panic value, `lastAttempted*` set for this attempt, and a failure history entry carrying the same message
+
+### Requirement: A panic sets Reconciling and not Stalled
+As in requirement "A recovered panic is never reported as a success": Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
+- `Reconciling=True`, and no `Stalled` condition.
+(Requirement: A panic counts one failure)
+
+#### Scenario: A panic sets Reconciling and not Stalled
+- **WHEN** a reconcile panics after its deferred status commit is installed
+- **THEN** the deferred commit records `Reconciling=True` and no `Stalled` condition
 
 ### Requirement: A panic counts one failure
-Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
+As in requirement "A recovered panic is never reported as a success": Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
 - `failureCounters.reconcile` incremented, as for any `FailedTransient` outcome.
+(Requirement: A panic never resets a phase counter)
+
+#### Scenario: A panic counts one failure
+- **WHEN** a reconcile panics after its deferred status commit is installed
+- **THEN** `failureCounters.reconcile` is incremented, as for any `FailedTransient` outcome
+
+### Requirement: A panic never resets a phase counter
+As in requirement "A recovered panic is never reported as a success": Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
 - The drift, apply and prune failure counters left as they were. A phase that was in flight when the panic hit did not succeed, so a panicking attempt never resets a phase counter.
-(Requirement: A panic is recorded in Ready and history) (Requirement: A panic keeps the applied state)
+(Requirement: A panic keeps the applied state)
 
 #### Scenario: A panic inside a phase does not reset that phase's counter
 
@@ -353,21 +369,28 @@ Before the panic leaves the reconcile function, the deferred commit MUST record 
 - **THEN** the drift, apply and prune failure counters keep their earlier values and `failureCounters.reconcile` is incremented
 
 ### Requirement: A panic keeps the applied state
-Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
+As in requirement "A recovered panic is never reported as a success": Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
 - `nextRetryAt` cleared, because the retry is scheduled by the controller runtime's rate limiter, not by the operator's backoff.
 - `lastApplied*` and `inventory` left as they were.
-(Requirement: A panic is recorded in Ready and history) (Requirement: A panic counts one failure)
+(Requirement: A panic is recorded in Ready and history)
 
 #### Scenario: A panic clears nextRetryAt and keeps the applied state
 - **WHEN** a reconcile panics after its deferred status commit is installed
 - **THEN** `nextRetryAt` is cleared, and `lastApplied*` and `inventory` are as they were
 
 ### Requirement: A panicking attempt counts as FailedTransient for counters, history and metrics only
-A panicking attempt SHALL be counted as `FailedTransient` for failure counters, history and reconcile metrics only. It SHALL return no `ctrl.Result`: the requeue scenarios of "Outcome classification" and the `nextRetryAt` rule of the reconcile-backoff capability do not apply to it. Fields the attempt already wrote on the object before the panic (`requiredContracts`, `instanceUUID`, the `Drifted` condition, a ModulePackage's `status.source`) SHALL be committed as on any other failed attempt.
+As in requirement "A recovered panic is never reported as a success": A panicking attempt SHALL be counted as `FailedTransient` for failure counters, history and reconcile metrics only. It SHALL return no `ctrl.Result`: the requeue scenarios of "Outcome classification" and the `nextRetryAt` rule of the reconcile-backoff capability do not apply to it.
 
 #### Scenario: A panicking attempt returns no ctrl.Result
 - **WHEN** a reconcile panics after its deferred status commit is installed
 - **THEN** the attempt is counted as `FailedTransient` for failure counters, history and reconcile metrics only, and it returns no `ctrl.Result`
+
+### Requirement: Fields written before a panic are committed as on any other failed attempt
+As in requirement "A recovered panic is never reported as a success": Fields the attempt already wrote on the object before the panic (`requiredContracts`, `instanceUUID`, the `Drifted` condition, a ModulePackage's `status.source`) SHALL be committed as on any other failed attempt.
+
+#### Scenario: Fields written before a panic are committed
+- **WHEN** a reconcile panics after its deferred status commit is installed, and the attempt already wrote `instanceUUID` on the object before the panic
+- **THEN** `instanceUUID` is committed as on any other failed attempt
 
 ### Requirement: A recovered panic is raised again with its original value
 As in requirement "A recovered panic is never reported as a success": The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The operator SHOULD log the panic value with the object's name and namespace before it re-panics.
@@ -543,6 +566,7 @@ When a render's identity differs from `status.instanceUUID`, the reconciler MUST
 
 ### Requirement: previousInstanceUUID is cleared only by a full success
 `status.previousInstanceUUID` MUST be cleared in the status commit of a reconcile whose apply and prune succeeded, together with the new inventory, and MUST NOT be cleared by any other outcome: a failed or refused apply, a failed prune, a reconcile that applies nothing, or a recovered panic.
+**Source**: owner decision of 2026-10-08 (the status holds the earlier and the new identity until the prune of that reconcile succeeded; then the earlier one is cleared).
 
 #### Scenario: Full success settles the change
 - **GIVEN** a ModuleInstance with `status.instanceUUID` `B` and `status.previousInstanceUUID` `A`

@@ -28,7 +28,7 @@ The repo SHALL have `.github/workflows/deps-cascade.yml`, named `Deps cascade`, 
 - **THEN** a `Deps cascade` run starts with no payload and behaves as a sweep
 
 ### Requirement: The cascade job's call and grants
-As in requirement "The Deps cascade workflow": Its job `cascade` SHALL call `open-platform-model/.github/.github/workflows/cascade-receive.yml` at the repo's pinned `.github` SHA, granting `contents: read`, `pull-requests: read` and `statuses: write` and nothing else, passing no `secrets`.
+As in requirement "The Deps cascade workflow": Its job `cascade` SHALL call `open-platform-model/.github/.github/workflows/cascade-receive.yml` at the repo's pinned `.github` SHA, granting `contents: read`, `pull-requests: read` and `statuses: write` and nothing else, passing no `secrets`. Payload validation, the task run and the plan belong to the called workflow, whose jobs hold no secret (Phase 3 wiring contract (version 3.1) §5, §5.1, §5.2, §6).
 (Requirement: The cascade job's inputs)
 
 #### Scenario: Workflow grants nothing at the top
@@ -42,13 +42,6 @@ As in requirement "The Deps cascade workflow": Its job `cascade` SHALL call `ope
 #### Scenario: The cascade job passes the dry-run expression and the modes
 - **WHEN** the `cascade` job calls the shared receive workflow
 - **THEN** it passes `setup-go: true`, the dry-run expression, `gates-only`, and `g2-mode` and `g3-mode` from the repo variables `CASCADE_G2_MODE` and `CASCADE_G3_MODE`, each defaulting to `warn`
-
-### Requirement: The called workflow validates the payload, runs the task and makes the plan
-As in requirement "The Deps cascade workflow": Payload validation, the task run and the plan SHALL belong to the called workflow, whose jobs hold no secret (Phase 3 wiring contract (version 3.1) §5, §5.1, §5.2, §6).
-
-#### Scenario: The called workflow holds the payload check, the task run and the plan
-- **WHEN** a Deps cascade run starts
-- **THEN** payload validation, the task run and the plan belong to the called workflow, whose jobs hold no secret
 
 ### Requirement: The publish job's shape
 `deps-cascade.yml` SHALL have a job `publish` that needs `cascade`, runs on `ubuntu-latest`, declares `environment: cascade`, grants `contents: read` and `pull-requests: read` and nothing else.
@@ -272,7 +265,8 @@ As in requirement "The Lint job runs the wiring check on every pull request": Wi
 - **THEN** the check fails
 
 ### Requirement: The wiring check guards against mistakes, not a deliberate edit
-As in requirement "The Lint job runs the wiring check on every pull request": It SHALL guard against mistakes, not a deliberate edit: code-owner review is the guard against that, and the `main` ruleset does not require review while OPM is in beta (no approvals, workspace PR 29) (Phase 3 wiring contract (version 3.1) §2.4, §10.1 items 2, 3 and 6; the supervisor's addendum; `.github` README at `2b66da5`, "The wiring check").
+`.tasks/cascade/wiring-check.sh` SHALL be byte-identical to `.github/scripts/cascade/wiring-check.sh` at the pinned SHA and SHALL move only with the pin.
+It guards against mistakes, not a deliberate edit: code-owner review is the guard against that, and the `main` ruleset does not require review while OPM is in beta (no approvals, workspace PR 29) (Phase 3 wiring contract (version 3.1) §2.4, §10.1 items 2, 3 and 6; the supervisor's addendum; `.github` README at `2b66da5`, "The wiring check").
 
 #### Scenario: A deliberate edit is guarded by code-owner review
 - **WHEN** a deliberate edit changes the cascade wiring

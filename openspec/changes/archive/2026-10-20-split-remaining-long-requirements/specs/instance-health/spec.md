@@ -63,7 +63,7 @@ As in requirement "Healthy reports whether the inventory rolled out": The messag
 - **THEN** `Healthy` is `False` with reason `NotRolledOut`, and the message names the object with status `Missing`
 
 ### Requirement: The Healthy message orders the named objects and is deterministic
-As in requirement "Healthy reports whether the inventory rolled out": For `ProgressDeadlineExceeded` the stalled Deployments come first, in inventory order, then the other objects that are not healthy, in inventory order; for `NotRolledOut` every named object is in inventory order. Two judgements of the same cluster state SHALL produce the same message.
+As in requirement "The Healthy message begins with the ready count and names the objects that are not healthy": For `ProgressDeadlineExceeded` the stalled Deployments come first, in inventory order, then the other objects that are not healthy, in inventory order; for `NotRolledOut` every named object is in inventory order. Two judgements of the same cluster state SHALL produce the same message.
 
 #### Scenario: A stalled Deployment
 
@@ -71,7 +71,7 @@ As in requirement "Healthy reports whether the inventory rolled out": For `Progr
 - **THEN** `Healthy` is `False` with reason `ProgressDeadlineExceeded`, and the message names the stalled Deployment first, whatever its place in the inventory
 
 ### Requirement: The Healthy message names the error of an unreadable object
-As in requirement "Healthy reports whether the inventory rolled out": For a read failure it SHALL name the error of the first unreadable object in inventory order. A read refused because the object's kind is no longer served (the API server has no mapping for it) counts as a missing object, not an unreadable one, because such an object cannot exist.
+As in requirement "The Healthy message begins with the ready count and names the objects that are not healthy": For a read failure it SHALL name the error of the first unreadable object in inventory order. A read refused because the object's kind is no longer served (the API server has no mapping for it) counts as a missing object, not an unreadable one, because such an object cannot exist.
 
 #### Scenario: A kind that is no longer served
 
@@ -199,7 +199,7 @@ The operator does not know how the Job ended. A Job with a TTL that failed makes
 - **THEN** `Healthy` is `False` while the Job exists
 
 ### Requirement: A removal that empties the inventory leaves Healthy Unknown
-When the removal leaves `status.inventory` with no entries, `Healthy` SHALL be `Unknown` with reason `HealthUnknown`, as for any empty inventory. This requirement does not apply to a ModulePackage.
+As in requirement "An expired Job leaves the inventory and is not judged": When the removal leaves `status.inventory` with no entries, `Healthy` SHALL be `Unknown` with reason `HealthUnknown`, as for any empty inventory. This requirement does not apply to a ModulePackage.
 
 #### Scenario: The only inventory object was an expired Job
 

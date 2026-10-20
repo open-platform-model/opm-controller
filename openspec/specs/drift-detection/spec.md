@@ -335,7 +335,7 @@ As in requirements "A Forbidden read or dry-run sets Drifted to Unknown" and "A 
 - **AND** `status.failureCounters.drift` is zero
 
 ### Requirement: An object adopted by another instance is neither drift nor restored
-Drift detection MUST compare only the objects the apply verdict allows, without the objects taken in by the same reconcile ("A missing object is restored"). An object the verdict refuses as `adopted-elsewhere` MUST NOT be reported as drifted or as missing, and MUST NOT be restored.
+Drift detection MUST compare only the objects the apply verdict allows, without the objects taken in by the same reconcile ("The restore step leaves an inventoried object alone and a taken-in object out of the dry-run diff"). An object the verdict refuses as `adopted-elsewhere` MUST NOT be reported as drifted or as missing, and MUST NOT be restored.
 **Source**: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: A let-go object is not drift

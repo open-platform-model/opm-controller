@@ -89,7 +89,7 @@ As in requirement "A stray claim is refused": The check SHALL be grounded in the
 - **THEN** the claim is refused, because the inventory of the instance that `providerRef` names does not hold it
 
 ### Requirement: The inventory is the ownership record of this repo
-As in requirement "A stray claim is refused": The inventory SHALL already be this repo's ownership record by constitutional principle.
+As in requirement "A stray claim is refused": The check SHALL be grounded in the inventory rather than in the claim's labels. The inventory is already this repo's ownership record by constitutional principle.
 
 #### Scenario: The origin check reads ownership from the inventory
 
@@ -215,6 +215,7 @@ Acceptance SHALL compare the catalog's committed requirements against the platfo
 
 ### Requirement: A requirement is compared against the resolved entry of the provider's own major
 As in requirement "A newer-build requirement is refused": Two majors of one catalog are two paths: the platform's resolution is every module its generated closure carries, disabled registry entries included, and a provider's requirement SHALL be compared against the resolved entry of the provider's own major. A requirement in a different major SHALL be refused only when no resolved path shares the provider's major, and that refusal SHALL name every major the platform resolves for the path.
+**Source**: enhancement 0015 ("A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline") and enhancement 0026 ("The shared-path requirement check runs per render against the consumer's pins, and at acceptance against the platform floors" and "A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") (the shared-path comparison).
 
 #### Scenario: A provider on a different major is refused unconditionally
 
@@ -228,6 +229,7 @@ As in requirement "A newer-build requirement is refused": Two majors of one cata
 
 ### Requirement: The build-compatibility verdict does not depend on the order of the platform's resolution
 As in requirement "A newer-build requirement is refused": The verdict and its message SHALL NOT depend on the order in which the platform's resolution is read.
+**Source**: enhancement 0015 ("A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline") and enhancement 0026 ("The shared-path requirement check runs per render against the consumer's pins, and at acceptance against the platform floors" and "A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") (the shared-path comparison).
 
 #### Scenario: The verdict does not depend on iteration order
 
@@ -236,6 +238,7 @@ As in requirement "A newer-build requirement is refused": The verdict and its me
 
 ### Requirement: The build-incompatibility refusal happens at acceptance and states the fix
 As in requirement "A newer-build requirement is refused": The refusal SHALL happen here rather than at render, where the failure would name an unrelated module instance. The refusal message SHALL state that the comparison is conservative (a requirement records what the provider was tidied against, not what it uses) and that lowering the requirement is the author's fix.
+**Source**: enhancement 0015 ("A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline") and enhancement 0026 ("The shared-path requirement check runs per render against the consumer's pins, and at acceptance against the platform floors" and "A platform may admit several majors of one catalog; each resolution holds exactly one major per catalog") (the shared-path comparison).
 
 #### Scenario: A refusal for a build incompatibility states the conservative comparison and the fix
 
@@ -274,7 +277,7 @@ As in requirement "A claim gets the same verdict on both paths of the provider-s
 - **THEN** the old catalog is the published `backup` catalog fixture acquired from the registry, and the new catalog is the same fixture tree with its core pin moved to exactly the library's `ProvidesSince`
 
 ### Requirement: Each integration spec asserts the facts that select its path
-As in requirement "A claim gets the same verdict on both paths of the provider-set derivation": Each spec SHALL also assert the facts that select its path: the old catalog pins a core older than `ProvidesSince` and carries no `provides` field, and the new catalog pins exactly `ProvidesSince` and carries a `provides` field that equals the derived set.
+As in requirement "A registry-backed integration spec runs the reconciler once with each kind of catalog": Each spec SHALL also assert the facts that select its path: the old catalog pins a core older than `ProvidesSince` and carries no `provides` field, and the new catalog pins exactly `ProvidesSince` and carries a `provides` field that equals the derived set. The specs cannot tell the fold from the field on the new catalog, because both give the same set there.
 
 #### Scenario: The old-catalog spec asserts the facts of the fold path
 
@@ -282,7 +285,7 @@ As in requirement "A claim gets the same verdict on both paths of the provider-s
 - **THEN** it asserts that the old catalog pins a core older than `ProvidesSince` and carries no `provides` field
 
 ### Requirement: A broken premise fails the spec that relies on it
-As in requirement "Each integration spec asserts the facts that select its path": A fixture or library move that breaks a premise SHALL then fail the spec that relies on it, and a library that stops folding a catalog without the field SHALL fail the old spec; one that picks its path by the field's presence, ignoring the pin, passes it, since the old catalog has no field. The specs cannot tell the fold from the field on the new catalog, because both give the same set there.
+As in requirement "Each integration spec asserts the facts that select its path": The old catalog SHALL be the published `backup` catalog fixture, acquired from the registry. A fixture or library move that breaks a premise then fails the spec that relies on it, and a library that stops folding a catalog without the field fails the old spec; one that picks its path by the field's presence, ignoring the pin, passes it, since the old catalog has no field.
 
 #### Scenario: The old-catalog case is not lost silently
 
