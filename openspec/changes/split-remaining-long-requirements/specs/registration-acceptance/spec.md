@@ -17,8 +17,8 @@
 **Migration**: See "A second claim for a provider catalog is refused naming the claimant" and "A claim whose deletion is blocked still holds its provider catalog".
 
 ### Requirement: A contract has one provider
-**Reason**: Split into eight requirements that each state one behavior.
-**Migration**: See "A claim is refused when a contract it provides has another provider", "A contract refusal is distinct from the duplicate-claim refusal", "The provider count of a contract is read from the built platform", "A provider is identified by its registry entry", "An inactive accepted claim does not hold a contract against a competitor", "A claim whose deletion is blocked keeps holding its contracts", "A claim's own catalog does not hold a contract against it" and "Counting a claim's own catalog entry would make the claim oscillate".
+**Reason**: Split into seven requirements that each state one behavior.
+**Migration**: See "A claim is refused when a contract it provides has another provider", "A contract refusal is distinct from the duplicate-claim refusal", "The provider count of a contract is read from the built platform", "A provider is identified by its registry entry", "An inactive accepted claim does not hold a contract against a competitor", "A claim whose deletion is blocked keeps holding its contracts", "A claim's own catalog does not hold a contract against it" and "Only another provider of a contract conflicts with a claim".
 
 ### Requirement: A build-incompatible provider is refused at acceptance
 **Reason**: Split into four requirements that each state one behavior.
@@ -86,7 +86,7 @@ As in requirement "The derived provider set must equal spec.provides": A claim l
 - **THEN** the claim is refused, naming both lists
 
 ### Requirement: A stray claim is refused
-Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (the claim-origin check of enhancement 0015, deferred to this slice). `providerRef` SHALL be stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance: a hand-applied stray, which would otherwise point a later health gate at the wrong package.
+Acceptance SHALL verify that the `ModuleInstance` named by `spec.providerRef` exists and that its `status.inventory` owns this claim, refusing the claim otherwise (the claim-origin check of enhancement 0015, deferred to this slice). `providerRef` is stamped by the renderer and cannot be authored, so a claim its named instance does not own did not come from that instance: a hand-applied stray, which would otherwise point a later health gate at the wrong package.
 
 #### Scenario: A claim its named instance does not own is refused
 
@@ -197,20 +197,20 @@ As in requirement "A claim is refused when a contract it provides has another pr
 - **THEN** it is refused, naming the blocked claim
 
 ### Requirement: A claim's own catalog does not hold a contract against it
-A claim's **own** catalog SHALL NOT hold a contract against it. The claim's own entry is the registry entry equal to its `spec.catalog`; another major of the same catalog is not its own entry. Only ANOTHER provider of the contract is a conflict, and the claim's own catalog being excused SHALL NOT excuse a different catalog providing the same contract.
+A claim's **own** catalog SHALL NOT hold a contract against it. Once a claim is active its catalog is an enabled entry of the very platform the next reconcile judges it against (enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"). The claim's own entry is the registry entry equal to its `spec.catalog`; another major of the same catalog is not its own entry.
 
 #### Scenario: An active claim is not refused against its own catalog
 
 - **WHEN** an active claim is re-judged against a platform whose registry now carries its own catalog, with transformers stamped the way core stamps them (a major-free module path)
 - **THEN** it is not refused for providing its own contracts
 
+### Requirement: Only another provider of a contract conflicts with a claim
+As in requirement "A claim's own catalog does not hold a contract against it": Counting the claim's own entry would refuse the claim for providing what it exists to provide, deactivate it, drop its catalog from the next generated package and accept it again, an oscillation rather than a verdict. Only ANOTHER provider of the contract is a conflict, and the claim's own catalog being excused SHALL NOT excuse a different catalog providing the same contract.
+
 #### Scenario: Another provider still refuses a claim whose catalog is in the registry
 
 - **WHEN** a different catalog provides the same contract as an active claim whose own catalog is in the registry
 - **THEN** the competing claim is still refused
-
-### Requirement: Counting a claim's own catalog entry would make the claim oscillate
-Once a claim is active its catalog SHALL be an enabled entry of the very platform the next reconcile judges it against (enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"), so counting the claim's own entry would refuse the claim for providing what it exists to provide, deactivate it, drop its catalog from the next generated package and accept it again, an oscillation rather than a verdict.
 
 #### Scenario: An active claim's own entry is not counted against it
 
