@@ -47,7 +47,9 @@ validation task and one CI step.
   boundary as the main split, verbatim, each part 500 or less. A part with no counterpart in the
   delta text keeps its main text. A REMOVED block of a split requirement becomes one REMOVED block
   per new header. The dropped scenario of its `operator-module` block is restored. Its proposal,
-  design, tasks and code stay as they are.
+  design, tasks and code stay as they are. Three citations of the expired-Job rule in
+  `inventory-bridge` and `render-input-key` name the header of the split parent; one MODIFIED block
+  each changes only the cited header.
 - **The gate.** A Taskfile task installs OpenSpec 1.14.1 with `--ignore-scripts` and a second
   task runs `openspec validate --all --strict --no-interactive`. A job of its own in `lint.yml`, with a read-only token and a
   checkout that keeps no credentials, runs both. It is the last group, in the same PR, and it is green on the branch.

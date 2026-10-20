@@ -1627,7 +1627,7 @@ Forms and lengths (old body, then each new body; validator rule, UTF-16 units):
 | An object adopted by another instance is excluded from drift detection and from the restore | c2 (REMOVED plus ADDED under new names) | 915 | An object adopted by another instance is neither drift nor restored (282); The read the verdict needs is the one read per object before the dry-run (247); A failed read on unchanged digests is a failed drift check that restores nothing (353) |
 | Drift detection failure increments counter | MODIFIED, only the reference is retargeted (not long) | 393 | same requirement, the quoted header after "those two set it to Unknown" is replaced by the two new headers that hold the two cases |
 
-Form b for "A missing object is restored": the requirement is cited by its header from `inventory-bridge` and `render-input-key`, which this change does not touch, and from `reconcile-loop-assembly`, `instance-health` and two requirements of this spec. Form c2 would orphan the citations of the two untouched specs. The parent keeps its header and every live scenario, byte for byte; the split-off behaviors are ADDED requirements with new scenarios that restate cases of the old body.
+Form b for "A missing object is restored": the requirement is cited by its header from `inventory-bridge` and `render-input-key`, which this change retargets with one MODIFIED block per citation (Ledger: citations of the expired-Job rule), and from `reconcile-loop-assembly`, `instance-health` and two requirements of this spec. Form c2 would orphan the citations of those two specs. The parent keeps its header and every live scenario, byte for byte; the split-off behaviors are ADDED requirements with new scenarios that restate cases of the old body.
 
 `grep -rn --exclude-dir=archive` for the old headers found no stale reference outside this spec except the one retargeted above (`A drift check that is refused or has no identity is reported`, cited by "Drift detection failure increments counter") and the header kept as the parent of form b.
 
@@ -1889,8 +1889,8 @@ Notes for the three ledgers above (unit 6):
 - Added words (the only ones): the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table (eight sentences). A sentence without a keyword that explains a rule or states a known limit sits in a block that holds a keyword sentence of the same rule: "A mapping missing either domain ...", "A required value is a field declared ...", "The controller records no outcome of a Job." with the limit of the Job without an outcome, the examples of a Platform update that enqueues nothing.
 - Cut sentences. The classification sentence of "Unresolved platform demands classify as resolution failures" (over 500) is cut at its list of causes: each part repeats the lead "The reconciler SHALL classify a refused render by its typed cause:" and names the other block with "(Requirement: ...)". The sentence that lists the findings of a package load failure (514) is cut before "; past that limit": the first part names the second as a "(Requirement: ...)" line and the second part names the first in its prefix; the semicolon becomes a full stop.
 - "The text in front of the findings is the kernel's ..." (472 characters, with its keyword 483) stays whole in its own block and has no sibling prefix: with one it would pass 500, and a sentence under 500 is not cut. Its header carries the scope.
-- Three citations of the expired-Job rule in the deltas of this change named "A missing object is restored"; the rule now sits in "An expired Job leaves the inventory", so the quoted header is replaced by that exact header: `reconcile-loop-assembly` ("A NoOp patch is bounded to a fixed set of fields" and "An expired Job entry leaves the inventory") and `instance-health` (the Job with a TTL). The citations in `inventory-bridge` and `render-input-key` are in main specs that this change does not touch and still name the parent header.
-- Form b for "A missing object is restored" keeps the header because the requirement is cited by header from specs this change does not touch; its ten scenarios stay under the parent and the eight ADDED blocks carry new scenarios that restate cases of the old body.
+- Three citations of the expired-Job rule in the deltas of this change named "A missing object is restored"; the rule now sits in "An expired Job leaves the inventory", so the quoted header is replaced by that exact header: `reconcile-loop-assembly` ("A NoOp patch is bounded to a fixed set of fields" and "An expired Job entry leaves the inventory") and `instance-health` (the Job with a TTL). The citations in `inventory-bridge` and `render-input-key` are retargeted in the same way by MODIFIED blocks (Ledger: citations of the expired-Job rule).
+- Form b for "A missing object is restored" keeps the header because the requirement is cited by header from other specs; its ten scenarios stay under the parent and the eight ADDED blocks carry new scenarios that restate cases of the old body.
 - The em-dash of the withheld-resource body is written as ":". The Source line of "An object adopted by another instance ..." is the **Source** line of its three blocks.
 - The reference in "Drift detection failure increments counter" to the split requirement "A drift check that is refused or has no identity is reported" names the two blocks that hold the two cases ("those two"); the block stays under 500 and keeps its two scenarios.
 
@@ -1987,6 +1987,17 @@ Retarget of `stop-operator-install-manifest` (each part is the delta text cut at
 | Release assets upload only to a draft release | MODIFIED | unchanged | 488 characters (437 in the delta), no change |
 
 The last sentence of the delta of `Release published once after every release job` ("An operator release SHALL NOT carry `install.yaml` ...") has no counterpart in the main split. It follows the second and third sentences in the delta text, so it stays in the block that holds them, and its scenario "No operator manifest" goes with it. The delta does not repeat "The only jobs that SHALL depend on it ..." of `Only the cascade notify job and the module's image-bump PR job depend on the publish job`; on `origin/main` its archive drops that sentence. The retarget keeps that result with a REMOVED block, so it adds or keeps nothing the open change removed.
+
+### Ledger: citations of the expired-Job rule in inventory-bridge and render-input-key
+
+The parent "A missing object is restored" no longer holds the expired-Job rule; "An expired Job leaves the inventory" does. Three blocks of two main specs still cite the parent for that rule. Each is a MODIFIED block that changes only the cited header, from "A missing object is restored" to "An expired Job leaves the inventory"; every other word, the Source line and every scenario stay as on `origin/main`.
+
+| Spec | Block (MODIFIED) | Old body | New body | Scenarios |
+| --- | --- | --- | --- | --- |
+| inventory-bridge | The inventory digest is inventory.Digest over the rendered set the last apply recorded | 431 | 438 | 2, byte equal |
+| render-input-key | An absent batch Job forces a render because only a render tells whether it is expired | 315 | 322 | 1, byte equal |
+| render-input-key | A reconcile that renders for an absent batch Job judges health twice | 417 | 424 | 1, byte equal |
+
 
 ## Strength table
 
