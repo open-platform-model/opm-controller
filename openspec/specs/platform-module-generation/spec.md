@@ -41,7 +41,7 @@ On reconciling the singleton Platform CR, the controller SHALL generate a platfo
 - **THEN** the controller generates a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`
 
 ### Requirement: The generated cue.mod pins core at the library's release and every catalog the registry names
-As in requirement "The platform module has a cue.mod/module.cue at the reserved path": the controller SHALL generate a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`, pinning core at the library's verified core release (the version carried by the kernel's default schema module identifier, so the platform embeds the release the render build's glue, promotion and skew check were measured against) and every catalog the module's registry names.
+As in requirement "The platform module has a cue.mod/module.cue at the reserved path": the controller SHALL generate a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`, pinning core at the library's verified core release (the version carried by the kernel's default schema module identifier, so the platform embeds the release the render build's glue, promotion and skew check were measured against) and every catalog the registry names.
 
 #### Scenario: The cue.mod pins core and every catalog the registry names
 - **WHEN** the singleton Platform CR is reconciled

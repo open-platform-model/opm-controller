@@ -5,7 +5,7 @@ Defines how CI publishes the controller's example modules to GHCR on a release: 
 
 ## Requirements
 
-### Requirement: Each example module versions on its own
+### Requirement: Independent per-module versioning
 
 Each example module SHALL declare its own semver in its `identity/` package, independent of the controller's release version. The publish step SHALL publish that version and no other.
 

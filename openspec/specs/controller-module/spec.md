@@ -234,7 +234,7 @@ The module SHALL render the CRDs `moduleinstances.opmodel.dev`, `modulepackages.
 - **THEN** the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev` appear with their kind
 
 ### Requirement: The controller's tuning values are typed in #config and rendered into the Deployment
-The module's `#config` SHALL type these values and render each into the controller Deployment: the controller image's repository, the registry mapping the controller resolves modules through (rendered as `--registry`), the default service account the controller applies as (rendered as `--default-service-account`), the controller container's resources, the replica count, and additional controller arguments appended after every typed argument. Each unset optional value SHALL leave its argument out.
+The module's `#config` SHALL type these values and render each into the controller Deployment: the controller image's repository, the registry mapping the controller resolves modules through (rendered as `--registry`), the default service account the controller applies as (rendered as `--default-service-account`), the controller container's resources, the replica count, and extra controller arguments appended after every typed argument. Each unset optional value SHALL leave its argument out.
 
 #### Scenario: Every value reaches the Deployment
 
@@ -268,8 +268,12 @@ As in requirement "The controller's tuning values are typed in #config and rende
 - **THEN** the render fails with a message naming the accepted forms, `<n>Mi` and `<n>Gi`
 
 ### Requirement: A test compares the module's pod and Service with the kustomize build on every pull request
-As in requirement "The controller's pod and Service stay those of the kustomize tree" (While `config/manager` and `config/default` still install the controller for development (`task controller:installer`, `task controller:install`) and in e2e, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service): A test SHALL compare them on every pull request, so e2e never tests a controller pod the module does not ship. A controller release publishes no manifest built from `config/default`; the module's render is the only install manifest.
+As in requirement "The controller's pod and Service stay those of the kustomize tree" (While `config/manager` and `config/default` still install the controller for development (`task controller:installer`, `task controller:install`) and in e2e, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service): A test SHALL compare them on every pull request, so e2e never tests a controller pod the module does not ship.
 
 #### Scenario: A pull request is compared with the kustomize build
 - **WHEN** a pull request is opened
 - **THEN** a test compares the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service with those of a kustomize build of `config/default`
+
+#### Scenario: A controller release publishes no manifest of the kustomize tree
+- **WHEN** a controller release is published
+- **THEN** it carries no manifest built from `config/default`, and the module's render is the only install manifest

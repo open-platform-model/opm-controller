@@ -18,7 +18,7 @@ Every workflow file under `.github/workflows/` SHALL declare a top-level `permis
 - **WHEN** `release.yml`'s `release-please` job is inspected
 - **THEN** it declares `permissions: {}` and acts only with the release App token it mints
 
-### Requirement: A publishing job uses no Actions cache
+### Requirement: No Actions cache in a publishing job
 A job that publishes, signs or attests anything (a container image, a CUE module, a release asset) SHALL NOT restore or save the GitHub Actions cache: no `type=gha` cache in a Docker build, `cache: false` on `actions/setup-go`, and no `actions/cache`. Jobs that publish nothing MAY keep their caches, except in a workflow that also has a publishing job: `test-e2e.yml` and `image-pr.yml` use no cache at all, so the cascade wiring check's per-workflow no-cache rule can cover them.
 
 #### Scenario: Release image built without the Actions cache
