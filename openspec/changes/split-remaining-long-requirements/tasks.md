@@ -63,10 +63,10 @@ Specs: registration-acceptance 9, cascade-receiver 5.
 
 Specs: example-test-modules 7, prune-stale-resources 6.
 
-- [ ] 7.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another unit.
-- [ ] 7.2 Byte-equality command of the guide (review item 3) for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 7.3 Gate (`N=70`): `validate split-remaining-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 7.4 Commit `docs(openspec): split the long requirements of example-test-modules and prune-stale-resources`
+- [x] 7.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another unit.
+- [x] 7.2 Byte-equality command of the guide (review item 3) for every rewritten requirement: no `DIFF`, no `LOST`.
+- [x] 7.3 Gate (`N=70`): `validate split-remaining-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
+- [x] 7.4 Commit `docs(openspec): split the long requirements of example-test-modules and prune-stale-resources`
 
 ## 8. Unit 6: drift-detection, modulepackage-kernel-rendering, example-module-publishing: 12 requirements
 
