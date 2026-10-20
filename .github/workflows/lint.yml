@@ -61,8 +61,9 @@ jobs:
           && (github.head_ref || github.ref_name) != 'release-please--branches--main--components--opm_controller'
         run: task deps:release-check
 
-      # The controller module's release gate (controller-module-release, "Module
-      # release gate"), on its own release PR only. A step, not a job: a
+      # The controller module's release gate (controller-module-release, "The module
+      # release check runs in Lint on the module's release PR"), on its own
+      # release PR only. A step, not a job: a
       # skipped job reports as passing, a failing step fails Lint.
       - name: Controller module release gate (module release PR only)
         if: (github.head_ref || github.ref_name) == 'release-please--branches--main--components--opm_controller'
@@ -121,3 +122,42 @@ jobs:
 
       - name: Run linter
         run: task dev:lint
+
+  # Every main spec and every change, in strict mode, with the CLI pinned in
+  # Taskfile.yml (OPENSPEC_VERSION). The CLI is npm code that no lockfile pins:
+  # it installs without scripts, the token only reads, and its checkout keeps no
+  # credentials. It is a job of its own so that the Lint job, which keeps its
+  # checkout credentials for the cascade and release gates, never runs it.
+  openspec:
+    name: OpenSpec
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Every task first reads the module versions with `go list` (global
+      # variables of Taskfile.yml), so the job needs Go from go.mod. No cache.
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Install Task
+        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
+        with:
+          version: 3.54.0 # exact, never a floating 3.x
+
+      - name: Setup Node for the OpenSpec CLI
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+
+      - name: Install the pinned OpenSpec CLI
+        run: task openspec:install
+
+      - name: Validate every spec and change in strict mode
+        run: task openspec:check

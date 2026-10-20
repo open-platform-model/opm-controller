@@ -42,12 +42,7 @@ The dependent count SHALL be derived from what instances actually demand, and SH
 - **THEN** the same count and the same refusal are reported
 
 ### Requirement: Shrinking provides while dependents exist is refused before it takes effect
-
 The controller SHALL refuse to apply a rendered `TransformerRegistration` that removes a contract from `spec.provides` while instances still demand that contract, and the refusal SHALL take effect while the previously accepted claim is still the stored one. A refusal that arrives after the new spec has replaced the accepted claim SHALL NOT be considered to satisfy this requirement: by then the old claim is gone and dependents are broken regardless of the reason reported.
-
-The refusal SHALL name the dropped contracts and the dependent count, matching the blocked delete's shape, since both are the same act through different doors.
-
-This guarantee is bounded to writes the controller makes. A `TransformerRegistration` written by another actor — which requires platform-admin RBAC the controller ships unbound — is outside it, and the controller SHALL NOT report a guarantee it does not hold.
 
 #### Scenario: A shrinking upgrade is refused
 
@@ -74,23 +69,37 @@ This guarantee is bounded to writes the controller makes. A `TransformerRegistra
 - **WHEN** a module that renders no `TransformerRegistration` is upgraded
 - **THEN** this requirement refuses nothing
 
-### Requirement: A refused upgrade is reported on the provider it came from
+### Requirement: The refusal of a shrink names the dropped contracts and the dependent count
+As in requirement "Shrinking provides while dependents exist is refused before it takes effect": The refusal SHALL name the dropped contracts and the dependent count, matching the blocked delete's shape, since both are the same act through different doors.
 
+#### Scenario: A refusal names the dropped contracts and the dependent count
+- **WHEN** a rendered `TransformerRegistration` removes a contract from `spec.provides` while instances still demand that contract
+- **THEN** the refusal names the dropped contracts and the dependent count, matching the blocked delete's shape
+
+### Requirement: The guarantee against shrinking is bounded to writes the controller makes
+As in requirement "Shrinking provides while dependents exist is refused before it takes effect": This guarantee is bounded to writes the controller makes. A `TransformerRegistration` written by another actor, which requires platform-admin RBAC the controller ships unbound, is outside it, and the controller SHALL NOT report a guarantee it does not hold.
+
+#### Scenario: A claim written by another actor is outside the guarantee
+- **WHEN** a `TransformerRegistration` is written by another actor
+- **THEN** it is outside the guarantee, and the controller does not report a guarantee it does not hold
+
+### Requirement: A refused shrink is reported on the ModuleInstance whose render produced the claim
 The controller SHALL report a refused shrink on the `ModuleInstance` whose render produced the claim, naming the claim, the dropped contracts and the dependent count. The instance SHALL NOT report ready while one of its rendered resources is being withheld, so a refused upgrade is visible as an unconverged instance rather than as a silent partial apply.
-
-The claim's own status SHALL NOT be written by this refusal. Acceptance owns the claim's conditions, and a claim whose stored spec was never replaced has nothing new to report.
 
 #### Scenario: The instance names what was refused
 
 - **WHEN** an upgrade is refused
 - **THEN** the provider's `ModuleInstance` reports not ready, naming the claim, the dropped contracts and the dependent count
 
-#### Scenario: The claim's own verdict is untouched
-
-- **WHEN** an upgrade is refused
-- **THEN** the claim's conditions still describe the accepted claim, unchanged by the refusal
-
 #### Scenario: The refusal clears when the cause does
 
 - **WHEN** the instances demanding a dropped contract stop demanding it, and the provider is reconciled again
 - **THEN** the upgrade applies and the instance converges, with no operator action on the claim
+
+### Requirement: A refused shrink does not write the claim's own status
+As in requirement "A refused shrink is reported on the ModuleInstance whose render produced the claim": The claim's own status SHALL NOT be written by this refusal. Acceptance owns the claim's conditions, and a claim whose stored spec was never replaced has nothing new to report.
+
+#### Scenario: The claim's own verdict is untouched
+
+- **WHEN** an upgrade is refused
+- **THEN** the claim's conditions still describe the accepted claim, unchanged by the refusal

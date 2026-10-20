@@ -1,3 +1,7 @@
+## Purpose
+
+Defines the `status.failureCounters` fields of a ModuleRelease: when each counter is initialized, incremented on a failed phase and reset, independently of the others.
+
 ## Requirements
 
 ### Requirement: Failure counters initialized

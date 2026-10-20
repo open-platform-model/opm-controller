@@ -1,3 +1,7 @@
+## Purpose
+
+Defines how the `Fetcher` downloads a source artifact, verifies its SHA-256 digest and extracts it as zip or tar.gz, with optional CUE module root validation and limits on size and file count.
+
 ## Requirements
 
 ### Requirement: Artifact download with digest verification

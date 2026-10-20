@@ -2,7 +2,7 @@ name: Controller module image PR
 
 # Opens or updates the PR on module/controller-image that moves the controller
 # module to a published controller release (controller-module-release, "A
-# controller release opens the PR that moves the module's image"). release.yml's
+# controller release opens one pull request on module/controller-image"). release.yml's
 # module-image-pr job calls it after every controller release; dispatch it by
 # hand with the release tag to recover a missed or failed run:
 #

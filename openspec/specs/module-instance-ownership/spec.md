@@ -4,100 +4,7 @@ Define how the controller treats a `ModuleInstance` it does not own. The `spec.o
 
 ## Requirements
 
-### Requirement: A ModuleInstance carries an ownership marker
-
-`ModuleInstanceSpec` SHALL provide an optional `owner` field of a typed enum with exactly two valid values, `cli` and `controller`, serialized as `owner` with `omitempty`. The field SHALL NOT define a CRD-level default. The API SHALL define exported constants for both values. An absent or empty `owner` SHALL be treated by the controller as controller-managed (see the skip requirement), except on the controller's own instance, which the controller never reconciles (see the requirement that the controller never reconciles its own instance).
-
-#### Scenario: Field accepts the two enum values
-
-- **WHEN** a `ModuleInstance` is created with `spec.owner` set to `cli` or to `controller`
-- **THEN** the API server accepts it
-- **AND** a value other than `cli` or `controller` is rejected by enum validation
-
-#### Scenario: Field is optional with no default
-
-- **WHEN** a `ModuleInstance` is created with no `spec.owner`
-- **THEN** the API server accepts it
-- **AND** the stored object's `spec.owner` remains empty (no value is defaulted in)
-
-#### Scenario: Empty owner is reconciled as controller-managed
-
-- **WHEN** a `ModuleInstance` with no `spec.owner` that is not the controller's own instance is reconciled
-- **THEN** the controller SHALL register the cleanup finalizer and perform a normal render/apply reconcile (no owner-skip, no `ManagedExternally` acknowledgement)
-
-#### Scenario: Unknown owner values cannot reach the reconciler
-
-- **WHEN** a client attempts to create a `ModuleInstance` with `spec.owner: "future-actor"`
-- **THEN** the API server SHALL reject it via enum validation, so the controller never observes an unknown owner value
-
-### Requirement: The controller skips CLI-owned instances before registering a finalizer
-
-When `spec.owner == cli`, the controller MUST return from `Reconcile` without rendering, applying, pruning, or running deletion cleanup, and MUST NOT add the `opmodel.dev/cleanup` finalizer. The owner check MUST occur before finalizer registration so that an instance that has always been CLI-owned never carries the controller's finalizer.
-
-An instance that was controller-owned before its `spec.owner` became `cli` still carries the finalizer. When such an instance is being deleted, the controller MUST remove the `opmodel.dev/cleanup` finalizer, MUST NOT delete any object in the instance's inventory whatever its `spec.prune`, and MUST write no status. On a CLI-owned instance that is not being deleted the controller MUST NOT change the finalizers.
-
-Rationale: only the controller removes its finalizer, and the owner-skip gate is the only code that runs for a CLI-owned instance. Without the release the delete never completes.
-
-#### Scenario: CLI-owned instance is not reconciled and gets no finalizer
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli` and no `DeletionTimestamp`
-- **WHEN** the controller reconciles it
-- **THEN** no resources are rendered or applied
-- **AND** the `opmodel.dev/cleanup` finalizer is NOT present in `metadata.finalizers`
-- **AND** the controller returns without requeueing for work
-
-#### Scenario: Deleting a CLI-owned instance is a no-op for the controller
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, no `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
-- **WHEN** the controller reconciles it
-- **THEN** the controller prunes no resources
-- **AND** the controller does not block deletion (no finalizer was ever added)
-
-#### Scenario: Deleting a CLI-owned instance that carries the finalizer releases it
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, `spec.prune: true`, a non-empty `status.inventory`, the `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
-- **WHEN** the controller reconciles it
-- **THEN** the finalizer is removed and the apiserver deletes the instance
-- **AND** every object in the inventory still exists
-- **AND** the controller returns without requeueing
-
-#### Scenario: A live CLI-owned instance keeps a leftover finalizer
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, the `opmodel.dev/cleanup` finalizer and no `DeletionTimestamp`
-- **WHEN** the controller reconciles it
-- **THEN** the finalizer stays and the instance is acknowledged with `ManagedExternally`
-
-#### Scenario: Controller-managed instances are unaffected
-
-- **GIVEN** a `ModuleInstance` with `spec.owner` absent, empty, or `controller` that is not the controller's own instance
-- **WHEN** the controller reconciles it
-- **THEN** the controller proceeds with the normal reconcile (finalizer registration, render, apply, prune, status) exactly as before this change
-
-### Requirement: The controller acknowledges a CLI-owned instance with a single condition
-
-On a non-deleting `ModuleInstance` with `spec.owner == cli`, the controller MUST set `Ready: Unknown` with reason `ManagedExternally` and MUST NOT write any other status field — specifically it MUST NOT set `status.observedGeneration`, and MUST NOT modify `status.inventory`, the `lastApplied*` digests, `instanceUUID`, or any field the CLI writes. The `internal/status` package MUST expose a `ManagedExternally` reason constant and a helper that sets this condition (clearing `Reconciling`, `Stalled` and `Healthy`; the controller judges no health on an instance it does not reconcile, so a `Healthy` condition left from a controller-owned past would describe objects it no longer follows). The acknowledgement MUST be idempotent: reconciling an already-acknowledged instance MUST produce no status change.
-
-#### Scenario: ManagedExternally condition is set
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli`
-- **WHEN** the controller reconciles it
-- **THEN** the `Ready` condition is `Unknown` with reason `ManagedExternally`
-- **AND** the `Reconciling`, `Stalled` and `Healthy` conditions are absent
-
-#### Scenario: No observedGeneration and no CLI-written status is touched
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli` carrying CLI-written `status.inventory` and `lastApplied*` digests
-- **WHEN** the controller reconciles it
-- **THEN** `status.observedGeneration` is not set by the controller
-- **AND** `status.inventory`, the `lastApplied*` digests, and `instanceUUID` are unchanged
-
-#### Scenario: Re-acknowledgement is a no-op
-
-- **GIVEN** a `ModuleInstance` with `spec.owner == cli` already carrying `Ready: Unknown / ManagedExternally`
-- **WHEN** the controller reconciles it again (e.g. after a requeue or an informer resync)
-- **THEN** the resulting status patch is empty and no condition transition timestamp changes
-
-### Requirement: An ownership handoff falls through to a normal reconcile
+### Requirement: Ownership handoff falls through to a normal reconcile
 
 When a `ModuleInstance`'s `spec.owner` changes from `cli` to `controller`, the next reconcile MUST proceed through the normal path: register the finalizer, render, apply, prune, and write the real `Ready` status, overwriting the `ManagedExternally` condition. The controller's own instance is the exception: flipping its owner to `controller` MUST lead to the refusal of the requirement that the controller never reconciles its own instance, never to an adoption.
 
@@ -116,15 +23,115 @@ When a `ModuleInstance`'s `spec.owner` changes from `cli` to `controller`, the n
 - **THEN** no finalizer is added and nothing is rendered, applied or pruned
 - **AND** `Ready` is `False` with reason `SelfManagementRefused`
 
-### Requirement: The controller recognises the instance that deploys it
+### Requirement: ModuleInstance carries an optional owner field with two values
+`ModuleInstanceSpec` SHALL provide an optional `owner` field of a typed enum with exactly two valid values, `cli` and `controller`, serialized as `owner` with `omitempty`.
+The field SHALL NOT define a CRD-level default.
+The API SHALL define exported constants for both values.
 
+#### Scenario: Field accepts the two enum values
+
+- **WHEN** a `ModuleInstance` is created with `spec.owner` set to `cli` or to `controller`
+- **THEN** the API server accepts it
+- **AND** a value other than `cli` or `controller` is rejected by enum validation
+
+#### Scenario: Field is optional with no default
+
+- **WHEN** a `ModuleInstance` is created with no `spec.owner`
+- **THEN** the API server accepts it
+- **AND** the stored object's `spec.owner` remains empty (no value is defaulted in)
+
+#### Scenario: Unknown owner values cannot reach the reconciler
+
+- **WHEN** a client attempts to create a `ModuleInstance` with `spec.owner: "future-actor"`
+- **THEN** the API server SHALL reject it via enum validation, so the controller never observes an unknown owner value
+
+### Requirement: An absent or empty owner is controller-managed
+An absent or empty `owner` SHALL be treated by the controller as controller-managed (see the skip requirement), except on the controller's own instance, which the controller never reconciles (see the requirement that the controller never reconciles its own instance).
+
+#### Scenario: Empty owner is reconciled as controller-managed
+
+- **WHEN** a `ModuleInstance` with no `spec.owner` that is not the controller's own instance is reconciled
+- **THEN** the controller SHALL register the cleanup finalizer and perform a normal render/apply reconcile (no owner-skip, no `ManagedExternally` acknowledgement)
+
+### Requirement: A CLI-owned instance is not reconciled and gets no finalizer
+When `spec.owner == cli`, the controller MUST return from `Reconcile` without rendering, applying, pruning, or running deletion cleanup, and MUST NOT add the `opmodel.dev/cleanup` finalizer.
+The owner check MUST occur before finalizer registration so that an instance that has always been CLI-owned never carries the controller's finalizer.
+
+#### Scenario: CLI-owned instance is not reconciled and gets no finalizer
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli` and no `DeletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** no resources are rendered or applied
+- **AND** the `opmodel.dev/cleanup` finalizer is NOT present in `metadata.finalizers`
+- **AND** the controller returns without requeueing for work
+
+#### Scenario: Deleting a CLI-owned instance is a no-op for the controller
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, no `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** the controller prunes no resources
+- **AND** the controller does not block deletion (no finalizer was ever added)
+
+#### Scenario: Controller-managed instances are unaffected
+
+- **GIVEN** a `ModuleInstance` with `spec.owner` absent, empty, or `controller` that is not the controller's own instance
+- **WHEN** the controller reconciles it
+- **THEN** the controller proceeds with the normal reconcile (finalizer registration, render, apply, prune, status) exactly as before this change
+
+### Requirement: A CLI-owned instance that carries the finalizer releases it when it is deleted
+An instance that was controller-owned before its `spec.owner` became `cli` still carries the finalizer.
+When such an instance is being deleted, the controller MUST remove the `opmodel.dev/cleanup` finalizer, MUST NOT delete any object in the instance's inventory whatever its `spec.prune`, and MUST write no status.
+Rationale: only the controller removes its finalizer, and the owner-skip gate is the only code that runs for a CLI-owned instance. Without the release the delete never completes.
+
+#### Scenario: Deleting a CLI-owned instance that carries the finalizer releases it
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, `spec.prune: true`, a non-empty `status.inventory`, the `opmodel.dev/cleanup` finalizer and a non-zero `DeletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** the finalizer is removed and the apiserver deletes the instance
+- **AND** every object in the inventory still exists
+- **AND** the controller returns without requeueing
+
+### Requirement: A live CLI-owned instance keeps its finalizers
+An instance that was controller-owned before its `spec.owner` became `cli` still carries the finalizer.
+On a CLI-owned instance that is not being deleted the controller MUST NOT change the finalizers.
+
+#### Scenario: A live CLI-owned instance keeps a leftover finalizer
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`, the `opmodel.dev/cleanup` finalizer and no `DeletionTimestamp`
+- **WHEN** the controller reconciles it
+- **THEN** the finalizer stays and the instance is acknowledged with `ManagedExternally`
+
+### Requirement: A CLI-owned instance is acknowledged with Ready Unknown and no other status
+On a non-deleting `ModuleInstance` with `spec.owner == cli`, the controller MUST set `Ready: Unknown` with reason `ManagedExternally` and MUST NOT write any other status field: specifically it MUST NOT set `status.observedGeneration`, and MUST NOT modify `status.inventory`, the `lastApplied*` digests, `instanceUUID`, or any field the CLI writes.
+The acknowledgement MUST be idempotent: reconciling an already-acknowledged instance MUST produce no status change.
+
+#### Scenario: No observedGeneration and no CLI-written status is touched
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli` carrying CLI-written `status.inventory` and `lastApplied*` digests
+- **WHEN** the controller reconciles it
+- **THEN** `status.observedGeneration` is not set by the controller
+- **AND** `status.inventory`, the `lastApplied*` digests, and `instanceUUID` are unchanged
+
+#### Scenario: Re-acknowledgement is a no-op
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli` already carrying `Ready: Unknown / ManagedExternally`
+- **WHEN** the controller reconciles it again (e.g. after a requeue or an informer resync)
+- **THEN** the resulting status patch is empty and no condition transition timestamp changes
+
+### Requirement: The status package exposes the ManagedExternally reason and its helper
+The `internal/status` package MUST expose a `ManagedExternally` reason constant and a helper that sets this condition (clearing `Reconciling`, `Stalled` and `Healthy`; the controller judges no health on an instance it does not reconcile, so a `Healthy` condition left from a controller-owned past would describe objects it no longer follows).
+
+#### Scenario: ManagedExternally condition is set
+
+- **GIVEN** a `ModuleInstance` with `spec.owner == cli`
+- **WHEN** the controller reconciles it
+- **THEN** the `Ready` condition is `Unknown` with reason `ManagedExternally`
+- **AND** the `Reconciling`, `Stalled` and `Healthy` conditions are absent
+
+### Requirement: The fixed coordinates identify the controller's own instance
 The controller SHALL treat a `ModuleInstance` as the controller's own instance when any one of these holds, each read from the object as stored, without rendering the module:
-
 - its `metadata.name` is `opm-controller` and its `metadata.namespace` is `opm-system`;
-- its `spec.module.path`, with any `@<major>` suffix removed, is `opmodel.dev/modules/opm_controller`;
-- its `status.inventory.entries` holds an entry of group `apiextensions.k8s.io` and kind `CustomResourceDefinition` whose name, after its first `.`, is the controller's own API group `opmodel.dev`.
-
-The coordinates are the ones every CLI install records the controller's instance under; the module path is the one the controller module is published under, in any major. A refusal must be decided before the finalizer is registered, which is why every signal reads stored fields only.
+The coordinates are the ones every CLI install records the controller's instance under; the module path is the one the controller module is published under, in any major.
 
 #### Scenario: Fixed coordinates identify the instance
 
@@ -132,11 +139,21 @@ The coordinates are the ones every CLI install records the controller's instance
 - **WHEN** the controller reconciles it
 - **THEN** the controller treats it as the controller's own instance
 
+### Requirement: The controller module path identifies the controller's own instance
+The controller SHALL treat a `ModuleInstance` as the controller's own instance when any one of these holds, each read from the object as stored, without rendering the module:
+- its `spec.module.path`, with any `@<major>` suffix removed, is `opmodel.dev/modules/opm_controller`;
+The coordinates are the ones every CLI install records the controller's instance under; the module path is the one the controller module is published under, in any major.
+
 #### Scenario: The controller module identifies the instance in any namespace and any major
 
 - **GIVEN** a `ModuleInstance` named `team-ops` in namespace `platform` whose `spec.module.path` is `opmodel.dev/modules/opm_controller@v0`, `opmodel.dev/modules/opm_controller@v1` or `opmodel.dev/modules/opm_controller`
 - **WHEN** the controller reconciles it
 - **THEN** the controller treats it as the controller's own instance
+
+### Requirement: A recorded controller CRD identifies the controller's own instance
+The controller SHALL treat a `ModuleInstance` as the controller's own instance when any one of these holds, each read from the object as stored, without rendering the module:
+- its `status.inventory.entries` holds an entry of group `apiextensions.k8s.io` and kind `CustomResourceDefinition` whose name, after its first `.`, is the controller's own API group `opmodel.dev`.
+A refusal must be decided before the finalizer is registered, which is why every signal reads stored fields only.
 
 #### Scenario: A recorded controller CRD identifies the instance
 
@@ -150,18 +167,8 @@ The coordinates are the ones every CLI install records the controller's instance
 - **WHEN** the controller reconciles it
 - **THEN** the controller does not treat it as the controller's own instance and reconciles it as its `spec.owner` says
 
-### Requirement: The controller never reconciles its own instance
-
-On the controller's own instance, whatever `spec.owner` says, the controller MUST never apply, never prune and never add the `opmodel.dev/cleanup` finalizer. An own instance with `spec.owner: cli` is handled by the owner-skip gate and acknowledged with `ManagedExternally`; an own instance with `spec.owner` absent or `controller` MUST be refused before finalizer registration, before the suspend check, and before any render. On refusal the controller MUST:
-
-- set `Ready=False` and `Stalled=True`, both with reason `SelfManagementRefused`, and remove `Reconciling`, `ModuleResolved`, `Drifted` and `Healthy`, with a message that names the signal that matched and says to set `spec.owner` to `cli`;
-- set `status.observedGeneration` to the instance's generation, so a client waiting on that generation reads a final verdict instead of timing out;
-- emit a Warning event with reason `SelfManagementRefused` when the instance was not already refused;
-- leave `status.inventory`, the `lastApplied*` digests, `instanceUUID`, `lastAttempted*`, history and failure counters unchanged;
-- not requeue: the refusal is re-evaluated when the instance changes.
-
-The `internal/status` package MUST expose a `SelfManagementRefused` reason constant. Re-refusing an already-refused instance at the same generation MUST produce an empty status patch.
-
+### Requirement: The controller never applies, prunes or adds a finalizer on its own instance
+On the controller's own instance, whatever `spec.owner` says, the controller MUST never apply, never prune and never add the `opmodel.dev/cleanup` finalizer.
 Rationale: the controller is the one workload whose failure stops every other instance, so re-running install must be able to repair or replace it without any step taken by the running controller. Nothing the controller does to its own instance may stand between a re-run install and the cluster.
 
 #### Scenario: An own instance flipped to controller is refused without a finalizer
@@ -173,6 +180,10 @@ Rationale: the controller is the one workload whose failure stops every other in
 - **AND** `Ready` is `False` and `Stalled` is `True`, both with reason `SelfManagementRefused`
 - **AND** `status.observedGeneration` equals `metadata.generation`
 
+### Requirement: An own instance with no owner or owner controller is refused before any render
+On the controller's own instance, whatever `spec.owner` says, the controller MUST never apply, never prune and never add the `opmodel.dev/cleanup` finalizer.
+An own instance with `spec.owner: cli` is handled by the owner-skip gate and acknowledged with `ManagedExternally`; an own instance with `spec.owner` absent or `controller` MUST be refused before finalizer registration, before the suspend check, and before any render.
+
 #### Scenario: A suspended own instance is refused, not suspended
 
 - **GIVEN** the controller's own instance with `spec.owner: controller` and `spec.suspend: true`
@@ -180,29 +191,11 @@ Rationale: the controller is the one workload whose failure stops every other in
 - **THEN** `Ready` is `False` with reason `SelfManagementRefused`, not `Suspended`
 - **AND** the `opmodel.dev/cleanup` finalizer is not added
 
-#### Scenario: Refusal clears conditions left by an earlier adoption
-
-- **GIVEN** the controller's own instance with `spec.owner: controller` carrying `ModuleResolved=True`, `Drifted=True` and `Healthy=True` from an earlier reconcile
-- **WHEN** the controller refuses it
-- **THEN** `ModuleResolved`, `Drifted` and `Healthy` are removed
-
 #### Scenario: An own instance with no owner is refused
 
 - **GIVEN** the controller's own instance with no `spec.owner`
 - **WHEN** the controller reconciles it
 - **THEN** the controller refuses it exactly as an own instance with `spec.owner: controller`
-
-#### Scenario: Refusal leaves CLI-written status alone
-
-- **GIVEN** the controller's own instance flipped to `spec.owner: controller`, carrying a CLI-written `status.inventory`, `lastApplied*` digests and `instanceUUID`
-- **WHEN** the controller refuses it
-- **THEN** those fields are unchanged
-
-#### Scenario: Re-refusal is a no-op
-
-- **GIVEN** the controller's own instance already refused at its current generation
-- **WHEN** the controller reconciles it again
-- **THEN** the status patch is empty, no condition transition time changes, and no event is emitted
 
 #### Scenario: Handing the instance back to the CLI clears the refusal
 
@@ -210,11 +203,58 @@ Rationale: the controller is the one workload whose failure stops every other in
 - **WHEN** its `spec.owner` is set to `cli`
 - **THEN** the next reconcile acknowledges it with `Ready=Unknown` reason `ManagedExternally` and removes `Stalled`
 
-### Requirement: The controller releases its finalizer from its own instance without pruning
+### Requirement: A refusal sets Ready and Stalled with SelfManagementRefused
+On refusal of the controller's own instance the controller MUST:
+- set `Ready=False` and `Stalled=True`, both with reason `SelfManagementRefused`, and remove `Reconciling`, `ModuleResolved`, `Drifted` and `Healthy`, with a message that names the signal that matched and says to set `spec.owner` to `cli`;
 
-When the controller's own instance with `spec.owner` absent or `controller` carries the `opmodel.dev/cleanup` finalizer, which an earlier controller release may have added, the controller MUST remove that finalizer and MUST NOT delete any object in the instance's inventory, whether or not the instance is being deleted, whatever its `spec.prune`. On an own instance being deleted, the controller MUST write no status. An own instance with `spec.owner: cli` is left to the owner-skip gate, which changes no finalizer on a live instance and releases the finalizer, without pruning, from one that is being deleted.
+#### Scenario: Refusal clears conditions left by an earlier adoption
 
-Rationale: a finalizer only a running controller can clear would block the uninstall and the reinstall of the controller, which is the controller's one recovery path.
+- **GIVEN** the controller's own instance with `spec.owner: controller` carrying `ModuleResolved=True`, `Drifted=True` and `Healthy=True` from an earlier reconcile
+- **WHEN** the controller refuses it
+- **THEN** `ModuleResolved`, `Drifted` and `Healthy` are removed
+
+### Requirement: A refusal records the generation and emits one Warning event
+On refusal of the controller's own instance the controller MUST:
+- set `status.observedGeneration` to the instance's generation, so a client waiting on that generation reads a final verdict instead of timing out;
+- emit a Warning event with reason `SelfManagementRefused` when the instance was not already refused;
+
+#### Scenario: Refusal records the generation
+- **WHEN** the controller refuses the controller's own instance
+- **THEN** `status.observedGeneration` is the instance's generation
+
+#### Scenario: Refusal emits a Warning event once
+- **WHEN** the controller refuses the controller's own instance and the instance was not already refused
+- **THEN** a Warning event with reason `SelfManagementRefused` is emitted
+
+### Requirement: A refusal leaves the CLI-written status alone and does not requeue
+On refusal of the controller's own instance the controller MUST:
+- leave `status.inventory`, the `lastApplied*` digests, `instanceUUID`, `lastAttempted*`, history and failure counters unchanged;
+- not requeue: the refusal is re-evaluated when the instance changes.
+
+#### Scenario: Refusal leaves CLI-written status alone
+
+- **GIVEN** the controller's own instance flipped to `spec.owner: controller`, carrying a CLI-written `status.inventory`, `lastApplied*` digests and `instanceUUID`
+- **WHEN** the controller refuses it
+- **THEN** those fields are unchanged
+
+### Requirement: The status package exposes the SelfManagementRefused reason
+The `internal/status` package MUST expose a `SelfManagementRefused` reason constant.
+
+#### Scenario: The reason constant is exposed
+- **WHEN** code imports `internal/status`
+- **THEN** `SelfManagementRefused` is an exported reason constant
+
+### Requirement: Re-refusing an already-refused instance changes no status
+Re-refusing an already-refused instance at the same generation MUST produce an empty status patch.
+
+#### Scenario: Re-refusal is a no-op
+
+- **GIVEN** the controller's own instance already refused at its current generation
+- **WHEN** the controller reconciles it again
+- **THEN** the status patch is empty, no condition transition time changes, and no event is emitted
+
+### Requirement: The controller releases a leftover finalizer from its own instance without pruning
+When the controller's own instance with `spec.owner` absent or `controller` carries the `opmodel.dev/cleanup` finalizer, which an earlier controller release may have added, the controller MUST remove that finalizer and MUST NOT delete any object in the instance's inventory, whether or not the instance is being deleted, whatever its `spec.prune`.
 
 #### Scenario: Deleting an own instance with a leftover finalizer prunes nothing
 
@@ -228,6 +268,10 @@ Rationale: a finalizer only a running controller can clear would block the unins
 - **GIVEN** the controller's own instance with `spec.owner: controller` and the `opmodel.dev/cleanup` finalizer, not being deleted
 - **WHEN** the controller reconciles it
 - **THEN** the finalizer is removed and the instance is refused with reason `SelfManagementRefused`
+
+### Requirement: The controller writes no status on its own instance that is being deleted
+On an own instance being deleted, the controller MUST write no status. An own instance with `spec.owner: cli` is left to the owner-skip gate, which changes no finalizer on a live instance and releases the finalizer, without pruning, from one that is being deleted.
+Rationale: a finalizer only a running controller can clear would block the uninstall and the reinstall of the controller, which is the controller's one recovery path.
 
 #### Scenario: A CLI-owned own instance is left alone
 

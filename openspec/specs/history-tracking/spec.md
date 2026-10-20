@@ -1,3 +1,7 @@
+## Purpose
+
+Defines the `internal/status` helpers that build success and failure history entries and record them in a bounded, ordered `status.history` with monotonic sequence numbers.
+
 ## Requirements
 
 ### Requirement: Success history entry construction

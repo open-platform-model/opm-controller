@@ -1,0 +1,243 @@
+## REMOVED Requirements
+
+### Requirement: Single long-lived library Kernel
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "The manager constructs one library Kernel for the process lifetime", "The Kernel is safe for concurrent use and no kernel call is serialised", "No lock or ordering gate is held across a kernel call".
+
+### Requirement: Render concurrency is a manager flag bounded by memory
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "The manager takes --max-concurrent-renders and builds one pool of render slots", "A reconcile holds a render slot from the renderer call to the dropped values", "No reconcile holds a rendered CUE value without a slot", "Each controller uses the render flag as its maximum concurrent reconciles", "A reconcile whose wait for a slot is cancelled returns the context error", "The Platform controller stays serial and takes no slot", "The flag help states the memory sizing rule".
+
+### Requirement: Rendered values are dropped after conversion
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "The reconcilers drop the rendered CUE-backed resources after the export", "Later phases read the exported data and never the dropped resources".
+
+### Requirement: A render is bounded by a manager timeout that keeps its slot
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "The manager takes --render-timeout and refuses a negative value at startup", "A render runs under the render deadline while it holds its slot", "A render timeout of zero disables the deadline", "A reconcile stops waiting for a render that passes its deadline", "An abandoned render keeps its slot until it returns", "A render that returns after its deadline is treated as timed out", "A reconcile does not read what an abandoned render writes and the render keeps what it reads", "A timed-out render that is still running blocks a second render of the object", "A panic in the render before its deadline reaches the reconcile", "A panic after the reconcile stopped waiting does not stop the process", "The operator logs a timed-out render and an abandoned render that returns", "The render timeout flag help states that the slot stays held".
+
+## ADDED Requirements
+
+### Requirement: The manager constructs one library Kernel for the process lifetime
+The manager SHALL construct one library Kernel for the process lifetime and share it across controllers.
+
+#### Scenario: Kernel constructed once at startup
+
+- **WHEN** the manager process starts
+- **THEN** exactly one Kernel is constructed before any controller is registered and shared by every reconciler that receives it
+
+#### Scenario: Kernel survives across reconciles
+
+- **WHEN** multiple reconcile loops execute over the process lifetime
+- **THEN** no reconcile path constructs a new Kernel, and the core schema is fetched at most once
+
+### Requirement: The Kernel is safe for concurrent use and no kernel call is serialised
+The Kernel is safe for concurrent use across its methods: every kernel call (module acquisition, instance synthesis, on-disk instance acquisition, the platform build and the single-build render) evaluates in a context the library creates for that call and releases with it, so the operator SHALL NOT serialise any kernel call behind a mutex or other correctness gate of its own.
+
+#### Scenario: Two renders overlap
+
+- **WHEN** two ModuleInstances reconcile concurrently with `--max-concurrent-renders` above 1
+- **THEN** their acquisition, synthesis and builds all overlap, and both render correctly
+
+### Requirement: No lock or ordering gate is held across a kernel call
+No lock or ordering gate SHALL be held across a kernel call: a render holds its platform lease and one render slot from the process-wide pool sized by `--max-concurrent-renders`, and neither orders or excludes particular calls; the slot bounds memory only. Concurrency is bounded by that pool on the render paths, and to one platform generation at a time by the Platform reconciler's construction.
+
+#### Scenario: No kernel gate
+
+- **WHEN** a developer inspects the platform store, the render slots and the reconcilers
+- **THEN** no mutex or ordering gate serialises kernel calls, and a render holds only its platform lease and one render slot, the slot taken before the lease and released once the rendered set has been exported for apply
+
+### Requirement: The manager takes --max-concurrent-renders and builds one pool of render slots
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together.
+
+#### Scenario: Default keeps reconciles serial
+
+- **WHEN** the manager starts without the flag
+- **THEN** the ModuleInstance and ModulePackage controllers each reconcile one object at a time, and at most one render is in flight across both
+
+#### Scenario: Raising the bound allows overlap
+
+- **WHEN** the manager starts with `--max-concurrent-renders=4`
+- **THEN** up to four ModuleInstances (and four ModulePackages) reconcile at once, and at most four renders are in flight across both kinds together
+
+#### Scenario: Both kinds share the slots
+
+- **WHEN** the manager runs with `--max-concurrent-renders=1` and a ModuleInstance and a ModulePackage are enqueued at the same time
+- **THEN** one renders while the other waits for the slot, and both reach Ready
+
+### Requirement: A reconcile holds a render slot from the renderer call to the dropped values
+A reconcile SHALL take a slot before it calls its renderer (platform lease, acquisition, synthesis and render), SHALL hold it while the result is exported for apply (render digest and conversion to unstructured objects), and SHALL release it only after the rendered CUE values are dropped, on success, on error and on a panic that the controller runtime recovers.
+
+#### Scenario: Conversion runs while the slot is held
+
+- **WHEN** a ModuleInstance or ModulePackage reconcile exports its render result for apply, on a pool of one slot
+- **THEN** that slot is taken for the whole export, and it is free again once the reconcile has dropped the rendered resources
+
+#### Scenario: A panicking render frees its slot
+
+- **WHEN** a renderer panics while a reconcile holds a render slot and the controller runtime recovers the panic
+- **THEN** the slot is free again, and the next render of either kind takes it without waiting
+
+### Requirement: No reconcile holds a rendered CUE value without a slot
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. So no reconcile holds a rendered CUE value without a slot, and the flag bounds the builds resident in the process.
+
+#### Scenario: No rendered value without a slot
+- **WHEN** a reconcile holds a rendered CUE value
+- **THEN** it holds a slot, and the flag bounds the builds resident in the process
+
+### Requirement: Each controller uses the render flag as its maximum concurrent reconciles
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. Each of the two controllers SHALL also use the flag as its maximum concurrent reconciles, so phases outside the render are not serialised behind the other kind's renders.
+
+#### Scenario: Reconciles outside the render are not serialised
+- **WHEN** the manager runs with `--max-concurrent-renders` above 1
+- **THEN** each of the two controllers reconciles as many objects at once as the flag allows, so phases outside the render are not serialised behind the other kind's renders
+
+### Requirement: A reconcile whose wait for a slot is cancelled returns the context error
+A reconcile whose wait for a slot ends because its context is cancelled SHALL return the context error without calling the renderer and without patching the object's status, emitting an event or recording reconcile metrics.
+
+#### Scenario: Shutdown while waiting for a slot
+
+- **WHEN** the manager is stopping and a reconcile is still waiting for a render slot
+- **THEN** the reconcile returns the context error without calling the renderer, and the object's status is not patched
+
+### Requirement: The Platform controller stays serial and takes no slot
+The Platform controller SHALL stay serial and SHALL take no slot.
+
+#### Scenario: The Platform controller takes no slot
+- **WHEN** the Platform controller reconciles
+- **THEN** it stays serial and takes no slot
+
+### Requirement: The flag help states the memory sizing rule
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. The flag's help SHALL state the memory sizing rule (per-render cost grows with component count) and that the bound is shared by both kinds, so the value is chosen against the pod's memory limit.
+
+#### Scenario: The flag help states the sizing rule
+- **WHEN** the manager prints the flag's help
+- **THEN** it states the memory sizing rule (per-render cost grows with component count) and that the bound is shared by both kinds
+
+### Requirement: The reconcilers drop the rendered CUE-backed resources after the export
+A rendered resource carries the CUE value it was read from, and a held value keeps the whole build reachable. The ModuleInstance and ModulePackage reconcilers SHALL therefore drop the render result's CUE-backed resources as soon as the one export of them returns, before the render digest, the inventory entries and apply are computed from that export, so a reconcile holds a build only from the render to that conversion, and does both while it holds its render slot.
+
+#### Scenario: A ModuleInstance reconcile drops the rendered resources
+
+- **WHEN** a ModuleInstance renders and its resources are converted to unstructured objects
+- **THEN** the render result's resources are nil from that point, and the instance still applies, records its inventory and reaches Ready
+
+#### Scenario: A ModulePackage reconcile drops the rendered resources
+
+- **WHEN** a ModulePackage renders and is not a no-op
+- **THEN** the render result's resources are nil once converted for apply, and the package still applies, prunes and records its inventory
+
+### Requirement: Later phases read the exported data and never the dropped resources
+Every later phase (shrink judgment, apply, prune, inventory and status) SHALL read the exported data (the unstructured objects and the inventory entries built from them) or the render result's plain data (warnings, required contracts, platform identity), never the dropped resources.
+
+#### Scenario: Later phases read exported data
+- **WHEN** a later phase (shrink judgment, apply, prune, inventory or status) runs
+- **THEN** it reads the exported data or the render result's plain data, never the dropped resources
+
+### Requirement: The manager takes --render-timeout and refuses a negative value at startup
+The manager SHALL accept `--render-timeout` (a duration, default `10m`) and SHALL refuse a negative value at startup.
+
+#### Scenario: Default timeout
+
+- **WHEN** the manager starts without `--render-timeout`
+- **THEN** every render runs under a 10-minute deadline counted from when it holds its slot
+
+#### Scenario: Negative timeout is refused
+
+- **WHEN** the manager starts with `--render-timeout=-1s`
+- **THEN** it logs the invalid value and exits before starting any controller
+
+### Requirement: A render runs under the render deadline while it holds its slot
+The manager SHALL accept `--render-timeout` (a duration, default `10m`). While a ModuleInstance or ModulePackage reconcile holds its render slot, the renderer call (platform lease, acquisition, synthesis, the render build) and the export of the result for apply SHALL run under a context whose deadline is that timeout. The wait for a slot SHALL NOT count against it, and the reconcile's own context, which the status patch, events, apply and prune use, SHALL carry no such deadline.
+
+#### Scenario: Queued renders are not timed out
+
+- **GIVEN** a pool of one slot held by a long render
+- **WHEN** another reconcile waits for the slot longer than `--render-timeout`
+- **THEN** that reconcile is not reported as timed out while it waits, and its own deadline starts when it takes the slot
+
+#### Scenario: A render that finishes in time is unaffected
+
+- **WHEN** a render returns before its deadline
+- **THEN** the reconcile reads its result and continues to apply as before
+
+### Requirement: A render timeout of zero disables the deadline
+The manager SHALL accept `--render-timeout` (a duration, default `10m`) and SHALL refuse a negative value at startup. A value of `0` SHALL disable the deadline, and the render then runs on the reconcile's context as before.
+
+#### Scenario: Zero disables the deadline
+
+- **WHEN** the manager starts with `--render-timeout=0`
+- **THEN** a render runs on the reconcile's context with no deadline, as it did before the flag existed
+
+### Requirement: A reconcile stops waiting for a render that passes its deadline
+When the deadline passes before the render returns, the reconcile SHALL stop waiting for it and record the attempt (see reconcile-backoff, "A render timeout retries on the backoff").
+
+#### Scenario: The status patch outlives the render deadline
+
+- **WHEN** a render times out
+- **THEN** the object's status is patched with the failure, because the patch uses the reconcile's context and not the expired render context
+
+### Requirement: An abandoned render keeps its slot until it returns
+When the deadline passes before the render returns, the reconcile SHALL stop waiting for it and record the attempt (see reconcile-backoff, "A render timeout retries on the backoff"). The render SHALL keep its slot until it really returns (at the next stage boundary when its current I/O honours cancellation, otherwise when that I/O returns), so `--max-concurrent-renders` still bounds the builds held in memory.
+
+#### Scenario: A timed-out render keeps its slot until it returns
+
+- **GIVEN** a pool of one slot and a ModuleInstance whose render blocks past its deadline and keeps running after it
+- **WHEN** the deadline passes
+- **THEN** the ModuleInstance reports `RenderTimedOut` while the slot is still taken, and a ModulePackage render enqueued next starts only after the blocked render returns
+
+### Requirement: A render that returns after its deadline is treated as timed out
+A render that returns after its deadline SHALL be treated as timed out, and its result SHALL be discarded.
+
+#### Scenario: A late render is discarded
+- **WHEN** a render returns after its deadline
+- **THEN** it is treated as timed out and its result is discarded
+
+### Requirement: A reconcile does not read what an abandoned render writes and the render keeps what it reads
+A reconcile SHALL NOT read anything the abandoned render writes, and nothing the abandoned render reads SHALL be changed or removed under it: a ModuleInstance render reads a copy of the spec inputs, and a ModulePackage's extracted artifact directory is removed by the render once it returns, or by the reconcile when no render was started.
+
+#### Scenario: A ModulePackage render past its deadline keeps its files
+
+- **GIVEN** a ModulePackage whose render is still running after its deadline
+- **WHEN** the reconcile has returned
+- **THEN** the extracted artifact directory still exists, and it is removed once the render returns
+
+### Requirement: A timed-out render that is still running blocks a second render of the object
+While a timed-out render of an object is still running, a reconcile of that object SHALL NOT start another render and SHALL NOT take a slot: it SHALL record the attempt as a render timeout whose message says the previous render is still running. One object whose render hangs therefore holds at most one slot, whatever `--max-concurrent-renders` is.
+
+#### Scenario: A hung object holds at most one slot
+
+- **GIVEN** a pool of two slots and a ModuleInstance whose render blocks past its deadline and keeps running
+- **WHEN** the instance is reconciled again while that render still runs
+- **THEN** the reconcile reports `RenderTimedOut` saying the previous render is still running, does not call the renderer, and only one slot is held
+
+### Requirement: A panic in the render before its deadline reaches the reconcile
+A panic in the render before its deadline SHALL be logged at error level with its value and the stack of the panicking frame, and SHALL then reach the reconcile with its original value, after the slot is free, so it is recorded as `ReconcilePanic`.
+
+#### Scenario: A panic before the deadline keeps its stack
+
+- **GIVEN** a render timeout above zero
+- **WHEN** the render panics before its deadline
+- **THEN** the operator logs `Render panicked` with the stack of the panicking frame, the slot is free, and the object records `ReconcilePanic`
+
+### Requirement: A panic after the reconcile stopped waiting does not stop the process
+A panic after the reconcile stopped waiting SHALL be logged at error level with its value and stack, SHALL free the slot, and SHALL NOT stop the process.
+
+#### Scenario: A panic after the deadline does not stop the operator
+
+- **WHEN** an abandoned render panics after its reconcile has returned
+- **THEN** the operator logs the panic with its stack, the slot is free again, and the process keeps running
+
+### Requirement: The operator logs a timed-out render and an abandoned render that returns
+The operator SHALL log a timed-out render with its timeout, and SHALL log when an abandoned render returns, with how long it ran.
+
+#### Scenario: A timed-out render is logged
+- **WHEN** a render times out
+- **THEN** the operator logs it with its timeout, and logs when the abandoned render returns, with how long it ran
+
+### Requirement: The render timeout flag help states that the slot stays held
+The manager SHALL accept `--render-timeout` (a duration, default `10m`) and SHALL refuse a negative value at startup. The flag's help SHALL state that the slot stays held until the render returns and that `0` disables the deadline.
+
+#### Scenario: The timeout flag help
+- **WHEN** the manager prints the flag's help
+- **THEN** it states that the slot stays held until the render returns and that `0` disables the deadline

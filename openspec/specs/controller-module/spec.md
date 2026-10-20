@@ -5,20 +5,6 @@ Define the controller's own OPM module, `opmodel.dev/modules/opm_controller`: wh
 
 ## Requirements
 
-### Requirement: The module names the one controller release it deploys
-
-The repository SHALL carry the controller's OPM module at the path `opmodel.dev/modules/opm_controller` on the v0 major, with a version of its own that is independent of the controller binary's. The module's source SHALL name the controller image it deploys by a published controller release's version tag and content digest, and SHALL expose that controller version as a value readable from the module's source without rendering it and without a cluster. Every rendered controller container SHALL run exactly that image, so one module version deploys exactly one controller version.
-
-#### Scenario: The controller version is read without a render
-
-- **WHEN** a tool evaluates the module's controller-version value from the source tree, with no cluster and no instance
-- **THEN** it reads one controller release version, such as `1.0.0-beta.6`, and the tag and digest the module renders the image with
-
-#### Scenario: The rendered image matches the named release
-
-- **WHEN** the module is rendered with default values
-- **THEN** the controller container's image is `ghcr.io/open-platform-model/opm-controller:v<controller version>@sha256:<digest>` with the version and digest the module names
-
 ### Requirement: The module deploys only a controller that refuses its own instance
 
 The controller release the module names SHALL be at or above the repository's recorded minimum controller version, the first controller release that refuses to reconcile the instance deploying the controller. The module's tests SHALL fail, naming both versions, when the module names an older controller release, so no module version can deploy a controller that would adopt, prune or block on its own CLI-owned instance.
@@ -27,39 +13,6 @@ The controller release the module names SHALL be at or above the repository's re
 
 - **WHEN** the module's controller version is set below the recorded minimum controller version
 - **THEN** the module's tests fail naming the module's controller version and the minimum
-
-### Requirement: Every object renders through a catalog resource
-
-The module SHALL render the controller's CRDs, its Namespace, the controller Deployment, its ServiceAccount, the metrics Service, and every Role, ClusterRole, RoleBinding and ClusterRoleBinding through the first-party catalog resource made for that kind, apart from the exception below. The administrator ClusterRoles the controller ships for users to bind, its viewer roles among them, SHALL render with no binding. Those administrator ClusterRoles SHALL render through the catalog's raw-objects resource, in one component that holds them and nothing else, with their rules taken from the generated RBAC data; no other object SHALL use the raw-objects resource. The module SHALL render the controller's Namespace itself, so an install records it as an object of the instance.
-
-#### Scenario: The render contains the whole install shape
-
-- **WHEN** the module is rendered with default values for the instance `opm-controller` in `opm-system`
-- **THEN** the result holds 22 objects: 4 CRDs, 1 Namespace, 1 ServiceAccount, 1 Role, 10 ClusterRoles, 1 RoleBinding, 2 ClusterRoleBindings, 1 Service and 1 Deployment
-
-#### Scenario: Raw objects only for the administrator roles
-
-- **WHEN** the module's components are listed
-- **THEN** exactly one of them carries the catalog's raw-objects resource, and it renders exactly `opm-controller-metrics-reader`, the three `opm-controller-moduleinstance-*-role` ClusterRoles, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`
-
-#### Scenario: Administrator roles render unbound
-
-- **WHEN** the module is rendered
-- **THEN** `opm-controller-metrics-reader`, the three `opm-controller-moduleinstance-*-role` ClusterRoles, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role` render with no binding naming them
-
-### Requirement: The module renders the fixed names
-
-The module SHALL render the Namespace `opm-system`, the Deployment `opm-controller-manager`, the ServiceAccount `opm-controller-manager`, the Service `opm-controller-manager-metrics-service`, the Role `opm-controller-leader-election-role`, the ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, `opm-controller-metrics-reader`, `opm-controller-moduleinstance-admin-role`, `opm-controller-moduleinstance-editor-role`, `opm-controller-moduleinstance-viewer-role`, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`, and the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev`, the names `config/` gives them under the prefix `opm-controller-`. Only a role binding MAY take the name the catalog derives from its role.
-
-#### Scenario: The fixed names render
-
-- **WHEN** the module is rendered with default values
-- **THEN** every name above appears with its kind, and every namespaced object is in `opm-system`
-
-#### Scenario: Bindings take catalog names
-
-- **WHEN** the module is rendered
-- **THEN** the three bindings are named by the catalog from their roles, and each binds its role to the ServiceAccount `opm-controller-manager` in `opm-system`
 
 ### Requirement: The module renders only for the controller's fixed instance coordinates
 
@@ -151,8 +104,7 @@ The pod template the module renders SHALL satisfy the Kubernetes Pod Security `r
 - **THEN** the Pod is admitted under `restricted` as well
 
 ### Requirement: The controller's pod and Service stay those of the kustomize tree
-
-While `config/manager` and `config/default` still install the controller for development (`task controller:installer`, `task controller:install`) and in e2e, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service SHALL equal those of a kustomize build of `config/default`, apart from the image, labels, the selector, the fields the catalog sets to Kubernetes API defaults, and the bindings' names (a binding is matched by its role and subjects). A test SHALL compare them on every pull request, so e2e never tests a controller pod the module does not ship. A controller release publishes no manifest built from `config/default`; the module's render is the only install manifest.
+While `config/manager` and `config/default` still install the controller for development (`task controller:installer`, `task controller:install`) and in e2e, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service SHALL equal those of a kustomize build of `config/default`, apart from the image, labels, the selector, the fields the catalog sets to Kubernetes API defaults, and the bindings' names (a binding is matched by its role and subjects).
 
 #### Scenario: A manifest-only edit fails the test
 
@@ -163,35 +115,6 @@ While `config/manager` and `config/default` still install the controller for dev
 
 - **WHEN** a pull request adds an object to `config/default`, such as a binding in `config/rbac` that grants the controller's ServiceAccount an existing role, and not to the module
 - **THEN** the module's render test fails naming the object, a binding by its role and subjects
-
-### Requirement: The controller's tuning is typed instance values
-
-The module's `#config` SHALL type these values and render each into the controller Deployment: the controller image's repository, the registry mapping the controller resolves modules through (rendered as `--registry`), the default service account the controller applies as (rendered as `--default-service-account`), the controller container's resources, the replica count, and additional controller arguments appended after every typed argument. Each unset optional value SHALL leave its argument out. Defaults SHALL reproduce the Deployment of `config/manager`: one replica, requests `100m` CPU and `256Mi` memory, limits `2` CPU and `4Gi` memory. Each of those four resource quantities SHALL default on its own, so a value that sets one of them keeps the defaults of the others. The memory limit SHALL always resolve to a value, default or given, so the container's `GOMEMLIMIT` is always defined; it SHALL be derived from that memory limit, not set as a value.
-
-#### Scenario: Every value reaches the Deployment
-
-- **WHEN** the module is rendered with a repository, a registry mapping, a default service account, resources, two replicas and two extra arguments
-- **THEN** the Deployment runs two replicas of the image from that repository, the container carries `--registry=<mapping>`, `--default-service-account=<name>` and the two extra arguments after them, and the given resources
-
-#### Scenario: The Go memory limit follows the memory limit
-
-- **WHEN** the module is rendered with a memory limit
-- **THEN** the container's `GOMEMLIMIT` is the floor of 80 percent of that limit in MiB (`3276MiB` for `4Gi`), so the soft limit never exceeds the hard one
-
-#### Scenario: An unsupported memory unit is refused
-
-- **WHEN** the module is rendered with a memory limit given as a plain number of bytes, such as `4294967296`, in decimal units, such as `"4G"`, or as a fraction, such as `"1.5Gi"`
-- **THEN** the render fails with a message naming the accepted forms, `<n>Mi` and `<n>Gi`
-
-#### Scenario: A CPU string the catalog cannot render is refused at the value
-
-- **WHEN** the module is rendered with a CPU request or limit given as a string of cores, such as `"4"` or `"0.5"`
-- **THEN** the module refuses the value, naming the field and the accepted forms (cores as a number, millicores as `"<n>m"`), instead of failing later in the catalog's Deployment transformer
-
-#### Scenario: One resources field keeps the other defaults
-
-- **WHEN** the module is rendered with only the memory limit set, to `8Gi`
-- **THEN** the container keeps the default CPU limit `2` and the default requests `100m` CPU and `256Mi` memory, and its `GOMEMLIMIT` is `6553MiB`
 
 ### Requirement: The configured registry mapping has one place
 
@@ -238,3 +161,115 @@ The module SHALL render to the same objects against a platform generated from it
 
 - **WHEN** the module is rendered against a platform generated from the catalog release its `cue.mod` pins, with no kubeconfig
 - **THEN** the render succeeds and yields the 19 objects
+
+### Requirement: The module carries its own version and names one controller image
+The repository SHALL carry the controller's OPM module at the path `opmodel.dev/modules/opm_controller` on the v0 major, with a version of its own that is independent of the controller binary's. The module's source SHALL name the controller image it deploys by a published controller release's version tag and content digest, and SHALL expose that controller version as a value readable from the module's source without rendering it and without a cluster.
+
+#### Scenario: The controller version is read without a render
+
+- **WHEN** a tool evaluates the module's controller-version value from the source tree, with no cluster and no instance
+- **THEN** it reads one controller release version, such as `1.0.0-beta.6`, and the tag and digest the module renders the image with
+
+### Requirement: Every rendered controller container runs the image the module names
+As in requirement "The module carries its own version and names one controller image": Every rendered controller container SHALL run exactly that image, so one module version deploys exactly one controller version.
+
+#### Scenario: The rendered image matches the named release
+
+- **WHEN** the module is rendered with default values
+- **THEN** the controller container's image is `ghcr.io/open-platform-model/opm-controller:v<controller version>@sha256:<digest>` with the version and digest the module names
+
+### Requirement: Controller objects render through the catalog resource made for their kind
+The module SHALL render the controller's CRDs, its Namespace, the controller Deployment, its ServiceAccount, the metrics Service, and every Role, ClusterRole, RoleBinding and ClusterRoleBinding through the first-party catalog resource made for that kind, apart from the exception below. The module SHALL render the controller's Namespace itself, so an install records it as an object of the instance. (Requirement: Administrator ClusterRoles render unbound through the raw-objects resource)
+
+#### Scenario: The render contains the whole install shape
+
+- **WHEN** the module is rendered with default values for the instance `opm-controller` in `opm-system`
+- **THEN** the result holds 22 objects: 4 CRDs, 1 Namespace, 1 ServiceAccount, 1 Role, 10 ClusterRoles, 1 RoleBinding, 2 ClusterRoleBindings, 1 Service and 1 Deployment
+
+### Requirement: Administrator ClusterRoles render unbound through the raw-objects resource
+The administrator ClusterRoles the controller ships for users to bind, its viewer roles among them, SHALL render with no binding. Those administrator ClusterRoles SHALL render through the catalog's raw-objects resource, in one component that holds them and nothing else, with their rules taken from the generated RBAC data; no other object SHALL use the raw-objects resource.
+
+#### Scenario: Raw objects only for the administrator roles
+
+- **WHEN** the module's components are listed
+- **THEN** exactly one of them carries the catalog's raw-objects resource, and it renders exactly `opm-controller-metrics-reader`, the three `opm-controller-moduleinstance-*-role` ClusterRoles, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`
+
+#### Scenario: Administrator roles render unbound
+
+- **WHEN** the module is rendered
+- **THEN** `opm-controller-metrics-reader`, the three `opm-controller-moduleinstance-*-role` ClusterRoles, `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role` render with no binding naming them
+
+### Requirement: Fixed names: namespaced objects
+The module SHALL render the Namespace `opm-system`, the Deployment `opm-controller-manager`, the ServiceAccount `opm-controller-manager`, the Service `opm-controller-manager-metrics-service`, the Role `opm-controller-leader-election-role`, the names `config/` gives them under the prefix `opm-controller-`. (Requirement: Fixed names: first ClusterRoles) (Requirement: Fixed names: other ClusterRoles) (Requirement: Fixed names: CRDs)
+
+#### Scenario: The fixed names render
+
+- **WHEN** the module is rendered with default values
+- **THEN** every name above appears with its kind, and every namespaced object is in `opm-system`
+
+### Requirement: Fixed names: first ClusterRoles
+The module SHALL render the ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, `opm-controller-metrics-reader`, `opm-controller-moduleinstance-admin-role`, `opm-controller-moduleinstance-editor-role`, `opm-controller-moduleinstance-viewer-role`, the names `config/` gives them under the prefix `opm-controller-`. (Requirement: Fixed names: namespaced objects) (Requirement: Fixed names: other ClusterRoles) (Requirement: Fixed names: CRDs)
+
+#### Scenario: The first ClusterRole names render
+- **WHEN** the module is rendered with default values
+- **THEN** the ClusterRoles `opm-controller-manager-role`, `opm-controller-metrics-auth-role`, `opm-controller-metrics-reader`, `opm-controller-moduleinstance-admin-role`, `opm-controller-moduleinstance-editor-role` and `opm-controller-moduleinstance-viewer-role` appear with their kind
+
+### Requirement: Fixed names: other ClusterRoles
+The module SHALL render the ClusterRoles `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role`, the names `config/` gives them under the prefix `opm-controller-`. Only a role binding MAY take the name the catalog derives from its role. (Requirement: Fixed names: namespaced objects) (Requirement: Fixed names: first ClusterRoles) (Requirement: Fixed names: CRDs)
+
+#### Scenario: Bindings take catalog names
+
+- **WHEN** the module is rendered
+- **THEN** the three bindings are named by the catalog from their roles, and each binds its role to the ServiceAccount `opm-controller-manager` in `opm-system`
+
+#### Scenario: The other ClusterRole names render
+- **WHEN** the module is rendered with default values
+- **THEN** the ClusterRoles `opm-controller-platform-viewer-role`, `opm-controller-modulepackage-viewer-role`, `opm-controller-transformerregistration-viewer-role` and `opm-controller-transformerregistration-admin-role` appear with their kind
+
+### Requirement: Fixed names: CRDs
+The module SHALL render the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev`, the names `config/` gives them under the prefix `opm-controller-`. (Requirement: Fixed names: namespaced objects) (Requirement: Fixed names: first ClusterRoles) (Requirement: Fixed names: other ClusterRoles)
+
+#### Scenario: The CRD names render
+- **WHEN** the module is rendered with default values
+- **THEN** the CRDs `moduleinstances.opmodel.dev`, `modulepackages.opmodel.dev`, `platforms.opmodel.dev` and `transformerregistrations.opmodel.dev` appear with their kind
+
+### Requirement: The controller's tuning values are typed in #config and rendered into the Deployment
+The module's `#config` SHALL type these values and render each into the controller Deployment: the controller image's repository, the registry mapping the controller resolves modules through (rendered as `--registry`), the default service account the controller applies as (rendered as `--default-service-account`), the controller container's resources, the replica count, and additional controller arguments appended after every typed argument. Each unset optional value SHALL leave its argument out.
+
+#### Scenario: Every value reaches the Deployment
+
+- **WHEN** the module is rendered with a repository, a registry mapping, a default service account, resources, two replicas and two extra arguments
+- **THEN** the Deployment runs two replicas of the image from that repository, the container carries `--registry=<mapping>`, `--default-service-account=<name>` and the two extra arguments after them, and the given resources
+
+#### Scenario: A CPU string the catalog cannot render is refused at the value
+
+- **WHEN** the module is rendered with a CPU request or limit given as a string of cores, such as `"4"` or `"0.5"`
+- **THEN** the module refuses the value, naming the field and the accepted forms (cores as a number, millicores as `"<n>m"`), instead of failing later in the catalog's Deployment transformer
+
+### Requirement: Defaults reproduce the Deployment of `config/manager` and each resource quantity defaults on its own
+As in requirement "The controller's tuning values are typed in #config and rendered into the Deployment": Defaults SHALL reproduce the Deployment of `config/manager`: one replica, requests `100m` CPU and `256Mi` memory, limits `2` CPU and `4Gi` memory. Each of those four resource quantities SHALL default on its own, so a value that sets one of them keeps the defaults of the others.
+
+#### Scenario: One resources field keeps the other defaults
+
+- **WHEN** the module is rendered with only the memory limit set, to `8Gi`
+- **THEN** the container keeps the default CPU limit `2` and the default requests `100m` CPU and `256Mi` memory, and its `GOMEMLIMIT` is `6553MiB`
+
+### Requirement: The memory limit always resolves and sets GOMEMLIMIT
+As in requirement "The controller's tuning values are typed in #config and rendered into the Deployment": The memory limit SHALL always resolve to a value, default or given, so the container's `GOMEMLIMIT` is always defined; it SHALL be derived from that memory limit, not set as a value.
+
+#### Scenario: The Go memory limit follows the memory limit
+
+- **WHEN** the module is rendered with a memory limit
+- **THEN** the container's `GOMEMLIMIT` is the floor of 80 percent of that limit in MiB (`3276MiB` for `4Gi`), so the soft limit never exceeds the hard one
+
+#### Scenario: An unsupported memory unit is refused
+
+- **WHEN** the module is rendered with a memory limit given as a plain number of bytes, such as `4294967296`, in decimal units, such as `"4G"`, or as a fraction, such as `"1.5Gi"`
+- **THEN** the render fails with a message naming the accepted forms, `<n>Mi` and `<n>Gi`
+
+### Requirement: A test compares the module's pod and Service with the kustomize build on every pull request
+As in requirement "The controller's pod and Service stay those of the kustomize tree" (While `config/manager` and `config/default` still install the controller for development (`task controller:installer`, `task controller:install`) and in e2e, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service): A test SHALL compare them on every pull request, so e2e never tests a controller pod the module does not ship. A controller release publishes no manifest built from `config/default`; the module's render is the only install manifest.
+
+#### Scenario: A pull request is compared with the kustomize build
+- **WHEN** a pull request is opened
+- **THEN** a test compares the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service with those of a kustomize build of `config/default`

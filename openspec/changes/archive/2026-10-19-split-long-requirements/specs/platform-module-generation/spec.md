@@ -1,0 +1,195 @@
+## REMOVED Requirements
+
+### Requirement: The reconciler generates a platform module from the CR
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "The platform module has a cue.mod/module.cue at the reserved path", "The generated cue.mod pins core at the library's release and every catalog the registry names", "The generated platform.cue embeds core.#Platform with one registry entry per catalog", "The operator carries no core-pin constant of its own", "The registry has one entry per authored subscription", "The registry has one entry per accepted and active claim", "An authored subscription wins over a claim naming its catalog", "The dependency list is the full closure of the pinned modules", "The module-file source is constructed from the operator's configuration", "A disabled subscription is generated disabled and still pinned and imported", "Regeneration is deterministic", "A Platform with no active claim generates the module its spec alone produces".
+
+### Requirement: The generated module is validated by building it
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "The reconciler builds the generated module, reads its inventory and sets Ready=True when the gate passes", "A build that fails sets Ready=False with reason BuildFailed", "A module that could not be written sets Ready=False with reason GenerateFailed", "A module that built and was refused by the gate sets Ready=False with the refusal's reason", "The materialize-era reasons are retired", "A failed or refused reconcile leaves the previously recorded module in place".
+
+### Requirement: The generated module lives in a per-identity directory and is swapped whole
+**Reason**: Split into requirements that each state one behavior.
+**Migration**: See "Each package's module is written to a directory named by the package identity", "Generation writes into a staging directory and renames it into place", "After a successful build the platform directory keeps only the current and the leased packages", "The platform directory is emptied at manager start".
+
+
+## ADDED Requirements
+
+### Requirement: The platform module has a cue.mod/module.cue at the reserved path
+On reconciling the singleton Platform CR, the operator SHALL generate a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`.
+
+#### Scenario: The module carries a cue.mod at the reserved path
+- **WHEN** the singleton Platform CR is reconciled
+- **THEN** the operator generates a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`
+
+### Requirement: The generated cue.mod pins core at the library's release and every catalog the registry names
+As in requirement "The platform module has a cue.mod/module.cue at the reserved path": the operator SHALL generate a `cue.mod/module.cue` under the fixed reserved-unpublished module path `opmodel.dev/platforms/cluster@v0`, pinning core at the library's verified core release (the version carried by the kernel's default schema module identifier, so the platform embeds the release the render build's glue, promotion and skew check were measured against) and every catalog the module's registry names.
+
+#### Scenario: The cue.mod pins core and every catalog the registry names
+- **WHEN** the singleton Platform CR is reconciled
+- **THEN** the generated `cue.mod/module.cue` pins core at the library's verified core release and every catalog the module's registry names
+
+### Requirement: The generated platform.cue embeds core.#Platform with one registry entry per catalog
+On reconciling the singleton Platform CR, the operator SHALL generate a platform CUE module on its own filesystem through the library's platform-module generator (`opm/helper/platformmodule`): a `platform.cue` embedding `core.#Platform` with one `#registry` entry per catalog, carrying the catalog by import.
+
+#### Scenario: The platform.cue carries one importing entry per catalog
+- **WHEN** the singleton Platform CR is reconciled
+- **THEN** the generated `platform.cue` embeds `core.#Platform` with one `#registry` entry per catalog, carrying the catalog by import
+
+### Requirement: The operator carries no core-pin constant of its own
+The operator SHALL carry no core-pin constant of its own.
+
+#### Scenario: Core pin follows the library
+
+- **WHEN** the operator is built against a library release whose default schema module names core `v2.0.0-alpha.7`
+- **THEN** the generated `cue.mod` pins `opmodel.dev/core@v2` at `v2.0.0-alpha.7` with no operator-side constant involved, and a later library bump changes the pin without an operator code change
+
+### Requirement: The registry has one entry per authored subscription
+The registry SHALL be resolved from BOTH of the two paths transformers take to a platform (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): one entry per subscription the CR's `spec.registry` authored, with the pin taken verbatim from `spec.registry[path].version`.
+
+#### Scenario: A two-catalog CR generates a two-entry module
+
+- **WHEN** the Platform CR subscribes `opmodel.dev/catalogs/opm@v4` at `4.0.1` and `testing.opmodel.dev/catalogs/operator/provider@v0` at `0.1.0`
+- **THEN** the generated `cue.mod` pins both catalogs at exactly those versions, and `platform.cue` carries one importing entry per path
+
+### Requirement: The registry has one entry per accepted and active claim
+The registry SHALL be resolved from BOTH of the two paths transformers take to a platform (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): one entry per accepted-and-active `TransformerRegistration` claim, enabled and pinned at the version the claim named.
+
+#### Scenario: An active claim's catalog is pinned and imported
+
+- **WHEN** a claim for `opmodel.dev/catalogs/k8up@v1` at `1.2.0` is accepted and active and the CR subscribes to neither
+- **THEN** the generated `cue.mod` pins that catalog at `1.2.0` and `platform.cue` carries an enabled importing entry for it
+
+### Requirement: An authored subscription wins over a claim naming its catalog
+A catalog is one `#registry` key, so a catalog named by an authored subscription AND by a claim SHALL resolve to a single entry taken from the subscription: the platform admin's pin and enable decision is the deliberate one, and a disabled subscription SHALL NOT be re-enabled by a provider registering against it.
+
+#### Scenario: An authored subscription wins over a claim naming its catalog
+
+- **WHEN** the CR subscribes `opmodel.dev/catalogs/k8up@v1` at `1.0.0` with `enable: false` and an active claim names the same catalog at `1.2.0`
+- **THEN** the generated module carries one entry for that catalog, pinned at `1.0.0` with `enable: false`
+
+### Requirement: The dependency list is the full closure of the pinned modules
+As in requirements "The registry has one entry per authored subscription" and "The registry has one entry per accepted and active claim": The dependency list SHALL be the full closure: beyond those roots it SHALL pin every module the pinned modules transitively require, at the maximum version any requirement in the closure names (the roots included), derived from the pinned modules' published module files without running a tidy.
+
+#### Scenario: A transitive dependency is pinned in the closure
+
+- **WHEN** the subscribed `opmodel.dev/catalogs/opm@v4` build requires `cue.dev/x/k8s.io@v0` at `v0.10.0` and the CR names no such path
+- **THEN** the generated `cue.mod` pins `cue.dev/x/k8s.io@v0` at `v0.10.0`, so the render module's promoted list covers it and the platform wins that path
+
+### Requirement: The module-file source is constructed from the operator's configuration
+As in requirement "The dependency list is the full closure of the pinned modules": the module-file source SHALL be constructed from the operator's configured registry mapping, its client type and its process environment, passed explicitly.
+
+#### Scenario: The module-file source comes from the operator's configuration
+- **WHEN** the closure is derived
+- **THEN** the module-file source is constructed from the operator's configured registry mapping, its client type and its process environment, passed explicitly
+
+### Requirement: A disabled subscription is generated disabled and still pinned and imported
+A disabled subscription (`enable: false`) SHALL be generated with `enable: false` on its entry, not omitted, and its catalog SHALL still be pinned and imported.
+
+#### Scenario: A disabled subscription is generated disabled
+
+- **WHEN** a subscription carries `enable: false`
+- **THEN** the generated `cue.mod` still pins its catalog, `platform.cue` still imports it, and the entry is emitted with `enable: false`
+
+### Requirement: Regeneration is deterministic
+Regeneration SHALL be deterministic: the same inputs produce byte-identical module content, and that content SHALL be byte-identical to what the operator's previous in-tree generator produced for the same input and core pin, except for the first line of `platform.cue`, the generator attribution header, which names the library helper rather than the operator (nothing reads it).
+
+#### Scenario: Deterministic regeneration
+
+- **WHEN** the same CR generation and active-claim set are reconciled twice
+- **THEN** the module content the operator holds is byte-identical both times
+
+### Requirement: A Platform with no active claim generates the module its spec alone produces
+A Platform with no active claim SHALL generate the module its spec alone produces.
+
+#### Scenario: A claimless platform generates what its spec alone implies
+
+- **WHEN** no claim is accepted and active
+- **THEN** the generated module is a function of the `Platform` spec alone
+
+### Requirement: The reconciler builds the generated module, reads its inventory and sets Ready=True when the gate passes
+After writing the module, the reconciler SHALL build it through the kernel's shape-gated platform loader against the operator's configured registry, and after a successful build SHALL read the built platform's contract inventory and record the package only when the inventory is routable and discriminated (the platform-inventory-gate capability). The Ready condition SHALL reflect the outcome: Ready=True with reason `Generated` when the build succeeds and the gate passes.
+
+#### Scenario: Clean build sets Ready
+
+- **WHEN** the generated module's pins name published builds, the build succeeds and the inventory is routable and discriminated
+- **THEN** the Platform CR reports Ready=True and records the reconciled generation
+
+### Requirement: A build that fails sets Ready=False with reason BuildFailed
+The Ready condition SHALL reflect the outcome: Ready=False with reason `BuildFailed`, with the error naming the failing dependency, entry or inventory field, when a pinned build does not exist (closure derivation or build), an entry's key disagrees with its imported catalog's declared module path, the build fails otherwise, or the inventory cannot be read.
+
+#### Scenario: Nonexistent pin surfaces on the CR
+
+- **WHEN** `spec.registry` names a catalog version that is not published
+- **THEN** the Platform CR reports Ready=False with reason `BuildFailed` and a message naming the catalog path and version
+
+### Requirement: A module that could not be written sets Ready=False with reason GenerateFailed
+The Ready condition SHALL reflect the outcome: Ready=False with reason `GenerateFailed` when the module could not be written to disk.
+
+#### Scenario: A module that could not be written is GenerateFailed
+- **WHEN** the module could not be written to disk
+- **THEN** the Ready condition is `False` with reason `GenerateFailed`
+
+### Requirement: A module that built and was refused by the gate sets Ready=False with the refusal's reason
+The Ready condition SHALL reflect the outcome: Ready=False with reason `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates` when the module built and the gate refused it.
+
+#### Scenario: A refused module sets the refusal's reason
+- **WHEN** the module built and the gate refused it
+- **THEN** the Ready condition is `False` with reason `ContractCollisions`, `OverSubscribedContracts` or `ComparablePredicates`
+
+### Requirement: The materialize-era reasons are retired
+The materialize-era reasons (`Materialized`, `MaterializeFailed`) SHALL be retired.
+
+#### Scenario: The materialize-era reasons are not used
+- **WHEN** a reconcile ends
+- **THEN** the reasons `Materialized` and `MaterializeFailed` are retired
+
+### Requirement: A failed or refused reconcile leaves the previously recorded module in place
+A failed or refused reconcile SHALL leave the previously recorded module (if any) in place.
+
+#### Scenario: A failed build keeps the last good module
+
+- **WHEN** a Platform generation N built successfully and generation N+1 fails to build
+- **THEN** the process-local record still names generation N's module directory, and the CR reports Ready=False for generation N+1
+
+#### Scenario: A built but refused module keeps the last good module
+
+- **WHEN** a Platform generation N built and passed the gate and generation N+1 builds but its inventory reports a colliding contract key, is not routable or is not discriminated
+- **THEN** the process-local record still names generation N's module, and the CR reports Ready=False for generation N+1 with the refusal's reason
+
+### Requirement: Each package's module is written to a directory named by the package identity
+The operator SHALL write each package's module under a manager-configured platform directory (`--platform-dir`, default `/tmp/opm-platform`, on the manager's writable `emptyDir`) in a directory named by the package identity, so two packages built for one CR generation from different active-claim sets never share a directory. The name SHALL be stable, bounded and filesystem-safe, and SHALL remain `gen-<generation>` for a package built with no active claim.
+
+#### Scenario: Two identities for one generation get separate directories
+
+- **WHEN** a package is generated for generation N with no active claim and another for generation N with one active claim
+- **THEN** the two occupy different directories and neither overwrites the other
+
+### Requirement: Generation writes into a staging directory and renames it into place
+Generation SHALL write into a staging directory and rename it into place, so a module directory is either absent or complete; a partially written module SHALL never be recorded as current.
+
+#### Scenario: A crash mid-write leaves no current module
+
+- **WHEN** the operator fails after writing some but not all files of a package's module
+- **THEN** no directory for that identity exists and the process-local record is unchanged
+
+### Requirement: After a successful build the platform directory keeps only the current and the leased packages
+After a successful build the operator SHALL keep the current package's directory and every superseded package's directory a render still holds a lease on, and remove every other entry: superseded packages, staging leftovers and moved-aside copies. A superseded package leased at prune time SHALL be removed by a later reconcile once its lease is released.
+
+#### Scenario: Superseded packages are pruned
+
+- **WHEN** three packages have each been generated and built in turn and no render leases any of them
+- **THEN** only the current package's directory remains
+
+#### Scenario: A leased package survives the prune
+
+- **WHEN** a render holds a lease on one package while the next is generated and built
+- **THEN** the leased directory remains beside the current one, and the next reconcile after the lease is released removes it
+
+### Requirement: The platform directory is emptied at manager start
+At manager start the operator SHALL empty the platform directory; the module is regenerated by the initial reconcile of the Platform CR, and every render path gates on the process-local record, so nothing renders before the module exists.
+
+#### Scenario: Restart regenerates from the CR
+
+- **WHEN** the manager restarts with a Platform CR present
+- **THEN** the platform directory is emptied at start and the first reconcile of the CR regenerates and rebuilds the module before any render is admitted

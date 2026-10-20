@@ -19,21 +19,6 @@ The controller SHALL define a `TransformerRegistration` custom resource in group
 - **WHEN** an object carrying the group, version and kind the catalog renderer emits is applied, with every required field present
 - **THEN** the API server accepts and stores it
 
-### Requirement: Every claim field is required at admission
-
-`TransformerRegistrationSpec` SHALL require `catalog` (the provider catalog's module path), `version` (its build), `provides` (the contract keys it claims to implement) and `providerRef` (the namespace and name of the claiming instance). The API server SHALL reject a claim missing any of them. `provides` is required but MAY be empty: the CRD sets no minimum on its length, and acceptance (not admission) compares the list with the contracts re-derived from the catalog, for exact equality. This validation SHALL NOT be delegated to the authoring catalog: a missing required field in CUE is an incomplete value rather than an error, so a claim can reach the cluster with a field absent even though the contract declares it required.
-
-#### Scenario: A claim missing its catalog is rejected
-
-- **WHEN** a `TransformerRegistration` is applied with `spec.version`, `spec.provides` and `spec.providerRef` but no `spec.catalog`
-- **THEN** the API server rejects it, naming the missing field
-
-#### Scenario: A claim with an empty provides list is accepted
-
-- **WHEN** a `TransformerRegistration` is applied whose `spec.provides` is an empty list
-- **THEN** the API server accepts it, because the CRD sets no minimum on `provides`
-- **AND** acceptance treats the empty list like any other list: it passes when the catalog implements no provider-fulfilled contract and is refused with reason `ProvidesMismatch` when the catalog implements any
-
 ### Requirement: The claim's name is instance-derived
 
 `metadata.name` SHALL be constrained to the dot-joined `<namespace>.<name>` of the claiming instance, the name the catalog renderer emits (enhancement 0015, "The rendered CR's name is instance-derived: dot-joined `namespace.name`"). A namespace cannot contain a dot, so the join is collision-free and two instances of one provider module produce two distinct objects rather than contending for one.
@@ -77,3 +62,24 @@ The controller SHALL ship a ClusterRole granting create, update and delete on `t
 - **WHEN** a `TransformerRegistration` is stored and reconciled to refused, accepted but inactive, or active
 - **THEN** a refused claim and an accepted but inactive claim are not inputs to the generated platform module
 - **AND** an active claim is an input, and its catalog is imported unless a subscription in `Platform.spec.registry` already names that catalog
+
+### Requirement: TransformerRegistrationSpec requires catalog, version, provides and providerRef
+`TransformerRegistrationSpec` SHALL require `catalog` (the provider catalog's module path), `version` (its build), `provides` (the contract keys it claims to implement) and `providerRef` (the namespace and name of the claiming instance). The API server SHALL reject a claim missing any of them. `provides` is required but MAY be empty: the CRD sets no minimum on its length, and acceptance (not admission) compares the list with the contracts re-derived from the catalog, for exact equality.
+
+#### Scenario: A claim missing its catalog is rejected
+
+- **WHEN** a `TransformerRegistration` is applied with `spec.version`, `spec.provides` and `spec.providerRef` but no `spec.catalog`
+- **THEN** the API server rejects it, naming the missing field
+
+#### Scenario: A claim with an empty provides list is accepted
+
+- **WHEN** a `TransformerRegistration` is applied whose `spec.provides` is an empty list
+- **THEN** the API server accepts it, because the CRD sets no minimum on `provides`
+- **AND** acceptance treats the empty list like any other list: it passes when the catalog implements no provider-fulfilled contract and is refused with reason `ProvidesMismatch` when the catalog implements any
+
+### Requirement: Claim validation is not delegated to the authoring catalog
+As in requirement "TransformerRegistrationSpec requires catalog, version, provides and providerRef": This validation SHALL NOT be delegated to the authoring catalog: a missing required field in CUE is an incomplete value rather than an error, so a claim can reach the cluster with a field absent even though the contract declares it required.
+
+#### Scenario: A claim can reach the cluster with a field absent
+- **WHEN** a required field is missing in CUE, which is an incomplete value rather than an error
+- **THEN** a claim can reach the cluster with a field absent even though the contract declares it required, so this validation is not delegated to the authoring catalog

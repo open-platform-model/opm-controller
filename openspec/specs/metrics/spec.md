@@ -1,3 +1,7 @@
+## Purpose
+
+Defines the custom `opm_controller_*` Prometheus metrics the controller exposes on the controller-runtime metrics endpoint: reconcile outcomes and duration, apply and prune counts, and inventory size.
+
 ## Requirements
 
 ### Requirement: Reconcile outcome counter

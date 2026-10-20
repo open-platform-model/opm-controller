@@ -35,3 +35,4 @@
 - [ ] 5.1 Add a cross-namespace-source section to `docs/TENANCY.md`: consent model, two-gate requirement, grant-creation RBAC note, sample `SourceRefGrant`
 - [ ] 5.2 Add a `config/samples` `SourceRefGrant` example
 - [ ] 5.3 Run `task dev:manifests dev:generate dev:fmt dev:vet dev:lint dev:test`; confirm all gates green
+- [ ] 5.4 At archive, write the real Purpose of the new spec `cross-namespace-source-grants` in its `spec.md`, because the strict gate fails on the placeholder Purpose that archive writes
