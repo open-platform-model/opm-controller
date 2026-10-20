@@ -246,7 +246,7 @@ The module's `#config` SHALL type these values and render each into the controll
 - **WHEN** the module is rendered with a CPU request or limit given as a string of cores, such as `"4"` or `"0.5"`
 - **THEN** the module refuses the value, naming the field and the accepted forms (cores as a number, millicores as `"<n>m"`), instead of failing later in the catalog's Deployment transformer
 
-### Requirement: Defaults reproduce the Deployment of `config/manager` and each resource quantity defaults on its own
+### Requirement: Defaults reproduce the earlier manifest's Deployment and each resource quantity defaults on its own
 As in requirement "The controller's tuning values are typed in #config and rendered into the Deployment": Defaults SHALL reproduce the Deployment of `config/manager`: one replica, requests `100m` CPU and `256Mi` memory, limits `2` CPU and `4Gi` memory. Each of those four resource quantities SHALL default on its own, so a value that sets one of them keeps the defaults of the others.
 
 #### Scenario: One resources field keeps the other defaults

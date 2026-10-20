@@ -90,7 +90,7 @@ The controller MUST set `CUE_REGISTRY` and `OPM_REGISTRY` to the resolved regist
 - **THEN** `CUE_REGISTRY` and `OPM_REGISTRY` are set to that mapping before CUE evaluation
 
 ### Requirement: The controller ships a built-in default registry mapping
-The controller MUST accept a `--registry` flag for CUE registry configuration. The controller ships a built-in default `--registry` value routing `opmodel.dev/*` and `testing.opmodel.dev/*` to `ghcr.io/open-platform-model` with `registry.cue.works` as a fallback mirror. Controllers override by passing an explicit `--registry=<mapping>`, or disable the built-in default by passing `--registry=""` (which then falls through to `OPM_REGISTRY`).
+The controller MUST accept a `--registry` flag for CUE registry configuration. The controller ships a built-in default `--registry` value routing `opmodel.dev/*` and `testing.opmodel.dev/*` to `ghcr.io/open-platform-model` with `registry.cue.works` as a fallback mirror. Operators override by passing an explicit `--registry=<mapping>`, or disable the built-in default by passing `--registry=""` (which then falls through to `OPM_REGISTRY`).
 
 #### Scenario: Built-in default applied
 - **WHEN** the controller is started without passing the `--registry` flag

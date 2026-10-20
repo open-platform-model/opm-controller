@@ -289,7 +289,7 @@ As in requirement "backup_provider renders one TransformerRegistration": The cla
 - **THEN** `spec.catalog`, `spec.version` and `spec.provides` of the claim are authored literals
 
 ### Requirement: backup_provider is applied under a ServiceAccount that may write transformerregistrations
-As in requirement "backup_provider renders one TransformerRegistration": Its `moduleinstance.yaml` SHALL apply it under a ServiceAccount bound to a ClusterRole that may write `transformerregistrations`, since only a platform-team identity may register a provider (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces").
+As in requirement "backup_provider renders one TransformerRegistration": Its `moduleinstance.yaml` SHALL apply it under a ServiceAccount bound to a ClusterRole that may write `transformerregistrations`, since only a platform-team identity may register a provider (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces").
 
 #### Scenario: The provider instance is applied under a ServiceAccount that may write transformerregistrations
 
@@ -311,7 +311,7 @@ As in requirement "backup_provider renders one TransformerRegistration": Its `mo
 - **AND** the instance's required contracts include `opmodel.dev/catalogs/opm/traits/backup@v1alpha1`
 
 ### Requirement: A registry-backed integration spec checks the registration, the refusal and the render
-As in requirements "backup_provider renders one TransformerRegistration" and "backup_consumer attaches the backup trait": So a cluster running a controller that resolves the catalog accepts it (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces" and "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A registry-backed integration spec SHALL check all three.
+As in requirements "backup_provider renders one TransformerRegistration" and "backup_consumer attaches the backup trait": So a cluster running a controller that resolves the catalog accepts it (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A registry-backed integration spec SHALL check all three.
 
 #### Scenario: A cluster accepts and activates the claim
 

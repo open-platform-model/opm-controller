@@ -63,7 +63,7 @@ The controller SHALL carry no core-pin constant of its own.
 - **THEN** the generated `cue.mod` pins `opmodel.dev/core@v2` at `v2.0.0-alpha.7` with no controller-side constant involved, and a later library bump changes the pin without a controller code change
 
 ### Requirement: The registry has one entry per authored subscription
-The registry SHALL be resolved from BOTH of the two paths transformers take to a platform (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces" and "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): one entry per subscription the CR's `spec.registry` authored, with the pin taken verbatim from `spec.registry[path].version`.
+The registry SHALL be resolved from BOTH of the two paths transformers take to a platform (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): one entry per subscription the CR's `spec.registry` authored, with the pin taken verbatim from `spec.registry[path].version`.
 
 #### Scenario: A two-catalog CR generates a two-entry module
 
@@ -71,7 +71,7 @@ The registry SHALL be resolved from BOTH of the two paths transformers take to a
 - **THEN** the generated `cue.mod` pins both catalogs at exactly those versions, and `platform.cue` carries one importing entry per path
 
 ### Requirement: The registry has one entry per accepted and active claim
-The registry SHALL be resolved from BOTH of the two paths transformers take to a platform (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces" and "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): one entry per accepted-and-active `TransformerRegistration` claim, enabled and pinned at the version the claim named.
+The registry SHALL be resolved from BOTH of the two paths transformers take to a platform (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"): one entry per accepted-and-active `TransformerRegistration` claim, enabled and pinned at the version the claim named.
 
 #### Scenario: An active claim's catalog is pinned and imported
 

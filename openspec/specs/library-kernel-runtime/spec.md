@@ -90,7 +90,7 @@ The shipped manager Deployment (`config/manager/manager.yaml`, and so `dist/inst
 - **THEN** the manager container has `limits.memory: 4Gi` and the environment variable `GOMEMLIMIT=3276MiB`
 
 ### Requirement: The manager constructs one library Kernel for the process lifetime
-The manager SHALL construct one library Kernel for the process lifetime and share it across controllers.
+The manager SHALL construct one library Kernel for the process lifetime and share it across reconcilers.
 
 #### Scenario: Kernel constructed once at startup
 
@@ -157,7 +157,7 @@ The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHA
 - **THEN** it holds a slot, and the flag bounds the builds resident in the process
 
 ### Requirement: Each controller uses the render flag as its maximum concurrent reconciles
-The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. Each of the two controllers SHALL also use the flag as its maximum concurrent reconciles, so phases outside the render are not serialised behind the other kind's renders.
+The manager SHALL accept `--max-concurrent-renders` (integer, default 1) and SHALL construct from it one pool of render slots shared by the ModuleInstance and ModulePackage reconcilers, so the flag is the maximum number of renders in flight across the whole process, both kinds together. Each of the two reconcilers SHALL also use the flag as its maximum concurrent reconciles, so phases outside the render are not serialised behind the other kind's renders.
 
 #### Scenario: Reconciles outside the render are not serialised
 - **WHEN** the manager runs with `--max-concurrent-renders` above 1

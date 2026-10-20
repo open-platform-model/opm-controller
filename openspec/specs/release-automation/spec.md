@@ -90,7 +90,7 @@ Every step that uploads an asset to the GitHub Release (`install.yaml` of a modu
 - **THEN** the step fails before uploading and tells the operator to release the next version instead
 
 ### Requirement: Release published once after every release job
-The release workflow SHALL contain a publish job (`publish-release`) that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the controller package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required assets (`install.yaml`, `opm-examples.tar.gz`) are attached to the draft, and then publishes the draft.
+The release workflow SHALL contain a publish job (`publish-release`) that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the controller package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required asset `opm-examples.tar.gz` is attached to the draft, and then publishes the draft.
 
 #### Scenario: All release jobs succeed
 - **WHEN** the image and example jobs finish successfully for `v1.0.0-beta.3`
