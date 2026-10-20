@@ -303,7 +303,7 @@ A panicking attempt SHALL be counted as `FailedTransient` for failure counters, 
 - **THEN** the attempt is counted as `FailedTransient` for failure counters, history and reconcile metrics only, and it returns no `ctrl.Result`
 
 ### Requirement: A recovered panic is raised again with its original value
-The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The operator SHOULD log the panic value with the object's name and namespace before it re-panics.
+As in requirement "A recovered panic is never reported as a success": The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The operator SHOULD log the panic value with the object's name and namespace before it re-panics.
 
 #### Scenario: A panic during conversion is recorded and frees the slot
 
@@ -435,6 +435,7 @@ A ModuleInstance and a ModulePackage MUST carry in `status.instanceUUID` the ide
 
 #### Scenario: An unsettled change of identity carries both identities
 - **GIVEN** a change of identity that is not settled
+- **WHEN** the controller reconciles
 - **THEN** `status.instanceUUID` holds the identity of the instance the operator last rendered and began to apply, and `status.previousInstanceUUID` holds the identity it had before
 
 ### Requirement: A first identity is stored
