@@ -71,3 +71,9 @@ The release-please package `"."` SHALL be configured with `versioning: prereleas
 #### Scenario: GA drops the suffix
 - **WHEN** the config sets `prerelease: false` and a visible carrier commit lands on `main` while the manifest reads `1.0.0-beta.N`
 - **THEN** the Release PR proposes `1.0.0` and the GitHub Release is not marked Pre-release
+
+## REMOVED Requirements
+
+### Requirement: Only the cascade notify job and the module's image-bump PR job depend on the publish job
+**Reason**: The modified "Release published once after every release job" of this change holds no sentence that names the jobs that depend on the final job, so this change does not keep the rule.
+**Migration**: None.
