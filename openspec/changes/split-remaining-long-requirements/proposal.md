@@ -28,24 +28,29 @@ validation task and one CI step.
 - **Purpose.** `source-resolution` gets a real `## Purpose`, by direct edit of the main spec
   (archive ignores a delta Purpose for an existing spec). The open change cannot archive without
   it.
-- **Open-change fixes.** The `specs/` deltas of the two open changes are edited, and nothing else
-  of them: the dropped scenario of `stop-operator-install-manifest` is restored, and every
-  block of the two deltas that is, or after archive would become, over 500 is split. The proposal
-  intent, the tasks and the code of those changes stay as they are.
-- **Rewrite of the main specs, in six units of about 14 requirements, by spec.** 80 requirements
-  in 13 specs: the first unit holds `finalizer-and-deletion` and `instance-health`; the second
-  `release-automation` and `container-image-publish`; the third `reconcile-loop-assembly` and
-  `operator-module`; the fourth `registration-acceptance` and `cascade-receiver`; the fifth
-  `example-test-modules` and `prune-stale-resources`; the sixth `drift-detection`,
-  `modulepackage-kernel-rendering` and `example-module-publishing`.
-- **Four long main requirements stay as they are.** The open change
-  `stop-operator-install-manifest` MODIFIES three of them and REMOVES one, so a rewrite in the
-  main spec would break its archive. The fix of the three is in its delta (`design.md`, "the
-  overlap list"); the removed one needs no fix. They leave or change in the main specs when that
-  change archives.
+- **Open-change fixes.** The `specs/` deltas of `add-cross-namespace-source-grants` are edited:
+  every block that is, or after archive would become, over 500 is split. The tasks file of that
+  change gets one line: at archive, write the real Purpose of the new spec
+  `cross-namespace-source-grants`, because the strict gate fails on the placeholder. This is the
+  only `tasks.md` edit of an open change. Nothing else of that change moves.
+- **Rewrite of the main specs, in about 14 requirements per unit, by spec.** All 84
+  requirements in 13 specs. Six units, then one group for the overlap: the first holds `finalizer-and-deletion` and
+  `instance-health`; the second `release-automation` and `container-image-publish`; the third
+  `reconcile-loop-assembly` and `operator-module`; the fourth `registration-acceptance` and
+  `cascade-receiver`; the fifth `example-test-modules` and `prune-stale-resources`; the sixth
+  `drift-detection`, `modulepackage-kernel-rendering` and `example-module-publishing`. The four
+  requirements that `stop-operator-install-manifest` MODIFIES or REMOVES are split too, but in
+  their own group, together with the retarget of that change (next bullet), so the main spec and
+  the delta move in one commit.
+- **Retarget of `stop-operator-install-manifest`.** Its delta is edited in this change. A MODIFIED
+  block of a split requirement becomes one MODIFIED block per new header, its text cut at the same
+  boundary as the main split, verbatim, each part 500 or less. A part with no counterpart in the
+  delta text keeps its main text. A REMOVED block of a split requirement becomes one REMOVED block
+  per new header. The dropped scenario of its `operator-module` block is restored. Its proposal,
+  design, tasks and code stay as they are.
 - **The gate.** A Taskfile task installs OpenSpec 1.14.1 with `--ignore-scripts` and a second
   task runs `openspec validate --all --strict --no-interactive`. A step in the read-only `Lint`
-  workflow job runs both.
+  workflow job runs both. It is the last group, in the same PR, and it is green on the branch.
 
 ## Impact
 
@@ -58,8 +63,11 @@ validation task and one CI step.
   one commit per section. Each spec section ends green under the gate of `design.md` and leaves
   `main` releasable. The change runs as several units on one branch.
 - Risk: a rewrite that drops or changes a rule while the validator stays green. The scenario
-  ledger and the byte-equality check are the counter. A second risk is delivery order: the CI step
-  fails on `main` until both open changes have archived (see `design.md`, "Delivery order").
+  ledger and the byte-equality check are the counter. A second risk is the retarget: a MODIFIED or
+  REMOVED block that names a header that the archive of this change did not create makes the
+  archive of `stop-operator-install-manifest` refuse. The archive simulation in a scratch copy
+  (this change, then `stop-operator-install-manifest`, then `add-cross-namespace-source-grants`)
+  is the counter. The change is one PR (see `design.md`, "Delivery order").
 
 ## Enhancement
 

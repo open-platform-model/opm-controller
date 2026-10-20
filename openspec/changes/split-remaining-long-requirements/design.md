@@ -27,15 +27,18 @@ Every sentence that gains a keyword goes into the strength table below.
 
 Goals:
 
-- `openspec validate --all --strict --no-interactive` under 1.14.1 exits 0 on a tree where the two
-  open changes are archived, whichever order they and this change archive in.
+- `openspec validate --all --strict --no-interactive` under 1.14.1 exits 0 on the branch, and
+  exits 0 after the two open changes are archived in the order: this change, then
+  `stop-operator-install-manifest`, then `add-cross-namespace-source-grants` (with the Purpose of
+  the new spec written, see "Risks").
 - Every rewrite is a split or a move into scenarios. No rule, value, default, exit code,
   citation or scenario is lost or changed.
 - The gate runs in `task` and in CI, pinned.
 
 Non-goals: any code change; any change of meaning of a requirement or scenario, in a main spec or
-in an open change; the proposal intent, the tasks or the code of an open change; the Purpose that
-archive writes into the new spec `cross-namespace-source-grants` (see "Risks").
+in an open change; the proposal intent, the design or the code of an open change, and its tasks
+except the one Purpose line named below; the Purpose that archive writes into the new spec
+`cross-namespace-source-grants` (the archiver writes it, see "Risks").
 
 ## Research & Decisions
 
@@ -68,49 +71,71 @@ unit. An em-dash of an old body is written as `:` or `,` in a new body (workspac
 
 ### The open changes: the overlap list
 
-**Context**: a rewrite of a requirement that an open change MODIFIES or REMOVES breaks that
-change at its archive, and the open change replaces the main text anyway. So a long requirement
-that an open change touches is fixed in the open change's delta, not in the main spec. The list
-below is fresh: it compares the 84 long main requirements with every requirement the two deltas
-name, and measures the delta blocks (`validate <change> --strict --json`, and a length count of
-every delta block, MODIFIED included, because validate skips those).
-**Decision**: edit only `specs/` of the open changes. The post-archive text of a MODIFIED block
-is the delta's, so a delta block that would be over 500 after archive is split now, by the same
-verbatim rule. Each edit is made in the implement unit "Open-change fixes" and recorded below.
+**Context**: this change splits all 84 long requirements on `main`, so a split requirement that an
+open change MODIFIES or REMOVES no longer has the header that the open change names, and the
+archive of that change would refuse. The list below is fresh: it compares the 84 long main
+requirements with every requirement the two deltas name, and measures the delta blocks
+(`validate <change> --strict --json`, and a length count of every delta block, MODIFIED included,
+because validate skips those).
+**Decision** (the human's gate, 2026-10-20 15:40): the four long main requirements in the list are
+split on `main` in this change, by the same verbatim rule, and the delta of
+`stop-operator-install-manifest` is retargeted in the same change. The rejected alternative of the
+first draft ("leave the four long on main and fix them in the delta") is replaced by this.
 
-| Open change | Requirement (header) | Delta op | Main length | Delta length | Where it is fixed |
+| Open change | Requirement (header) | Delta op | Main length | Delta length | What this change does |
 | --- | --- | --- | --- | --- | --- |
-| stop-operator-install-manifest | The controller's pod and Service stay those of the kustomize tree (operator-module) | MODIFIED | 581 | 670 | Delta: restore scenario "An object added to the kustomize tree only fails the test" byte equal to `origin/main`; split the body (form a or b) |
-| stop-operator-install-manifest | Release published once after every release job (release-automation) | MODIFIED | 837 | 735 | Delta: split the body, keep every live scenario |
-| stop-operator-install-manifest | Beta prerelease line (release-automation) | MODIFIED | 1475 | 1475 | Delta: split the body, keep every live scenario |
-| stop-operator-install-manifest | Release install manifest with digest-pinned image (container-image-publish) | REMOVED | 685 | none | Nowhere: archive removes it. Not rewritten in the main spec |
-| stop-operator-install-manifest | Release assets upload only to a draft release (release-automation) | MODIFIED | 488 | 437 | No change: 500 or less. Listed so the list is complete |
-| add-cross-namespace-source-grants | OCIRepository lookup (source-resolution) | MODIFIED | 280 | 633 | Delta: the main text is short, the delta text would be long after archive; split it (form a or b) |
-| add-cross-namespace-source-grants | SourceRefGrant CRD (cross-namespace-source-grants) | ADDED | none | 571 | Delta: split by the same rule |
-| add-cross-namespace-source-grants | Grant-matching policy permits a reference (cross-namespace-source-grants) | ADDED | none | 547 | Delta: split by the same rule |
+| stop-operator-install-manifest | The controller's pod and Service stay those of the kustomize tree (operator-module) | MODIFIED | 581 | 670 | Split on main; retarget the MODIFIED block to one MODIFIED block per new header; restore the dropped scenario |
+| stop-operator-install-manifest | Release published once after every release job (release-automation) | MODIFIED | 837 | 735 | Split on main; retarget |
+| stop-operator-install-manifest | Beta prerelease line (release-automation) | MODIFIED | 1475 | 1475 | Split on main; retarget |
+| stop-operator-install-manifest | Release install manifest with digest-pinned image (container-image-publish) | REMOVED | 685 | none | Split on main; the REMOVED block becomes one REMOVED block per new header |
+| stop-operator-install-manifest | Release assets upload only to a draft release (release-automation) | MODIFIED | 488 | 437 | No change: 500 or less, header kept. Listed so the list is complete |
+| add-cross-namespace-source-grants | OCIRepository lookup (source-resolution) | MODIFIED | 280 | 633 | Not long on main; the delta text would be long after archive: split the delta (form a or b) |
+| add-cross-namespace-source-grants | SourceRefGrant CRD (cross-namespace-source-grants) | ADDED | none | 571 | Split the delta block by the same rule |
+| add-cross-namespace-source-grants | Grant-matching policy permits a reference (cross-namespace-source-grants) | ADDED | none | 547 | Split the delta block by the same rule |
 
-The first four rows are the long main requirements that an open change touches and that stay long
-on `main`. `Release install manifest ...` is not fixed anywhere because archive removes it. The brief of the human named one long ADDED block; the measure shows two
-(`validate` lists both), and the MODIFIED `OCIRepository lookup` would fail after archive, so
-three blocks of `add-cross-namespace-source-grants` are split. The last three rows do not appear in the 84.
+The first four rows are the long main requirements that an open change touches. The last three
+rows do not appear in the 84. The brief of the human named one long ADDED block of
+`add-cross-namespace-source-grants`; the measure shows two (`validate` lists both), and the MODIFIED
+`OCIRepository lookup` would fail after archive, so three blocks of that delta are split.
 
-The three open-change blocks of `release-automation` and `operator-module` are not split in the
-main spec, so the main specs keep 4 long requirements (`operator-module` 1, `release-automation`
-2, `container-image-publish` 1) until the open change archives. This change rewrites 84 - 4 = 80.
+Rules to retarget a delta of `stop-operator-install-manifest`, besides the verbatim rule:
 
-Edit rules for a delta, besides the verbatim rule:
+- **MODIFIED of a split requirement.** The main split gives the old header a set of new headers
+  (form b: the parent plus ADDED splits; form c2: new headers only). The delta gets one MODIFIED
+  block per new header. Its text is the delta text cut at the same kind of boundary as the main
+  split (whole sentences, verbatim), each part 500 or less. Each live scenario of the delta block
+  goes under the new header that holds that scenario on main (the ledger of the main split names
+  it), byte for byte.
+- **A part with no counterpart.** When a new header on main has no sentence in the delta text,
+  the delta did not change those sentences. Then either the block is left out (the main text
+  stays: say so in the ledger, with the reason "the delta did not change these sentences") or it is
+  copied verbatim from the new main text as a MODIFIED block (only when a scenario of the delta
+  belongs under that header). Each case is written in the ledger.
+- **REMOVED of a split requirement.** One REMOVED block per new header, with the header (and the
+  Reason and Migration lines the delta has) as the old block had. All of them together remove
+  what the old block removed. A new header that the old removal did not cover by its text is a
+  question for the human.
+- **ERROR repair.** The dropped scenario "An object added to the kustomize tree only fails the
+  test" of the `operator-module` block is restored byte equal to `origin/main`, under the new
+  header that holds it.
+- No name in the delta is in two operations. A scenario that the open change wrote is kept byte
+  for byte. The meaning of the delta text never changes: a part that the cut would change is a
+  question for the human.
+- Each edit is checked by `openspec validate stop-operator-install-manifest --strict` (exit 0),
+  the byte-equality command (against `origin/main` for a MODIFIED part, against the delta on
+  `origin/main` for text the delta wrote), and the archive simulation of "The gate".
 
-- A MODIFIED block keeps its header and every live scenario name and text from `origin/main`,
-  byte for byte. New ADDED requirements under new names carry the split-off behaviors, with their
-  own scenarios. A live scenario never moves from the MODIFIED parent to an ADDED block.
-- An ADDED block of the open change that was long is split into ADDED blocks of the same delta
-  (form c2 inside one delta: the long header disappears, the new headers appear). No name in the
-  delta is in two operations. A new name is checked against the names this change adds to the
-  same spec.
-- A scenario that the open change wrote is kept byte for byte, like a scenario of a main spec.
-- Each edit is checked by `openspec validate <open-change> --strict` (exit 0), by the byte-equality
-  command (against `origin/main` for a MODIFIED block, against the open change's delta on
-  `origin/main` for an ADDED block), and by the archive simulation of "The gate".
+Rules for `add-cross-namespace-source-grants` (deltas only, besides one tasks line):
+
+- An ADDED block that was long is split into ADDED blocks of the same delta (form c2 inside one
+  delta: the long header disappears, the new headers appear). The MODIFIED `OCIRepository lookup`
+  keeps its header and every live scenario byte for byte; the split-off behaviors become ADDED
+  requirements under new names with their own scenarios. A live scenario never moves from a
+  MODIFIED parent to an ADDED block. A new name is checked against the names this change adds to
+  the same spec.
+- `tasks.md` of that change gets one line, at the end of its last section: at archive, write the
+  real Purpose of the new spec `cross-namespace-source-grants`, because the strict gate fails on
+  the placeholder. No other task is added, changed or ticked.
 
 ### The Purpose of source-resolution
 
@@ -128,34 +153,38 @@ open change run.
 
 **Context**: the human asked for units of about 14 requirements, by spec, with the open-change
 fixes and the Purpose as their own groups and the gate last.
-**Decision**: Purpose, open-change fixes, six rewrite units, gate.
+**Decision**: Purpose, fixes of `add-cross-namespace-source-grants`, six rewrite units, one group for
+the four overlap requirements with the retarget of `stop-operator-install-manifest`, gate. Units
+are about 14 requirements. The four overlap requirements (operator-module 1, release-automation 2,
+container-image-publish 1) are planned in their own group, not in the units of their specs (2 and
+3), because their split and the retarget must land in one commit; the units of their specs then
+hold 13 requirements each, and the overlap group holds 4.
 
 | Group | Content | Requirements | N after it |
 | --- | --- | --- | --- |
 | 1 Purpose | `source-resolution` Purpose, direct edit | 0 | 0 |
-| 2 Open-change fixes | Deltas of the two open changes | the 2 long ADDED blocks | 2 |
+| 2 Open-change fixes | Deltas of `add-cross-namespace-source-grants`; the Purpose line in its `tasks.md` | the 2 long ADDED blocks | 2 |
 | 3 Unit 1 | finalizer-and-deletion 11, instance-health 4 | 15 | 17 |
 | 4 Unit 2 | release-automation 11, container-image-publish 2 | 13 | 30 |
 | 5 Unit 3 | reconcile-loop-assembly 9, operator-module 4 | 13 | 43 |
 | 6 Unit 4 | registration-acceptance 9, cascade-receiver 5 | 14 | 57 |
 | 7 Unit 5 | example-test-modules 7, prune-stale-resources 6 | 13 | 70 |
 | 8 Unit 6 | drift-detection 5, modulepackage-kernel-rendering 5, example-module-publishing 2 | 12 | 82 |
-| 9 Gate | Taskfile tasks, CI step, final archive simulation | 0 | 82 |
+| 9 Overlap | operator-module 1, release-automation 2, container-image-publish 1, with the retarget of `stop-operator-install-manifest` | 4 | 86 |
+| 10 Gate | Taskfile tasks, CI step, final archive simulation, archive of this change | 0 | 86 |
 
 `N` is the number of WARNING lines the whole change on the branch has removed from
 `validate --all --strict`, counted against `origin/main` (86 WARNING lines: the 84 long main
 requirements and the 2 long ADDED blocks of the open change). Group 2 removes 2 lines. After
-group 8, 4 lines remain: the four long main requirements of the overlap list. The count per spec
-is from `openspec validate --specs --strict --json` on `origin/main` (13 release-automation,
-11 finalizer-and-deletion, 9 reconcile-loop-assembly, 9 registration-acceptance, 7
-example-test-modules, 6 prune-stale-resources, 5 each operator-module,
+group 9, no line remains. The count per spec is from `openspec validate --specs --strict --json`
+on `origin/main` (13 release-automation, 11 finalizer-and-deletion, 9 reconcile-loop-assembly, 9
+registration-acceptance, 7 example-test-modules, 6 prune-stale-resources, 5 each operator-module,
 modulepackage-kernel-rendering, drift-detection and cascade-receiver, 4 instance-health, 3
-container-image-publish, 2 example-module-publishing). The units that touch a spec of an open
-change (2 and 3) leave the overlap requirement of that spec alone.
-**Alternative rejected**: rewrite all 84 in the main specs and move the open changes onto the
-new text. It breaks their MODIFIED and REMOVED blocks (a REMOVED header that was split no longer
-matches, and a MODIFIED block replaces the shortened text with its own), and the open-change rule of the brief rules
-it out.
+container-image-publish, 2 example-module-publishing). Units 2 and 3 leave the overlap
+requirement of their specs to group 9.
+**Alternative rejected**: leave the four overlap requirements long on `main` and fix the open
+change's delta text only (the first draft). It leaves `validate --all --strict` red on the branch
+and forces a second PR. The human rejected it at the gate (2026-10-20 15:40).
 
 ### Reversibility
 
@@ -212,12 +241,12 @@ The block of the guide runs unchanged, with `origin/main` in place of `main` in 
 `git archive` line (the local `main` of the repo can be behind). It validates the change,
 archives it in the copy, runs `validate --all --strict`, fails on an "Archive would refuse" line
 and on a new ERROR item, and requires WARNING lines to fall by `N` (baseline 86). The copy
-contains both open changes, as edited by group 2 once it is done. Pass rules:
+contains both open changes, as edited by groups 2 and 9 once they are done. Pass rules:
 
 - `validate <change> --strict` alone is not enough: it skips long MODIFIED text.
 - ERRORs are compared as sets of `type id path`; the set may shrink and never gains an item.
   `origin/main` has the `source-resolution` item and the `stop-operator-install-manifest` item.
-- `validate --all` exits 1 until the end, because the four overlap requirements stay long. A
+- `validate --all` exits 1 until group 9, because the overlap requirements are long until then. A
   unit passes when no ERROR item is new and the WARNING count fell by `N`. For the unit's specs
   also run `openspec validate <spec> --type spec --strict --json 2>&1`: no WARNING for a
   rewritten requirement.
@@ -226,22 +255,26 @@ contains both open changes, as edited by group 2 once it is done. Pass rules:
 
 ### Gate for the open-change edits
 
-After group 2 and again in group 9, in a scratch copy:
+After group 2, after group 9, and again in group 10, in a scratch copy of the branch's `openspec/`
+folder, with the pinned CLI (1.14.1):
 
 1. `openspec validate stop-operator-install-manifest --strict` and
-   `openspec validate add-cross-namespace-source-grants --strict` exit 0.
-2. Archive simulation, order A: archive `add-cross-namespace-source-grants`, then
-   `stop-operator-install-manifest`, then this change. Order B: this change first, then the two.
-   Each `openspec archive <change> --yes` exits 0 and prints no refusal.
-3. After the simulated archives, `openspec validate --all --strict --no-interactive` exits 0,
-   after one simulated direct edit: the placeholder Purpose that archive writes into the new
-   spec `cross-namespace-source-grants` is replaced by real text (a WARNING otherwise; measured
-   in a scratch copy). The real fix of that Purpose belongs to the archive step of the open
-   change.
+   `openspec validate add-cross-namespace-source-grants --strict` exit 0 (after group 9; after
+   group 2 only the second).
+2. **The archive check.** Archive in the scratch copy, in this order: this change, then
+   `stop-operator-install-manifest`, then `add-cross-namespace-source-grants`. Each
+   `openspec archive <change> --yes` exits 0 and prints no "would refuse". The order is the
+   only one required: the reverse cannot work on `main`, because the open changes name headers
+   that this change creates.
+3. After the three archives, `openspec validate --specs --strict --no-interactive` shows no
+   WARNING except the placeholder Purpose of the new spec `cross-namespace-source-grants`. That
+   one is written by the archiver of `add-cross-namespace-source-grants` (task line added in
+   group 2). After one simulated direct edit of that Purpose,
+   `openspec validate --all --strict --no-interactive` exits 0.
 4. The byte-equality command of the guide, run against the delta of each edited block.
 
 This is the check of the wanted behavior "keeps passing after the two open changes are
-archived".
+archived". It is part of the final gate (group 10) and of the gate of group 9.
 
 ### The pinned gate in `task` and in CI
 
@@ -266,36 +299,37 @@ or `Taskfile.yml`).
 
 ### Delivery order
 
-**Context**: until both open changes archive, four long requirements stay in the main specs, so
-`task openspec:check` and the new CI step exit 1 on `main` and on this branch. And the open
-changes cannot archive cleanly before the edits of group 2 land.
-**Decision**: this is a delivery question for the human, not a spec question. The recommended
-order is two PRs from this branch: PR 1 holds groups 1 to 8 (specs and Purpose; no gate step),
-PR 2 holds group 9 and lands after both open changes have archived, so the step is green on
-`main` when it arrives. A single PR would put a red required check on `main`. Group 9's Taskfile
-tasks do not fail anything and could ride PR 1; the `lint.yml` step is what must wait.
-**Rationale**: it is the order of the guide (gate PRs after the open changes land) and keeps
-Principle VIII's rule that every merge leaves `main` releasable.
+**Context**: the first draft planned two PRs, because four long requirements stayed on `main` and
+the CI step would be red. The human's gate removes the cause: all 84 are split in this change.
+**Decision**: one PR, from this branch. The gate group (10) is last. The branch is green at the
+end: `openspec validate --all --strict --no-interactive` exits 0 on it, and so does
+`task openspec:check`. Groups 1 to 9 are separate commits, each green under the per-unit gate
+of this file. The archive of this change rides the PR (group 10). The two open changes archive
+after the PR merges; the archive check of "The gate" shows that they can, in the order: this
+change, `stop-operator-install-manifest`, `add-cross-namespace-source-grants`.
+**Rationale**: it keeps Principle VIII's rule that every merge leaves `main` releasable and puts
+no red required check on `main`. The two-PR plan is dropped.
 
 ## Risks / Trade-offs
 
 - A rewrite that loses a rule while the validator is green. Counter: ledger, byte-equality
   command, clause table and strength table, and a review per unit.
 - The Purpose of the new spec `cross-namespace-source-grants` is a placeholder after the archive of
-  its change, a WARNING that fails the gate. No delta can carry it. The archive step of the open
-  change must replace it by direct edit; this change cannot do it before the spec exists. Its
-  proposal intent and tasks are out of scope here, so this is reported to the human.
-- The gate cannot pass on `main` before both open changes archive. See "Delivery order".
+  its change, a WARNING that fails the strict gate. No delta can carry it. The archiver of
+  `add-cross-namespace-source-grants` writes the real text; the one task line added to that
+  change in group 2 says so (the human's gate, 2026-10-20 15:40).
 - An open change edited by this change can drift if its author edits the same deltas. Counter:
   the edits are in the open change's folder on this branch; the author merges this branch's
   delta files, and a conflict is a stop.
-- Section count: nine groups, more than about five; each ends green and the change runs as units.
+- A retargeted delta that does not match the new main headers makes the archive of
+  `stop-operator-install-manifest` refuse. Counter: the archive check in "The gate", run after
+  group 9 and in group 10.
+- Section count: ten groups, more than about five; each ends green and the change runs as units.
 - No new trust boundary, secret or personal data. The new CI step installs an npm package pinned
   by version with scripts off, in a read-only job; the lockfile gap is the same accepted residual
   as in core and cli, owner: this repo's maintainers.
 
 ## Open Questions
 
-- Delivery order (see above): two PRs, with the CI step after the open changes archive. The human
-  decides.
-- The Purpose of `cross-namespace-source-grants` at archive time: who writes it.
+None. The delivery order, the four overlap requirements and the Purpose of
+`cross-namespace-source-grants` are decided by the human's gate (2026-10-20 15:40).
