@@ -131,14 +131,14 @@ As in requirement "A ModulePackage that leaves a required config value unset is 
 - **THEN** the ModulePackage reports `Ready=False` and `Stalled=True` with reason `ResolutionFailed`, and the message contains `not fully concrete: values.tier: incomplete value`
 
 ### Requirement: The refusal of an unset required value is a package load failure, not retried on the registry backoff
-As in requirement "A ModulePackage that leaves a required config value unset is refused when it loads": The refusal SHALL be the kernel's: the operator SHALL report it as a package load failure, with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, and SHALL NOT retry it on the registry backoff. Nothing SHALL be applied or pruned.
+As in requirements "A ModulePackage that leaves a required config value unset is refused when it loads" and "A package value default that does not unify with the config default is refused": The refusal SHALL be the kernel's: the operator SHALL report it as a package load failure, with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, and SHALL NOT retry it on the registry backoff. Nothing SHALL be applied or pruned.
 
 #### Scenario: A refused package is a load failure that is not retried on the registry backoff
 - **WHEN** a ModulePackage is refused because its values leave a required `#config` value unset
 - **THEN** the operator reports a package load failure with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, does not retry it on the registry backoff, and applies and prunes nothing
 
 ### Requirement: The message of the refusal carries the prefix, the kernel error text and the findings
-As in requirement "A ModulePackage that leaves a required config value unset is refused when it loads": The message SHALL be the prefix `loading package: `, the kernel's error text up to its first finding, and the kernel's findings, each with its positions; it names the unset value as `values.<field>`.
+As in requirements "A ModulePackage that leaves a required config value unset is refused when it loads" and "A package value default that does not unify with the config default is refused": The message SHALL be the prefix `loading package: `, the kernel's error text up to its first finding, and the kernel's findings, each with its positions; it names the unset value as `values.<field>`.
 
 #### Scenario: The message names the unset value
 - **WHEN** a ModulePackage is refused because its values leave a required `#config` value unset
@@ -161,7 +161,7 @@ As in requirement "The message of a refused ModulePackage names every unset requ
 - **THEN** the ModulePackage reports `Ready=False` and `Stalled=True` with reason `ResolutionFailed` and the message `loading package: Kernel.AcquireInstanceFromDir: instance "<name>": not fully concrete: values.greeting: incomplete value string (instance.cue:<line>:<column>)`
 
 ### Requirement: The message replaces no finding with a count and the reason stays ResolutionFailed
-As in requirement "The message of a refused ModulePackage names every unset required value with its position": The message SHALL NOT replace a finding with `(and N more errors)`. The controller SHALL word the findings from the kernel's typed error tree. The reason SHALL stay `ResolutionFailed` with `Ready=False` and `Stalled=True`.
+As in requirements "The message of a refused ModulePackage names every unset required value with its position" and "A value a component reads is named like a value no component reads": The message SHALL NOT replace a finding with `(and N more errors)`. The controller SHALL word the findings from the kernel's typed error tree. The reason SHALL stay `ResolutionFailed` with `Ready=False` and `Stalled=True`.
 
 #### Scenario: Two values are unset
 

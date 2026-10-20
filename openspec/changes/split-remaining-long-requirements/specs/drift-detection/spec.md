@@ -2,11 +2,11 @@
 
 ### Requirement: Drift runs on no-op reconciles
 **Reason**: Split into two requirements that each state one behavior.
-**Migration**: See "Drift detection runs on every reconcile that renders" and "A reconcile that skips its render runs no drift detection and drift runs once per interval".
+**Migration**: See "Drift detection runs on every reconcile that renders" and "A reconcile that skips its render runs no drift detection and drift runs at most once per interval".
 
 ### Requirement: A withheld resource is excluded from drift detection
 **Reason**: Split into two requirements that each state one behavior.
-**Migration**: See "Drift detection skips a resource the reconcile withheld from apply" and "The refusal that withheld a resource carries the signal that the operator does not assert it".
+**Migration**: See "Drift detection skips a resource the reconcile withheld from apply" and "Drift reports that the cluster diverged from what the operator asserts".
 
 ### Requirement: A drift check that is refused or has no identity is reported
 **Reason**: Split into five requirements that each state one behavior.
@@ -119,9 +119,9 @@ Drift detection MUST run on every reconcile that renders, even when digest compa
 - **THEN** drift is detected and `Drifted=True` is set
 - **AND** apply is still skipped (no source/config/render changes)
 
-### Requirement: A reconcile that skips its render runs no drift detection and drift runs once per interval
+### Requirement: A reconcile that skips its render runs no drift detection and drift runs at most once per interval
 A reconcile that skips its render because its inputs are unchanged (`render-input-key`) has no rendered objects to compare and MUST NOT run drift detection; it leaves the `Drifted` condition and the drift counter as they were.
-The drift render interval (`--drift-render-interval`) bounds how long such skips last, so drift detection MUST run at most once per interval for an object whose inputs do not change, on the first reconcile after the interval.
+The drift render interval (`--drift-render-interval`) bounds how long such skips last, so drift detection runs at most once per interval for an object whose inputs do not change, on the first reconcile after the interval.
 
 #### Scenario: A skipped render runs no drift detection
 - **GIVEN** a Ready ModuleInstance whose inputs are unchanged and whose last confirming render is younger than the drift render interval
@@ -136,29 +136,25 @@ The drift render interval (`--drift-render-interval`) bounds how long such skips
 
 ### Requirement: Drift detection skips a resource the reconcile withheld from apply
 Drift detection SHALL skip a resource the reconcile withheld from apply, and its difference from live state SHALL NOT set the `Drifted` condition.
-Drift reports that the cluster diverged from what the operator asserts. A withheld resource is one the operator is deliberately not asserting, so reporting it as drift would name a difference the operator created on purpose and intends not to close: a condition that never clears, and one that would bury real drift on the same instance behind it.
+A withheld resource is one the operator is deliberately not asserting, so reporting it as drift would name a difference the operator created on purpose and intends not to close: a condition that never clears, and one that would bury real drift on the same instance behind it. The refusal that withheld the resource carries that signal instead.
 
 #### Scenario: A withheld resource does not set Drifted
 
 - **WHEN** a reconcile withholds a resource whose live state differs from the rendered one
 - **THEN** the `Drifted` condition is not set by that difference
 
-#### Scenario: Real drift is still reported alongside
-
-- **WHEN** an instance has both a withheld resource and another resource that genuinely drifted
-- **THEN** the `Drifted` condition is set, reflecting only the genuinely drifted resource
-
 #### Scenario: Drift returns when the resource stops being withheld
 
 - **WHEN** a previously withheld resource is applied on a later reconcile
 - **THEN** it is included in drift detection from that point on
 
-### Requirement: The refusal that withheld a resource carries the signal that the operator does not assert it
-As in requirement "Drift detection skips a resource the reconcile withheld from apply": The refusal that withheld the resource SHALL carry that signal instead.
+### Requirement: Drift reports that the cluster diverged from what the operator asserts
+Drift SHALL report that the cluster diverged from what the operator asserts.
 
-#### Scenario: The refusal carries the signal of a withheld resource
-- **WHEN** a reconcile withholds a resource the operator is deliberately not asserting
-- **THEN** the refusal that withheld the resource carries that signal
+#### Scenario: Real drift is still reported alongside
+
+- **WHEN** an instance has both a withheld resource and another resource that genuinely drifted
+- **THEN** the `Drifted` condition is set, reflecting only the genuinely drifted resource
 
 ### Requirement: The restore step also applies a rendered object that is taken in
 As in requirement "A missing object is restored": The same step SHALL apply the rendered objects that are taken in: objects that exist, are not in `status.inventory` and that the apply verdict allows (`reconcile-loop-assembly`, "An allowed object outside the inventory is taken in"), also when nothing is missing. It SHALL apply these two sets and only these.
@@ -275,7 +271,7 @@ As in requirements "A Forbidden read or dry-run sets Drifted to Unknown" and "A 
 - **THEN** the missing set is unknown, nothing is restored, and the `Ready` condition and the outcome of a reconcile with unchanged digests do not change
 
 ### Requirement: A later drift detection replaces the condition and a successful apply removes it
-As in requirement "A Forbidden read or dry-run sets Drifted to Unknown": A later drift detection that succeeds SHALL replace the condition with its verdict, and a successful apply of the rendered set SHALL remove it.
+As in requirements "A Forbidden read or dry-run sets Drifted to Unknown" and "A ServiceAccount that cannot be impersonated sets Drifted to Unknown": A later drift detection that succeeds SHALL replace the condition with its verdict, and a successful apply of the rendered set SHALL remove it.
 
 #### Scenario: The refusal ends
 
