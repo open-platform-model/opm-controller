@@ -221,6 +221,55 @@ lookup", "ArtifactRef carries full metadata"), the sentinel errors ("Typed sourc
 watch that enqueues reconciliation ("Source watch triggers reconciliation"). No requirement text
 changed.
 
+### Ledger: add-cross-namespace-source-grants, cross-namespace-source-grants
+
+Form c2 inside the one delta (ADDED blocks only). Old lengths 571 and 547; new lengths in the
+clause table.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Grant is namespaced and lives with the source | SourceRefGrant CRD | no |
+| Optional referent name | SourceRefGrant spec lists referrers and referents | no |
+| Matching grant permits the reference | Grant-matching policy permits a reference | no |
+| No matching grant denies the reference | Grant-matching policy permits a reference | no |
+| Revocation takes effect on next reconcile | Grant evaluation runs on every reconcile | no |
+
+| Old clause | New requirement (length) | Note |
+| --- | --- | --- |
+| The operator MUST define a namespaced `SourceRefGrant` custom resource ... | SourceRefGrant CRD (403) | verbatim |
+| A `SourceRefGrant` lives in the namespace that owns the source ... | SourceRefGrant CRD | verbatim |
+| Its spec MUST contain a `from` list ... and a `to` list ... | SourceRefGrant spec lists referrers and referents (188) | subject "Its spec" written "The spec of a `SourceRefGrant`" (header name) |
+| The CRD MUST be additive and permissive only, it grants access and never denies it; absence of a matching grant is a denial | SourceRefGrant CRD | em-dash written as a colon |
+| When the master switch is enabled, a cross-namespace reference ... MUST be permitted if and only if ... | Grant-matching policy permits a reference (441) | verbatim |
+| Evaluation MUST be performed on every reconcile so that deleting a grant revokes access on the next pass | Grant evaluation runs on every reconcile (169) | subject and condition "When the master switch is enabled, evaluation of the grant-matching policy" copied from the old sentence and header |
+
+### Ledger: add-cross-namespace-source-grants, source-resolution
+
+Form b: the MODIFIED block "OCIRepository lookup" keeps its header and its seven live scenarios
+byte for byte. Delta text 633, now 496. The sentence about the empty or equal namespace becomes
+an ADDED requirement with one new scenario that restates the case the sentence names.
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Source exists and is ready | OCIRepository lookup | no |
+| Source not found | OCIRepository lookup | no |
+| Source exists but not ready | OCIRepository lookup | no |
+| Source ready but no artifact | OCIRepository lookup | no |
+| Unsupported source kind | OCIRepository lookup | no |
+| Cross-namespace reference denied by default | OCIRepository lookup | no |
+| Cross-namespace reference permitted by policy | OCIRepository lookup | no |
+| (new) Empty namespace resolves in the release namespace | Same-namespace lookup uses the release namespace | new: restates "When `SourceReference.Namespace` is empty" |
+
+| Old clause | New requirement (length) | Note |
+| --- | --- | --- |
+| The `internal/source` package MUST provide a `Resolve` function ... | OCIRepository lookup (496) | verbatim |
+| The function MUST support OCIRepository, GitRepository, and Bucket source kinds | OCIRepository lookup | verbatim |
+| When `SourceReference.Namespace` is empty or equal to the release namespace, `Resolve` MUST look up the source in the release namespace | Same-namespace lookup uses the release namespace (136) | verbatim |
+| When `SourceReference.Namespace` names a different namespace, `Resolve` MUST consult the `CrossNamespacePolicy` and MUST NOT read the foreign source unless the policy permits the reference | OCIRepository lookup | verbatim |
+
+The two ADDED blocks of this delta that were not long are unchanged. No keyword was added, so
+the strength table has no row for group 2.
+
 This section fills in with the ledgers as the groups run.
 
 ## Strength table

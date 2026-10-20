@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: OCIRepository lookup
-The `internal/source` package MUST provide a `Resolve` function that accepts a controller-runtime client, a `SourceReference`, a release namespace, and a `CrossNamespacePolicy`, and returns artifact metadata or a typed error. The function MUST support OCIRepository, GitRepository, and Bucket source kinds. When `SourceReference.Namespace` is empty or equal to the release namespace, `Resolve` MUST look up the source in the release namespace. When `SourceReference.Namespace` names a different namespace, `Resolve` MUST consult the `CrossNamespacePolicy` and MUST NOT read the foreign source unless the policy permits the reference.
+The `internal/source` package MUST provide a `Resolve` function that accepts a controller-runtime client, a `SourceReference`, a release namespace, and a `CrossNamespacePolicy`, and returns artifact metadata or a typed error. The function MUST support OCIRepository, GitRepository, and Bucket source kinds. When `SourceReference.Namespace` names a different namespace, `Resolve` MUST consult the `CrossNamespacePolicy` and MUST NOT read the foreign source unless the policy permits the reference.
 
 #### Scenario: Source exists and is ready
 - **WHEN** the referenced source (OCIRepository, GitRepository, or Bucket) exists in the release namespace, has `Ready=True`, and has a non-nil `status.artifact`
@@ -32,6 +32,13 @@ The `internal/source` package MUST provide a `Resolve` function that accepts a c
 - **THEN** `Resolve` looks up the source in the referenced namespace and proceeds as for a same-namespace lookup
 
 ## ADDED Requirements
+
+### Requirement: Same-namespace lookup uses the release namespace
+When `SourceReference.Namespace` is empty or equal to the release namespace, `Resolve` MUST look up the source in the release namespace.
+
+#### Scenario: Empty namespace resolves in the release namespace
+- **WHEN** `SourceReference.Namespace` is empty
+- **THEN** `Resolve` looks up the source in the release namespace
 
 ### Requirement: Cross-namespace resolution surfaces as a stalled release
 The `ReleaseReconciler` MUST treat a cross-namespace denial from `Resolve` as a stalled condition rather than a transient one, because it cannot self-heal without an operator action (enabling the flag or authoring a grant).

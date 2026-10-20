@@ -16,12 +16,12 @@ Each rewrite unit starts by writing its scenario ledger into `design.md` (headin
 
 Edit only files under `openspec/changes/add-cross-namespace-source-grants/specs/`, and add the one task line of 2.4 to its `tasks.md`. Never its proposal, design or code. Write the ledger `### Ledger: add-cross-namespace-source-grants, <spec>` before each edit.
 
-- [ ] 2.1 `cross-namespace-source-grants`: split the ADDED blocks "SourceRefGrant CRD" and "Grant-matching policy permits a reference" into ADDED blocks of 500 characters or less.
-- [ ] 2.2 `source-resolution`: split the MODIFIED block "OCIRepository lookup" (the delta text is over 500): keep the header and every live scenario byte for byte; the split-off behaviors become ADDED requirements.
-- [ ] 2.3 Byte-equality command for every edited block (against the delta on `origin/main`, MODIFIED against `origin/main`): no `DIFF`, no `LOST`.
-- [ ] 2.4 Add one task line to `tasks.md` of `add-cross-namespace-source-grants`, at the end of its last section: at archive, write the real Purpose of the new spec `cross-namespace-source-grants`, because the strict gate fails on the placeholder Purpose that archive writes. This is the only `tasks.md` edit of an open change.
-- [ ] 2.5 Gate (`N=2`): `validate add-cross-namespace-source-grants --strict` exits 0; `validate --all --strict` has no new ERROR item and the WARNING lines fell by 2.
-- [ ] 2.6 Commit `docs(openspec): fix the spec deltas of add-cross-namespace-source-grants`
+- [x] 2.1 `cross-namespace-source-grants`: split the ADDED blocks "SourceRefGrant CRD" and "Grant-matching policy permits a reference" into ADDED blocks of 500 characters or less.
+- [x] 2.2 `source-resolution`: split the MODIFIED block "OCIRepository lookup" (the delta text is over 500): keep the header and every live scenario byte for byte; the split-off behaviors become ADDED requirements.
+- [x] 2.3 Byte-equality command for every edited block (against the delta on `origin/main`, MODIFIED against `origin/main`): no `DIFF`, no `LOST`.
+- [x] 2.4 Add one task line to `tasks.md` of `add-cross-namespace-source-grants`, at the end of its last section: at archive, write the real Purpose of the new spec `cross-namespace-source-grants`, because the strict gate fails on the placeholder Purpose that archive writes. This is the only `tasks.md` edit of an open change.
+- [x] 2.5 Gate (`N=2`): `validate add-cross-namespace-source-grants --strict` exits 0; `validate --all --strict` has no new ERROR item and the WARNING lines fell by 2.
+- [x] 2.6 Commit `docs(openspec): fix the spec deltas of add-cross-namespace-source-grants`
 
 ## 3. Unit 1: finalizer-and-deletion, instance-health: 15 requirements
 
