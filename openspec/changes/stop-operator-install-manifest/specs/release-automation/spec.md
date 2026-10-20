@@ -16,7 +16,7 @@ Every step that uploads an asset to the GitHub Release (`install.yaml` of a modu
 - **THEN** the step fails before uploading and tells the operator to release the next version instead
 
 ### Requirement: Release published once after every release job
-The release workflow SHALL contain a final job that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the operator package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required asset `opm-examples.tar.gz` is attached to the draft, and then publishes the draft. It SHALL leave the Pre-release flag set by release-please unchanged. When the release is already published it SHALL succeed without changing anything. An operator release SHALL NOT carry `install.yaml`: the install manifest is an asset of the module's release (`operator-module-release`).
+The release workflow SHALL contain a final job that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the operator package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required asset `opm-examples.tar.gz` is attached to the draft, and then publishes the draft.
 
 #### Scenario: All release jobs succeed
 - **WHEN** the image and example jobs finish successfully for `v1.0.0-beta.3`
@@ -34,12 +34,23 @@ The release workflow SHALL contain a final job that depends on every job produci
 - **WHEN** a push to `main` creates only a module release
 - **THEN** the operator's final job does not run
 
+### Requirement: The publish job leaves the Pre-release flag unchanged and succeeds on a published release
+As in requirement "Release published once after every release job" (the final job): It SHALL leave the Pre-release flag set by release-please unchanged. When the release is already published it SHALL succeed without changing anything. An operator release SHALL NOT carry `install.yaml`: the install manifest is an asset of the module's release (`operator-module-release`).
+
+#### Scenario: The Pre-release flag stays as release-please set it
+- **WHEN** `publish-release` publishes a draft
+- **THEN** the Pre-release flag set by release-please is unchanged
+
+#### Scenario: A published release is left as it is
+- **WHEN** the release is already published
+- **THEN** `publish-release` succeeds without changing anything
+
 #### Scenario: No operator manifest
 - **WHEN** an operator release `v1.0.0-beta.9` is published
 - **THEN** its GitHub Release carries `opm-examples.tar.gz` and no `install.yaml`
 
 ### Requirement: Beta prerelease line
-The release-please package `"."` SHALL be configured with `versioning: prerelease`, `prerelease: true` and `prerelease-type: beta` while the operator is on its beta line. From its first beta, a prerelease line (opmodel.dev/core@v2, library, cli, opm-operator) is on the path to GA. A breaking change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), which becomes the CHANGELOG entry; its migration note goes in the PR body, which the entry links and which never reaches `main`. It advances the `-beta.N` counter and never moves the module path to a new major. Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) keep the normal SemVer rule: a break is a new major. The operator module's own package follows its 0.x rule instead (`operator-module-release`). A core beta break that would force a catalogs/opm major needs owner sign-off. An operator `feat!` that the released cli cannot drive SHALL merge only after the cli release that can drive it, and no `release-as` value SHALL hop the operator to a new minor or major (such as `1.1.0-beta.1`) during beta. Every beta GitHub Release SHALL be flagged Pre-release. Changing `prerelease-type` alone SHALL NOT be relied on to change the label of a version that already carries a suffix; a label change needs a `release-as` value (see "Forced version via the release-as config key"). GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
+The release-please package `"."` SHALL be configured with `versioning: prerelease`, `prerelease: true` and `prerelease-type: beta` while the operator is on its beta line. From its first beta, a prerelease line (opmodel.dev/core@v2, library, cli, opm-operator) is on the path to GA. Every beta GitHub Release SHALL be flagged Pre-release. GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
 
 #### Scenario: Beta releases are flagged Pre-release
 - **WHEN** the Release PR for `1.0.0-beta.N` is merged

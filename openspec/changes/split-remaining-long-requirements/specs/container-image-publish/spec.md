@@ -8,6 +8,10 @@
 **Reason**: Split into five requirements that each state one behavior.
 **Migration**: See "A gated release run pushes three tags", "The release image carries the release commit and the release tag", "The version tag always resolves to the manifest list first pushed under it", "A version tag built from the release commit is reused" and "A version tag held by another revision fails the job".
 
+### Requirement: Release install manifest with digest-pinned image
+**Reason**: Split into three requirements that each state one behavior.
+**Migration**: See "The image-release job renders the install manifest with the image pinned by digest and uploads it", "The install manifest upload follows the draft-release rule" and "The installer target stays unchanged in behavior".
+
 ## ADDED Requirements
 
 ### Requirement: The PR image workflow runs on pull request events and skips bot heads
@@ -77,3 +81,28 @@ As in requirement "The version tag always resolves to the manifest list first pu
 #### Scenario: Version tag held by a different image
 - **WHEN** `:v1.0.0-beta.3` already exists and its revision label names a commit other than the release commit
 - **THEN** the job SHALL fail without pushing any tag, and the release stays a draft
+
+### Requirement: The image-release job renders the install manifest with the image pinned by digest and uploads it
+On a gated release run, the image-release job SHALL invoke `task operator:installer IMG="ghcr.io/open-platform-model/opm-operator:v<VERSION>@sha256:<DIGEST>"` where `<DIGEST>` is the manifest-list digest returned by the push step, or the existing digest when the version tag was reused, render `dist/install.yaml`, and upload that file as an asset on the draft GitHub release created by release-please.
+
+#### Scenario: Release asset upload
+- **WHEN** the image-release job finishes building and signing `v1.2.3` at digest `sha256:abc...`
+- **THEN** `dist/install.yaml` SHALL be rendered with image references pinned to `ghcr.io/open-platform-model/opm-operator:v1.2.3@sha256:abc...` AND the file SHALL be uploaded as an asset on the draft GitHub release tagged `v1.2.3`
+
+#### Scenario: Install manifest image is immutable
+- **WHEN** a consumer downloads the release-attached `dist/install.yaml` and runs `kubectl apply -f install.yaml`
+- **THEN** the controller Deployment SHALL pull the image by digest, guaranteeing the exact bytes from the release regardless of future tag movement
+
+### Requirement: The install manifest upload follows the draft-release rule
+As in requirement "The image-release job renders the install manifest with the image pinned by digest and uploads it" (the upload of that file as an asset on the draft GitHub release created by release-please): The upload SHALL follow "Release assets upload only to a draft release" in `release-automation`.
+
+#### Scenario: The install manifest upload follows the draft-release rule
+- **WHEN** the image-release job uploads `dist/install.yaml`
+- **THEN** the upload follows "Release assets upload only to a draft release" in `release-automation`
+
+### Requirement: The installer target stays unchanged in behavior
+The existing `task operator:installer` target SHALL remain unchanged in behavior and its default invocation (no `IMG` override) SHALL still produce a manifest using `controller:latest`.
+
+#### Scenario: Default build-installer unchanged
+- **WHEN** a developer runs `task operator:installer` locally without an `IMG` override
+- **THEN** the rendered `dist/install.yaml` SHALL continue to reference `controller:latest` as before this change

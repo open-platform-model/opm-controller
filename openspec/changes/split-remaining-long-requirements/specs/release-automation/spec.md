@@ -82,6 +82,48 @@ Other third-party Go modules SHALL keep their Dependabot updates.
 - **WHEN** a newer `github.com/fluxcd/pkg/runtime` is published
 - **THEN** Dependabot still proposes the bump
 
+### Requirement: Release published once after every release job
+The release workflow SHALL contain a publish job (`publish-release`) that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the operator package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required assets (`install.yaml`, `opm-examples.tar.gz`) are attached to the draft, and then publishes the draft.
+
+#### Scenario: All release jobs succeed
+- **WHEN** the image and example jobs finish successfully for `v1.0.0-beta.3`
+- **THEN** `publish-release` publishes the draft, and the GitHub Release is public, flagged Pre-release and carries every asset
+
+#### Scenario: A release job fails
+- **WHEN** the example publishing job fails for `v1.0.0-beta.3`
+- **THEN** `publish-release` does not run, the release stays a draft, and "Re-run failed jobs" on the same workflow run completes and publishes it
+
+#### Scenario: Required asset missing
+- **WHEN** `publish-release` runs and the draft lacks `install.yaml`
+- **THEN** the job fails and the release stays a draft
+
+#### Scenario: Module-only release
+- **WHEN** a push to `main` creates only a module release
+- **THEN** `publish-release` does not run
+
+### Requirement: Beta prerelease line
+The release-please package `"."` SHALL be configured with `versioning: prerelease`, `prerelease: true` and `prerelease-type: beta` while the operator is on its beta line. From its first beta, a prerelease line (opmodel.dev/core@v2, library, cli, opm-operator) is on the path to GA. Every beta GitHub Release SHALL be flagged Pre-release. GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
+
+#### Scenario: Beta releases are flagged Pre-release
+- **WHEN** the Release PR for `1.0.0-beta.N` is merged
+- **THEN** release-please creates tag `v1.0.0-beta.N` and a GitHub Release marked Pre-release, and the image and `install.yaml` asset are published under that tag
+
+#### Scenario: Breaking change during beta carries its migration note
+- **WHEN** a pull request titled `feat(api)!: ...`, whose body describes the migration, is squash-merged on the beta line
+- **THEN** the next Release PR proposes the next `-beta.N`, its CHANGELOG section lists the PR title as a breaking-change entry linking the pull request, and the migration note is read from that pull request
+
+#### Scenario: Operator break waits for a cli that can drive it
+- **WHEN** an operator `feat!` changes behavior the newest released cli cannot drive
+- **THEN** it merges only after a cli release that can drive it, ships as the next `1.0.0-beta.N`, and no `release-as` value moves the operator to `1.1.0-beta.1` or any other minor or major
+
+#### Scenario: Label flip alone keeps the old label
+- **WHEN** only `prerelease-type` changes from `alpha` to `beta` while the manifest reads `1.0.0-alpha.22` and `release-please-config.json` carries no `release-as`
+- **THEN** the next Release PR proposes `1.0.0-alpha.23`, which is why the crossing sets `"release-as": "1.0.0-beta.1"` in `release-please-config.json`
+
+#### Scenario: GA drops the suffix
+- **WHEN** the config sets `prerelease: false` and a visible carrier commit lands on `main` while the manifest reads `1.0.0-beta.N`
+- **THEN** the Release PR proposes `1.0.0` and the GitHub Release is not marked Pre-release
+
 ## REMOVED Requirements
 
 ### Requirement: Changelog generation
@@ -372,3 +414,57 @@ The operator's CUE version SHALL move only through a library release: the librar
 #### Scenario: The operator picks up CUE with the library pin
 - **WHEN** the release cascade or a hand-made `fix(deps)` pull request moves the library pin
 - **THEN** the operator picks the new CUE version up, because the `go get` of the library raises `cuelang.org/go` by minimal version selection
+
+### Requirement: The publish job leaves the Pre-release flag unchanged and succeeds on a published release
+As in requirement "Release published once after every release job" (the publish job `publish-release`): It SHALL leave the Pre-release flag set by release-please unchanged. When the release is already published it SHALL succeed without changing anything.
+
+#### Scenario: The Pre-release flag stays as release-please set it
+- **WHEN** `publish-release` publishes a draft
+- **THEN** the Pre-release flag set by release-please is unchanged
+
+#### Scenario: A published release is left as it is
+- **WHEN** the release is already published
+- **THEN** `publish-release` succeeds without changing anything
+
+### Requirement: Only the cascade notify job and the module's image-bump PR job depend on the publish job
+As in requirement "Release published once after every release job" (the publish job `publish-release`): The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`), neither of which produces a release artifact.
+
+#### Scenario: Only two jobs depend on the publish job
+- **WHEN** the jobs that depend on `publish-release` are listed
+- **THEN** they are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`)
+
+### Requirement: A breaking change during beta is a ! in the PR title and advances the beta counter
+As in requirement "Beta prerelease line": A breaking change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), which becomes the CHANGELOG entry; its migration note goes in the PR body, which the entry links and which never reaches `main`. It SHALL advance the `-beta.N` counter and never move the module path to a new major.
+
+#### Scenario: A breaking change during beta is a ! in the PR title
+- **WHEN** a breaking change is made during beta
+- **THEN** it is allowed only as a `!` in the PR title (`feat!:`), which becomes the CHANGELOG entry
+
+#### Scenario: A breaking change advances the beta counter
+- **WHEN** a breaking change is made during beta
+- **THEN** it advances the `-beta.N` counter and never moves the module path to a new major
+
+### Requirement: Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule
+As in requirement "Beta prerelease line": Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) SHALL keep the normal SemVer rule: a break is a new major. The operator module's own package follows its 0.x rule instead (`operator-module-release`).
+
+#### Scenario: A break on a stable line is a new major
+- **WHEN** a break lands on a stable line (`opmodel.dev/catalogs/opm@v4` or a module fleet)
+- **THEN** it is a new major
+
+#### Scenario: The operator module's package follows its 0.x rule
+- **WHEN** the operator module's own package is released
+- **THEN** it follows its 0.x rule instead (`operator-module-release`)
+
+### Requirement: Beta breaks wait for owner sign-off or for the cli that can drive them
+As in requirement "Beta prerelease line": A core beta break that would force a catalogs/opm major needs owner sign-off. An operator `feat!` that the released cli cannot drive SHALL merge only after the cli release that can drive it, and no `release-as` value SHALL hop the operator to a new minor or major (such as `1.1.0-beta.1`) during beta.
+
+#### Scenario: A core beta break that forces a catalogs/opm major needs owner sign-off
+- **WHEN** a core beta break would force a catalogs/opm major
+- **THEN** it needs owner sign-off
+
+### Requirement: A label change of a version that carries a suffix needs a release-as value
+As in requirement "Beta prerelease line": Changing `prerelease-type` alone SHALL NOT be relied on to change the label of a version that already carries a suffix; a label change needs a `release-as` value (see "Forced version via the release-as config key").
+
+#### Scenario: A label change needs a release-as value
+- **WHEN** the label of a version that already carries a suffix must change
+- **THEN** it needs a `release-as` value

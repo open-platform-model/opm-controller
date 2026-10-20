@@ -1897,6 +1897,97 @@ Notes for the three ledgers above (unit 6):
 - The reason paragraph of the withheld-resource body, in the old order, sits in the block of the rule it explains: "Drift reports that the cluster diverged from what the operator asserts." with its old verb, then "A withheld resource is one ...", all without a keyword. The block would pass 500 with the last sentence, "The refusal that withheld the resource carries that signal instead."; that sentence is the one rule of the paragraph (the refusal is where the withheld resource is reported), so it stands in its own block under a named-reference prefix with the keyword SHALL. Its scenario restates the old case: a withheld resource whose live state differs is reported by its refusal. "Real drift is still reported alongside" moves byte for byte into the block of the rule, after "Drift reports that ...".
 - A prefix names every block whose case the old sentence covered: the two cases of a refused drift check, and the unset value and the disagreeing default of a refused package.
 
+### Ledger: group 9, the four overlap requirements
+
+Forms and lengths (old body, then each new body; validator rule, UTF-16 units). The old lengths are those of the list in "The open changes: the overlap list".
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| The controller's pod and Service stay those of the kustomize tree (operator-module) | b (MODIFIED parent plus ADDED split) | 581 | The controller's pod and Service stay those of the kustomize tree (433); A test compares the module's pod and Service with the kustomize build on every pull request (437) |
+| Release published once after every release job (release-automation) | b (MODIFIED parent plus ADDED splits) | 837 | Release published once after every release job (488); The publish job leaves the Pre-release flag unchanged and succeeds on a published release (254); Only the cascade notify job and the module's image-bump PR job depend on the publish job (301) |
+| Beta prerelease line (release-automation) | b (MODIFIED parent plus ADDED splits) | 1475 | Beta prerelease line (442); A breaking change during beta is a ! in the PR title and advances the beta counter (350); Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule (257); Beta breaks wait for owner sign-off or for the cli that can drive them (343); A label change of a version that carries a suffix needs a release-as value (257) |
+| Release install manifest with digest-pinned image (container-image-publish) | c2 (REMOVED plus ADDED under new names) | 685 | The image-release job renders the install manifest with the image pinned by digest and uploads it (402); The install manifest upload follows the draft-release rule (307); The installer target stays unchanged in behavior (185) |
+
+Why these forms: the three MODIFIED headers are cited by name. `Release published once after every release job` is cited by "Releases are drafts that a publish job makes public" (this change) and by `release-automation` on `main`; `Beta prerelease line` is cited in the proposal and the design of `stop-operator-install-manifest`, which this change does not edit; `The controller's pod and Service stay those of the kustomize tree` is the header the open change MODIFIES. Form b keeps each header, so no citation breaks. The REMOVED header `Release install manifest with digest-pinned image` is cited only by the open change, which this change retargets, so form c2 (three new headers, scenarios moved) fits. `grep -rn --exclude-dir=archive` for the five old headers found no other reference.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A manifest-only edit fails the test | The controller's pod and Service stay those of the kustomize tree, A manifest-only edit fails the test | kept in place under the parent |
+| An object added to the kustomize tree only fails the test | The controller's pod and Service stay those of the kustomize tree, An object added to the kustomize tree only fails the test | kept in place under the parent |
+| All release jobs succeed | Release published once after every release job, All release jobs succeed | kept in place under the parent |
+| A release job fails | Release published once after every release job, A release job fails | kept in place under the parent |
+| Required asset missing | Release published once after every release job, Required asset missing | kept in place under the parent |
+| Module-only release | Release published once after every release job, Module-only release | kept in place under the parent |
+| Beta releases are flagged Pre-release | Beta prerelease line, Beta releases are flagged Pre-release | kept in place under the parent |
+| Breaking change during beta carries its migration note | Beta prerelease line, Breaking change during beta carries its migration note | kept in place under the parent |
+| Operator break waits for a cli that can drive it | Beta prerelease line, Operator break waits for a cli that can drive it | kept in place under the parent |
+| Label flip alone keeps the old label | Beta prerelease line, Label flip alone keeps the old label | kept in place under the parent |
+| GA drops the suffix | Beta prerelease line, GA drops the suffix | kept in place under the parent |
+| Release asset upload | The image-release job renders the install manifest with the image pinned by digest and uploads it, Release asset upload | no (byte equal, checked by the item 3 command) |
+| Install manifest image is immutable | The image-release job renders the install manifest with the image pinned by digest and uploads it, Install manifest image is immutable | no (byte equal, checked by the item 3 command) |
+| Default build-installer unchanged | The installer target stays unchanged in behavior, Default build-installer unchanged | no (byte equal, checked by the item 3 command) |
+
+New scenarios (each restates a case the old text names):
+
+| New place | New scenario | Old text that names the case |
+| --- | --- | --- |
+| A test compares the module's pod and Service with the kustomize build on every pull request | A pull request is compared with the kustomize build | "A test SHALL compare them on every pull request" |
+| The publish job leaves the Pre-release flag unchanged and succeeds on a published release | The Pre-release flag stays as release-please set it | "It SHALL leave the Pre-release flag set by release-please unchanged." |
+| The publish job leaves the Pre-release flag unchanged and succeeds on a published release | A published release is left as it is | "When the release is already published it SHALL succeed without changing anything." |
+| Only the cascade notify job and the module's image-bump PR job depend on the publish job | Only two jobs depend on the publish job | "The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job" |
+| A breaking change during beta is a ! in the PR title and advances the beta counter | A breaking change during beta is a ! in the PR title | "A breaking change is still allowed during beta, but only as a `!` in the PR title" |
+| A breaking change during beta is a ! in the PR title and advances the beta counter | A breaking change advances the beta counter | "It advances the `-beta.N` counter and never moves the module path to a new major." |
+| Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule | A break on a stable line is a new major | "Stable lines (...) keep the normal SemVer rule: a break is a new major." |
+| Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule | The operator module's package follows its 0.x rule | "The operator module's own package follows its 0.x rule instead" |
+| Beta breaks wait for owner sign-off or for the cli that can drive them | A core beta break that forces a catalogs/opm major needs owner sign-off | "A core beta break that would force a catalogs/opm major needs owner sign-off." |
+| A label change of a version that carries a suffix needs a release-as value | A label change needs a release-as value | "a label change needs a `release-as` value" |
+| The install manifest upload follows the draft-release rule | The install manifest upload follows the draft-release rule | "The upload SHALL follow "Release assets upload only to a draft release" in `release-automation`." |
+
+Clauses:
+
+| Old clause | New place | Changed text? |
+| --- | --- | --- |
+| The controller's pod and Service stay those of the kustomize tree: While `config/manager` and `config/default` still produce the operator's install manifest, the set of objects the module renders ... and the bindings' names (a binding is matched by its role and subjects). | The controller's pod and Service stay those of the kustomize tree | verbatim |
+| The controller's pod and Service stay those of the kustomize tree: A test SHALL compare them on every pull request, so the two sources of the install shape cannot drift apart ... | A test compares the module's pod and Service with the kustomize build on every pull request | verbatim; the prefix names the parent and quotes the condition and the subject of "them" from the first sentence |
+| Release published once after every release job: The release workflow SHALL contain a publish job (`publish-release`) that depends on every job producing a release artifact ... and then publishes the draft. | Release published once after every release job | verbatim |
+| Release published once after every release job: It SHALL leave the Pre-release flag set by release-please unchanged. | The publish job leaves the Pre-release flag unchanged and succeeds on a published release | verbatim; the prefix names the parent and "the publish job `publish-release`" (the subject of "It") |
+| Release published once after every release job: When the release is already published it SHALL succeed without changing anything. | The publish job leaves the Pre-release flag unchanged and succeeds on a published release | verbatim; same prefix |
+| Release published once after every release job: The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`), neither of which produces a release artifact. | Only the cascade notify job and the module's image-bump PR job depend on the publish job | verbatim; the prefix names the parent and "the publish job `publish-release`" (the subject of "it") |
+| Beta prerelease line: The release-please package `"."` SHALL be configured with `versioning: prerelease`, ... beta line. | Beta prerelease line | verbatim |
+| Beta prerelease line: From its first beta, a prerelease line (...) is on the path to GA. | Beta prerelease line | verbatim |
+| Beta prerelease line: Every beta GitHub Release SHALL be flagged Pre-release. | Beta prerelease line | verbatim |
+| Beta prerelease line: GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order. | Beta prerelease line | verbatim |
+| Beta prerelease line: A breaking change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), ... never reaches `main`. | A breaking change during beta is a ! in the PR title and advances the beta counter | verbatim |
+| Beta prerelease line: It advances the `-beta.N` counter and never moves the module path to a new major. | A breaking change during beta is a ! in the PR title and advances the beta counter | keyword: "It SHALL advance ... and never move" (strength table) |
+| Beta prerelease line: Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) keep the normal SemVer rule: a break is a new major. | Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule | keyword: "SHALL keep" (strength table) |
+| Beta prerelease line: The operator module's own package follows its 0.x rule instead (`operator-module-release`). | Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule | verbatim |
+| Beta prerelease line: A core beta break that would force a catalogs/opm major needs owner sign-off. | Beta breaks wait for owner sign-off or for the cli that can drive them | verbatim |
+| Beta prerelease line: An operator `feat!` that the released cli cannot drive SHALL merge only after the cli release that can drive it, and no `release-as` value SHALL hop ... during beta. | Beta breaks wait for owner sign-off or for the cli that can drive them | verbatim |
+| Beta prerelease line: Changing `prerelease-type` alone SHALL NOT be relied on to change the label ... (see "Forced version via the release-as config key"). | A label change of a version that carries a suffix needs a release-as value | verbatim |
+| Release install manifest with digest-pinned image: On a gated release run, the image-release job SHALL invoke `task operator:installer IMG=...` ... created by release-please. | The image-release job renders the install manifest with the image pinned by digest and uploads it | verbatim |
+| Release install manifest with digest-pinned image: The upload SHALL follow "Release assets upload only to a draft release" in `release-automation`. | The install manifest upload follows the draft-release rule | verbatim; the prefix names The image-release job renders the install manifest with the image pinned by digest and uploads it and quotes "the upload of that file as an asset on the draft GitHub release created by release-please" |
+| Release install manifest with digest-pinned image: The existing `task operator:installer` target SHALL remain unchanged in behavior and its default invocation (no `IMG` override) SHALL still produce a manifest using `controller:latest`. | The installer target stays unchanged in behavior | verbatim |
+
+Every part of a block that is not the first has the prefix `As in requirement "<header>": ` (the pointer of the units before); the prefix, the parenthesis that quotes a subject or a condition, and the two keywords are the only added words. The two keyword sentences are in the strength table. A block needs a keyword: `A breaking change during beta is a ! in the PR title and advances the beta counter` and `Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule` hold a sentence that had none, so each gains one on a rule of the spec (the beta counter, the stable lines); `Beta breaks wait for owner sign-off or for the cli that can drive them` and `A label change of a version that carries a suffix needs a release-as value` already hold a SHALL.
+
+Retarget of `stop-operator-install-manifest` (each part is the delta text cut at the boundary of the main split, verbatim; the prefix is the only added text and names the subject in the delta's own words):
+
+| Delta block (old header) | Delta op | New block of the delta | What it holds |
+| --- | --- | --- | --- |
+| The controller's pod and Service stay those of the kustomize tree | MODIFIED | MODIFIED The controller's pod and Service stay those of the kustomize tree (427) | the delta's first sentence, with the scenario "A manifest-only edit fails the test" and the restored scenario "An object added to the kustomize tree only fails the test" (byte equal to `origin/main`) |
+| The controller's pod and Service stay those of the kustomize tree | MODIFIED | MODIFIED A test compares the module's pod and Service with the kustomize build on every pull request (411) | the delta's second and third sentences, with the new scenario of the main block (byte equal to the main delta) |
+| Release published once after every release job | MODIFIED | MODIFIED Release published once after every release job (446) | the delta's first sentence ("a final job ..."), with the four scenarios as the delta wrote them |
+| Release published once after every release job | MODIFIED | MODIFIED The publish job leaves the Pre-release flag unchanged and succeeds on a published release (372) | the delta's Pre-release sentence, its "already published" sentence and its last sentence ("An operator release SHALL NOT carry `install.yaml` ..."), with the two new scenarios of the main block and the delta's scenario "No operator manifest" |
+| Release published once after every release job | MODIFIED | not modified: Only the cascade notify job and the module's image-bump PR job depend on the publish job | the delta has no sentence for it; it did not change "The only jobs that SHALL depend on it ...", so the main text stays |
+| Beta prerelease line | MODIFIED | MODIFIED Beta prerelease line (442) | the parent body (the delta text equals the main text), with the five scenarios, the first as the delta wrote it ("the image and the example assets") |
+| Beta prerelease line | MODIFIED | not modified: A breaking change during beta is a ! in the PR title and advances the beta counter, Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule, Beta breaks wait for owner sign-off or for the cli that can drive them, A label change of a version that carries a suffix needs a release-as value | the delta text of these sentences equals the main text; the delta did not change them |
+| Release install manifest with digest-pinned image | REMOVED | REMOVED The image-release job renders the install manifest with the image pinned by digest and uploads it; REMOVED The install manifest upload follows the draft-release rule; REMOVED The installer target stays unchanged in behavior | one REMOVED block per new header, each with the Reason and Migration lines of the old block, verbatim; together they remove what the old block removed |
+| Release assets upload only to a draft release | MODIFIED | unchanged | 488 characters (437 in the delta), no change |
+
+The last sentence of the delta of `Release published once after every release job` ("An operator release SHALL NOT carry `install.yaml` ...") has no counterpart in the main split. It follows the second and third sentences in the delta text, so it stays in the block that holds them, and its scenario "No operator manifest" goes with it. The delta does not repeat "The only jobs that SHALL depend on it ..." of `Only the cascade notify job and the module's image-bump PR job depend on the publish job`; archived in the order of the gate, that sentence stays on `main` because its block is not modified. Whether the delta meant to drop it is a question for the author of the open change.
+
 ## Strength table
 
 Every sentence that gains SHALL, MUST or MAY, collected from the clause tables of all units, with
@@ -1950,6 +2041,8 @@ the old sentence.
 | The Platform status update and an operatorVersion change re-enqueue ModulePackages | The trigger SHALL include the Platform reconciler's own status update, which does not bump the Platform's generation. | The trigger includes the Platform reconciler's own status update, which does not bump the Platform's generation. |
 | The Platform status update and an operatorVersion change re-enqueue ModulePackages | A `status.operatorVersion` change SHALL re-enqueue because, after an operator upgrade, it is the only status change the regenerated Platform writes. | A `status.operatorVersion` change re-enqueues because, after an operator upgrade, it is the only status change the regenerated Platform writes. |
 | The text in front of the findings is the kernel's | The text in front of the findings is the kernel's and SHALL NOT be changed: for a failure the kernel reports under `Kernel.AcquireInstanceFromDir: instance "<name>": ` it holds no directory, so the wh ... | The text in front of the findings is the kernel's and is not changed: for a failure the kernel reports under `Kernel.AcquireInstanceFromDir: instance "<name>": ` it holds no directory, so the whole me ... |
+| A breaking change during beta is a ! in the PR title and advances the beta counter | It SHALL advance the `-beta.N` counter and never move the module path to a new major. | It advances the `-beta.N` counter and never moves the module path to a new major. |
+| Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule | Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) SHALL keep the normal SemVer rule: a break is a new major. | Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) keep the normal SemVer rule: a break is a new major. |
 
 ## The gate
 

@@ -122,3 +122,25 @@ As in requirement "The operator's tuning values are typed in #config and rendere
 
 - **WHEN** the module is rendered with a memory limit given as a plain number of bytes, such as `4294967296`, in decimal units, such as `"4G"`, or as a fraction, such as `"1.5Gi"`
 - **THEN** the render fails with a message naming the accepted forms, `<n>Mi` and `<n>Gi`
+
+### Requirement: A test compares the module's pod and Service with the kustomize build on every pull request
+As in requirement "The controller's pod and Service stay those of the kustomize tree" (While `config/manager` and `config/default` still produce the operator's install manifest, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service): A test SHALL compare them on every pull request, so the two sources of the install shape cannot drift apart before the module becomes the only one.
+
+#### Scenario: A pull request is compared with the kustomize build
+- **WHEN** a pull request is opened
+- **THEN** a test compares the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service with those of a kustomize build of `config/default`
+
+## MODIFIED Requirements
+
+### Requirement: The controller's pod and Service stay those of the kustomize tree
+While `config/manager` and `config/default` still produce the operator's install manifest, the set of objects the module renders, the controller Deployment's spec and pod spec, and the metrics Service SHALL equal those of a kustomize build of `config/default`, apart from the image, labels, the selector, the fields the catalog sets to Kubernetes API defaults, and the bindings' names (a binding is matched by its role and subjects).
+
+#### Scenario: A manifest-only edit fails the test
+
+- **WHEN** a pull request changes the manager container's arguments, probes, environment, volumes or security context in `config/manager` and not in the module
+- **THEN** the module's render test fails naming the differing field
+
+#### Scenario: An object added to the kustomize tree only fails the test
+
+- **WHEN** a pull request adds an object to `config/default`, such as a binding in `config/rbac` that grants the controller's ServiceAccount an existing role, and not to the module
+- **THEN** the module's render test fails naming the object, a binding by its role and subjects
