@@ -108,6 +108,7 @@ The reconciler SHALL read each inventory object uncached. When an effective Serv
 
 ### Requirement: Health is read only after the apply
 The reconciler SHALL read each inventory object uncached. On a successful apply it SHALL read only after the apply and prune have returned. The reconciler SHALL NOT set `Healthy=True` from a read taken before the apply it reports on.
+**Source**: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module") (the frontend fetches every object with its own client).
 
 #### Scenario: A just-updated Deployment is not reported rolled out
 
@@ -115,7 +116,8 @@ The reconciler SHALL read each inventory object uncached. On a successful apply 
 - **THEN** `Healthy` is `False` with reason `NotRolledOut`
 
 ### Requirement: Health reads are bounded
-Reads SHALL run with at most 8 in flight and SHALL share one deadline of 30 seconds. A read that does not finish within it counts as unreadable.
+The reconciler SHALL read each inventory object uncached. Reads SHALL run with at most 8 in flight and SHALL share one deadline of 30 seconds. A read that does not finish within it counts as unreadable.
+**Source**: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module") (the frontend fetches every object with its own client).
 
 #### Scenario: A read that does not finish in time counts as unreadable
 - **GIVEN** an instance whose health read does not finish within the shared deadline of 30 seconds
@@ -124,6 +126,7 @@ Reads SHALL run with at most 8 in flight and SHALL share one deadline of 30 seco
 
 ### Requirement: An unbuildable impersonated reader makes Healthy Unknown
 When the impersonated reader cannot be built, `Healthy` SHALL be `Unknown` with reason `HealthUnknown`.
+**Source**: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module") (the frontend fetches every object with its own client).
 
 #### Scenario: A missing ServiceAccount on a skip
 
