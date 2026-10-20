@@ -94,7 +94,7 @@ On a gated release run, the image-release job SHALL invoke `task operator:instal
 - **THEN** the controller Deployment SHALL pull the image by digest, guaranteeing the exact bytes from the release regardless of future tag movement
 
 ### Requirement: The install manifest upload follows the draft-release rule
-As in requirement "The image-release job renders the install manifest with the image pinned by digest and uploads it" (the upload of that file as an asset on the draft GitHub release created by release-please): The upload SHALL follow "Release assets upload only to a draft release" in `release-automation`.
+As in requirement "The image-release job renders the install manifest with the image pinned by digest and uploads it" (upload that file as an asset on the draft GitHub release created by release-please): The upload SHALL follow "Release assets upload only to a draft release" in `release-automation`.
 
 #### Scenario: The install manifest upload follows the draft-release rule
 - **WHEN** the image-release job uploads `dist/install.yaml`
