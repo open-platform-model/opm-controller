@@ -810,6 +810,250 @@ Clauses (the rule sentences of each old body and the block that carries each):
 
 Added words (the only ones): subjects and conditions copied from the same old requirement, the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table.
 
+### Ledger: reconcile-loop-assembly
+
+Forms and lengths (old body, then each new body; a MODIFIED parent is measured on its body only):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| Status always patched | c2 (REMOVED plus ADDED under new names) | 2906 | Every reconcile attempt ends with a status patch (351); A successful outcome patches the Healthy condition it judged (236); A NoOp patch is bounded to a fixed set of fields (469); A NoOp patch leaves lastAttempted, history and inventory alone (232); A reconcile that skips its render patches only a changed Healthy condition (351); requiredContracts is in the NoOp patch set (125); A NoOp patch carries requiredContracts because the demand can move without a digest (450); lastAppliedVersion is in the NoOp patch set (431); lastAppliedInputs is in the NoOp patch set while the drift render interval is positive (420); Storm safety comes from the generation predicate (225) |
+| Inventory updated only on full success | c2 (REMOVED plus ADDED under new names) | 947 | The inventory is replaced only after a full success (282); An expired Job entry leaves the inventory (209); An entry the apply verdict refuses as adopted-elsewhere leaves the inventory (366); The inventory digest stays the digest of the rendered set (284); A refused or failed reconcile keeps the inventory (100) |
+| The instance's contract demand is recorded on its status | b (MODIFIED parent plus ADDED split) | 678 | The instance's contract demand is recorded on its status (368); A reconcile that does not render leaves requiredContracts at its previous value (387) |
+| A rendered resource may be withheld from apply | c2 (REMOVED plus ADDED under new names) | 749 | The reconciler evaluates rendered resources and may withhold one (340); Withholding does not change the inventory (337); A reconcile that withheld a resource is not ready and not a no-op (156) |
+| A recovered panic is recorded as a failed attempt | c2 (REMOVED plus ADDED under new names) | 1762 | A recovered panic is never reported as a success (159); A panic is recorded in Ready and history (495); A panic counts one failure (497); A panic keeps the applied state (411); A panicking attempt counts as FailedTransient for counters, history and metrics only (495); A recovered panic is raised again with its original value (272) |
+| The applied module version is recorded in plain text | c2 (REMOVED plus ADDED under new names) | 1820 | The applied module version is recorded on status.lastAppliedVersion (438); The applied version is written with the lastApplied fields on a success (373); A NoOp that rendered sets the applied version (375); A NoOp fills an empty applied version and a render-skipping reconcile leaves it (364); A version that cannot be read does not fail the reconcile (276); The applied version is not an input to no-op detection (179) |
+| A healthy ModuleInstance is reconciled periodically | c2 (REMOVED plus ADDED under new names) | 1167 | The instance reconcile interval comes from a flag (410); A reconciled instance requeues after the interval plus a random addition (360); The periodic requeue sets no nextRetryAt and is not a failure (265); A suspended, CLI-owned or operator instance is not requeued by the interval (260); An unchanged periodic reconcile ends as a skipped render or a NoOp (192) |
+| The instance identities are stored before the first write of an apply | c2 (REMOVED plus ADDED under new names) | 1779 | An instance carries its identity and the earlier one until a change is settled (284); A first identity is stored (424); A changed identity keeps the earlier one (479); A return to the earlier identity swaps the two (411); previousInstanceUUID is cleared only by a full success (292); A reconcile that applies nothing writes an empty instanceUUID and leaves both fields alone otherwise (226); An unsettled identity change is applied and pruned even when the render equals the last apply (302) |
+| A reconcile the apply verdict refuses is retried and not stalled | b (MODIFIED parent plus ADDED split) | 886 | A reconcile the apply verdict refuses is retried and not stalled (418); A reconcile with unchanged digests is not refused for an object being deleted (318); A ModulePackage reconcile on matching digests is refused until the object is gone (327) |
+
+`grep -rn --exclude-dir=archive` for the old headers found `The instance's contract demand is recorded on its status` cited by `kernel-module-renderer` and `A reconcile the apply verdict refuses is retried and not stalled` cited by `modulepackage-reconcile-loop`. Both keep their header (form b: MODIFIED parent with its scenarios, split-off behavior ADDED), so no reference changes. No other old header of this unit is cited outside this spec.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Status updated on failure | Every reconcile attempt ends with a status patch, Status updated on failure | no (byte equal, checked by the item 3 command) |
+| NoOp removes an expired Job entry | A NoOp patch is bounded to a fixed set of fields, NoOp removes an expired Job entry | no (byte equal, checked by the item 3 command) |
+| NoOp patches drift and counters | A NoOp patch leaves lastAttempted, history and inventory alone, NoOp patches drift and counters | no (byte equal, checked by the item 3 command) |
+| A skipped render patches nothing | A reconcile that skips its render patches only a changed Healthy condition, A skipped render patches nothing | no (byte equal, checked by the item 3 command) |
+| A skipped render records a changed health judgement | A reconcile that skips its render patches only a changed Healthy condition, A skipped render records a changed health judgement | no (byte equal, checked by the item 3 command) |
+| NoOp refreshes the demand the render just reported | requiredContracts is in the NoOp patch set, NoOp refreshes the demand the render just reported | no (byte equal, checked by the item 3 command) |
+| NoOp patch does not trigger reconcile loop | Storm safety comes from the generation predicate, NoOp patch does not trigger reconcile loop | no (byte equal, checked by the item 3 command) |
+| Partial failure preserves inventory | The inventory is replaced only after a full success, Partial failure preserves inventory | no (byte equal, checked by the item 3 command) |
+| An expired Job leaves the inventory without an apply | An expired Job entry leaves the inventory, An expired Job leaves the inventory without an apply | no (byte equal, checked by the item 3 command) |
+| An adopted object leaves the inventory without an apply | An entry the apply verdict refuses as adopted-elsewhere leaves the inventory, An adopted object leaves the inventory without an apply | no (byte equal, checked by the item 3 command) |
+| A refused reconcile keeps the inventory | A refused or failed reconcile keeps the inventory, A refused reconcile keeps the inventory | no (byte equal, checked by the item 3 command) |
+| A successful render records the demand | The instance's contract demand is recorded on its status, A successful render records the demand | no (byte equal, checked by the item 3 command) |
+| A failed render leaves the previous value | The instance's contract demand is recorded on its status, A failed render leaves the previous value | no (byte equal, checked by the item 3 command) |
+| The demand follows the spec | The instance's contract demand is recorded on its status, The demand follows the spec | no (byte equal, checked by the item 3 command) |
+| The rest of the module still applies | The reconciler evaluates rendered resources and may withhold one, The rest of the module still applies | no (byte equal, checked by the item 3 command) |
+| Nothing withheld behaves as before | The reconciler evaluates rendered resources and may withhold one, Nothing withheld behaves as before | no (byte equal, checked by the item 3 command) |
+| The withheld resource stays owned | Withholding does not change the inventory, The withheld resource stays owned | no (byte equal, checked by the item 3 command) |
+| A withheld resource keeps the instance unconverged | A reconcile that withheld a resource is not ready and not a no-op, A withheld resource keeps the instance unconverged | no (byte equal, checked by the item 3 command) |
+| A panicking render does not mark a ready instance Ready | A recovered panic is never reported as a success, A panicking render does not mark a ready instance Ready | no (byte equal, checked by the item 3 command) |
+| A panicking render does not mark a ready package Ready | A recovered panic is never reported as a success, A panicking render does not mark a ready package Ready | no (byte equal, checked by the item 3 command) |
+| A panic inside a phase does not reset that phase's counter | A panic counts one failure, A panic inside a phase does not reset that phase's counter | no (byte equal, checked by the item 3 command) |
+| A panic during conversion is recorded and frees the slot | A recovered panic is raised again with its original value, A panic during conversion is recorded and frees the slot | no (byte equal, checked by the item 3 command) |
+| A successful apply records the module version | The applied module version is recorded on status.lastAppliedVersion, A successful apply records the module version | no (byte equal, checked by the item 3 command) |
+| A ModulePackage records the version of the module its instance renders | The applied module version is recorded on status.lastAppliedVersion, A ModulePackage records the version of the module its instance renders | no (byte equal, checked by the item 3 command) |
+| A failed apply keeps the previous version | The applied version is written with the lastApplied fields on a success, A failed apply keeps the previous version | no (byte equal, checked by the item 3 command) |
+| A NoOp fills an empty field | A NoOp fills an empty applied version and a render-skipping reconcile leaves it, A NoOp fills an empty field | no (byte equal, checked by the item 3 command) |
+| A NoOp after an ownership handback corrects a stale version | A NoOp fills an empty applied version and a render-skipping reconcile leaves it, A NoOp after an ownership handback corrects a stale version | no (byte equal, checked by the item 3 command) |
+| An apply whose render reports no version clears the field | A version that cannot be read does not fail the reconcile, An apply whose render reports no version clears the field | no (byte equal, checked by the item 3 command) |
+| The interval is disabled | The instance reconcile interval comes from a flag, The interval is disabled | no (byte equal, checked by the item 3 command) |
+| A negative interval stops the operator | The instance reconcile interval comes from a flag, A negative interval stops the operator | no (byte equal, checked by the item 3 command) |
+| A rolled-out instance requeues on the interval | A reconciled instance requeues after the interval plus a random addition, A rolled-out instance requeues on the interval | no (byte equal, checked by the item 3 command) |
+| A NoOp and a skipped render requeue on the interval | A reconciled instance requeues after the interval plus a random addition, A NoOp and a skipped render requeue on the interval | no (byte equal, checked by the item 3 command) |
+| A suspended instance is not requeued | A suspended, CLI-owned or operator instance is not requeued by the interval, A suspended instance is not requeued | no (byte equal, checked by the item 3 command) |
+| A CLI-owned instance is not requeued | A suspended, CLI-owned or operator instance is not requeued by the interval, A CLI-owned instance is not requeued | no (byte equal, checked by the item 3 command) |
+| A skipped periodic reconcile writes nothing | An unchanged periodic reconcile ends as a skipped render or a NoOp, A skipped periodic reconcile writes nothing | no (byte equal, checked by the item 3 command) |
+| First reconcile records the identity | A first identity is stored, First reconcile records the identity | no (byte equal, checked by the item 3 command) |
+| The identities cannot be stored | A first identity is stored, The identities cannot be stored | no (byte equal, checked by the item 3 command) |
+| Both identities are stored before the apply | A changed identity keeps the earlier one, Both identities are stored before the apply | no (byte equal, checked by the item 3 command) |
+| Going back before the change is settled | A return to the earlier identity swaps the two, Going back before the change is settled | no (byte equal, checked by the item 3 command) |
+| Full success settles the change | previousInstanceUUID is cleared only by a full success, Full success settles the change | no (byte equal, checked by the item 3 command) |
+| A refused apply keeps both identities | previousInstanceUUID is cleared only by a full success, A refused apply keeps both identities | no (byte equal, checked by the item 3 command) |
+| A panic keeps both identities | previousInstanceUUID is cleared only by a full success, A panic keeps both identities | no (byte equal, checked by the item 3 command) |
+| An object without the field gains it without an apply | A reconcile that applies nothing writes an empty instanceUUID and leaves both fields alone otherwise, An object without the field gains it without an apply | no (byte equal, checked by the item 3 command) |
+| Going back renders what was last applied | An unsettled identity change is applied and pruned even when the render equals the last apply, Going back renders what was last applied | no (byte equal, checked by the item 3 command) |
+| A refusal is transient | A reconcile the apply verdict refuses is retried and not stalled, A refusal is transient | no (byte equal, checked by the item 3 command) |
+| The refusal ends when the object is adopted | A reconcile the apply verdict refuses is retried and not stalled, The refusal ends when the object is adopted | no (byte equal, checked by the item 3 command) |
+| A refused identity change stores nothing | A reconcile the apply verdict refuses is retried and not stalled, A refused identity change stores nothing | no (byte equal, checked by the item 3 command) |
+| An inventoried object being deleted on unchanged digests | A reconcile the apply verdict refuses is retried and not stalled, An inventoried object being deleted on unchanged digests | no (byte equal, checked by the item 3 command) |
+| A rendered object held by another instance on unchanged digests | A reconcile the apply verdict refuses is retried and not stalled, A rendered object held by another instance on unchanged digests | no (byte equal, checked by the item 3 command) |
+
+New scenarios (each restates a case the old text names):
+
+| New place | New scenario | Old text that names the case |
+| --- | --- | --- |
+| A successful outcome patches the Healthy condition it judged | A failed attempt leaves Healthy as it was | the sentence(s) of this block |
+| A NoOp patch carries requiredContracts because the demand can move without a digest | A regenerated platform moves the demand without a digest change | the sentence(s) of this block |
+| lastAppliedVersion is in the NoOp patch set | A NoOp that rendered writes the version it reported | the sentence(s) of this block |
+| lastAppliedInputs is in the NoOp patch set while the drift render interval is positive | A NoOp does not write lastAppliedInputs while the drift render interval is zero | the sentence(s) of this block |
+| The inventory digest stays the digest of the rendered set | A removal leaves the digest of the rendered set | the sentence(s) of this block |
+| A reconcile that does not render leaves requiredContracts at its previous value | A suspended instance leaves the previous value | the sentence(s) of this block |
+| A panic is recorded in Ready and history | A panic is recorded in Ready and history | the sentence(s) of this block |
+| A panic keeps the applied state | A panic clears nextRetryAt and keeps the applied state | the sentence(s) of this block |
+| A panicking attempt counts as FailedTransient for counters, history and metrics only | A panicking attempt returns no ctrl.Result | the sentence(s) of this block |
+| A NoOp that rendered sets the applied version | A NoOp that rendered sets the version the render reported | the sentence(s) of this block |
+| A NoOp fills an empty applied version and a render-skipping reconcile leaves it | A reconcile that skips its render leaves the applied version | the sentence(s) of this block |
+| The applied version is not an input to no-op detection | The applied version is not compared by no-op detection | the sentence(s) of this block |
+| The periodic requeue sets no nextRetryAt and is not a failure | The periodic requeue is not a failure | the sentence(s) of this block |
+| An instance carries its identity and the earlier one until a change is settled | An unsettled change of identity carries both identities | the sentence(s) of this block |
+| A reconcile with unchanged digests is not refused for an object being deleted | A no-op over an inventoried object being deleted is not refused | the sentence(s) of this block |
+| A ModulePackage reconcile on matching digests is refused until the object is gone | A ModulePackage reconcile on matching digests is refused until the object is gone | the sentence(s) of this block |
+
+Clauses (the rule sentences of each old body and the block that carries each):
+
+| Old clause | New requirement | Note |
+| --- | --- | --- |
+| Status always patched #1: The reconciler MUST patch `ModuleRelease.status` at the end of every reconcile attempt, including `NoOp`. | Every reconcile attempt ends with a status patch | verbatim |
+| Status always patched #2: On meaningful outcomes (`Applied`, `AppliedAndPruned`, `FailedTransient`, `FailedStalled`), the patch updates ... | Every reconcile attempt ends with a status patch | keyword added (strength table) |
+| Status always patched #3: On `NoOp`, the patch is bounded to: drift condition (`Drifted`), the `Healthy` condition (`instance-health`), ... | A NoOp patch is bounded to a fixed set of fields | keyword added (strength table) |
+| Status always patched #4: `lastAttempted*` and history MUST NOT be modified on `NoOp`, and `inventory` MUST NOT be modified in any other... | A NoOp patch leaves lastAttempted, history and inventory alone | verbatim |
+| Status always patched #5: A reconcile that skips its render because its inputs are unchanged (`render-input-key`) is not an attempt. | A reconcile that skips its render patches only a changed Healthy condition | keyword added (strength table) |
+| Status always patched #6: It judges health (`instance-health`) and MUST NOT patch anything but the `Healthy` condition, which it patches... | A reconcile that skips its render patches only a changed Healthy condition | verbatim |
+| Status always patched #7: On a successful outcome the patch also carries the `Healthy` condition the reconcile judged (`instance-health`... | A successful outcome patches the Healthy condition it judged | keyword added (strength table) |
+| Status always patched #8: A failed attempt leaves `Healthy` as it was. | A successful outcome patches the Healthy condition it judged | keyword added (strength table) |
+| Status always patched #9: `requiredContracts` is in the `NoOp` set deliberately, and it is the one field there that does not describe an... | requiredContracts is in the NoOp patch set | keyword added (strength table) |
+| Status always patched #10: It describes what the instance demands, which a reconcile can observe as changed without any digest changing: ... | A NoOp patch carries requiredContracts because the demand can move without a digest | keyword added (strength table) |
+| Status always patched #11: Bounding it out of the `NoOp` patch would leave the field describing a render the operator has already superse... | A NoOp patch carries requiredContracts because the demand can move without a digest | verbatim |
+| Status always patched #12: `lastAppliedVersion` is in the `NoOp` set because a `NoOp` re-proves it. | lastAppliedVersion is in the NoOp patch set | keyword added (strength table) |
+| Status always patched #13: A `NoOp` means the source digest equals the last apply's, and the source digest pins the module version, so th... | lastAppliedVersion is in the NoOp patch set | verbatim |
+| Status always patched #14: Writing it fills the field on an object applied before it existed and corrects it after an ownership handback. | lastAppliedVersion is in the NoOp patch set | verbatim |
+| Status always patched #15: A reconcile that did not render leaves it as it was. | lastAppliedVersion is in the NoOp patch set | keyword added (strength table) |
+| Status always patched #16: `lastAppliedInputs` is in the `NoOp` set for the same reason: a `NoOp` that rendered proves the cluster holds ... | lastAppliedInputs is in the NoOp patch set while the drift render interval is positive | keyword added (strength table) |
+| Status always patched #17: It is written on a `NoOp` only while the drift render interval is greater than zero; with the skip disabled no... | lastAppliedInputs is in the NoOp patch set while the drift render interval is positive | keyword added (strength table) |
+| Status always patched #18: Storm safety is provided by `WithEventFilter(predicate.GenerationChangedPredicate{})` on the controller. | Storm safety comes from the generation predicate | keyword added (strength table) |
+| Status always patched #19: Status subresource patches do not bump `metadata.generation`, so the predicate filters them at the watch bound... | Storm safety comes from the generation predicate | verbatim |
+| Inventory updated only on full success #1: The `status.inventory` MUST only be replaced after a fully successful apply (and prune, if enabled). | The inventory is replaced only after a full success | verbatim |
+| Inventory updated only on full success #2: Two narrower writes are allowed. | The inventory is replaced only after a full success | verbatim |
+| Inventory updated only on full success #3: A ModuleInstance reconcile whose digests are unchanged MUST remove the entries of expired Jobs (`drift-detecti... | An expired Job entry leaves the inventory | verbatim |
+| Inventory updated only on full success #4: A reconcile that renders MUST leave out of the inventory it records, on a `NoOp` as well, the entry of every o... | An entry the apply verdict refuses as adopted-elsewhere leaves the inventory | verbatim |
+| Inventory updated only on full success #5: `status.inventory.digest` MUST stay the digest of the rendered set, so after such a removal it is not the dige... | The inventory digest stays the digest of the rendered set | verbatim |
+| Inventory updated only on full success #6: A reconcile that is refused by the apply verdict, or that fails, MUST NOT change `status.inventory`. | A refused or failed reconcile keeps the inventory | verbatim |
+| The instance's contract demand is recorded on its status #1: The reconciler SHALL record on `ModuleInstance.status.requiredContracts` the set of contract FQNs the instance... | The instance's contract demand is recorded on its status | verbatim |
+| The instance's contract demand is recorded on its status #2: The field SHALL be derived from the rendered instance and SHALL NOT be readable from, or influenced by, anythi... | The instance's contract demand is recorded on its status | verbatim |
+| The instance's contract demand is recorded on its status #3: A reconcile that does not render SHALL leave the field at its previous value. | A reconcile that does not render leaves requiredContracts at its previous value | verbatim |
+| The instance's contract demand is recorded on its status #4: This includes a failed render, a suspended instance and a CLI-owned instance: a stale value over-reports deman... | A reconcile that does not render leaves requiredContracts at its previous value | verbatim |
+| A rendered resource may be withheld from apply #1: The reconciler SHALL evaluate the rendered resources before applying them and MAY withhold an individual resou... | The reconciler evaluates rendered resources and may withhold one | verbatim |
+| A rendered resource may be withheld from apply #2: A withheld resource SHALL NOT be applied, and every other rendered resource SHALL be applied as usual, so one ... | The reconciler evaluates rendered resources and may withhold one | verbatim |
+| A rendered resource may be withheld from apply #3: Withholding SHALL NOT change the inventory. | Withholding does not change the inventory | verbatim |
+| A rendered resource may be withheld from apply #4: The inventory records which resources the instance owns, and the operator still owns a resource it declined to... | Withholding does not change the inventory | verbatim |
+| A rendered resource may be withheld from apply #5: A reconcile that withheld a resource SHALL NOT report ready and SHALL NOT be treated as a no-op, because the c... | A reconcile that withheld a resource is not ready and not a no-op | verbatim |
+| A recovered panic is recorded as a failed attempt #1: When a ModuleInstance or ModulePackage reconcile panics after its deferred status commit is installed, the rec... | A recovered panic is never reported as a success | verbatim |
+| A recovered panic is recorded as a failed attempt #2: Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient fai... | A panic is recorded in Ready and history | verbatim |
+| A recovered panic is recorded as a failed attempt #3: - `Ready=False` with reason `ReconcilePanic` and a message that starts with `reconcile panicked: | A panic is recorded in Ready and history | verbatim |
+| A recovered panic is recorded as a failed attempt #4: ` followed by the panic value. | A panic is recorded in Ready and history | verbatim |
+| A recovered panic is recorded as a failed attempt #5: - `Reconciling=True`, and no `Stalled` condition. | A panic is recorded in Ready and history | verbatim |
+| A recovered panic is recorded as a failed attempt #6: - `lastAttempted*` set for this attempt, and a failure history entry carrying the same message. | A panic is recorded in Ready and history | verbatim |
+| A recovered panic is recorded as a failed attempt #7: - `failureCounters.reconcile` incremented, as for any `FailedTransient` outcome. | A panic counts one failure | verbatim |
+| A recovered panic is recorded as a failed attempt #8: - The drift, apply and prune failure counters left as they were. | A panic counts one failure | verbatim |
+| A recovered panic is recorded as a failed attempt #9: A phase that was in flight when the panic hit did not succeed, so a panicking attempt never resets a phase cou... | A panic counts one failure | verbatim |
+| A recovered panic is recorded as a failed attempt #10: - `nextRetryAt` cleared, because the retry is scheduled by the controller runtime's rate limiter, not by the o... | A panic keeps the applied state | verbatim |
+| A recovered panic is recorded as a failed attempt #11: - `lastApplied*` and `inventory` left as they were. | A panic keeps the applied state | verbatim |
+| A recovered panic is recorded as a failed attempt #12: Fields the attempt already wrote on the object before the panic (`requiredContracts`, `instanceUUID`, the `Dri... | A panicking attempt counts as FailedTransient for counters, history and metrics only | keyword added (strength table) |
+| A recovered panic is recorded as a failed attempt #13: A panicking attempt is counted as `FailedTransient` for failure counters, history and reconcile metrics only. | A panicking attempt counts as FailedTransient for counters, history and metrics only | keyword added (strength table) |
+| A recovered panic is recorded as a failed attempt #14: It returns no `ctrl.Result`: the requeue scenarios of "Outcome classification" and the `nextRetryAt` rule of t... | A panicking attempt counts as FailedTransient for counters, history and metrics only | keyword added (strength table) |
+| A recovered panic is recorded as a failed attempt #15: The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, log... | A recovered panic is raised again with its original value | verbatim |
+| A recovered panic is recorded as a failed attempt #16: The operator SHOULD log the panic value with the object's name and namespace before it re-panics. | A recovered panic is raised again with its original value | verbatim |
+| The applied module version is recorded in plain text #1: The ModuleInstance and ModulePackage reconcilers SHALL record on `status.lastAppliedVersion` the version of th... | The applied module version is recorded on status.lastAppliedVersion | verbatim |
+| The applied module version is recorded in plain text #2: The value SHALL be the version the rendered instance's source module declares in its `metadata.version` (bare ... | The applied module version is recorded on status.lastAppliedVersion | verbatim |
+| The applied module version is recorded in plain text #3: The field SHALL be written together with the other `lastApplied*` fields, on an attempt whose apply (and prune... | The applied version is written with the lastApplied fields on a success | verbatim |
+| The applied module version is recorded in plain text #4: An attempt that fails, panics, is suspended, belongs to a CLI-owned instance, or is the operator's own instanc... | The applied version is written with the lastApplied fields on a success | verbatim |
+| The applied module version is recorded in plain text #5: When the outcome is `NoOp` and the attempt rendered, the reconciler SHALL set it to the version that render re... | A NoOp that rendered sets the applied version | verbatim |
+| The applied module version is recorded in plain text #6: This fills the field on an object applied before it existed and corrects it after an ownership handback, where... | A NoOp fills an empty applied version and a render-skipping reconcile leaves it | verbatim |
+| The applied module version is recorded in plain text #7: A reconcile that did not render (for example one that skips the render because its inputs are unchanged) SHALL... | A NoOp fills an empty applied version and a render-skipping reconcile leaves it | verbatim |
+| The applied module version is recorded in plain text #8: A version that cannot be read as a concrete string SHALL NOT fail the reconcile. | A version that cannot be read does not fail the reconcile | verbatim |
+| The applied module version is recorded in plain text #9: A successful apply then writes the field empty, so it never names a version the last apply did not render. | A version that cannot be read does not fail the reconcile | verbatim |
+| The applied module version is recorded in plain text #10: The version SHALL NOT be an input to no-op detection; the source digest already covers it. | The applied version is not an input to no-op detection | verbatim |
+| The applied module version is recorded in plain text #11: Source: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Operator adds an additive status.lastA... | The applied module version is recorded on status.lastAppliedVersion | the citation moves to a `**Source**:` metadata line of this block (full old Source line) |
+| A healthy ModuleInstance is reconciled periodically #1: The operator SHALL take an instance reconcile interval from the flag `--instance-reconcile-interval` (default ... | The instance reconcile interval comes from a flag | verbatim |
+| A healthy ModuleInstance is reconciled periodically #2: When a ModuleInstance reconcile ends with outcome `NoOp`, `Applied` or `AppliedAndPruned`, or skips its render... | A reconciled instance requeues after the interval plus a random addition | verbatim |
+| A healthy ModuleInstance is reconciled periodically #3: When the health judgement asks for a requeue, that requeue SHALL apply unchanged. | The periodic requeue sets no nextRetryAt and is not a failure | verbatim |
+| A healthy ModuleInstance is reconciled periodically #4: The periodic requeue SHALL NOT set `status.nextRetryAt` and SHALL NOT count as a failure. | The periodic requeue sets no nextRetryAt and is not a failure | verbatim |
+| A healthy ModuleInstance is reconciled periodically #5: An interval of `0` SHALL disable the periodic requeue. | The instance reconcile interval comes from a flag | verbatim |
+| A healthy ModuleInstance is reconciled periodically #6: The operator MUST refuse to start with a negative interval. | The instance reconcile interval comes from a flag | verbatim |
+| A healthy ModuleInstance is reconciled periodically #7: The interval is operator-wide: the ModuleInstance API SHALL NOT gain a field for it. | The instance reconcile interval comes from a flag | verbatim |
+| A healthy ModuleInstance is reconciled periodically #8: A suspended ModuleInstance, a CLI-owned ModuleInstance and the operator's own instance SHALL NOT be requeued b... | A suspended, CLI-owned or operator instance is not requeued by the interval | verbatim |
+| A healthy ModuleInstance is reconciled periodically #9: A failed reconcile SHALL keep the requeue of its failure class. | A suspended, CLI-owned or operator instance is not requeued by the interval | verbatim |
+| A healthy ModuleInstance is reconciled periodically #10: The periodic reconcile of an instance whose inputs and objects are unchanged SHALL end as a skipped render or ... | An unchanged periodic reconcile ends as a skipped render or a NoOp | verbatim |
+| The instance identities are stored before the first write of an apply #1: A ModuleInstance and a ModulePackage MUST carry in `status.instanceUUID` the identity of the instance the oper... | An instance carries its identity and the earlier one until a change is settled | verbatim |
+| The instance identities are stored before the first write of an apply #2: Source: owner decision of 2026-10-08 (the status holds the earlier and the new identity until the prune of tha... | An instance carries its identity and the earlier one until a change is settled | the citation moves to a `**Source**:` metadata line of this block (full old Source line) |
+| The instance identities are stored before the first write of an apply #3: When a render's identity differs from `status.instanceUUID`, the reconciler MUST store the new state in the ob... | A first identity is stored | verbatim |
+| The instance identities are stored before the first write of an apply #4: - `status.instanceUUID` empty: it becomes the render's identity and `status.previousInstanceUUID` stays empty. | A first identity is stored | verbatim |
+| The instance identities are stored before the first write of an apply #5: - `status.instanceUUID` is `A`, `status.previousInstanceUUID` is empty and the render carries `B`: | A changed identity keeps the earlier one | verbatim |
+| The instance identities are stored before the first write of an apply #6: `status.instanceUUID` becomes `B` and `status.previousInstanceUUID` becomes `A`. | A changed identity keeps the earlier one | verbatim |
+| The instance identities are stored before the first write of an apply #7: - `status.instanceUUID` is `B`, `status.previousInstanceUUID` is `A` and the render carries `A`: the two value... | A return to the earlier identity swaps the two | verbatim |
+| The instance identities are stored before the first write of an apply #8: `status.previousInstanceUUID` MUST be cleared in the status commit of a reconcile whose apply and prune succee... | previousInstanceUUID is cleared only by a full success | verbatim |
+| The instance identities are stored before the first write of an apply #9: A reconcile that applies nothing MUST write `status.instanceUUID` when it is empty and MUST leave both fields ... | A reconcile that applies nothing writes an empty instanceUUID and leaves both fields alone otherwise | verbatim |
+| The instance identities are stored before the first write of an apply #10: While `status.previousInstanceUUID` is set, or a render is about to set it, a reconcile MUST NOT end as one th... | An unsettled identity change is applied and pruned even when the render equals the last apply | verbatim |
+| A reconcile the apply verdict refuses is retried and not stalled #1: When the apply verdict refuses a reconcile (`ssa-apply`, "An apply is judged by the ownership verdict before i... | A reconcile the apply verdict refuses is retried and not stalled | verbatim |
+| A reconcile the apply verdict refuses is retried and not stalled #2: `status.inventory`, the applied digests, `status.instanceUUID` and `status.previousInstanceUUID` MUST keep the... | A reconcile the apply verdict refuses is retried and not stalled | verbatim |
+| A reconcile the apply verdict refuses is retried and not stalled #3: A reconcile whose digests are unchanged MUST NOT refuse because an inventoried object is being deleted, when i... | A reconcile with unchanged digests is not refused for an object being deleted | verbatim |
+| A reconcile the apply verdict refuses is retried and not stalled #4: A ModulePackage reconcile that applies on matching digests (`modulepackage-reconcile-loop`, "No-op detection")... | A ModulePackage reconcile on matching digests is refused until the object is gone | verbatim |
+
+Added words (the only ones): subjects and conditions copied from the same old requirement, the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table. Sentences left without a keyword because they explain a rule and state none: "Two narrower writes are allowed.", "A `NoOp` means the source digest equals the last apply's, ...", "Writing it fills the field ...", "Bounding it out of the `NoOp` patch would leave ...", "Status subresource patches do not bump `metadata.generation`, ...", "This fills the field ...". A cut list repeats the lead-in sentence of the old body in each part and names the other parts; the first block of a cut carries the lead-in with `the panic` as in the old body. In "A recovered panic is recorded as a failed attempt" the sentences of the closing paragraphs are regrouped (counted as `FailedTransient`, no `ctrl.Result`, fields already written) in one block; their order within it follows the sentence that names the subject first.
+
+### Ledger: operator-module
+
+Forms and lengths (old body, then each new body; a MODIFIED parent is measured on its body only):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| The module names the one operator release it deploys | c2 (REMOVED plus ADDED under new names) | 569 | The module carries its own version and names one operator image (443); Every rendered controller container runs the image the module names (210) |
+| Every object renders through a catalog resource | c2 (REMOVED plus ADDED under new names) | 770 | Operator objects render through the catalog resource made for their kind (486); Administrator ClusterRoles render unbound through the raw-objects resource (373) |
+| Names stay those of the earlier manifest | c2 (REMOVED plus ADDED under new names) | 970 | Fixed names: namespaced objects (458); Fixed names: first ClusterRoles (447); Fixed names: other ClusterRoles (483); Fixed names: CRDs (360) |
+| The operator's tuning is typed instance values | c2 (REMOVED plus ADDED under new names) | 956 | The operator's tuning values are typed in #config and rendered into the Deployment (495); Defaults reproduce the earlier manifest's Deployment and each resource quantity defaults on its own (381); The memory limit always resolves and sets GOMEMLIMIT (286) |
+
+`grep -rn --exclude-dir=archive` for the old headers found no reference outside this spec. The overlap requirement "The controller's pod and Service stay those of the kustomize tree" is not in this unit (group 9).
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The operator version is read without a render | The module carries its own version and names one operator image, The operator version is read without a render | no (byte equal, checked by the item 3 command) |
+| The rendered image matches the named release | Every rendered controller container runs the image the module names, The rendered image matches the named release | no (byte equal, checked by the item 3 command) |
+| The render contains the whole install shape | Operator objects render through the catalog resource made for their kind, The render contains the whole install shape | no (byte equal, checked by the item 3 command) |
+| Raw objects only for the administrator roles | Administrator ClusterRoles render unbound through the raw-objects resource, Raw objects only for the administrator roles | no (byte equal, checked by the item 3 command) |
+| Administrator roles render unbound | Administrator ClusterRoles render unbound through the raw-objects resource, Administrator roles render unbound | no (byte equal, checked by the item 3 command) |
+| The fixed names render | Fixed names: namespaced objects, The fixed names render | no (byte equal, checked by the item 3 command) |
+| Bindings take catalog names | Fixed names: other ClusterRoles, Bindings take catalog names | no (byte equal, checked by the item 3 command) |
+| Every value reaches the Deployment | The operator's tuning values are typed in #config and rendered into the Deployment, Every value reaches the Deployment | no (byte equal, checked by the item 3 command) |
+| A CPU string the catalog cannot render is refused at the value | The operator's tuning values are typed in #config and rendered into the Deployment, A CPU string the catalog cannot render is refused at the value | no (byte equal, checked by the item 3 command) |
+| One resources field keeps the other defaults | Defaults reproduce the earlier manifest's Deployment and each resource quantity defaults on its own, One resources field keeps the other defaults | no (byte equal, checked by the item 3 command) |
+| The Go memory limit follows the memory limit | The memory limit always resolves and sets GOMEMLIMIT, The Go memory limit follows the memory limit | no (byte equal, checked by the item 3 command) |
+| An unsupported memory unit is refused | The memory limit always resolves and sets GOMEMLIMIT, An unsupported memory unit is refused | no (byte equal, checked by the item 3 command) |
+
+New scenarios (each restates a case the old text names):
+
+| New place | New scenario | Old text that names the case |
+| --- | --- | --- |
+| Fixed names: first ClusterRoles | The first ClusterRole names render | the sentence(s) of this block |
+| Fixed names: other ClusterRoles | The other ClusterRole names render | the sentence(s) of this block |
+| Fixed names: CRDs | The CRD names render | the sentence(s) of this block |
+
+Clauses (the rule sentences of each old body and the block that carries each):
+
+| Old clause | New requirement | Note |
+| --- | --- | --- |
+| The module names the one operator release it deploys #1: The repository SHALL carry the operator's OPM module at the path `opmodel.dev/modules/opm_operator` on the v0 ... | The module carries its own version and names one operator image | verbatim |
+| The module names the one operator release it deploys #2: The module's source SHALL name the operator image it deploys by a published operator release's version tag and... | The module carries its own version and names one operator image | verbatim |
+| The module names the one operator release it deploys #3: Every rendered controller container SHALL run exactly that image, so one module version deploys exactly one op... | Every rendered controller container runs the image the module names | verbatim |
+| Every object renders through a catalog resource #1: The module SHALL render the operator's CRDs, its Namespace, the controller Deployment, its ServiceAccount, the... | Operator objects render through the catalog resource made for their kind | verbatim |
+| Every object renders through a catalog resource #2: The administrator ClusterRoles the operator ships for users to bind, its viewer roles among them, SHALL render... | Administrator ClusterRoles render unbound through the raw-objects resource | verbatim |
+| Every object renders through a catalog resource #3: Those administrator ClusterRoles SHALL render through the catalog's raw-objects resource, in one component tha... | Administrator ClusterRoles render unbound through the raw-objects resource | verbatim |
+| Every object renders through a catalog resource #4: The module SHALL render the operator's Namespace itself, so an install records it as an object of the instance... | Operator objects render through the catalog resource made for their kind | verbatim |
+| Names stay those of the earlier manifest #1: The module SHALL render the Namespace `opm-operator-system`, the Deployment `opm-operator-controller-manager`,... | Fixed names: namespaced objects; Fixed names: first ClusterRoles; Fixed names: other ClusterRoles; Fixed names: CRDs | the one long sentence is cut at list boundaries into four parts (verbatim fragments, `The module SHALL render` and the closing clause repeated in each) |
+| Names stay those of the earlier manifest #2: Only a role binding MAY take the name the catalog derives from its role. | Fixed names: other ClusterRoles | verbatim |
+| The operator's tuning is typed instance values #1: The module's `#config` SHALL type these values and render each into the controller Deployment: the operator im... | The operator's tuning values are typed in #config and rendered into the Deployment | verbatim |
+| The operator's tuning is typed instance values #2: Each unset optional value SHALL leave its argument out. | The operator's tuning values are typed in #config and rendered into the Deployment | verbatim |
+| The operator's tuning is typed instance values #3: Defaults SHALL reproduce the earlier manifest's Deployment: one replica, requests `100m` CPU and `256Mi` memor... | Defaults reproduce the earlier manifest's Deployment and each resource quantity defaults on its own | verbatim |
+| The operator's tuning is typed instance values #4: Each of those four resource quantities SHALL default on its own, so a value that sets one of them keeps the de... | Defaults reproduce the earlier manifest's Deployment and each resource quantity defaults on its own | verbatim |
+| The operator's tuning is typed instance values #5: The memory limit SHALL always resolve to a value, default or given, so the container's `GOMEMLIMIT` is always ... | The memory limit always resolves and sets GOMEMLIMIT | verbatim |
+
+Added words (the only ones): subjects and conditions copied from the same old requirement, the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table. The one long sentence of "Names stay those of the earlier manifest" is cut at list boundaries into four parts; each part repeats `The module SHALL render` and the closing clause "the names the operator's own install manifest gives them" and names the other three parts. "Only a role binding MAY take the name the catalog derives from its role." keeps its MAY with no added keyword; it sits in the part that holds the other ClusterRoles, with the scenario "Bindings take catalog names".
+
 This section fills in with the ledgers as the groups run.
 
 ## Strength table
@@ -828,6 +1072,21 @@ the old sentence.
 | Moving the opm CLI pin cuts no release | moving it SHALL be a `ci(deps)` commit and SHALL cut no release (workspace RELEASING.md, section "Pin classes") | moving it is a `ci(deps)` commit and cuts no release (workspace RELEASING.md, section "Pin classes") |
 | The release-as key repeats its version and crosses a boundary | While the value stays, release-please SHALL propose exactly that version on every Release PR, so a value left in place after its release re-proposes an already-published version. | While the value stays, release-please proposes exactly that version on every Release PR, so a value left in place after its release re-proposes an already-published version. |
 | The operator's CUE version moves only through a library release | The operator's CUE version SHALL move only through a library release: the library bumps CUE in its own pull request, ... | ... so the operator's CUE version moves only through a library release: the library bumps CUE in its own pull request, ... (the clause had no keyword of its own; the sentence's SHALL belongs to "SHALL ignore" in the other block) |
+| Every reconcile attempt ends with a status patch | On meaningful outcomes (`Applied`, `AppliedAndPruned`, `FailedTransient`, `FailedStalled`), the patch SHALL update conditions, `lastAttempted*`, `lastApplied*` (on success), `inven... | On meaningful outcomes (`Applied`, `AppliedAndPruned`, `FailedTransient`, `FailedStalled`), the patch updates conditions, `lastAttempted*`, `lastApplied*` (on success), `inventory`... |
+| A NoOp patch is bounded to a fixed set of fields | On `NoOp`, the patch SHALL be bounded to: drift condition (`Drifted`), the `Healthy` condition (`instance-health`), failure counter deltas (incl. drift counter), `nextRetryAt` clea... | On `NoOp`, the patch is bounded to: drift condition (`Drifted`), the `Healthy` condition (`instance-health`), failure counter deltas (incl. drift counter), `nextRetryAt` clearing, ... |
+| A reconcile that skips its render patches only a changed Healthy condition | A reconcile that skips its render because its inputs are unchanged (`render-input-key`) SHALL NOT be an attempt. | A reconcile that skips its render because its inputs are unchanged (`render-input-key`) is not an attempt. |
+| A successful outcome patches the Healthy condition it judged | On a successful outcome the patch SHALL also carry the `Healthy` condition the reconcile judged (`instance-health`). | On a successful outcome the patch also carries the `Healthy` condition the reconcile judged (`instance-health`). |
+| A successful outcome patches the Healthy condition it judged | A failed attempt SHALL leave `Healthy` as it was. | A failed attempt leaves `Healthy` as it was. |
+| requiredContracts is in the NoOp patch set | `requiredContracts` SHALL be in the `NoOp` set deliberately, and it is the one field there that does not describe an outcome. | `requiredContracts` is in the `NoOp` set deliberately, and it is the one field there that does not describe an outcome. |
+| A NoOp patch carries requiredContracts because the demand can move without a digest | It SHALL describe what the instance demands, which a reconcile can observe as changed without any digest changing: a regenerated platform re-enqueues every instance, and the render... | It describes what the instance demands, which a reconcile can observe as changed without any digest changing: a regenerated platform re-enqueues every instance, and the render that... |
+| lastAppliedVersion is in the NoOp patch set | `lastAppliedVersion` SHALL be in the `NoOp` set because a `NoOp` re-proves it. | `lastAppliedVersion` is in the `NoOp` set because a `NoOp` re-proves it. |
+| lastAppliedVersion is in the NoOp patch set | A reconcile that did not render SHALL leave it as it was. | A reconcile that did not render leaves it as it was. |
+| lastAppliedInputs is in the NoOp patch set while the drift render interval is positive | `lastAppliedInputs` SHALL be in the `NoOp` set for the same reason: a `NoOp` that rendered proves the cluster holds what those inputs produce, so its key and render time are record... | `lastAppliedInputs` is in the `NoOp` set for the same reason: a `NoOp` that rendered proves the cluster holds what those inputs produce, so its key and render time are recorded, an... |
+| lastAppliedInputs is in the NoOp patch set while the drift render interval is positive | It SHALL be written on a `NoOp` only while the drift render interval is greater than zero; with the skip disabled nothing reads it. | It is written on a `NoOp` only while the drift render interval is greater than zero; with the skip disabled nothing reads it. |
+| Storm safety comes from the generation predicate | Storm safety SHALL be provided by `WithEventFilter(predicate.GenerationChangedPredicate{})` on the controller. | Storm safety is provided by `WithEventFilter(predicate.GenerationChangedPredicate{})` on the controller. |
+| A panicking attempt counts as FailedTransient for counters, history and metrics only | Fields the attempt already wrote on the object before the panic (`requiredContracts`, `instanceUUID`, the `Drifted` condition, a ModulePackage's `status.source`) SHALL be committed... | Fields the attempt already wrote on the object before the panic (`requiredContracts`, `instanceUUID`, the `Drifted` condition, a ModulePackage's `status.source`) are committed as o... |
+| A panicking attempt counts as FailedTransient for counters, history and metrics only | A panicking attempt SHALL be counted as `FailedTransient` for failure counters, history and reconcile metrics only. | A panicking attempt is counted as `FailedTransient` for failure counters, history and reconcile metrics only. |
+| A panicking attempt counts as FailedTransient for counters, history and metrics only | It SHALL return no `ctrl.Result`: the requeue scenarios of "Outcome classification" and the `nextRetryAt` rule of the reconcile-backoff capability do not apply to it. | It returns no `ctrl.Result`: the requeue scenarios of "Outcome classification" and the `nextRetryAt` rule of the reconcile-backoff capability do not apply to it. |
 
 ## The gate
 
