@@ -8,9 +8,9 @@ Each rewrite unit starts by writing its scenario ledger into `design.md` (headin
 
 ## 1. Purpose of source-resolution
 
-- [ ] 1.1 Add `## Purpose` (at least 50 characters, text read from the requirements of the spec) above `## Requirements` of `openspec/specs/source-resolution/spec.md`, by direct edit. Record it in `design.md`.
-- [ ] 1.2 Gate (`N=0`): no new ERROR item, the ERROR set loses the `spec source-resolution file` item, WARNING lines unchanged.
-- [ ] 1.3 Commit `docs(openspec): add a Purpose to source-resolution`
+- [x] 1.1 Add `## Purpose` (at least 50 characters, text read from the requirements of the spec) above `## Requirements` of `openspec/specs/source-resolution/spec.md`, by direct edit. Record it in `design.md`.
+- [x] 1.2 Gate (`N=0`): no new ERROR item, the ERROR set loses the `spec source-resolution file` item, WARNING lines unchanged.
+- [x] 1.3 Commit `docs(openspec): add a Purpose to source-resolution`
 
 ## 2. Fixes of add-cross-namespace-source-grants (deltas and one task line)
 

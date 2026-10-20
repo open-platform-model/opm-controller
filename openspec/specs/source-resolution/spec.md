@@ -1,3 +1,7 @@
+## Purpose
+
+Define how the operator looks up the OCIRepository, GitRepository or Bucket source of a release and returns its artifact URL, revision and digest, which typed errors it returns, and which source changes enqueue reconciliation.
+
 ## Requirements
 
 ### Requirement: OCIRepository lookup

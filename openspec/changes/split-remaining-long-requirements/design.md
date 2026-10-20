@@ -212,7 +212,16 @@ format) and the clause or scenario THEN line that carries each. Rules of the led
   default or an exact value may move this way. A clause that adds or changes a condition stays in
   the body. A separate behavior goes to b or c2.
 
-No ledger is written yet. This section fills in as the units run.
+### Record: Purpose of source-resolution
+
+Added by direct edit above `## Requirements` of `openspec/specs/source-resolution/spec.md`
+(226 characters). Each part is read from a requirement of the spec: the lookup of OCIRepository,
+GitRepository and Bucket sources and the artifact URL, revision and digest ("OCIRepository
+lookup", "ArtifactRef carries full metadata"), the sentinel errors ("Typed source errors") and the
+watch that enqueues reconciliation ("Source watch triggers reconciliation"). No requirement text
+changed.
+
+This section fills in with the ledgers as the groups run.
 
 ## Strength table
 
