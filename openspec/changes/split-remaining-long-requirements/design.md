@@ -618,6 +618,198 @@ Clauses (second table):
 
 Added words (the only ones): subjects and conditions copied from the same old requirement, the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table.
 
+### Ledger: release-automation
+
+Forms and lengths (old body, then each new body; a MODIFIED parent is measured on its body only):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| Changelog generation | c2 (REMOVED plus ADDED under new names) | 686 | The changelog groups entries under the visible sections (380); Earlier changelog entries stay as they are (91); A module-only commit stays out of the root changelog (213) |
+| Git tag and GitHub Release on merge | c2 (REMOVED plus ADDED under new names) | 724 | A merged Release PR creates the tag and a draft GitHub Release (374); Releases are drafts that a publish job makes public (349) |
+| Version bump determination per release line | b (MODIFIED parent kept, ADDED splits) | 865 | Version bump determination per release line (parent, MODIFIED) (448); Versions come from the commits since the last release tag (475) |
+| Release PR opens for releasable commits on push to main | c2 (REMOVED plus ADDED under new names) | 772 | The release-please workflow opens or updates a Release PR on every push to main (407); Hidden commit types do not open a Release PR (465) |
+| Release PR passes the release-pin gate | c2 (REMOVED plus ADDED under new names) | 1375 | The release-pin gate is a step of an existing job (435); A Release PR is told by its head branch (395); The gate fails on a replace directive or an unreleased pin (481); The gate fails on a dev pin or a tracked local-module file (479) |
+| Dependabot leaves OPM Go modules to the release cascade | c2 (REMOVED plus ADDED under new names) | 759 | Dependabot ignores the OPM Go modules (274); Dependabot ignores the cascade references of the .github repository (275); Third-party updates continue under Dependabot (208) |
+| The opm CLI version is pinned in one file | b (MODIFIED parent kept, ADDED splits) | 573 | The opm CLI version is pinned in one file (parent, MODIFIED) (440); Moving the opm CLI pin cuts no release (206) |
+| Forced version via the release-as config key | b (MODIFIED parent kept, ADDED splits) | 1124 | Forced version via the release-as config key (parent, MODIFIED) (471); The release-as key crosses a boundary the automated bump cannot reach (458); A Release-As commit footer is not relied on (331) |
+| The Release PR rewrites the install page's operator version | c2 (REMOVED plus ADDED under new names) | 705 | The install page's operator version sits in release-please blocks (482); The install page's version blocks are tested (309) |
+| Release notifies downstream after it is published | c2 (REMOVED plus ADDED under new names) | 1580 | The notify-downstream job needs release-please and publish-release (403); The notify-downstream job has exactly one step, the cascade action (499); The notify-downstream job runs only after a published operator release (413); The cascade action dispatches upstream-released only to the cli (291); The cascade App key is read only by the notify job (481) |
+| Dependabot leaves cuelang.org/go to library releases | b (MODIFIED parent kept, ADDED splits) | 820 | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED) (374); The operator's CUE version moves only through a library release (390) |
+
+`grep -rn --exclude-dir=archive` for each old header found references to three headers outside their own requirement: "Version bump determination per release line" (a scenario of "Release PR opens for releasable commits on push to main" and a scenario of "Forced version via the release-as config key"), "Forced version via the release-as config key" (the body of "Beta prerelease line") and "Dependabot leaves cuelang.org/go to library releases" (the body of "Dependabot leaves OPM Go modules to the release cascade"). Those three headers stay as form b parents, so no reference changes. One comment of `.github/workflows/lint.yml` names the gate by G1, not by a header. The header "Release published once after every release job", cited in a new body, stays until group 9.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Changelog includes all commit types | The changelog groups entries under the visible sections, Changelog includes all commit types | no (byte equal, checked by the item 3 command) |
+| Changelog preserves history | Earlier changelog entries stay as they are, Changelog preserves history | no (byte equal, checked by the item 3 command) |
+| Module-only commit stays out of the operator changelog | A module-only commit stays out of the root changelog, Module-only commit stays out of the operator changelog | no (byte equal, checked by the item 3 command) |
+| Release PR merged | A merged Release PR creates the tag and a draft GitHub Release, Release PR merged | no (byte equal, checked by the item 3 command) |
+| Release PR closed without merge | A merged Release PR creates the tag and a draft GitHub Release, Release PR closed without merge | no (byte equal, checked by the item 3 command) |
+| Config enables draft-first | Releases are drafts that a publish job makes public, Config enables draft-first | no (byte equal, checked by the item 3 command) |
+| fix commit on the beta line advances the counter | Version bump determination per release line (parent, MODIFIED), fix commit on the beta line advances the counter | no (byte equal, checked by the item 3 command) |
+| feat commit on the beta line advances the counter | Version bump determination per release line (parent, MODIFIED), feat commit on the beta line advances the counter | no (byte equal, checked by the item 3 command) |
+| Breaking-change commit on the beta line advances the counter | Version bump determination per release line (parent, MODIFIED), Breaking-change commit on the beta line advances the counter | no (byte equal, checked by the item 3 command) |
+| feat commit on a stable line triggers MINOR bump | Version bump determination per release line (parent, MODIFIED), feat commit on a stable line triggers MINOR bump | no (byte equal, checked by the item 3 command) |
+| fix-only commits on a stable line trigger PATCH bump | Version bump determination per release line (parent, MODIFIED), fix-only commits on a stable line trigger PATCH bump | no (byte equal, checked by the item 3 command) |
+| Breaking-change commit on a stable line triggers MAJOR bump | Version bump determination per release line (parent, MODIFIED), Breaking-change commit on a stable line triggers MAJOR bump | no (byte equal, checked by the item 3 command) |
+| (new) A breaking change is a ! in the PR title | Versions come from the commits since the last release tag, A breaking change is a ! in the PR title | new: restates a case the old text names |
+| (new) A docs commit proposes no bump | Versions come from the commits since the last release tag, A docs commit proposes no bump | new: restates a case the old text names |
+| First feat commit after a release | The release-please workflow opens or updates a Release PR on every push to main, First feat commit after a release | no (byte equal, checked by the item 3 command) |
+| Subsequent fix commit with open Release PR | The release-please workflow opens or updates a Release PR on every push to main, Subsequent fix commit with open Release PR | no (byte equal, checked by the item 3 command) |
+| Only non-releasable commits | Hidden commit types do not open a Release PR, Only non-releasable commits | no (byte equal, checked by the item 3 command) |
+| Docs-only commits do not cut a release | Hidden commit types do not open a Release PR, Docs-only commits do not cut a release | no (byte equal, checked by the item 3 command) |
+| Refactor commits still cut a release | The release-please workflow opens or updates a Release PR on every push to main, Refactor commits still cut a release | no (byte equal, checked by the item 3 command) |
+| Replace directive blocks the release | The gate fails on a replace directive or an unreleased pin, Replace directive blocks the release | no (byte equal, checked by the item 3 command) |
+| Pseudo-version blocks the release | The gate fails on a replace directive or an unreleased pin, Pseudo-version blocks the release | no (byte equal, checked by the item 3 command) |
+| Untagged version blocks the release | The gate fails on a replace directive or an unreleased pin, Untagged version blocks the release | no (byte equal, checked by the item 3 command) |
+| Dev CUE pin in a published fixture blocks the release | The gate fails on a dev pin or a tracked local-module file, Dev CUE pin in a published fixture blocks the release | no (byte equal, checked by the item 3 command) |
+| Tracked local-module.cue blocks the release | The gate fails on a dev pin or a tracked local-module file, Tracked local-module.cue blocks the release | no (byte equal, checked by the item 3 command) |
+| Clean release PR passes | The gate fails on a dev pin or a tracked local-module file, Clean release PR passes | no (byte equal, checked by the item 3 command) |
+| The gate's check name is unique | The release-pin gate is a step of an existing job, The gate's check name is unique | no (byte equal, checked by the item 3 command) |
+| Ordinary PRs skip the gate | A Release PR is told by its head branch, Ordinary PRs skip the gate | no (byte equal, checked by the item 3 command) |
+| The module's release PR skips the gate | A Release PR is told by its head branch, The module's release PR skips the gate | no (byte equal, checked by the item 3 command) |
+| Library release opens no Dependabot PR | Dependabot ignores the OPM Go modules, Library release opens no Dependabot PR | no (byte equal, checked by the item 3 command) |
+| Third-party bumps continue | Third-party updates continue under Dependabot, Third-party bumps continue | no (byte equal, checked by the item 3 command) |
+| A .github main commit opens no Dependabot PR | Dependabot ignores the cascade references of the .github repository, A .github main commit opens no Dependabot PR | no (byte equal, checked by the item 3 command) |
+| Every install reads the file | The opm CLI version is pinned in one file (parent, MODIFIED), Every install reads the file | no (byte equal, checked by the item 3 command) |
+| Malformed pin fails fast | The opm CLI version is pinned in one file (parent, MODIFIED), Malformed pin fails fast | no (byte equal, checked by the item 3 command) |
+| Release job installs the pin of the release tag | The opm CLI version is pinned in one file (parent, MODIFIED), Release job installs the pin of the release tag | no (byte equal, checked by the item 3 command) |
+| (new) Moving the pin is a ci(deps) commit | Moving the opm CLI pin cuts no release, Moving the pin is a ci(deps) commit | new: restates a case the old text names |
+| Forced version set by a normal PR | Forced version via the release-as config key (parent, MODIFIED), Forced version set by a normal PR | no (byte equal, checked by the item 3 command) |
+| The next PR removes the value once the release is cut | Forced version via the release-as config key (parent, MODIFIED), The next PR removes the value once the release is cut | no (byte equal, checked by the item 3 command) |
+| Config carries release-as only while a forced release is pending | Forced version via the release-as config key (parent, MODIFIED), Config carries release-as only while a forced release is pending | no (byte equal, checked by the item 3 command) |
+| A footer forces nothing | Forced version via the release-as config key (parent, MODIFIED), A footer forces nothing | no (byte equal, checked by the item 3 command) |
+| A hidden-type carrier waits for a visible commit | Forced version via the release-as config key (parent, MODIFIED), A hidden-type carrier waits for a visible commit | no (byte equal, checked by the item 3 command) |
+| (new) A value left in place re-proposes its version | The release-as key crosses a boundary the automated bump cannot reach, A value left in place re-proposes its version | new: restates a case the old text names |
+| (new) A footer in the PR body never reaches main | A Release-As commit footer is not relied on, A footer in the PR body never reaches main | new: restates a case the old text names |
+| A Release PR moves the page with the constant | The install page's operator version sits in release-please blocks, A Release PR moves the page with the constant | no (byte equal, checked by the item 3 command) |
+| Another project's version inside a block is refused | The install page's version blocks are tested, Another project's version inside a block is refused | no (byte equal, checked by the item 3 command) |
+| A detached marker is refused | The install page's version blocks are tested, A detached marker is refused | no (byte equal, checked by the item 3 command) |
+| Published release notifies the cli | The cascade action dispatches upstream-released only to the cli, Published release notifies the cli | no (byte equal, checked by the item 3 command) |
+| Release left a draft does not notify | The notify-downstream job runs only after a published operator release, Release left a draft does not notify | no (byte equal, checked by the item 3 command) |
+| Failed notify is recovered without republishing | The notify-downstream job runs only after a published operator release, Failed notify is recovered without republishing | no (byte equal, checked by the item 3 command) |
+| Notify switched off | The notify-downstream job runs only after a published operator release, Notify switched off | no (byte equal, checked by the item 3 command) |
+| Docs failure does not hold notify | The notify-downstream job needs release-please and publish-release, Docs failure does not hold notify | no (byte equal, checked by the item 3 command) |
+| Run without a release | The notify-downstream job runs only after a published operator release, Run without a release | no (byte equal, checked by the item 3 command) |
+| A step added beside the action is refused | The notify-downstream job has exactly one step, the cascade action, A step added beside the action is refused | no (byte equal, checked by the item 3 command) |
+| Module-only release does not notify | The notify-downstream job runs only after a published operator release, Module-only release does not notify | no (byte equal, checked by the item 3 command) |
+| (new) The private key is read only by the notify job | The cascade App key is read only by the notify job, The private key is read only by the notify job | new: restates a case the old text names |
+| New CUE release opens no Dependabot PR | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED), New CUE release opens no Dependabot PR | no (byte equal, checked by the item 3 command) |
+| CUE arrives with a library release | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED), CUE arrives with a library release | no (byte equal, checked by the item 3 command) |
+| Other third-party modules still update | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED), Other third-party modules still update | no (byte equal, checked by the item 3 command) |
+| (new) The operator picks up CUE with the library pin | The operator's CUE version moves only through a library release, The operator picks up CUE with the library pin | new: restates a case the old text names |
+
+Clauses (the rule sentences of each old body and the block that carries each):
+
+| Old clause | New requirement | Note |
+| --- | --- | --- |
+| Changelog generation #1: The workflow SHALL generate and maintain a `CHANGELOG.md` file at the repository root for the operator pack... | The changelog groups entries under the visible sections | verbatim |
+| Changelog generation #2: Entries SHALL be grouped under the visible sections that `release-please-config.json` declares (Features, B... | The changelog groups entries under the visible sections | verbatim |
+| Changelog generation #3: Commits of a hidden type (`docs`, `chore`, `test`, `ci`, `build`) SHALL NOT appear. | The changelog groups entries under the visible sections | verbatim |
+| Changelog generation #4: A commit that changes only files under the operator module's directory `modules/opm_operator/` belongs to t... | A module-only commit stays out of the root changelog | verbatim |
+| Changelog generation #5: Documentation entries already in CHANGELOG.md from earlier releases SHALL stay as they are. | Earlier changelog entries stay as they are | verbatim |
+| Git tag and GitHub Release on merge #1: When a Release PR is merged to `main`, release-please SHALL create the git tag eagerly at the release commi... | A merged Release PR creates the tag and a draft GitHub Release | verbatim |
+| Git tag and GitHub Release on merge #2: The operator package `"."` tags `vX.Y.Z` (e.g. `v0.2.0`, or `v1.0.0-beta.6` on the beta line); the operator... | A merged Release PR creates the tag and a draft GitHub Release | verbatim |
+| Git tag and GitHub Release on merge #3: Each release-please package SHALL be configured with `draft: true` and `force-tag-creation: true`. | Releases are drafts that a publish job makes public | verbatim |
+| Git tag and GitHub Release on merge #4: An operator release's draft SHALL become public only through the publish job `publish-release` defined in "... | Releases are drafts that a publish job makes public | verbatim |
+| Version bump determination per release line #1: The workflow SHALL determine the proposed version from the commits since the last release tag using Convent... | Versions come from the commits since the last release tag | verbatim |
+| Version bump determination per release line #2: On the prerelease line (`versioning: prerelease`, `prerelease: true`, current version `X.0.0-beta.N`), ever... | Version bump determination per release line (parent, MODIFIED) | verbatim |
+| Version bump determination per release line #3: On a stable line (after GA, no prerelease suffix), `feat` SHALL propose a MINOR bump, a breaking change a M... | Version bump determination per release line (parent, MODIFIED) | verbatim |
+| Version bump determination per release line #4: A breaking change is a `!` after the type or scope in the commit subject, which for a squash-merged PR is t... | Versions come from the commits since the last release tag | verbatim |
+| Version bump determination per release line #5: A `docs` commit is not releasable and proposes no bump. | Versions come from the commits since the last release tag | verbatim |
+| Release PR opens for releasable commits on push to main #1: The release-please workflow SHALL run on every push to the `main` branch. | The release-please workflow opens or updates a Release PR on every push to main | verbatim |
+| Release PR opens for releasable commits on push to main #2: It SHALL open a Release PR if releasable commits exist since the last release tag. | The release-please workflow opens or updates a Release PR on every push to main | verbatim |
+| Release PR opens for releasable commits on push to main #3: Releasable commits are those whose type has a visible changelog section in `release-please-config.json` (`f... | The release-please workflow opens or updates a Release PR on every push to main | verbatim |
+| Release PR opens for releasable commits on push to main #4: `docs`, `chore`, `test`, `ci` and `build` are hidden and SHALL NOT by themselves open a Release PR, and a `... | Hidden commit types do not open a Release PR | verbatim |
+| Release PR opens for releasable commits on push to main #5: If a Release PR already exists, it SHALL update the PR with the latest accumulated changes. | The release-please workflow opens or updates a Release PR on every push to main | verbatim |
+| Release PR opens for releasable commits on push to main #6: Hiding `docs` keeps a doc-only commit from cutting an operator release that would cascade a pointless bump ... | Hidden commit types do not open a Release PR | verbatim |
+| Release PR passes the release-pin gate #1: On every Release PR, the release-pin gate (G1, workspace RELEASING.md, section "Gates") SHALL run as a step... | The release-pin gate is a step of an existing job | verbatim |
+| Release PR passes the release-pin gate #2: A PR is a Release PR when `${{ github.head_ref \|\| github.ref_name }}` starts with `release-please--`, exc... | A Release PR is told by its head branch | verbatim |
+| Release PR passes the release-pin gate #3: The gate SHALL fail the job when any of the following holds on the PR head: | The gate fails on a replace directive or an unreleased pin; The gate fails on a dev pin or a tracked local-module file | verbatim |
+| Release PR passes the release-pin gate #4: - `go.mod` carries a `replace` directive; | The gate fails on a replace directive or an unreleased pin | verbatim |
+| Release PR passes the release-pin gate #5: - a required module under `github.com/open-platform-model/` is pinned to a Go pseudo-version, or to a versi... | The gate fails on a replace directive or an unreleased pin | verbatim |
+| Release PR passes the release-pin gate #6: - a published fixture's `cue.mod/module.cue` (`test/fixtures/modules/*`, `test/fixtures/modulepackages/*`) ... | The gate fails on a dev pin or a tracked local-module file | verbatim |
+| Release PR passes the release-pin gate #7: - any `cue.mod/local-module.cue` is tracked by git. | The gate fails on a dev pin or a tracked local-module file | verbatim |
+| Release PR passes the release-pin gate #8: Each failure SHALL name the offending file and pin. | The gate fails on a replace directive or an unreleased pin; The gate fails on a dev pin or a tracked local-module file | verbatim |
+| Release PR passes the release-pin gate #9: On pull requests that are not Release PRs the gate step SHALL be skipped. | A Release PR is told by its head branch | verbatim |
+| Release PR passes the release-pin gate #10: The same check SHALL be runnable locally as one task. | The release-pin gate is a step of an existing job | verbatim |
+| Release PR passes the release-pin gate #11: The job carrying the gate SHALL report a check name no other workflow job in the repo uses (`Lint`), so a r... | The release-pin gate is a step of an existing job | verbatim |
+| Dependabot leaves OPM Go modules to the release cascade #1: The `gomod` entry of `.github/dependabot.yml` SHALL ignore every dependency matching `github.com/open-platf... | Dependabot ignores the OPM Go modules | verbatim |
+| Dependabot leaves OPM Go modules to the release cascade #2: Those pins move only through the release cascade, which titles a shipped bump `fix(deps)` so it releases (w... | Dependabot ignores the OPM Go modules | verbatim |
+| Dependabot leaves OPM Go modules to the release cascade #3: The `github-actions` entry SHALL ignore `open-platform-model/.github*`: the cascade references move togethe... | Dependabot ignores the cascade references of the .github repository | verbatim |
+| Dependabot leaves OPM Go modules to the release cascade #4: Third-party Go modules, except `cuelang.org/go` and `cuelabs.dev/go/oci/ociregistry` (see "Dependabot leave... | Third-party updates continue under Dependabot | verbatim |
+| The opm CLI version is pinned in one file #1: The opm CLI release that CI and the release workflow install SHALL be declared once, in a repo-root file `.... | The opm CLI version is pinned in one file (parent, MODIFIED) | verbatim |
+| The opm CLI version is pinned in one file #2: Every workflow step that installs the opm CLI SHALL read the version from that file and SHALL fail before i... | The opm CLI version is pinned in one file (parent, MODIFIED) | verbatim |
+| The opm CLI version is pinned in one file #3: No workflow file SHALL carry an opm CLI version literal. | The opm CLI version is pinned in one file (parent, MODIFIED) | verbatim |
+| The opm CLI version is pinned in one file #4: The pin is a release-tool pin: moving it is a `ci(deps)` commit and cuts no release (workspace RELEASING.md... | Moving the opm CLI pin cuts no release | keyword added (Strength table) |
+| Forced version via the release-as config key #1: A forced version SHALL be a `release-as` value on package `"."` of `release-please-config.json`, set by a n... | Forced version via the release-as config key (parent, MODIFIED) | verbatim |
+| Forced version via the release-as config key #2: While the value stays, release-please proposes exactly that version on every Release PR, so a value left in... | The release-as key crosses a boundary the automated bump cannot reach | verbatim |
+| Forced version via the release-as config key #3: The key is the required mechanism to cross a boundary the automated bump cannot reach (changing the prerele... | The release-as key crosses a boundary the automated bump cannot reach | keyword added (Strength table) |
+| Forced version via the release-as config key #4: A `Release-As:` commit footer SHALL NOT be relied on: the squash commit on `main` carries only the PR title... | A Release-As commit footer is not relied on | verbatim |
+| Forced version via the release-as config key #5: GA needs no forced version: `prerelease: false` plus a visible carrier commit is enough. | Forced version via the release-as config key (parent, MODIFIED) | verbatim |
+| Forced version via the release-as config key #6: A `release-as` value sets the proposed version but does not by itself open a Release PR; one opens only onc... | Forced version via the release-as config key (parent, MODIFIED) | verbatim |
+| The Release PR rewrites the install page's operator version #1: `release-please-config.json` SHALL list `docs/site/start/install-the-operator.md` under the root package's ... | The install page's operator version sits in release-please blocks | verbatim |
+| The Release PR rewrites the install page's operator version #2: A block SHALL name no version other than the operator's. | The install page's version blocks are tested | verbatim |
+| The Release PR rewrites the install page's operator version #3: A test in `internal/version` SHALL fail when the page has no block, when a block is not closed, or when a v... | The install page's version blocks are tested | verbatim |
+| Release notifies downstream after it is published #1: The release workflow SHALL contain a job `notify-downstream`, owned by this repo, that | The notify-downstream job needs release-please and publish-release; The notify-downstream job has exactly one step, the cascade action | subject repeated in both parts of the cut sentence |
+| Release notifies downstream after it is published #2: needs `release-please` and `publish-release`, runs on `ubuntu-latest`, declares `environment: cascade`, has... | The notify-downstream job needs release-please and publish-release | list cut; the other item of the list is in the next block |
+| Release notifies downstream after it is published #3: has exactly one step: the action `open-platform-model/.github/.github/actions/cascade-notify` at the repo's... | The notify-downstream job has exactly one step, the cascade action | list cut; joined to the subject and the job name of the old sentence |
+| Release notifies downstream after it is published #4: Its `if` SHALL be `needs.release-please.outputs.release_created == 'true' && vars.CASCADE_NOTIFY != 'off'`:... | The notify-downstream job runs only after a published operator release | verbatim |
+| Release notifies downstream after it is published #5: It SHALL NOT wait for, or be skipped by, `publish-docs`. | The notify-downstream job needs release-please and publish-release | verbatim |
+| Release notifies downstream after it is published #6: The key SHALL be read only in the caller-owned `notify-downstream` or `publish` job, which declares `enviro... | The cascade App key is read only by the notify job | verbatim |
+| Release notifies downstream after it is published #7: The action mints the App token and SHALL dispatch `upstream-released` only to `cli` (Phase 3 wiring contrac... | The cascade action dispatches upstream-released only to the cli | verbatim |
+| Dependabot leaves cuelang.org/go to library releases #1: The `gomod` entry of `.github/dependabot.yml` SHALL ignore the dependencies `cuelang.org/go` and `cuelabs.d... | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED) | cut at the clause boundary before the colon; the rest is in the next block |
+| Dependabot leaves cuelang.org/go to library releases #2: the library bumps CUE in its own pull request, where the closedness canary runs, and the operator picks the... | The operator's CUE version moves only through a library release | subject "The operator's CUE version SHALL move only through a library release" copied from the clause before the colon; keyword added (Strength table) |
+| Dependabot leaves cuelang.org/go to library releases #3: Other third-party Go modules SHALL keep their Dependabot updates. | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED) | verbatim |
+| Dependabot leaves cuelang.org/go to library releases #4: Source: owner decision j4 of the kernel beta.1 plan walkthrough (2026-10-03); workspace RELEASING.md, secti... | Dependabot leaves cuelang.org/go to library releases (parent, MODIFIED); The operator's CUE version moves only through a library release | carried as the **Source** line of the parent and of the new block (full old Source line) |
+
+### Ledger: container-image-publish
+
+Forms and lengths (old body, then each new body; a MODIFIED parent is measured on its body only):
+
+| Old requirement | Form | Old length | New blocks (length) |
+| --- | --- | --- | --- |
+| Pull-request image build trigger and tags | c2 (REMOVED plus ADDED under new names) | 859 | The PR image workflow runs on pull request events and skips bot heads (435); The PR image build pushes a sha tag and a PR tag (464); The PR image build does not use the GitHub Actions cache (140) |
+| Release image tags | c2 (REMOVED plus ADDED under new names) | 1212 | A gated release run pushes three tags (390); The release image carries the release commit and the release tag (253); The version tag always resolves to the manifest list first pushed under it (294); A version tag built from the release commit is reused (385); A version tag held by another revision fails the job (238) |
+
+`grep -rn --exclude-dir=archive` for the old headers found no reference outside this spec.
+
+Scenarios:
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| New PR opened | The PR image build pushes a sha tag and a PR tag, New PR opened | no (byte equal, checked by the item 3 command) |
+| Force push updates an open PR | The PR image build pushes a sha tag and a PR tag, Force push updates an open PR | no (byte equal, checked by the item 3 command) |
+| Non-applicable event | The PR image workflow runs on pull request events and skips bot heads, Non-applicable event | no (byte equal, checked by the item 3 command) |
+| Bot head skipped | The PR image workflow runs on pull request events and skips bot heads, Bot head skipped | no (byte equal, checked by the item 3 command) |
+| (new) The PR image build uses no Actions cache | The PR image build does not use the GitHub Actions cache, The PR image build uses no Actions cache | new: restates a case the old text names |
+| First release v0.1.0 | A gated release run pushes three tags, First release v0.1.0 | no (byte equal, checked by the item 3 command) |
+| Subsequent release v0.2.0 | A gated release run pushes three tags, Subsequent release v0.2.0 | no (byte equal, checked by the item 3 command) |
+| Re-run after the version tag was pushed | A version tag built from the release commit is reused, Re-run after the version tag was pushed | no (byte equal, checked by the item 3 command) |
+| Version tag held by a different image | A version tag held by another revision fails the job, Version tag held by a different image | no (byte equal, checked by the item 3 command) |
+| Release cut on a later push | The release image carries the release commit and the release tag, Release cut on a later push | no (byte equal, checked by the item 3 command) |
+| (new) An absent version tag is built, pushed and confirmed | The version tag always resolves to the manifest list first pushed under it, An absent version tag is built, pushed and confirmed | new: restates a case the old text names |
+
+Clauses (the rule sentences of each old body and the block that carries each):
+
+| Old clause | New requirement | Note |
+| --- | --- | --- |
+| Pull-request image build trigger and tags #1: The PR image workflow SHALL run on `pull_request` events (types: `opened`, `synchronize`, `reopened`) whate... | The PR image workflow runs on pull request events and skips bot heads | verbatim |
+| Pull-request image build trigger and tags #2: On every run it SHALL build and push exactly two tags: `:sha-<short>` where `<short>` is the 7-character sh... | The PR image build pushes a sha tag and a PR tag | verbatim |
+| Pull-request image build trigger and tags #3: The `:pr-<PR_ID>` tag MAY be overwritten by subsequent pushes to the same PR; `:sha-<short>` is effectively... | The PR image build pushes a sha tag and a PR tag | verbatim |
+| Pull-request image build trigger and tags #4: The build SHALL NOT use the GitHub Actions cache. | The PR image build does not use the GitHub Actions cache | verbatim |
+| Release image tags #1: On a gated release run, the image-release job SHALL push, for a release version `v<MAJOR>.<MINOR>.<PATCH>`,... | A gated release run pushes three tags | verbatim |
+| Release image tags #2: The release commit is the commit the release tag names, read from the checked-out tag, not the pushed commi... | The release image carries the release commit and the release tag | verbatim |
+| Release image tags #3: The version tag SHALL always resolve to the manifest list first pushed under it (enhancement 0021, "Release... | The version tag always resolves to the manifest list first pushed under it | verbatim |
+| Release image tags #4: When it is absent the job builds and pushes, then SHALL confirm the version tag resolves to the pushed digest. | The version tag always resolves to the manifest list first pushed under it | verbatim |
+| Release image tags #5: When it exists with a revision label equal to the release commit the job SHALL push nothing under the versi... | A version tag built from the release commit is reused | verbatim |
+| Release image tags #6: When it exists with any other revision, or the probe fails for any reason other than the tag being absent, ... | A version tag held by another revision fails the job | verbatim |
+| Release image tags #7: `:latest` and `:sha-<short>` are mutable by design. | A gated release run pushes three tags | verbatim |
+
+Added words (the only ones): subjects and conditions copied from the same old requirement, the exact header of a sibling ("As in requirement" prefix or "(Requirement: ...)" suffix), and the keywords in the Strength table.
+
 This section fills in with the ledgers as the groups run.
 
 ## Strength table
@@ -633,6 +825,9 @@ the old sentence.
 | A recovery signal enqueues the instance and the existing deletion rules apply | The reconcile that follows MUST apply the existing deletion rules unchanged: the orphan-exit path for the annotation, the prune as the ServiceAccount for its return. | The reconcile that follows applies the existing deletion rules unchanged: the orphan-exit path for the annotation, the prune as the ServiceAccount for its return. |
 | A ServiceAccount created before its RBAC stalls the deletion with ImpersonationFailed | When the ServiceAccount is created before the RBAC that lets it delete the inventory, the reconcile it triggers is forbidden and the deletion MUST stall with `ImpersonationFailed` until the stalled... | When the ServiceAccount is created before the RBAC that lets it delete the inventory, the reconcile it triggers is forbidden and the deletion stalls with `ImpersonationFailed` until the stalled rec... |
 | A ServiceAccount that loses its rights does not release the deletion by itself | It SHALL report `DeletionBlocked` after 10 minutes and SHALL name the cause; `spec.prune=false` releases it, and so does deleting the ServiceAccount. | It reports `DeletionBlocked` after 10 minutes and names the cause; `spec.prune=false` releases it, and so does deleting the ServiceAccount. |
+| Moving the opm CLI pin cuts no release | moving it SHALL be a `ci(deps)` commit and SHALL cut no release (workspace RELEASING.md, section "Pin classes") | moving it is a `ci(deps)` commit and cuts no release (workspace RELEASING.md, section "Pin classes") |
+| The release-as key crosses a boundary the automated bump cannot reach | The key SHALL be the required mechanism to cross a boundary the automated bump cannot reach (changing the prerelease label of a suffixed version, for example alpha to beta) and MAY pin an exact version at any crossing. | The key is the required mechanism to cross a boundary the automated bump cannot reach (changing the prerelease label of a suffixed version, for example alpha to beta) and MAY pin an exact version at any crossing. |
+| The operator's CUE version moves only through a library release | The operator's CUE version SHALL move only through a library release: the library bumps CUE in its own pull request, ... | ... so the operator's CUE version moves only through a library release: the library bumps CUE in its own pull request, ... (the clause had no keyword of its own; the sentence's SHALL belongs to "SHALL ignore" in the other block) |
 
 ## The gate
 

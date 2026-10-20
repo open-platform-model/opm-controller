@@ -36,10 +36,10 @@ Specs: finalizer-and-deletion 11, instance-health 4.
 
 Specs: release-automation 11, container-image-publish 2. The three long requirements that `stop-operator-install-manifest` MODIFIES or REMOVES in these specs are not in this unit: group 9 splits them (design.md, overlap list).
 
-- [ ] 4.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another unit.
-- [ ] 4.2 Byte-equality command of the guide (review item 3) for every rewritten requirement: no `DIFF`, no `LOST`.
-- [ ] 4.3 Gate (`N=30`): `validate split-remaining-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
-- [ ] 4.4 Commit `docs(openspec): split the long requirements of release-automation and container-image-publish`
+- [x] 4.1 For each long requirement pick the form (design.md), write the ledger, write the delta under `specs/<spec>/spec.md` of this change. One delta file per spec; no spec of another unit.
+- [x] 4.2 Byte-equality command of the guide (review item 3) for every rewritten requirement: no `DIFF`, no `LOST`.
+- [x] 4.3 Gate (`N=30`): `validate split-remaining-long-requirements --strict` exit 0, archive in the copy exit 0, no "Archive would refuse", no new ERROR item, WARNING lines fell by `N`; `validate <spec> --type spec --strict` shows no WARNING for a rewritten requirement.
+- [x] 4.4 Commit `docs(openspec): split the long requirements of release-automation and container-image-publish`
 
 ## 5. Unit 3: reconcile-loop-assembly, operator-module: 13 requirements
 
