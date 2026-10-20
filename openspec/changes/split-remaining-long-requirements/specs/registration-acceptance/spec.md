@@ -205,7 +205,7 @@ A claim's **own** catalog SHALL NOT hold a contract against it. Once a claim is 
 - **THEN** it is not refused for providing its own contracts
 
 ### Requirement: Only another provider of a contract conflicts with a claim
-As in requirement "A claim's own catalog does not hold a contract against it": Counting the claim's own entry would refuse the claim for providing what it exists to provide, deactivate it, drop its catalog from the next generated package and accept it again, an oscillation rather than a verdict. Only ANOTHER provider of the contract is a conflict, and the claim's own catalog being excused SHALL NOT excuse a different catalog providing the same contract.
+As in requirement "A claim's own catalog does not hold a contract against it": So counting the claim's own entry would refuse the claim for providing what it exists to provide, deactivate it, drop its catalog from the next generated package and accept it again, an oscillation rather than a verdict. Only ANOTHER provider of the contract is a conflict, and the claim's own catalog being excused SHALL NOT excuse a different catalog providing the same contract.
 
 #### Scenario: Another provider still refuses a claim whose catalog is in the registry
 

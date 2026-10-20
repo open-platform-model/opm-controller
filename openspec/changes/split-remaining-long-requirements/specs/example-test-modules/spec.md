@@ -263,7 +263,7 @@ As in requirement "backup_provider renders one TransformerRegistration": Its `mo
 - **AND** the instance's required contracts include `opmodel.dev/catalogs/opm/traits/backup@v1alpha1`
 
 ### Requirement: A registry-backed integration spec checks the registration, the refusal and the render
-As in requirements "backup_provider renders one TransformerRegistration" and "backup_consumer attaches the backup trait": A cluster running an operator that resolves the catalog accepts it (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A registry-backed integration spec SHALL check all three.
+As in requirements "backup_provider renders one TransformerRegistration" and "backup_consumer attaches the backup trait": So a cluster running an operator that resolves the catalog accepts it (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A registry-backed integration spec SHALL check all three.
 
 #### Scenario: A cluster accepts and activates the claim
 

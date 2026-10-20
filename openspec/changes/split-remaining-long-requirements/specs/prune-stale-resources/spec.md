@@ -28,6 +28,7 @@
 
 ### Requirement: The deletion-cleanup prune pass does not run while the release is stalled on DeletionSAMissing
 The deletion-cleanup prune pass MUST NOT execute while the release is stalled with reason `DeletionSAMissing`. In that state, the impersonated client cannot be built, and prune with any fallback identity is explicitly disallowed.
+This requirement complements the existing prune-stale-resources contract.
 
 #### Scenario: Stalled release does not prune
 - **GIVEN** a ModuleRelease stalled with reason `DeletionSAMissing`
@@ -36,7 +37,7 @@ The deletion-cleanup prune pass MUST NOT execute while the release is stalled wi
 - **AND** the inventory remains unchanged across reconciles until recovery (SA restore or orphan-exit)
 
 ### Requirement: Prune executes only with an enabled prune, entries to remove and a valid client
-As in requirement "The deletion-cleanup prune pass does not run while the release is stalled on DeletionSAMissing": This requirement complements the existing prune-stale-resources contract: prune MUST execute only when (a) `spec.prune=true`, (b) the inventory has entries to remove, and (c) a valid apply/prune client has been obtained. Condition (c) now explicitly excludes the controller's own client as a fallback on the deletion path.
+As in requirement "The deletion-cleanup prune pass does not run while the release is stalled on DeletionSAMissing": prune MUST execute only when (a) `spec.prune=true`, (b) the inventory has entries to remove, and (c) a valid apply/prune client has been obtained. Condition (c) now explicitly excludes the controller's own client as a fallback on the deletion path.
 
 #### Scenario: The controller's own client is not a fallback on the deletion path
 
