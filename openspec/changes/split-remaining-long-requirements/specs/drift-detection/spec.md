@@ -6,7 +6,7 @@
 
 ### Requirement: A withheld resource is excluded from drift detection
 **Reason**: Split into two requirements that each state one behavior.
-**Migration**: See "Drift detection skips a resource the reconcile withheld from apply" and "Drift reports that the cluster diverged from what the operator asserts".
+**Migration**: See "Drift detection skips a resource the reconcile withheld from apply" and "The refusal that withheld a resource carries the signal that drift does not".
 
 ### Requirement: A drift check that is refused or has no identity is reported
 **Reason**: Split into five requirements that each state one behavior.
@@ -136,7 +136,7 @@ The drift render interval (`--drift-render-interval`) bounds how long such skips
 
 ### Requirement: Drift detection skips a resource the reconcile withheld from apply
 Drift detection SHALL skip a resource the reconcile withheld from apply, and its difference from live state SHALL NOT set the `Drifted` condition.
-A withheld resource is one the operator is deliberately not asserting, so reporting it as drift would name a difference the operator created on purpose and intends not to close: a condition that never clears, and one that would bury real drift on the same instance behind it. The refusal that withheld the resource carries that signal instead.
+Drift reports that the cluster diverged from what the operator asserts. A withheld resource is one the operator is deliberately not asserting, so reporting it as drift would name a difference the operator created on purpose and intends not to close: a condition that never clears, and one that would bury real drift on the same instance behind it.
 
 #### Scenario: A withheld resource does not set Drifted
 
@@ -148,13 +148,18 @@ A withheld resource is one the operator is deliberately not asserting, so report
 - **WHEN** a previously withheld resource is applied on a later reconcile
 - **THEN** it is included in drift detection from that point on
 
-### Requirement: Drift reports that the cluster diverged from what the operator asserts
-Drift SHALL report that the cluster diverged from what the operator asserts.
-
 #### Scenario: Real drift is still reported alongside
 
 - **WHEN** an instance has both a withheld resource and another resource that genuinely drifted
 - **THEN** the `Drifted` condition is set, reflecting only the genuinely drifted resource
+
+### Requirement: The refusal that withheld a resource carries the signal that drift does not
+As in requirement "Drift detection skips a resource the reconcile withheld from apply": The refusal that withheld the resource SHALL carry that signal instead.
+
+#### Scenario: A withheld resource is reported by its refusal
+
+- **WHEN** a reconcile withholds a resource whose live state differs from the rendered one
+- **THEN** the refusal that withheld the resource carries that signal instead
 
 ### Requirement: The restore step also applies a rendered object that is taken in
 As in requirement "A missing object is restored": The same step SHALL apply the rendered objects that are taken in: objects that exist, are not in `status.inventory` and that the apply verdict allows (`reconcile-loop-assembly`, "An allowed object outside the inventory is taken in"), also when nothing is missing. It SHALL apply these two sets and only these.

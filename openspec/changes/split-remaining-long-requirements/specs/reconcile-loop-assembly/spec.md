@@ -94,7 +94,7 @@ As in requirement "Every reconcile attempt ends with a status patch": On a succe
 - **THEN** the `Healthy` condition is as it was
 
 ### Requirement: A NoOp patch is bounded to a fixed set of fields
-As in requirement "Every reconcile attempt ends with a status patch": On `NoOp`, the patch SHALL be bounded to: drift condition (`Drifted`), the `Healthy` condition (`instance-health`), failure counter deltas (incl. drift counter), `nextRetryAt` clearing, `requiredContracts`, and `lastAppliedVersion` and `lastAppliedInputs` when the attempt rendered, and the removal of expired Job entries from `inventory.entries` (`drift-detection`, "A missing object is restored").
+As in requirement "Every reconcile attempt ends with a status patch": On `NoOp`, the patch SHALL be bounded to: drift condition (`Drifted`), the `Healthy` condition (`instance-health`), failure counter deltas (incl. drift counter), `nextRetryAt` clearing, `requiredContracts`, and `lastAppliedVersion` and `lastAppliedInputs` when the attempt rendered, and the removal of expired Job entries from `inventory.entries` (`drift-detection`, "An expired Job leaves the inventory").
 
 #### Scenario: NoOp removes an expired Job entry
 - **WHEN** the outcome is `NoOp` and a rendered Job that sets
@@ -180,7 +180,7 @@ The `status.inventory` MUST only be replaced after a fully successful apply (and
 - **THEN** `status.inventory` remains at the previous successful value
 
 ### Requirement: An expired Job entry leaves the inventory
-A ModuleInstance reconcile whose digests are unchanged MUST remove the entries of expired Jobs (`drift-detection`, "A missing object is restored") from `status.inventory.entries`, on a `NoOp` and on a restore.
+A ModuleInstance reconcile whose digests are unchanged MUST remove the entries of expired Jobs (`drift-detection`, "An expired Job leaves the inventory") from `status.inventory.entries`, on a `NoOp` and on a restore.
 
 #### Scenario: An expired Job leaves the inventory without an apply
 - **WHEN** a reconcile renders with unchanged digests, sends no apply, and a rendered Job that sets `ttlSecondsAfterFinished` does not exist

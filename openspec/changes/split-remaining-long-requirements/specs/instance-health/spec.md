@@ -172,7 +172,7 @@ As in requirement "A reconcile requeues after half the time since the last apply
 - **THEN** it requeues after 1 minute
 
 ### Requirement: An expired Job leaves the inventory and is not judged
-A `batch/v1` Job that a ModuleInstance renders with `ttlSecondsAfterFinished` and that the cluster removed SHALL NOT make `Healthy` `False`. The reconcile that finds it absent with unchanged digests removes it from `status.inventory` (`drift-detection`, "A missing object is restored"), and `Healthy` SHALL be judged over the entries that remain. The ready count and the total in the message SHALL count those entries only. This requirement does not apply to a ModulePackage.
+A `batch/v1` Job that a ModuleInstance renders with `ttlSecondsAfterFinished` and that the cluster removed SHALL NOT make `Healthy` `False`. The reconcile that finds it absent with unchanged digests removes it from `status.inventory` (`drift-detection`, "An expired Job leaves the inventory"), and `Healthy` SHALL be judged over the entries that remain. The ready count and the total in the message SHALL count those entries only. This requirement does not apply to a ModulePackage.
 
 #### Scenario: An instance with an expired Job stays healthy
 
