@@ -138,6 +138,14 @@ jobs:
         with:
           persist-credentials: false
 
+      # Every task first reads the module versions with `go list` (global
+      # variables of Taskfile.yml), so the job needs Go from go.mod. No cache.
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
       - name: Install Task
         uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
         with:
