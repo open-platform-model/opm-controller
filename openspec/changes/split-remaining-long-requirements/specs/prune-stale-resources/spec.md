@@ -88,7 +88,7 @@ The prune result MUST name every claim it kept, so that the caller can report th
 - **THEN** the prune returns no error for that entry and names the claim as kept
 
 ### Requirement: Only the kind PersistentVolumeClaim in the core group is kept
-Only the kind `PersistentVolumeClaim` in the core group MUST be kept. A PersistentVolume, a VolumeSnapshot and a claim-like kind of another API group are pruned like any other resource. Namespaces and CustomResourceDefinitions stay excluded, and `spec.dataPolicy` does not change that.
+As in requirement "The prune keeps a PersistentVolumeClaim unless the instance opts out": Only the kind `PersistentVolumeClaim` in the core group is kept. A PersistentVolume, a VolumeSnapshot and a claim-like kind of another API group MUST be pruned like any other resource. Namespaces and CustomResourceDefinitions stay excluded, and `spec.dataPolicy` does not change that.
 
 #### Scenario: Other storage kinds are pruned as before
 - **GIVEN** a stale entry of a kind other than core `PersistentVolumeClaim`, live and owned by the instance
@@ -170,8 +170,9 @@ As in requirement "The prune reads each object and asks the library's delete ver
 - **THEN** the object is not deleted, and the prune decides ownership with no label or annotation comparison of its own
 
 ### Requirement: A proceed verdict deletes the object unless spec.dataPolicy keeps the claim
-The prune MUST act on each answer as follows: Proceed: the object is deleted, unless it is a PersistentVolumeClaim that `spec.dataPolicy` keeps. A claim counts as kept only after the verdict said proceed.
+As in requirement "The prune reads each object and asks the library's delete verdict": The prune MUST act on each answer as follows: Proceed: the object is deleted, unless it is a PersistentVolumeClaim that `spec.dataPolicy` keeps. A claim counts as kept only after the verdict said proceed.
 (Requirement: An object that does not exist is a success)
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Own object is deleted
 - **GIVEN** a stale entry for ConfigMap `team-a/example` whose live object is managed by OPM and carries this instance's UUID label and no adopt annotation
@@ -179,8 +180,9 @@ The prune MUST act on each answer as follows: Proceed: the object is deleted, un
 - **THEN** the ConfigMap is deleted and counted as deleted
 
 ### Requirement: An object that does not exist is a success
-The prune MUST act on each answer as follows: The object does not exist: success, as before.
+As in requirement "The prune reads each object and asks the library's delete verdict": The prune MUST act on each answer as follows: The object does not exist: success, as before.
 (Requirement: An object that is not the instance's own is left in the cluster and named)
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: An object that does not exist is a success
 
@@ -188,8 +190,9 @@ The prune MUST act on each answer as follows: The object does not exist: success
 - **THEN** the entry is a success
 
 ### Requirement: An object that is not the instance's own is left in the cluster and named
-The prune MUST act on each answer as follows: For every identity, the object is not managed by OPM, belongs to another instance, or carries an adopt annotation that names another instance: the object is left in the cluster, counted as skipped and named in the prune result with the library's reason and message. It is not an error.
+As in requirement "The prune reads each object and asks the library's delete verdict": The prune MUST act on each answer as follows: For every identity, the object is not managed by OPM, belongs to another instance, or carries an adopt annotation that names another instance: the object is left in the cluster, counted as skipped and named in the prune result with the library's reason and message. It is not an error.
 (Requirement: A failed read fails the entry and not the run)
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Object not managed by OPM is left
 - **GIVEN** a stale entry for ConfigMap `team-a/example` whose live object has no `app.kubernetes.io/managed-by` label
@@ -210,8 +213,9 @@ The prune MUST act on each answer as follows: For every identity, the object is 
 - **AND** the prune result names it with the reason `adopted-elsewhere`
 
 ### Requirement: A failed read fails the entry and not the run
-The prune MUST act on each answer as follows: The read fails with an error other than NotFound: the entry is a failed prune and the remaining entries are still attempted, as before. A PersistentVolumeClaim that cannot be read while `spec.dataPolicy` keeps claims is kept without an error, as before.
+As in requirement "The prune reads each object and asks the library's delete verdict": The prune MUST act on each answer as follows: The read fails with an error other than NotFound: the entry is a failed prune and the remaining entries are still attempted, as before. A PersistentVolumeClaim that cannot be read while `spec.dataPolicy` keeps claims is kept without an error, as before.
 (Requirement: A proceed verdict deletes the object unless spec.dataPolicy keeps the claim)
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: A failed read fails the entry and not the run
 - **GIVEN** a stale set of two ConfigMaps and an API server that refuses the read of the first
@@ -221,6 +225,7 @@ The prune MUST act on each answer as follows: The read fails with an error other
 
 ### Requirement: An object without a UUID label is deleted when OPM manages it
 An object without a UUID label MUST still be deleted when OPM manages it, and every OPM manager label value MUST be accepted, as before.
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: Object without a UUID label is deleted
 - **GIVEN** a stale entry for ConfigMap `team-a/legacy` whose live object carries `app.kubernetes.io/managed-by=open-platform-model` and no UUID label
@@ -265,6 +270,7 @@ As in requirement "The prune judges with the identities the status held when the
 
 ### Requirement: The prune judges with the render's identity when no identity was recorded
 When `status.instanceUUID` was empty when the reconcile started, the prune MUST judge with the render's identity, so that a stale object that carries another instance's UUID label is left in the cluster, as before the field existed.
+**Source**: owner decisions of 2026-10-08 (prune judges with the identity stored in the instance's record, also after the instance identity changed; the status keeps both identities until the prune succeeded).
 
 #### Scenario: No recorded identity, ModuleInstance, object of another identity
 - **GIVEN** a ModuleInstance with an inventory and an empty `status.instanceUUID`, whose render carries identity `B`, and a stale ConfigMap that is managed by OPM, carries the UUID label `X` and has no adopt annotation
@@ -273,6 +279,7 @@ When `status.instanceUUID` was empty when the reconcile started, the prune MUST 
 
 ### Requirement: A ModulePackage with no recorded identity asks the verdict once more with no identity
 As in requirement "The prune judges with the render's identity when no identity was recorded": A ModulePackage, and only a ModulePackage, MUST then ask the verdict once more with no identity: before the field existed its prune compared no UUID label, and it MUST NOT lose a delete it had.
+**Source**: owner decisions of 2026-10-08 (prune judges with the identity stored in the instance's record, also after the instance identity changed; the status keeps both identities until the prune succeeded).
 
 #### Scenario: No recorded identity, ModulePackage, object of an unknown earlier identity
 - **GIVEN** a ModulePackage with an inventory and an empty `status.instanceUUID`, whose render carries identity `B`, and a stale ConfigMap that is managed by OPM, carries the UUID label `X` and has no adopt annotation
@@ -300,6 +307,7 @@ The prune of stale resources MUST delete a stale object only when the library's 
 
 ### Requirement: The prune sends deletes in the plan order with Foreground propagation and the UID precondition
 As in requirement "The prune deletes a stale object only when the library's deletion transition names the delete": The prune MUST send each delete in the order the plan gives, descending kind weight, and MUST add no ordering of its own. Each delete MUST carry the propagation policy the action names, Foreground, and the action's UID precondition.
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: Stale objects are deleted in descending kind weight
 - **GIVEN** a stale set that lists a ConfigMap before a Deployment
@@ -313,6 +321,7 @@ As in requirement "The prune deletes a stale object only when the library's dele
 
 ### Requirement: The prune runs one plan per identity
 As in requirement "The prune deletes a stale object only when the library's deletion transition names the delete": With more than one identity to judge with, the prune MUST run one plan per identity, in the order the identities are asked today: the entries a plan skips because the object belongs to, or is being adopted by, another instance form the plan of the next identity.
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: One plan runs per identity
 
@@ -321,6 +330,7 @@ As in requirement "The prune deletes a stale object only when the library's dele
 
 ### Requirement: A PersistentVolumeClaim that spec.dataPolicy keeps is not an entry of any plan
 As in requirement "The prune deletes a stale object only when the library's deletion transition names the delete": A PersistentVolumeClaim that `spec.dataPolicy` keeps MUST NOT be an entry of any plan; it is still read and judged, so that it is reported as kept, left behind or gone as before.
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: A kept stale claim is not in the plan
 - **GIVEN** a ModuleInstance with no `spec.dataPolicy` and a stale PersistentVolumeClaim of its own
@@ -329,6 +339,7 @@ As in requirement "The prune deletes a stale object only when the library's dele
 
 ### Requirement: The prune does not wait for a deleted object
 The prune MUST NOT wait for a deleted object to disappear. A stale entry whose delete the API server accepted leaves `status.inventory`, as before.
+**Source**: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
 
 #### Scenario: The reconcile does not wait for a stale object
 - **GIVEN** a stale Deployment whose delete is accepted and which still exists with a `deletionTimestamp`

@@ -17,7 +17,7 @@
 **Migration**: See "A second claim for a provider catalog is refused naming the claimant" and "A claim whose deletion is blocked still holds its provider catalog".
 
 ### Requirement: A contract has one provider
-**Reason**: Split into seven requirements that each state one behavior.
+**Reason**: Split into eight requirements that each state one behavior.
 **Migration**: See "A claim is refused when a contract it provides has another provider", "A contract refusal is distinct from the duplicate-claim refusal", "The provider count of a contract is read from the built platform", "A provider is identified by its registry entry", "An inactive accepted claim does not hold a contract against a competitor", "A claim whose deletion is blocked keeps holding its contracts", "A claim's own catalog does not hold a contract against it" and "Only another provider of a contract conflicts with a claim".
 
 ### Requirement: A build-incompatible provider is refused at acceptance
