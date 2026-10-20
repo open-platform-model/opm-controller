@@ -610,7 +610,7 @@ As in requirement "A wait survives the loss of the ServiceAccount": With the rec
 - **THEN** `DeletionBlocked` is reported with `Stalled=True`, one `Warning` event and the ways out
 
 ### Requirement: A ServiceAccount that loses its rights does not release the deletion by itself
-As in requirement "A wait survives the loss of the ServiceAccount": Known limit, by the owner's decision: when the rights of the ServiceAccount are removed during the wait and the ServiceAccount stays (its RoleBinding is deleted), the deletion MUST NOT release by itself. It reports `DeletionBlocked` after 10 minutes and names the cause; `spec.prune=false` releases it, and so does deleting the ServiceAccount.
+As in requirement "A wait survives the loss of the ServiceAccount": Known limit, by the owner's decision: when the rights of the ServiceAccount are removed during the wait and the ServiceAccount stays (its RoleBinding is deleted), the deletion does not release by itself. It SHALL report `DeletionBlocked` after 10 minutes and SHALL name the cause; `spec.prune=false` releases it, and so does deleting the ServiceAccount.
 **Source**: owner decisions of 2026-10-09 (the `Ready` reason is the record, with no new CRD field; during the wait the finalizer is released "only when the ServiceAccount is gone").
 
 #### Scenario: Disabling prune releases a deletion whose ServiceAccount lost its rights
