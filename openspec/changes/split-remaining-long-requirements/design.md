@@ -1083,8 +1083,9 @@ Form c2 for every requirement: REMOVED plus ADDED under new names. Old and new l
 | Another major of the claim's own catalog is another provider | A provider is identified by its registry entry, Another major of the claim's own catalog is another provider | no |
 | An inactive accepted claim does not block a competitor | An inactive accepted claim does not hold a contract against a competitor, An inactive accepted claim does not block a competitor | no |
 | A blocked claim still holds its contracts against another catalog | A claim whose deletion is blocked keeps holding its contracts, A blocked claim still holds its contracts against another catalog | no |
+| An active claim is not refused against its own catalog | A claim's own catalog does not hold a contract against it, An active claim is not refused against its own catalog | no |
 | Another provider still refuses a claim whose catalog is in the registry | A claim's own catalog does not hold a contract against it, Another provider still refuses a claim whose catalog is in the registry | no |
-| An active claim is not refused against its own catalog | Counting a claim's own catalog entry would make the claim oscillate, An active claim is not refused against its own catalog | no |
+| (none; new scenario) | Counting a claim's own catalog entry would make the claim oscillate, An active claim's own entry is not counted against it | new, restates a case of the old text |
 | A provider requiring a newer build is refused | A newer-build requirement is refused, A provider requiring a newer build is refused | no |
 | A provider requiring an older build is accepted by this check | A newer-build requirement is refused, A provider requiring an older build is accepted by this check | no |
 | A provider on a different major is refused unconditionally | A requirement is compared against the resolved entry of the provider's own major, A provider on a different major is refused unconditionally | no |
@@ -1119,6 +1120,7 @@ Form c2 for every requirement: REMOVED plus ADDED under new names. Old and new l
 | The claimed artifact must be a catalog: The refusal SHALL be structural (the kind gate the acquisition applies | A claimed artifact that is not a catalog is refused | verbatim |
 | The claimed artifact must be a catalog: (subject, condition or scope of the old requirement) | An unresolvable artifact is refused distinguishably from a wrong-kind artifact | prefix naming the block that holds the subject, condition or scope |
 | The claimed artifact must be a catalog: An artifact that cannot be resolved at all SHALL be refused distinguis | An unresolvable artifact is refused distinguishably from a wrong-kind artifact | verbatim |
+| The claimed artifact must be a catalog: (subject, condition or scope of the old requirement) | An accepted claim is not refused for a transient registry failure | prefix naming the block that holds the subject, condition or scope |
 | The claimed artifact must be a catalog: One case is not a refusal: an accepted claim whose acquisition fails w | An accepted claim is not refused for a transient registry failure | keyword added or header reference updated |
 | The claimed provider set is re-derived and compared for exact equality: Acceptance SHALL derive the provider-fulfilled contract set from the a | The derived provider set must equal spec.provides | verbatim |
 | The claimed provider set is re-derived and compared for exact equality: (subject, condition or scope of the old requirement) | A claim that lists a contract the catalog does not implement or omits one it does is refused | prefix naming the block that holds the subject, condition or scope |
@@ -1236,7 +1238,8 @@ Form c2 for every requirement: REMOVED plus ADDED under new names. Old and new l
 | One reference moves alone | All seven cascade references carry the same SHA, One reference moves alone | no |
 | The module's resolver checkout follows the pin | All seven cascade references carry the same SHA, The module's resolver checkout follows the pin | no |
 | The resolver is missing at the pin | The cascade-task workflow fails when the resolver is missing at the pinned commit, The resolver is missing at the pin | no |
-| A copy left behind at a pin bump | The wiring check script is a copy of the .github script and the repo values live in wiring-check.yaml, A copy left behind at a pin bump | no |
+| A copy left behind at a pin bump | The wiring check script is a copy of the .github script, A copy left behind at a pin bump | no |
+| (none; new scenario) | The wiring-check.yaml values hold the receiver, env, CI and notify settings, The values file holds the receiver, env, CI and notify settings | new, restates a case of the old text |
 | (none; new scenario) | The wiring-check.yaml values name the extra references and the publishing workflows, The values file names the extra references and the publishing workflows | new, restates a case of the old text |
 | The wired tree passes | The Lint job runs the wiring check on every pull request, The wired tree passes | no |
 | A run step before the wiring step | The Lint job runs the wiring check on every pull request, A run step before the wiring step | no |
@@ -1286,7 +1289,9 @@ Form c2 for every requirement: REMOVED plus ADDED under new names. Old and new l
 | The cascade references are pinned to one .github main SHA and checked in the Lint job: the `uses` of the `cite-lint.yml` call in `cite-lint.yml` (see `commen | The cite-lint call names one .github main SHA | verbatim |
 | The cascade references are pinned to one .github main SHA and checked in the Lint job: All seven SHALL carry the same SHA, which moves only through a `ci(dep | All seven cascade references carry the same SHA | verbatim |
 | The cascade references are pinned to one .github main SHA and checked in the Lint job: `cascade-task.yml` SHALL fail, not skip, when the resolver is missing  | The cascade-task workflow fails when the resolver is missing at the pinned commit | verbatim |
-| The cascade references are pinned to one .github main SHA and checked in the Lint job: `.tasks/cascade/wiring-check.sh` SHALL be byte-identical to `.github/s | The wiring check script is a copy of the .github script and the repo values live in wiring-check.yaml | verbatim |
+| The cascade references are pinned to one .github main SHA and checked in the Lint job: `.tasks/cascade/wiring-check.sh` SHALL be byte-identical to `.github/s | The wiring check script is a copy of the .github script | verbatim, cut at a list boundary |
+| The cascade references are pinned to one .github main SHA and checked in the Lint job: (subject, condition or scope of the old requirement) | The wiring-check.yaml values hold the receiver, env, CI and notify settings | prefix naming the block that holds the subject, condition or scope |
+| The cascade references are pinned to one .github main SHA and checked in the Lint job: this repo's values SHALL live in `.tasks/cascade/wiring-check.yaml` (` | The wiring-check.yaml values hold the receiver, env, CI and notify settings | verbatim, cut at a list boundary |
 | The cascade references are pinned to one .github main SHA and checked in the Lint job: (subject, condition or scope of the old requirement) | The wiring-check.yaml values name the extra references and the publishing workflows | prefix naming the block that holds the subject, condition or scope |
 | The cascade references are pinned to one .github main SHA and checked in the Lint job: this repo's values SHALL live in `.tasks/cascade/wiring-check.yaml` ( | The wiring-check.yaml values name the extra references and the publishing workflows | verbatim, cut at a list boundary |
 | The cascade references are pinned to one .github main SHA and checked in the Lint job: `extra-references` naming the `module-deps.yml` resolver and the `cite | The wiring-check.yaml values name the extra references and the publishing workflows | verbatim, cut at a list boundary |
@@ -1317,7 +1322,7 @@ Form c2 for every requirement: REMOVED plus ADDED under new names. Old and new l
 
 Notes for the two ledgers above:
 
-- A cut list repeats its lead in each part and names the block that holds the rest. The 16 blocks of the cascade references requirement and its fail list cannot name every sibling inside 500 characters, so each part of the long "Verify the cascade wiring" fail list names the next part, and the last names the first.
+- A cut list repeats its lead in each part and names the block that holds the rest. The 16 blocks of the cascade references requirement and its fail list cannot name every sibling inside 500 characters, so each part of the long fail list of the wiring script names the next part, and the last names the first. The subject of the fail list is the script `.tasks/cascade/wiring-check.sh` (the "It" of the old sentence), which the Lint step and `task cascade:wiring:check` both run.
 - The sentence that makes the `cascade` job call the shared receive workflow is 498 characters. It is cut at its participle list into two blocks, each repeating the lead of the sentence, because a restated subject would take the block over 500 characters.
 - The citation line of the build-compatibility requirement is a **Source** line on the block that holds the shared-path rule.
 - Where a new block needs an antecedent for "it", "this" or "the first", it starts with As in requirement "<header>" naming the block that holds it.

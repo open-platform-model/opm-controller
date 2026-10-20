@@ -17,8 +17,8 @@
 **Migration**: See "The Cascade gates workflow runs on pull_request_target and calls the shared gates workflow", "The gates job grants two permissions, passes the modes and checks out no pull request code" and "Neither gate status is a required check before Phase 5".
 
 ### Requirement: The cascade references are pinned to one .github main SHA and checked in the Lint job
-**Reason**: Split into sixteen requirements that each state one behavior.
-**Migration**: See "The first cascade references name one .github main SHA", "The other cascade references name one .github main SHA", "The cite-lint call names one .github main SHA", "All seven cascade references carry the same SHA", "The cascade-task workflow fails when the resolver is missing at the pinned commit", "The wiring check script is a copy of the .github script and the repo values live in wiring-check.yaml", "The wiring-check.yaml values name the extra references and the publishing workflows", "The Lint job runs the wiring check on every pull request", "The wiring check fails on a key job's shape", "The wiring check fails on notify job values", "The wiring check fails on publish job values and the release env", "The wiring check fails on receiver values and key readers", "The wiring check fails on caches, checkouts and the Lint env", "The wiring check fails on a secrets key or a reference set", "The wiring check also fails on a SHA that is not on .github main" and "The wiring check guards against mistakes, not a deliberate edit".
+**Reason**: Split into seventeen requirements that each state one behavior.
+**Migration**: See "The first cascade references name one .github main SHA", "The other cascade references name one .github main SHA", "The cite-lint call names one .github main SHA", "All seven cascade references carry the same SHA", "The cascade-task workflow fails when the resolver is missing at the pinned commit", "The wiring check script is a copy of the .github script", "The wiring-check.yaml values hold the receiver, env, CI and notify settings", "The wiring-check.yaml values name the extra references and the publishing workflows", "The Lint job runs the wiring check on every pull request", "The wiring check fails on a key job's shape", "The wiring check fails on notify job values", "The wiring check fails on publish job values and the release env", "The wiring check fails on receiver values and key readers", "The wiring check fails on caches, checkouts and the Lint env", "The wiring check fails on a secrets key or a reference set", "The wiring check also fails on a SHA that is not on .github main" and "The wiring check guards against mistakes, not a deliberate edit".
 
 ## ADDED Requirements
 
@@ -186,23 +186,32 @@ All seven SHALL carry the same SHA, which moves only through a `ci(deps): pin th
 - **WHEN** `cascade-task.yml` runs and the pinned `.github` commit has no `cascade-resolve.sh`
 - **THEN** the run fails with `no cascade resolver at the pinned .github commit` instead of skipping S5
 
-### Requirement: The wiring check script is a copy of the .github script and the repo values live in wiring-check.yaml
-`.tasks/cascade/wiring-check.sh` SHALL be byte-identical to `.github/scripts/cascade/wiring-check.sh` at the pinned SHA and SHALL move only with the pin; this repo's values SHALL live in `.tasks/cascade/wiring-check.yaml` (`receiver: true`, `env-allow` `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`, `ci` `lint.yml` job `lint`, the notify `needs`, `if` and `tag` below, `labels-managed: false`).
-(Requirement: The wiring-check.yaml values name the extra references and the publishing workflows)
+### Requirement: The wiring check script is a copy of the .github script
+`.tasks/cascade/wiring-check.sh` SHALL be byte-identical to `.github/scripts/cascade/wiring-check.sh` at the pinned SHA and SHALL move only with the pin.
+(Requirement: The wiring-check.yaml values hold the receiver, env, CI and notify settings)
 
 #### Scenario: A copy left behind at a pin bump
 - **WHEN** a pull request moves every reference to a new SHA but keeps the old `wiring-check.sh`
 - **THEN** the "Verify the cascade wiring" step fails with `differs from` naming the file at the new SHA
 
+### Requirement: The wiring-check.yaml values hold the receiver, env, CI and notify settings
+As in requirement "The wiring check script is a copy of the .github script": this repo's values SHALL live in `.tasks/cascade/wiring-check.yaml` (`receiver: true`, `env-allow` `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`, `ci` `lint.yml` job `lint`, the notify `needs`, `if` and `tag` below, `labels-managed: false`).
+(Requirement: The wiring check fails on notify job values)
+(Requirement: The wiring-check.yaml values name the extra references and the publishing workflows)
+
+#### Scenario: The values file holds the receiver, env, CI and notify settings
+- **WHEN** `.tasks/cascade/wiring-check.yaml` is read
+- **THEN** it holds `receiver: true`, `env-allow` `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`, `ci` `lint.yml` job `lint`, the notify `needs`, `if` and `tag`, and `labels-managed: false`
+
 ### Requirement: The wiring-check.yaml values name the extra references and the publishing workflows
-As in requirement "The wiring check script is a copy of the .github script and the repo values live in wiring-check.yaml": this repo's values SHALL live in `.tasks/cascade/wiring-check.yaml` (`extra-references` naming the `module-deps.yml` resolver and the `cite-lint.yml` call (kind `cite-lint`), and `publish-workflows` naming every workflow that publishes: `release.yml`, `publish-fixtures.yml`, `docs.yml`, `image-pr.yml`, `test-e2e.yml`, `module-image.yml` and `module-deps.yml`).
+As in requirement "The wiring-check.yaml values hold the receiver, env, CI and notify settings": this repo's values SHALL live in `.tasks/cascade/wiring-check.yaml` (`extra-references` naming the `module-deps.yml` resolver and the `cite-lint.yml` call (kind `cite-lint`), and `publish-workflows` naming every workflow that publishes: `release.yml`, `publish-fixtures.yml`, `docs.yml`, `image-pr.yml`, `test-e2e.yml`, `module-image.yml` and `module-deps.yml`).
 
 #### Scenario: The values file names the extra references and the publishing workflows
 - **WHEN** `.tasks/cascade/wiring-check.yaml` is read
 - **THEN** it holds `extra-references` naming the `module-deps.yml` resolver and the `cite-lint.yml` call (kind `cite-lint`), and `publish-workflows` naming every workflow that publishes
 
 ### Requirement: The Lint job runs the wiring check on every pull request
-As in requirement "The wiring check script is a copy of the .github script and the repo values live in wiring-check.yaml": The required `Lint` job SHALL run it on every pull request as the step "Verify the cascade wiring", exactly `bash .tasks/cascade/wiring-check.sh --pin-on-main` with only `GH_TOKEN: ${{ github.token }}` in its `env`, preceded only by SHA-pinned actions from other repos; `task cascade:wiring:check` runs it offline.
+As in requirement "The wiring check script is a copy of the .github script": The required `Lint` job SHALL run it on every pull request as the step "Verify the cascade wiring", exactly `bash .tasks/cascade/wiring-check.sh --pin-on-main` with only `GH_TOKEN: ${{ github.token }}` in its `env`, preceded only by SHA-pinned actions from other repos; `task cascade:wiring:check` runs it offline.
 
 #### Scenario: The wired tree passes
 - **WHEN** the `Lint` job runs on a pull request that leaves the cascade wiring as the contract shapes it
@@ -213,7 +222,7 @@ As in requirement "The wiring check script is a copy of the .github script and t
 - **THEN** the wiring check fails naming the step that is not a pinned action
 
 ### Requirement: The wiring check fails on a key job's shape
-The step "Verify the cascade wiring" SHALL fail when: a key-holding job (`notify-downstream`, `publish`) differs from its contract shape in its keys, step keys, `with` keys, Environment, permissions, step count, action reference, key inputs or a `runs-on` other than `ubuntu-latest`.
+`.tasks/cascade/wiring-check.sh` SHALL fail when: a key-holding job (`notify-downstream`, `publish`) differs from its contract shape in its keys, step keys, `with` keys, Environment, permissions, step count, action reference, key inputs or a `runs-on` other than `ubuntu-latest`.
 (Requirement: The wiring check fails on notify job values)
 
 #### Scenario: A self-hosted runner for a key job
@@ -221,15 +230,15 @@ The step "Verify the cascade wiring" SHALL fail when: a key-holding job (`notify
 - **THEN** the wiring check fails naming `release.yml:notify-downstream runs-on`
 
 ### Requirement: The wiring check fails on notify job values
-The step "Verify the cascade wiring" SHALL fail when: the `notify-downstream` job's `needs` differs from `[release-please, publish-release]`, or its `if` from `needs.release-please.outputs.release_created == 'true' && vars.CASCADE_NOTIFY != 'off'` (contract §4.6 prints `releases_created`, which a module-only release also sets), or its `tag` input or `timeout-minutes` (20) from contract §4.6.
+`.tasks/cascade/wiring-check.sh` SHALL fail when: the `notify-downstream` job's `needs` differs from `[release-please, publish-release]`, or its `if` from `needs.release-please.outputs.release_created == 'true' && vars.CASCADE_NOTIFY != 'off'` (contract §4.6 prints `releases_created`, which a module-only release also sets), or its `tag` input or `timeout-minutes` (20) from contract §4.6.
 (Requirement: The wiring check fails on publish job values and the release env)
 
 #### Scenario: The wiring check fails on a notify job value off the contract
-- **WHEN** the `needs`, `if`, `tag` input or `timeout-minutes` of the `notify-downstream` job differs from the contract
+- **WHEN** the `needs` of the `notify-downstream` job differs from `[release-please, publish-release]`, or its `if` from `needs.release-please.outputs.release_created == 'true' && vars.CASCADE_NOTIFY != 'off'`, or its `tag` input or `timeout-minutes` (20) from contract §4.6
 - **THEN** the step "Verify the cascade wiring" fails
 
 ### Requirement: The wiring check fails on publish job values and the release env
-The step "Verify the cascade wiring" SHALL fail when: the `publish` job's `needs` differs from `cascade`, its `if:` or `gates-only` input from the receiver caller shape, or its `timeout-minutes` from 15; `release.yml`'s workflow-level `env` is not a map or has a key other than `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`.
+`.tasks/cascade/wiring-check.sh` SHALL fail when: the `publish` job's `needs` differs from `cascade`, its `if:` or `gates-only` input from the receiver caller shape, or its `timeout-minutes` from 15; `release.yml`'s workflow-level `env` is not a map or has a key other than `REGISTRY`, `IMAGE_NAME` and `CUE_VERSION`.
 (Requirement: The wiring check fails on receiver values and key readers)
 
 #### Scenario: A startup-code variable in release.yml
@@ -237,7 +246,7 @@ The step "Verify the cascade wiring" SHALL fail when: the `publish` job's `needs
 - **THEN** the wiring check fails naming the key
 
 ### Requirement: The wiring check fails on receiver values and key readers
-The step "Verify the cascade wiring" SHALL fail when: `deps-cascade.yml`'s top-level keys, concurrency group, `publish` condition or either `dry-run` value differ from the contract; any other workflow value reads the key or any other job declares `environment: cascade`; a job reads `RELEASE_APP_PRIVATE_KEY` without declaring exactly `environment: release`, or a job declares `release` without reading it.
+`.tasks/cascade/wiring-check.sh` SHALL fail when: `deps-cascade.yml`'s top-level keys, concurrency group, `publish` condition or either `dry-run` value differ from the contract; any other workflow value reads the key or any other job declares `environment: cascade`; a job reads `RELEASE_APP_PRIVATE_KEY` without declaring exactly `environment: release`, or a job declares `release` without reading it.
 (Requirement: The wiring check fails on caches, checkouts and the Lint env)
 
 #### Scenario: The wiring check fails on a second reader of the key
@@ -245,7 +254,7 @@ The step "Verify the cascade wiring" SHALL fail when: `deps-cascade.yml`'s top-l
 - **THEN** the step "Verify the cascade wiring" fails
 
 ### Requirement: The wiring check fails on caches, checkouts and the Lint env
-The step "Verify the cascade wiring" SHALL fail when: a workflow listed in `publish-workflows` uses an Actions cache; a `.github` checkout is not `actions/checkout@<SHA>` with exactly `repository`, `ref`, `path` and `persist-credentials: false`; the `Lint` workflow or job `env` names anything outside `CUE_*`, `OPM_*`, `REGISTRY` and `IMAGE_NAME`, or the job has a `container` or `services`.
+`.tasks/cascade/wiring-check.sh` SHALL fail when: a workflow listed in `publish-workflows` uses an Actions cache; a `.github` checkout is not `actions/checkout@<SHA>` with exactly `repository`, `ref`, `path` and `persist-credentials: false`; the `Lint` workflow or job `env` names anything outside `CUE_*`, `OPM_*`, `REGISTRY` and `IMAGE_NAME`, or the job has a `container` or `services`.
 (Requirement: The wiring check fails on a secrets key or a reference set)
 
 #### Scenario: A cache in a publishing workflow
@@ -253,15 +262,16 @@ The step "Verify the cascade wiring" SHALL fail when: a workflow listed in `publ
 - **THEN** the wiring check fails naming `test-e2e.yml cache use`
 
 ### Requirement: The wiring check fails on a secrets key or a reference set
-The step "Verify the cascade wiring" SHALL fail when: a call into `.github` has a `secrets` key; or the set of `.github` references, their SHA or their comment differs.
+`.tasks/cascade/wiring-check.sh` SHALL fail when: a call into `.github` has a `secrets` key; or the set of `.github` references, their SHA or their comment differs.
 (Requirement: The wiring check fails on a key job's shape)
 
 #### Scenario: The wiring check fails when the set of .github references differs
-- **WHEN** the set of `.github` references, their SHA or their comment differs from the contract
+- **WHEN** the set of `.github` references, their SHA or their comment differs
 - **THEN** the step "Verify the cascade wiring" fails
 
 ### Requirement: The wiring check also fails on a SHA that is not on .github main
 As in requirement "The Lint job runs the wiring check on every pull request": With `--pin-on-main` it SHALL also fail when the SHA is not on `.github` `main` or the running copy differs from the file at the SHA.
+(Requirement: The wiring check fails on a key job's shape)
 
 #### Scenario: A SHA that is not on .github main fails the check
 - **WHEN** the pinned SHA is not on `.github` `main` and the check runs with `--pin-on-main`

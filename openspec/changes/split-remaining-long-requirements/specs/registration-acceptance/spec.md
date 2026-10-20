@@ -57,7 +57,7 @@ As in requirement "A claimed artifact that is not a catalog is refused": An arti
 - **THEN** the claim is refused with a reason distinct from the wrong-kind refusal, naming the coordinate
 
 ### Requirement: An accepted claim is not refused for a transient registry failure
-One case is not a refusal: an accepted claim whose acquisition fails with a transient registry failure SHALL keep its verdict, as the requirement "A transient registry failure leaves an accepted claim's verdict as it was" states.
+As in requirement "A claimed artifact that is not a catalog is refused": One case is not a refusal: an accepted claim whose acquisition fails with a transient registry failure SHALL keep its verdict, as the requirement "A transient registry failure leaves an accepted claim's verdict as it was" states.
 
 #### Scenario: A transient registry failure does not refuse an accepted claim
 
@@ -161,8 +161,8 @@ As in requirement "A claim is refused when a contract it provides has another pr
 
 #### Scenario: Two providers of one contract from different catalogs are a contract conflict
 
-- **WHEN** two claims from different catalogs provide the same contract
-- **THEN** the later claim is refused for the contract, naming the holder and the contract, and not as a duplicate claim
+- **WHEN** a claim provides a contract that an active claim from a different catalog already provides
+- **THEN** the claim is refused for the contract, naming the holder and the contract, and not as a duplicate claim
 
 ### Requirement: The provider count of a contract is read from the built platform
 As in requirement "A claim is refused when a contract it provides has another provider": Which enabled entries provide a contract SHALL be read from the built platform's own provider count (the contract inventory's providers, which core computes once and the render build refuses on), never recounted by the operator. When the built platform's provider count cannot be read, acceptance SHALL defer the verdict (not refuse), as it does when no platform has been built.
@@ -199,6 +199,11 @@ As in requirement "A claim is refused when a contract it provides has another pr
 ### Requirement: A claim's own catalog does not hold a contract against it
 A claim's **own** catalog SHALL NOT hold a contract against it. The claim's own entry is the registry entry equal to its `spec.catalog`; another major of the same catalog is not its own entry. Only ANOTHER provider of the contract is a conflict, and the claim's own catalog being excused SHALL NOT excuse a different catalog providing the same contract.
 
+#### Scenario: An active claim is not refused against its own catalog
+
+- **WHEN** an active claim is re-judged against a platform whose registry now carries its own catalog, with transformers stamped the way core stamps them (a major-free module path)
+- **THEN** it is not refused for providing its own contracts
+
 #### Scenario: Another provider still refuses a claim whose catalog is in the registry
 
 - **WHEN** a different catalog provides the same contract as an active claim whose own catalog is in the registry
@@ -207,10 +212,10 @@ A claim's **own** catalog SHALL NOT hold a contract against it. The claim's own 
 ### Requirement: Counting a claim's own catalog entry would make the claim oscillate
 Once a claim is active its catalog SHALL be an enabled entry of the very platform the next reconcile judges it against (enhancement 0015, "The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted"), so counting the claim's own entry would refuse the claim for providing what it exists to provide, deactivate it, drop its catalog from the next generated package and accept it again, an oscillation rather than a verdict.
 
-#### Scenario: An active claim is not refused against its own catalog
+#### Scenario: An active claim's own entry is not counted against it
 
-- **WHEN** an active claim is re-judged against a platform whose registry now carries its own catalog, with transformers stamped the way core stamps them (a major-free module path)
-- **THEN** it is not refused for providing its own contracts
+- **WHEN** an active claim's catalog is an enabled entry of the platform that the next reconcile judges the claim against
+- **THEN** the claim's own entry is not counted, so the claim is not refused, deactivated and accepted again
 
 ### Requirement: A newer-build requirement is refused
 Acceptance SHALL compare the catalog's committed requirements against the platform's resolved versions, per shared OPM-namespace path, and SHALL refuse the claim when the catalog requires a version greater than the platform's within the same major, or requires a major the platform does not resolve for that path (enhancement 0015, "A build-incompatible registration is refused at acceptance, by comparing committed resolutions under the stability discipline").
