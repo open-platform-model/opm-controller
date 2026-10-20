@@ -171,7 +171,7 @@ hold 13 requirements each, and the overlap group holds 4.
 | 7 Unit 5 | example-test-modules 7, prune-stale-resources 6 | 13 | 70 |
 | 8 Unit 6 | drift-detection 5, modulepackage-kernel-rendering 5, example-module-publishing 2 | 12 | 82 |
 | 9 Overlap | operator-module 1, release-automation 2, container-image-publish 1, with the retarget of `stop-operator-install-manifest` | 4 | 86 |
-| 10 Gate | Taskfile tasks, CI step, final archive simulation, archive of this change | 0 | 86 |
+| 10 Gate | Taskfile tasks, CI job, final archive simulation, archive of this change | 0 | 86 |
 
 `N` is the number of WARNING lines the whole change on the branch has removed from
 `validate --all --strict`, counted against `origin/main` (86 WARNING lines: the 84 long main
@@ -188,7 +188,7 @@ and forces a second PR. The human rejected it at the gate (2026-10-20 15:40).
 
 ### Reversibility
 
-high (hours). Spec text is reverted by a PR; the gate is one task and one step. No contract
+high (hours). Spec text is reverted by a PR; the gate is one task and one job. No contract
 changes and no accepted decision record is edited.
 
 ## The scenario ledger
@@ -2160,7 +2160,7 @@ no red required check on `main`. The two-PR plan is dropped.
   `stop-operator-install-manifest` refuse. Counter: the archive check in "The gate", run after
   group 9 and in group 10.
 - Section count: ten groups, more than about five; each ends green and the change runs as units.
-- No new trust boundary, secret or personal data. The new CI step installs an npm package pinned
+- No new trust boundary, secret or personal data. The new CI job installs an npm package pinned
   by version with scripts off, in a read-only job; the lockfile gap is the same accepted residual
   as in core and cli, owner: this repo's maintainers.
 

@@ -23,7 +23,7 @@ is lost or changed.
 ## What Changes
 
 No code, no API type, no controller and no CRD changes. Spec text changes, and the repo gains a
-validation task and one CI step.
+validation task and one CI job.
 
 - **Purpose.** `source-resolution` gets a real `## Purpose`, by direct edit of the main spec
   (archive ignores a delta Purpose for an existing spec). The open change cannot archive without
@@ -57,7 +57,7 @@ validation task and one CI step.
 ## Impact
 
 - Affected API types and controllers: none.
-- SemVer class: none (specification text, a Taskfile task and a CI step). The commits are `docs`
+- SemVer class: none (specification text, a Taskfile task and a CI job). The commits are `docs`
   and `ci`, which release nothing, so no `-beta.N` is cut.
 - Complexity: no new component. One pinned npm CLI in CI, installed without install scripts, in a
   job whose token only reads.
