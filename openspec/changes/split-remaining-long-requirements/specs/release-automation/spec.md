@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Version bump determination per release line
-On the prerelease line (`versioning: prerelease`, `prerelease: true`, current version `X.0.0-beta.N`), every releasable commit, breaking or not, SHALL propose `X.0.0-beta.(N+1)`: the bump never changes the label and never moves the major. On a stable line (after GA, no prerelease suffix), `feat` SHALL propose a MINOR bump, a breaking change a MAJOR bump, and any other releasable commit (`fix`, `perf`, `deps`, `refactor`, `revert`) a PATCH bump.
+On the prerelease line (`versioning: prerelease`, `prerelease: true`, current version `X.0.0-beta.N`), every releasable commit, breaking or not, SHALL propose `X.0.0-beta.(N+1)`: the bump never changes the label and never moves the major. On a stable line (after GA, no prerelease suffix), `feat` SHALL propose a MINOR bump, a breaking change a MAJOR bump, and any other releasable commit (`fix`, `perf`, `deps`, `refactor`, `revert`) a PATCH bump. (Requirement: Commits set the proposed version)
 
 #### Scenario: fix commit on the beta line advances the counter
 - **WHEN** the current version is `1.0.0-beta.1` and only `fix` commits are releasable
@@ -153,7 +153,7 @@ Each release-please package SHALL be configured with `draft: true` and `force-ta
 - **WHEN** `release-please-config.json` is inspected on `main`
 - **THEN** package `"."` and package `"modules/opm_operator"` SHALL each set `"draft": true` and `"force-tag-creation": true`
 
-### Requirement: Versions come from the commits since the last release tag
+### Requirement: Commits set the proposed version
 The workflow SHALL determine the proposed version from the commits since the last release tag using Conventional Commits v1 semantics, applied per release line. (Requirement: Version bump determination per release line)
 A breaking change is a `!` after the type or scope in the commit subject, which for a squash-merged PR is the PR title, the only text the squash commit carries (`squash_merge_commit_message: BLANK`).
 A `docs` commit is not releasable and proposes no bump.
@@ -200,7 +200,7 @@ On every Release PR, the release-pin gate (G1, workspace RELEASING.md, section "
 - **THEN** the job carrying the release-pin gate reports `Lint`, and no other job reports that name
 
 ### Requirement: A Release PR is told by its head branch
-A PR is a Release PR when `${{ github.head_ref || github.ref_name }}` starts with `release-please--`, except the operator module's release PR (`release-please--branches--main--components--opm_operator`): it ships none of the files this gate checks, and the module release gate (`operator-module-release`) checks its pins. On pull requests that are not Release PRs the gate step SHALL be skipped.
+As in requirement "The release-pin gate is a step of an existing job": A PR is a Release PR when `${{ github.head_ref || github.ref_name }}` starts with `release-please--`, except the operator module's release PR (`release-please--branches--main--components--opm_operator`): it ships none of the files this gate checks, and the module release gate (`operator-module-release`) checks its pins. On pull requests that are not Release PRs the gate step SHALL be skipped.
 
 #### Scenario: Ordinary PRs skip the gate
 - **WHEN** a pull request's head branch does not start with `release-please--`
@@ -256,14 +256,14 @@ The `gomod` entry of `.github/dependabot.yml` SHALL ignore every dependency matc
 - **THEN** Dependabot opens no PR bumping `github.com/open-platform-model/library` in opm-operator
 
 ### Requirement: Dependabot ignores the cascade references of the .github repository
-The `github-actions` entry SHALL ignore `open-platform-model/.github*`: the cascade references move together, one `.github` SHA for the repo, only through a `ci(deps): pin the cascade to .github <sha7>` pull request (Phase 3 wiring contract (version 3.1) §2.4, §10.1 item 7).
+As in requirement "Dependabot ignores the OPM Go modules": The `github-actions` entry SHALL ignore `open-platform-model/.github*`: the cascade references move together, one `.github` SHA for the repo, only through a `ci(deps): pin the cascade to .github <sha7>` pull request (Phase 3 wiring contract (version 3.1) §2.4, §10.1 item 7).
 
 #### Scenario: A .github main commit opens no Dependabot PR
 - **WHEN** a commit lands on `open-platform-model/.github` `main` after the repo's pinned SHA
 - **THEN** Dependabot opens no PR moving any `open-platform-model/.github` reference, and the five references keep one SHA
 
 ### Requirement: Third-party updates continue under Dependabot
-Third-party Go modules, except `cuelang.org/go` and `cuelabs.dev/go/oci/ociregistry` (see "Dependabot leaves cuelang.org/go to library releases"), and other GitHub Actions SHALL keep their Dependabot updates.
+Third-party Go modules, except `cuelang.org/go` and `cuelabs.dev/go/oci/ociregistry` (see "Dependabot leaves cuelang.org/go to library releases"), and other GitHub Actions SHALL keep their Dependabot updates. (Requirement: Dependabot ignores the OPM Go modules) (Requirement: Dependabot ignores the cascade references of the .github repository)
 
 #### Scenario: Third-party bumps continue
 - **WHEN** a new `k8s.io/api` release exists
@@ -276,8 +276,8 @@ As in requirement "The opm CLI version is pinned in one file": The pin is a rele
 - **WHEN** the opm CLI pin in `.opm-cli-version` is moved
 - **THEN** moving it is a `ci(deps)` commit and cuts no release
 
-### Requirement: The release-as key crosses a boundary the automated bump cannot reach
-As in requirement "Forced version via the release-as config key": While the value stays, release-please proposes exactly that version on every Release PR, so a value left in place after its release re-proposes an already-published version. The key SHALL be the required mechanism to cross a boundary the automated bump cannot reach (changing the prerelease label of a suffixed version, for example alpha to beta) and MAY pin an exact version at any crossing.
+### Requirement: The release-as key repeats its version and crosses a boundary
+As in requirement "Forced version via the release-as config key": While the value stays, release-please SHALL propose exactly that version on every Release PR, so a value left in place after its release re-proposes an already-published version. The key is the required mechanism to cross a boundary the automated bump cannot reach (changing the prerelease label of a suffixed version, for example alpha to beta) and MAY pin an exact version at any crossing.
 
 #### Scenario: A value left in place re-proposes its version
 - **WHEN** the `release-as` value stays after the GitHub Release for that version is cut

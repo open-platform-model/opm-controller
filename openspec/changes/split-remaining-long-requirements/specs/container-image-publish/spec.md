@@ -58,21 +58,21 @@ The release commit is the commit the release tag names, read from the checked-ou
 - **THEN** the image SHALL be built from the tag, tagged `:sha-abcd123`, and labelled with revision `abcd123...`
 
 ### Requirement: The version tag always resolves to the manifest list first pushed under it
-The version tag SHALL always resolve to the manifest list first pushed under it (enhancement 0021, "Release tags are immutable"): before building, the job SHALL probe the version tag. When it is absent the job builds and pushes, then SHALL confirm the version tag resolves to the pushed digest.
+The version tag SHALL always resolve to the manifest list first pushed under it (enhancement 0021, "Release tags are immutable"): before building, the job SHALL probe the version tag. When it is absent the job builds and pushes, then SHALL confirm the version tag resolves to the pushed digest. (Requirement: A gated release run pushes three tags)
 
 #### Scenario: An absent version tag is built, pushed and confirmed
 - **WHEN** the job probes the version tag before building and it is absent
 - **THEN** the job builds and pushes, then confirms the version tag resolves to the pushed digest
 
 ### Requirement: A version tag built from the release commit is reused
-As in requirement "The version tag always resolves to the manifest list first pushed under it": When it exists with a revision label equal to the release commit the job SHALL push nothing under the version tag, SHALL reuse the existing digest for every later step, and MAY re-point the mutable tags to it. (Requirement: The release image carries the release commit and the release tag)
+As in requirement "The version tag always resolves to the manifest list first pushed under it": When it exists with a revision label equal to the release commit the job SHALL push nothing under the version tag, SHALL reuse the existing digest for every later step, and MAY re-point the mutable tags to it. (Requirement: The release image carries the release commit and the release tag) (Requirement: A gated release run pushes three tags)
 
 #### Scenario: Re-run after the version tag was pushed
 - **WHEN** the image-release job is re-run for `v1.0.0-beta.3` after a previous attempt pushed `:v1.0.0-beta.3` built from the release commit
 - **THEN** the job SHALL NOT build or push `:v1.0.0-beta.3`, its digest stays unchanged, and the job SHALL sign, attest and render `install.yaml` against that digest
 
 ### Requirement: A version tag held by another revision fails the job
-As in requirement "The version tag always resolves to the manifest list first pushed under it": When it exists with any other revision, or the probe fails for any reason other than the tag being absent, the job SHALL fail without pushing.
+As in requirement "The version tag always resolves to the manifest list first pushed under it": When it exists with any other revision, or the probe fails for any reason other than the tag being absent, the job SHALL fail without pushing. (Requirement: The release image carries the release commit and the release tag)
 
 #### Scenario: Version tag held by a different image
 - **WHEN** `:v1.0.0-beta.3` already exists and its revision label names a commit other than the release commit
