@@ -2109,9 +2109,11 @@ only reads. Its branch-publish job, which holds a package-write token, calls a t
 leaves the OpenSpec check out, because npm code that no lockfile pins must not run there (core
 PR 139 lesson).
 **Decision**: copy the form. Add `OPENSPEC_VERSION: 1.14.1` and the two tasks to the root
-`Taskfile.yml` of this repo. Add three steps (setup Node, install, check) to the `Lint` job of
-`.github/workflows/lint.yml`: that job has `permissions: contents: read` and no job in the file
-writes. Add no step to a workflow with a write permission (`image-pr.yml`, `release.yml`,
+`Taskfile.yml` of this repo. Add a job of its own, `openspec`, to
+`.github/workflows/lint.yml`: the file has `permissions: contents: read` and no job in it
+writes. The job has a timeout, a checkout with `persist-credentials: false`, the Task setup, the
+setup-node step, `task openspec:install` and `task openspec:check`. It is not a step of the `Lint`
+job, because that job keeps its checkout credentials and holds the release-pin gate. Add no step to a workflow with a write permission (`image-pr.yml`, `release.yml`,
 `publish-fixtures.yml`, `docs.yml`, `deps-cascade.yml`, `test-e2e.yml`, `cascade-gates.yml`).
 Pin `actions/setup-node` by commit SHA like the other actions of the file. If an aggregate task
 runs the repo's other gates, the OpenSpec check stays out of the one a write-token job calls.

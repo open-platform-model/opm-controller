@@ -49,8 +49,8 @@ validation task and one CI step.
   per new header. The dropped scenario of its `operator-module` block is restored. Its proposal,
   design, tasks and code stay as they are.
 - **The gate.** A Taskfile task installs OpenSpec 1.14.1 with `--ignore-scripts` and a second
-  task runs `openspec validate --all --strict --no-interactive`. A step in the read-only `Lint`
-  workflow job runs both. It is the last group, in the same PR, and it is green on the branch.
+  task runs `openspec validate --all --strict --no-interactive`. A job of its own in `lint.yml`, with a read-only token and a
+  checkout that keeps no credentials, runs both. It is the last group, in the same PR, and it is green on the branch.
 
 ## Impact
 
