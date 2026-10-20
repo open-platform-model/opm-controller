@@ -48,6 +48,9 @@ vars:
   TEST_MODULE_DIR: '{{.TEST_MODULE_DIR | default "test/fixtures/modules/hello"}}'
   PLATFORMS: '{{.PLATFORMS | default "linux/arm64,linux/amd64,linux/s390x,linux/ppc64le"}}'
   IGNORE_NOT_FOUND: '{{.IGNORE_NOT_FOUND | default "false"}}'
+  # The OpenSpec CLI that validates the specs. The one pin: task openspec:install
+  # and the CI step both read it from here.
+  OPENSPEC_VERSION: 1.14.1
 
 includes:
   dev:
@@ -200,6 +203,23 @@ tasks:
         cite-lint --root {{.ROOT_DIR}}
         --exclude test/fixtures/modules/
         --exclude test/fixtures/catalogs/
+
+  openspec:install:
+    desc: Install the openspec CLI at OPENSPEC_VERSION (needs npm; install scripts do not run)
+    cmds:
+      - npm install -g --ignore-scripts @fission-ai/openspec@{{.OPENSPEC_VERSION}}
+
+  openspec:check:
+    desc: Validate every main spec and change with the pinned openspec in strict mode (the long-requirement limit is a warning, and strict fails on it)
+    env:
+      OPENSPEC_TELEMETRY: "0"
+    preconditions:
+      - sh: command -v openspec >/dev/null
+        msg: "openspec not found: run `task openspec:install` (needs npm)"
+      - sh: test "$(openspec --version)" = "{{.OPENSPEC_VERSION}}"
+        msg: "openspec is not {{.OPENSPEC_VERSION}}: run `task openspec:install`"
+    cmds:
+      - openspec validate --all --strict --no-interactive
 
   docs:bundle:check:
     desc: Check the docs-kit pins agree, then build and lint the opm-operator docs bundle into a temporary directory
