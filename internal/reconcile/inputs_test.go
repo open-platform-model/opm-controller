@@ -7,15 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 func completeKey() status.RenderInputKey {
 	return status.RenderInputKey{
 		Source: "sha256:src", Config: "sha256:cfg", PackageIdentity: "gen-1",
-		SkewPolicy: "Warn", OperatorVersion: "v1.0.0", LibraryVersion: "v1.0.0-beta.4",
+		SkewPolicy: "Warn", ControllerVersion: "v1.0.0", LibraryVersion: "v1.0.0-beta.4",
 	}
 }
 
@@ -48,7 +48,7 @@ func TestRenderedKeyTakesThePlatformFromTheRender(t *testing.T) {
 	k := renderedKey("sha256:src", "sha256:cfg", result, "v1.0.0", "v1.0.0-beta.4")
 	assert.Equal(t, status.RenderInputKey{
 		Source: "sha256:src", Config: "sha256:cfg", PackageIdentity: "gen-4",
-		SkewPolicy: "Refuse", OperatorVersion: "v1.0.0", LibraryVersion: "v1.0.0-beta.4",
+		SkewPolicy: "Refuse", ControllerVersion: "v1.0.0", LibraryVersion: "v1.0.0-beta.4",
 	}, k)
 }
 

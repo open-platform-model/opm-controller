@@ -98,7 +98,7 @@ This keeps reconciliation declarative, retry-safe, and aligned with Kubernetes o
 
 Controller releases MUST follow SemVer 2.0.0. Commits SHOULD follow Conventional Commits v1 in the form `type(scope): description`.
 
-Beta line: From its first beta, a prerelease line (`opmodel.dev/core@v2`, library, cli, opm-operator) is on the path to GA. A breaking change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), the only text the squash commit carries (`squash_merge_commit_message: BLANK`); the title is the CHANGELOG entry, and the migration note goes in the PR body, which that entry links. It advances the `-beta.N` counter and never moves the module path to a new major. Stable lines (`opmodel.dev/catalogs/opm@v4` and the module fleets) keep the normal SemVer rule: a break is a new major. A core beta break that would force a catalogs/opm major needs owner sign-off. GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
+Beta line: From its first beta, a prerelease line (`opmodel.dev/core@v2`, library, cli, opm-controller) is on the path to GA. A breaking change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), the only text the squash commit carries (`squash_merge_commit_message: BLANK`); the title is the CHANGELOG entry, and the migration note goes in the PR body, which that entry links. It advances the `-beta.N` counter and never moves the module path to a new major. Stable lines (`opmodel.dev/catalogs/opm@v4` and the module fleets) keep the normal SemVer rule: a break is a new major. A core beta break that would force a catalogs/opm major needs owner sign-off. GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
 
 Recommended commit types:
 
@@ -205,7 +205,7 @@ These principles also shape how OpenSpec artifacts should be written.
 
 - Focus on WHY the change is needed and WHAT is in or out of scope
 - Update the proposal when scope changes, intent clarifies, or the approach fundamentally shifts
-- Identify affected API types and controllers
+- Identify affected API types and reconcilers
 - State whether the change is MAJOR, MINOR, or PATCH under SemVer; until GA, state the class as it would be after GA and note that beta ships it as the next `-beta.N`
 - Any added complexity MUST include explicit justification
 - Scope MUST remain small enough for a short implementation session

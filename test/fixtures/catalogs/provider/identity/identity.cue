@@ -7,7 +7,7 @@ package identity
 
 // ModulePath is the catalog's complete CUE module path, major suffix included,
 // byte-identical to cue.mod's `module:` field.
-ModulePath: "testing.opmodel.dev/catalogs/operator/provider@v0"
+ModulePath: "testing.opmodel.dev/catalogs/controller/provider@v0"
 
 // Version is the catalog's bare SemVer. Hand-managed: this fixture is not on
 // release-please's train, so a bump is `opm catalog version set <semver> .`
@@ -16,7 +16,7 @@ ModulePath: "testing.opmodel.dev/catalogs/operator/provider@v0"
 Version: "0.1.0"
 
 // RegistryPath is the major-free OCI repository path.
-RegistryPath: "testing.opmodel.dev/catalogs/operator/provider"
+RegistryPath: "testing.opmodel.dev/catalogs/controller/provider"
 
 // kindPrefix mirrors core's #IdentityPackage.kindPrefix. Every member FQN
 // hangs off this catalog's own path, so none can collide with a member of

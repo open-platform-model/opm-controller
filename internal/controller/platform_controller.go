@@ -41,11 +41,11 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/internal/version"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/internal/version"
 )
 
 // platformSingletonName is the only permitted name for the cluster-scoped
@@ -57,7 +57,7 @@ const platformSingletonName = platformstore.SingletonName
 // reserved, never-published platforms namespace (enhancement 0019). Fixed
 // rather than derived per generation so generated files are byte-stable
 // across generations of the same spec, and distinct from every instance
-// module path the render build could pair it with. Operator input to the
+// module path the render build could pair it with. Controller input to the
 // library's generator, which owns everything else about the module
 // including the core pin (its verified release, schema.DefaultSchemaVersion).
 const PlatformModulePath = "opmodel.dev/platforms/cluster@v0"
@@ -71,7 +71,7 @@ const PlatformModulePath = "opmodel.dev/platforms/cluster@v0"
 const transientRecheckInterval = time.Minute
 
 // PlatformReconciler reconciles the singleton Platform CR into a platform CUE
-// module on the operator's own disk (enhancement 0019). Per CR generation
+// module on the controller's own disk (enhancement 0019). Per CR generation
 // it derives the module's dependency closure from the pinned catalogs'
 // published module files and generates the module through the library's
 // platform-module helper (one importing #registry entry per subscription,
@@ -118,7 +118,7 @@ type PlatformReconciler struct {
 
 // TransformerRegistration claims are the platform's second transformer path
 // (enhancement 0015), so the reconciler that builds the platform module
-// reads them and reports on them. Read and status verbs only: the operator
+// reads them and reports on them. Read and status verbs only: the controller
 // judges claims, it never creates one. Creating a claim is platform-admin
 // RBAC (config/rbac/transformerregistration_admin_role.yaml).
 // +kubebuilder:rbac:groups=opmodel.dev,resources=transformerregistrations,verbs=get;list;watch
@@ -209,7 +209,7 @@ func (r *PlatformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			log.V(1).Info("Platform module already current, skipping regeneration",
 				"name", plat.Name, "identity", identity, "dir", held.Dir)
 			plat.Status.ObservedGeneration = plat.Generation
-			plat.Status.OperatorVersion = version.Full()
+			plat.Status.ControllerVersion = version.Full()
 			recordEffectiveRegistry(&plat, identity, entries)
 			setContractsFulfilled(&plat, inv)
 			status.MarkReadyWithReason(&plat, status.GeneratedReason, "Platform module generated and built for generation %d", plat.Generation)
@@ -299,7 +299,7 @@ func (r *PlatformReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	plat.Status.ObservedGeneration = plat.Generation
-	plat.Status.OperatorVersion = version.Full()
+	plat.Status.ControllerVersion = version.Full()
 	recordEffectiveRegistry(&plat, identity, entries)
 	setContractsFulfilled(&plat, inv)
 	status.MarkReadyWithReason(&plat, status.GeneratedReason, "Platform module generated and built for generation %d", plat.Generation)
@@ -361,7 +361,7 @@ func claimCoordinates(claims []releasesv1alpha1.TransformerRegistration) []platf
 // under that identity is the one the store holds: after a successful build,
 // and on the no-op skip. A failed generation leaves both fields describing the
 // last-good package, for the same reason failReconcile leaves the store
-// untouched — status would otherwise advertise a registry the operator never
+// untouched — status would otherwise advertise a registry the controller never
 // built and no render can be consuming.
 func recordEffectiveRegistry(
 	plat *releasesv1alpha1.Platform,
@@ -408,7 +408,7 @@ func dirExists(path string) bool {
 
 // modFiles returns the module-file source for one reconcile's closure
 // derivation. An injected ModFiles is returned as is. Otherwise a new source
-// is built on every call from the operator's registry mapping, its client
+// is built on every call from the controller's registry mapping, its client
 // type and the process environment (CUE_CACHE_DIR is set at manager start),
 // passed explicitly: the helper reads nothing from the process. CUE's module
 // cache keeps every lookup error in memory for the life of the source, so
@@ -421,7 +421,7 @@ func (r *PlatformReconciler) modFiles() (platformmodule.ModFileSource, error) {
 	}
 	return platformmodule.NewRegistry(platformmodule.RegistryConfig{
 		Registry:   r.Registry,
-		ClientType: "opm-operator",
+		ClientType: "opm-controller",
 		Env:        os.Environ(),
 	})
 }
@@ -453,7 +453,7 @@ func (r *PlatformReconciler) failReconcile(
 		prior.Message != msg
 
 	plat.Status.ObservedGeneration = plat.Generation
-	plat.Status.OperatorVersion = version.Full()
+	plat.Status.ControllerVersion = version.Full()
 	status.MarkStalled(plat, reason, "%s", msg)
 
 	if transition {

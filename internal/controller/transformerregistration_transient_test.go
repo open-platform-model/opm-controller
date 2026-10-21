@@ -35,10 +35,10 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // unreachableErr is the error shape the library returns when the registry
@@ -54,7 +54,7 @@ func unreachableErr() error {
 // directory for the calling spec and restores it afterwards. The library
 // serves a catalog version it already fetched from that cache with no
 // registry call, so the defect these specs cover shows only when the cache
-// is cold: the state of a new operator pod, whose cache is an emptyDir.
+// is cold: the state of a new controller pod, whose cache is an emptyDir.
 func useColdCUECache() {
 	orig, had := os.LookupEnv("CUE_CACHE_DIR")
 	DeferCleanup(func() {
@@ -288,7 +288,7 @@ var _ = Describe("TransformerRegistration acceptance: a transient registry failu
 		})
 	})
 
-	Context("an accepted claim after an operator restart", func() {
+	Context("an accepted claim after a controller restart", func() {
 		It("stays accepted and active, and Ready names the registry failure", func() {
 			ctx := context.Background()
 			ns := nextClaimNamespace()

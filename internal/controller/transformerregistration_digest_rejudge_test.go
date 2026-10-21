@@ -29,8 +29,8 @@ import (
 	"github.com/open-platform-model/library/opm/catalog"
 	k8sinventory "github.com/open-platform-model/library/opm/k8s/inventory"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/inventory"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/inventory"
 )
 
 // countingCatalogs counts the registry acquisitions a verdict makes.
@@ -45,7 +45,7 @@ func (c *countingCatalogs) AcquireCatalogFromRegistry(ctx context.Context, path,
 }
 
 // Adopting the library's inventory digest moves status.inventory.digest once
-// on every operator-managed provider instance while its entries stay the
+// on every controller-managed provider instance while its entries stay the
 // same. The provider watch passes that update, so each claim is judged once
 // more and re-acquires its catalog; the verdict must not change.
 var _ = Describe("TransformerRegistration: a provider's one-time inventory digest change", func() {
@@ -67,7 +67,7 @@ var _ = Describe("TransformerRegistration: a provider's one-time inventory diges
 			return old, &instance
 		}
 
-		By("the provider holds the digest the earlier operator recorded")
+		By("the provider holds the digest the earlier controller recorded")
 		setDigest(preUpgradeInventoryDigest)
 		catalogs := &countingCatalogs{stubCatalogs: stubCatalogs{cat: providerCatalog(contract)}}
 		r := acceptanceReconciler(catalogs)

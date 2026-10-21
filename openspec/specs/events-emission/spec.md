@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the Kubernetes events the controllers emit across the reconcile phases:
+Define the Kubernetes events the reconcilers emit across the reconcile phases:
 which outcomes produce a `Normal` or `Warning` event, their reasons and action
 verbs, the events.k8s.io/v1 recorder they go through, and when a successful
 render's advisory findings are surfaced as events.
@@ -142,12 +142,12 @@ The reconciler SHALL emit the `RenderWarning` events of a render only when the o
 - **WHEN** the same instance reconciles again with the same warnings
 - **THEN** no new warning event is emitted
 
-### Requirement: RenderWarning text is authored by the operator and keyed on facts
-The `RenderWarning` event text SHALL be authored by the operator from the render's advisory diagnostic rows; the render carries no message string to pass through. The transition check for `RenderWarning` events SHALL be keyed on the facts those rows carry (for skew, the path and both versions; for an unhandled trait, the component and the trait), so that rewording an event does not present an unchanged finding set as changed.
+### Requirement: RenderWarning text is authored by the controller and keyed on facts
+The `RenderWarning` event text SHALL be authored by the controller from the render's advisory diagnostic rows; the render carries no message string to pass through. The transition check for `RenderWarning` events SHALL be keyed on the facts those rows carry (for skew, the path and both versions; for an unhandled trait, the component and the trait), so that rewording an event does not present an unchanged finding set as changed.
 
 #### Scenario: Rewording does not re-emit
 
-- **WHEN** the operator's warning wording changes while an object's advisory rows are unchanged between reconciles
+- **WHEN** the controller's warning wording changes while an object's advisory rows are unchanged between reconciles
 - **THEN** no new warning event is emitted for that object
 
 ### Requirement: A ClaimsKept event is emitted when claims are kept

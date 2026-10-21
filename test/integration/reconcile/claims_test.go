@@ -43,12 +43,12 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // recordedEvent is one event as the reconciler emitted it, action included
@@ -466,7 +466,7 @@ var _ = Describe("PersistentVolumeClaims of a ModuleInstance", func() {
 		expectClaimUntouched("ctb-data")
 	})
 
-	// The record an operator without the field, or a CLI prune, leaves
+	// The record a controller without the field, or a CLI prune, leaves
 	// behind: an inventory that lists a claim. The object has no
 	// spec.dataPolicy, so the claim is protected from the first reconcile.
 	It("protects a claim recorded before the field existed and after a handover from the CLI", func() {
@@ -519,7 +519,7 @@ var _ = Describe("PersistentVolumeClaims of a ModuleInstance", func() {
 
 			if tc.startOwner == releasesv1alpha1.OwnerCLI {
 				Expect(k8sClient.Get(ctx, nn, mi)).To(Succeed())
-				mi.Spec.Owner = releasesv1alpha1.OwnerOperator
+				mi.Spec.Owner = releasesv1alpha1.OwnerController
 				Expect(k8sClient.Update(ctx, mi)).To(Succeed())
 			}
 

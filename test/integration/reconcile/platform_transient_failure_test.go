@@ -25,10 +25,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The registry refuses the catalog's module file once, then serves it. The
@@ -44,7 +44,7 @@ var _ = Describe("Platform transient registry failure (registry-backed)", func()
 
 		plat, generation := createClusterPlatform(catalogPath)
 
-		// The operator's shape: one mapping for the Kernel and the reconciler.
+		// The controller's shape: one mapping for the Kernel and the reconciler.
 		store := platformstore.NewStore()
 		r := &opmcontroller.PlatformReconciler{
 			Client:        k8sClient,

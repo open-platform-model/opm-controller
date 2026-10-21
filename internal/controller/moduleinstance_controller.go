@@ -43,11 +43,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // ModuleInstanceReconciler reconciles a ModuleInstance object.
@@ -91,11 +91,11 @@ type ModuleInstanceReconciler struct {
 	// deadline.
 	RenderTimeout time.Duration
 
-	// OperatorVersion and LibraryVersion are the running operator's
+	// ControllerVersion and LibraryVersion are the running controller's
 	// version.Full() and version.Library(), parts of the render input key.
 	// Empty makes every key incomplete: nothing is recorded or skipped.
-	OperatorVersion string
-	LibraryVersion  string
+	ControllerVersion string
+	LibraryVersion    string
 
 	// DriftRenderInterval is the manager's --drift-render-interval. Zero
 	// disables the render skip and the record of the key on a NoOp.
@@ -137,7 +137,7 @@ func (r *ModuleInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		RenderTimeout:         r.RenderTimeout,
 		DefaultServiceAccount: r.DefaultServiceAccount,
 		Warnings:              &r.warnings,
-		OperatorVersion:       r.OperatorVersion,
+		ControllerVersion:     r.ControllerVersion,
 		LibraryVersion:        r.LibraryVersion,
 		DriftRenderInterval:   r.DriftRenderInterval,
 		ReconcileInterval:     r.ReconcileInterval,
@@ -154,7 +154,7 @@ func (r *ModuleInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 //   - ModuleInstance CRs (primary): a generation change, or the orphan
 //     annotation set on an instance that is being deleted
 //     (orphanAnnotationSet), which no generation change announces.
-//   - Platform (cluster singleton) — an update re-enqueues the operator-managed,
+//   - Platform (cluster singleton) — an update re-enqueues the controller-managed,
 //     unsuspended ModuleInstances (moduleInstancePlatformIndex) via
 //     mapPlatformToModuleInstances only when a field they consume moves
 //     (platformConsumedFieldsChanged), so releases blocked on PlatformNotReady
@@ -176,7 +176,7 @@ func (r *ModuleInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // controller's MaxConcurrentReconciles, so phases outside the render (apply,
 // prune, deletion, suspend) never queue behind the other kind's renders. The
 // renders themselves are bounded by RenderSlots, one pool shared with the
-// ModulePackage controller: renders share nothing (library ADR-005, ADR-007),
+// ModulePackage reconciler: renders share nothing (library ADR-005, ADR-007),
 // so the only bound is memory, and it holds across both kinds.
 func (r *ModuleInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(),
@@ -307,7 +307,7 @@ func waitsForServiceAccount(mi *releasesv1alpha1.ModuleInstance) bool {
 // platformConsumedFieldsChanged passes a Platform update only when a field a
 // ModuleInstance or ModulePackage render consumes differs between the old and
 // the new object. Both renderers read the same platform store record (the
-// generated package, its pin set and its skew policy), and both controllers'
+// generated package, its pin set and its skew policy), and both reconcilers'
 // Platform watches use this predicate. The fields are:
 //   - the Ready condition's status (the only True reason is Generated, so the
 //     status alone carries the recovery edge),
@@ -328,10 +328,10 @@ func waitsForServiceAccount(mi *releasesv1alpha1.ModuleInstance) bool {
 // is regenerated, so a render on that edge would run against the old
 // package and the observedGeneration write that follows renders again.
 //
-// It also passes a status.operatorVersion change. The platform store is in
-// memory, so after an operator upgrade every workload renders into
+// It also passes a status.controllerVersion change. The platform store is in
+// memory, so after a controller upgrade every workload renders into
 // PlatformNotReady before the platform is regenerated, and the status write
-// that follows the regeneration differs only in operatorVersion: that event
+// that follows the regeneration differs only in controllerVersion: that event
 // is what recovers them promptly.
 //
 // The Ready reason and message are excluded: a build failure rewrites the
@@ -354,7 +354,7 @@ func platformConsumedFieldsChanged() predicate.Predicate {
 				!equality.Semantic.DeepEqual(old.Status.Registry, cur.Status.Registry) ||
 				skewPolicyOf(old) != skewPolicyOf(cur) ||
 				readyStatus(old) != readyStatus(cur) ||
-				old.Status.OperatorVersion != cur.Status.OperatorVersion
+				old.Status.ControllerVersion != cur.Status.ControllerVersion
 		},
 	}
 }
@@ -380,7 +380,7 @@ func skewPolicyOf(p *releasesv1alpha1.Platform) string {
 const moduleInstancePlatformIndex = ".platform"
 
 // moduleInstancePlatform is the Platform an instance renders against: the
-// cluster singleton for an operator-managed, unsuspended instance, and none
+// cluster singleton for a controller-managed, unsuspended instance, and none
 // for a CLI-owned or suspended one, which the reconcile returns from before
 // rendering. It mirrors those two early returns exactly.
 func moduleInstancePlatform(obj client.Object) []string {
@@ -396,7 +396,7 @@ func moduleInstancePlatform(obj client.Object) []string {
 // unblocks releases sitting in PlatformNotReady the moment the platform is
 // generated, rather than waiting for the transient backoff. CLI-owned and
 // suspended instances are not enqueued: neither renders, and resuming one or
-// handing it to the operator is a spec change that reconciles it through its
+// handing it to the controller is a spec change that reconciles it through its
 // own watch. A Platform not named for the singleton maps to nothing.
 func (r *ModuleInstanceReconciler) mapPlatformToModuleInstances(ctx context.Context, obj client.Object) []reconcile.Request {
 	var list releasesv1alpha1.ModuleInstanceList

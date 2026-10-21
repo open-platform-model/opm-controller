@@ -2,7 +2,7 @@
 # hack/fixtures.sh: one flow for the repo's published test fixtures, modules
 # and catalogs.
 #
-# IDENTICAL COPY in cli/hack/fixtures.sh and opm-operator/hack/fixtures.sh. The
+# IDENTICAL COPY in cli/hack/fixtures.sh and opm-controller/hack/fixtures.sh. The
 # workspace root `task fixtures:lint` fails when the two drift; edit both.
 #
 # A fixture is a CUE module under $FIXTURES_DIR/<name>/ (a module) or

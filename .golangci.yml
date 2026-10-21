@@ -28,15 +28,15 @@ linters:
     depguard:
       rules:
         # The library's Kubernetes tier owns the object and label decisions;
-        # the operator keeps no copy of them (enhancement 0012, "The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module"). This refuses the
-        # path the operator's own copy lived under.
+        # the controller keeps no copy of them (enhancement 0012, "The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module"). This refuses the
+        # path the controller's own copy lived under.
         no-local-kubernetes-tier-copy:
           list-mode: lax
           files:
             - $all
           deny:
-            - pkg: github.com/open-platform-model/opm-operator/pkg/core
-              desc: the operator keeps no copy of the library's Kubernetes tier; import github.com/open-platform-model/library/opm/k8s/object or github.com/open-platform-model/library/opm/k8s/labels
+            - pkg: github.com/open-platform-model/opm-controller/pkg/core
+              desc: the controller keeps no copy of the library's Kubernetes tier; import github.com/open-platform-model/library/opm/k8s/object or github.com/open-platform-model/library/opm/k8s/labels
     custom:
       logcheck:
         type: "module"

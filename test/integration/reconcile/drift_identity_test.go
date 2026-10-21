@@ -35,9 +35,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // recordedRequest is what dryRunRecorder keeps of one request.
@@ -360,7 +360,7 @@ var _ = Describe("Drift detection identity", func() {
 	})
 
 	// The restore list comes from the dry-run, and the restore is an apply:
-	// both must be the ServiceAccount's, or the operator would create a
+	// both must be the ServiceAccount's, or the controller would create a
 	// tenant's objects with its own rights.
 	It("restores a missing object as the ServiceAccount, on every request", func() {
 		params, recorder, nn, saName := setup("drift-id-restore", true)
@@ -420,7 +420,7 @@ var _ = Describe("Drift detection identity", func() {
 			g.Expect(drifted.Message).To(ContainSubstring("cannot create"))
 			var cm corev1.ConfigMap
 			g.Expect(apierrors.IsNotFound(k8sClient.Get(ctx, cmKey, &cm))).To(BeTrue(),
-				"the operator must not create what the ServiceAccount may not")
+				"the controller must not create what the ServiceAccount may not")
 			g.Expect(apimeta.IsStatusConditionTrue(mi.Status.Conditions, status.ReadyCondition)).To(BeTrue())
 		}, 20*time.Second, 300*time.Millisecond).Should(Succeed())
 
@@ -444,7 +444,7 @@ var _ = Describe("Drift detection identity", func() {
 		Expect(recorder.take()).To(BeEmpty(), "no dry-run through the impersonating config")
 		mi := instance(nn)
 		drifted := apimeta.FindStatusCondition(mi.Status.Conditions, status.DriftedCondition)
-		Expect(drifted).NotTo(BeNil(), "the operator's own identity must not give the verdict")
+		Expect(drifted).NotTo(BeNil(), "the controller's own identity must not give the verdict")
 		Expect(drifted.Status).To(Equal(metav1.ConditionUnknown))
 		Expect(drifted.Reason).To(Equal(status.ImpersonationFailedReason))
 		Expect(drifted.Message).To(ContainSubstring("drift detection did not run"))

@@ -40,10 +40,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
 )
 
 // ModulePackageReconciler reconciles a ModulePackage object.
@@ -94,11 +94,11 @@ type ModulePackageReconciler struct {
 	// deadline.
 	RenderTimeout time.Duration
 
-	// OperatorVersion and LibraryVersion are the running operator's
+	// ControllerVersion and LibraryVersion are the running controller's
 	// version.Full() and version.Library(), parts of the render input key.
 	// Empty makes every key incomplete: nothing is recorded or skipped.
-	OperatorVersion string
-	LibraryVersion  string
+	ControllerVersion string
+	LibraryVersion    string
 
 	// DriftRenderInterval is the manager's --drift-render-interval. Zero
 	// disables the render skip and the record of the key on a NoOp.
@@ -136,7 +136,7 @@ func (r *ModulePackageReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		RenderTimeout:         r.RenderTimeout,
 		DefaultServiceAccount: r.DefaultServiceAccount,
 		Warnings:              &r.warnings,
-		OperatorVersion:       r.OperatorVersion,
+		ControllerVersion:     r.ControllerVersion,
 		LibraryVersion:        r.LibraryVersion,
 		DriftRenderInterval:   r.DriftRenderInterval,
 	}, req)
@@ -150,7 +150,7 @@ func (r *ModulePackageReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 //     installed; see fluxSourceCRDsInstalled.
 //   - Platform (cluster singleton) — a create or delete, or an update that moves a
 //     field a package render consumes (platformConsumedFieldsChanged, shared with
-//     the ModuleInstance controller), re-enqueues all ModulePackages via
+//     the ModuleInstance reconciler), re-enqueues all ModulePackages via
 //     mapPlatformToModulePackages, so packages blocked on PlatformNotReady recover
 //     promptly when the platform is generated. A status write that changes only a
 //     message or a report such as ContractsFulfilled re-enqueues none. The
@@ -162,7 +162,7 @@ func (r *ModulePackageReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 // controller's MaxConcurrentReconciles, so phases outside the render (apply,
 // prune, deletion, suspend) never queue behind the other kind's renders. The
 // renders themselves are bounded by RenderSlots, one pool shared with the
-// ModuleInstance controller: renders share nothing (library ADR-005, ADR-007),
+// ModuleInstance reconciler: renders share nothing (library ADR-005, ADR-007),
 // so the only bound is memory, and it holds across both kinds.
 func (r *ModulePackageReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	b := ctrl.NewControllerManagedBy(mgr).

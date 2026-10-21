@@ -25,9 +25,9 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // registrySkip skips the current spec for a missing registry prerequisite —
@@ -70,7 +70,7 @@ func testCatalogVersion() string {
 }
 
 // skipIfNoTestRegistry skips the current spec when no registry is configured to
-// serve the fixture modules (testing.opmodel.dev/modules/operator/*) and their
+// serve the fixture modules (testing.opmodel.dev/modules/controller/*) and their
 // deps (opmodel.dev/core, opmodel.dev/catalogs/opm).
 //
 // The fixtures are published to GHCR, so the ordinary GHCR mapping satisfies

@@ -41,14 +41,14 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/controller"
-	_ "github.com/open-platform-model/opm-operator/internal/metrics"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/source"
-	opmversion "github.com/open-platform-model/opm-operator/internal/version"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/controller"
+	_ "github.com/open-platform-model/opm-controller/internal/metrics"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/source"
+	opmversion "github.com/open-platform-model/opm-controller/internal/version"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -117,7 +117,7 @@ func main() {
 	flag.StringVar(&cueCacheDir, "cue-cache-dir", "/tmp/cue-cache",
 		"Directory for CUE module download cache.")
 	flag.StringVar(&platformDir, "platform-dir", "/tmp/opm-platform",
-		"Directory the operator writes the generated platform CUE module to, one subdirectory per "+
+		"Directory the controller writes the generated platform CUE module to, one subdirectory per "+
 			"Platform generation. Emptied at start; the module is regenerated from the Platform CR on "+
 			"the first reconcile. Must be writable (the shipped manifest mounts an emptyDir at /tmp).")
 	flag.StringVar(&defaultServiceAccount, "default-service-account", "",
@@ -128,7 +128,7 @@ func main() {
 			"controller's own identity.")
 	flag.IntVar(&maxConcurrentRenders, "max-concurrent-renders", 1,
 		"Maximum number of renders in flight at once, ModuleInstances and ModulePackages together; each "+
-			"of the two controllers also reconciles up to this many objects of its kind. Renders share "+
+			"of the two reconcilers also reconciles up to this many objects of its kind. Renders share "+
 			"nothing, so the bound is memory, not cores: budget about 61 MB plus 7.75 MB per component of "+
 			"the largest module per concurrent render, on top of a 0.3 GB base, against the pod's memory "+
 			"limit (enhancement 0019). Throughput saturates at about physical cores divided by 1.6 renders "+
@@ -137,7 +137,7 @@ func main() {
 	flag.DurationVar(&driftRenderInterval, "drift-render-interval", 30*time.Minute,
 		"Longest a ModuleInstance or ModulePackage reconcile skips its render after the last render that "+
 			"left the cluster holding its output, while the render's inputs are unchanged (module source, "+
-			"values, platform package identity, catalog skew policy, operator and library versions) and the "+
+			"values, platform package identity, catalog skew policy, controller and library versions) and the "+
 			"object is Ready and has observed its generation. A skipped reconcile renders nothing, runs no "+
 			"drift detection and patches no status, so drift is re-evaluated at most once per interval per "+
 			"unchanged object. The interval schedules no reconcile of its own (--instance-reconcile-interval "+
@@ -171,12 +171,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// The operator and library versions are parts of every render input key,
+	// The controller and library versions are parts of every render input key,
 	// so an upgrade of either renders every object once. Read once here and
 	// injected, so the reconcilers hold no process globals.
-	operatorVersion := opmversion.Full()
+	controllerVersion := opmversion.Full()
 	libraryVersion := opmversion.Library()
-	setupLog.Info("Starting opm-operator", "version", operatorVersion, "libraryVersion", libraryVersion,
+	setupLog.Info("Starting opm-controller", "version", controllerVersion, "libraryVersion", libraryVersion,
 		"driftRenderInterval", driftRenderInterval.String(), "renderTimeout", renderTimeout.String(),
 		"instanceReconcileInterval", instanceReconcileInterval.String())
 
@@ -353,7 +353,7 @@ func main() {
 		MaxConcurrentRenders:  maxConcurrentRenders,
 		RenderSlots:           renderSlots,
 		RenderTimeout:         renderTimeout,
-		OperatorVersion:       operatorVersion,
+		ControllerVersion:     controllerVersion,
 		LibraryVersion:        libraryVersion,
 		DriftRenderInterval:   driftRenderInterval,
 		ReconcileInterval:     instanceReconcileInterval,
@@ -379,7 +379,7 @@ func main() {
 		MaxConcurrentRenders:  maxConcurrentRenders,
 		RenderSlots:           renderSlots,
 		RenderTimeout:         renderTimeout,
-		OperatorVersion:       operatorVersion,
+		ControllerVersion:     controllerVersion,
 		LibraryVersion:        libraryVersion,
 		DriftRenderInterval:   driftRenderInterval,
 	}).SetupWithManager(mgr); err != nil {

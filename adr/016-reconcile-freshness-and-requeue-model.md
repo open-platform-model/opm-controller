@@ -4,7 +4,7 @@
 
 Accepted
 
-Amended by [ADR-019](019-fixed-requeue-interval-for-module-instances.md): `ModuleInstance` gets its periodic level-triggering from a fixed operator interval, not from the `spec.interval` field the Decision below names as planned.
+Amended by [ADR-019](019-fixed-requeue-interval-for-module-instances.md): `ModuleInstance` gets its periodic level-triggering from a fixed controller interval, not from the `spec.interval` field the Decision below names as planned.
 
 ## Context
 

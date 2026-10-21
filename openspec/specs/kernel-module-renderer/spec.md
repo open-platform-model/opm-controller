@@ -1,10 +1,10 @@
 ## Purpose
 
-Define a `KernelModuleRenderer` that implements the operator's `ModuleRenderer`
+Define a `KernelModuleRenderer` that implements the controller's `ModuleRenderer`
 interface and renders a `ModuleInstance` entirely through the library kernel. It
 leases the generated platform record from the platform store, acquires the
 target module, synthesizes the instance, renders it through the kernel's
-single-build render, and adapts the compiled output into operator resources.
+single-build render, and adapts the compiled output into controller resources.
 The renderer is gated on a generated platform and is wired into the reconcilers
 in production (see `platform-gated-rendering`).
 
@@ -62,7 +62,7 @@ Every kernel call SHALL share nothing: acquisition, synthesis and the build each
 - **THEN** the result carries the rendered resources and any warnings the render reported, and no inventory entries: the reconciler builds those from its one export of the resources
 
 ### Requirement: Values reach synthesis as a stack of values sources with an origin
-Values SHALL reach synthesis as a stack of values sources, each carrying an origin that identifies where the operator read it from, so a values error names that origin rather than an anonymous filename.
+Values SHALL reach synthesis as a stack of values sources, each carrying an origin that identifies where the controller read it from, so a values error names that origin rather than an anonymous filename.
 
 #### Scenario: Values are applied when supplied
 
@@ -73,7 +73,7 @@ Values SHALL reach synthesis as a stack of values sources, each carrying an orig
 #### Scenario: A values error names its origin
 
 - **WHEN** the supplied raw values violate the module's `#config` schema
-- **THEN** the render fails with an error naming the origin the operator gave that source, not an anonymous filename
+- **THEN** the render fails with an error naming the origin the controller gave that source, not an anonymous filename
 
 ### Requirement: No acquisition or synthesis call passes a per-call registry or load-options argument
 No acquisition or synthesis call SHALL pass a per-call registry or load-options argument: the registry mapping is the one the shared Kernel was constructed with.
@@ -93,8 +93,8 @@ The renderer SHALL adapt the single-build render's compiled objects, the kernel'
 
 #### Scenario: One compiled-output type
 
-- **WHEN** the operator's adapter names the type it converts from
-- **THEN** it SHALL be the type the kernel package declares, converted by the library's `object.Resources`, and the operator SHALL NOT declare a resource type of its own for it
+- **WHEN** the controller's adapter names the type it converts from
+- **THEN** it SHALL be the type the kernel package declares, converted by the library's `object.Resources`, and the controller SHALL NOT declare a resource type of its own for it
 
 #### Scenario: Distinct identities adapt as before
 
@@ -124,7 +124,7 @@ Each composed warning SHALL name the same facts as before: for skew, the OPM-nam
 #### Scenario: Warnings reach the reconciler
 
 - **WHEN** the render reports an unhandled optional trait, or a path whose resolved-versions row is marked newer under the `Warn` policy
-- **THEN** the render result carries one operator-composed warning naming that fact, and the render result carries no library-authored message string
+- **THEN** the render result carries one controller-composed warning naming that fact, and the render result carries no library-authored message string
 
 ### Requirement: Both kernel renderers report the contract demand of the kernel's render
 Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics: every `#resources` and `#traits` key of every component of the instance, sorted and deduplicated. Source: enhancement 0013 ("The kernel reports every contract a render required, synthesised components included").
@@ -139,12 +139,12 @@ Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPacka
 - **WHEN** a ModuleInstance and a ModulePackage render instances of the same module
 - **THEN** both results carry the demand the kernel reported for their render, read through the same adapter
 
-### Requirement: The operator does not compute the contract demand itself
-Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics. The operator SHALL NOT compute the demand itself by reading the instance's components. Source: enhancement 0013 ("The kernel reports every contract a render required, synthesised components included").
+### Requirement: The controller does not compute the contract demand itself
+Both kernel renderers (`KernelModuleRenderer` for a ModuleInstance, `KernelPackageRenderer` for a ModulePackage) SHALL report on `RenderResult.RequiredContracts` the contract demand the kernel's render reports on its diagnostics. The controller SHALL NOT compute the demand itself by reading the instance's components. Source: enhancement 0013 ("The kernel reports every contract a render required, synthesised components included").
 
-#### Scenario: No operator walk of the components
+#### Scenario: No controller walk of the components
 
-- **WHEN** the operator's render package is searched for a reader of a component's `#resources` or `#traits`
+- **WHEN** the controller's render package is searched for a reader of a component's `#resources` or `#traits`
 - **THEN** none exists; the demand comes from the kernel's render diagnostics only
 
 ### Requirement: An empty demand is reported as an empty, non-nil list

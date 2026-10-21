@@ -43,7 +43,7 @@ context: |
   - Types: feat, fix, refactor, docs, test, chore
   - Scope: api, controller, source, render, apply, inventory, etc.
   - Beta line: From its first beta, a prerelease line (`opmodel.dev/core@v2`,
-    library, cli, opm-operator) is on the path to GA. A breaking
+    library, cli, opm-controller) is on the path to GA. A breaking
     change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), the only
     text the squash commit carries (`squash_merge_commit_message: BLANK`); the title is the
     CHANGELOG entry, and the migration note goes in the PR body, which that entry links. It
@@ -121,13 +121,13 @@ context: |
   2. `task dev:fmt dev:vet` — Code is formatted and passes go vet.
   3. `task dev:lint` — golangci-lint passes.
   4. `task dev:test` — Envtest-based unit/controller tests pass.
-  5. `task docs:bundle:check` — the docs-kit pins agree and the opm-operator docs bundle builds and lints.
+  5. `task docs:bundle:check` — the docs-kit pins agree and the opm-controller docs bundle builds and lints.
 
 rules:
   proposal:
     - "Focus: WHY we're doing this, WHAT's in/out of scope"
     - "Updates when: Scope changes, intent clarifies, approach fundamentally shifts"
-    - Identify affected API types and controllers.
+    - Identify affected API types and reconcilers.
     - State whether this is MAJOR/MINOR/PATCH per SemVer; until GA, state the class as it would be
       after GA and note that beta ships it as the next `-beta.N`.
     - Complexity additions MUST include justification (Principle VII).

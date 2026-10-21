@@ -24,8 +24,8 @@ import (
 	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/open-platform-model/library/opm/platform"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The three verdicts the Platform reconciler reads off a built platform's
@@ -40,7 +40,7 @@ import (
 // core computes per registry entry (catalog path plus major) and the render
 // build refuses on, and its collision report (Collisions, CollidingEntries)
 // is core's count of enabled entries defining each contract key; the
-// operator reads both, so the generation gate and the render refusal fire on
+// controller reads both, so the generation gate and the render refusal fire on
 // the same platforms.
 //
 // Every list a finding prints is sorted first, into a copy. Core
@@ -122,7 +122,7 @@ func collisionFinding(inv *platform.ContractInventory) string {
 
 // unroutableFinding is the fail-closed backstop's finding: core read the
 // platform not routable and the inventory names no over-subscribed or
-// colliding contract to explain it (a term in routable this operator does
+// colliding contract to explain it (a term in routable this controller does
 // not know). It never claims a count, so it never reads "0 over-subscribed".
 const unroutableFinding = "platform is not routable; the contract inventory names no over-subscribed or colliding contract, " +
 	"so a platform package cannot be generated"

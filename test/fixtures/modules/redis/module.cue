@@ -12,7 +12,7 @@ import (
 	m "opmodel.dev/core@v2"
 	res "opmodel.dev/catalogs/opm/resources/v1beta1"
 
-	id "testing.opmodel.dev/modules/operator/redis/identity"
+	id "testing.opmodel.dev/modules/controller/redis/identity"
 )
 
 m.#Module

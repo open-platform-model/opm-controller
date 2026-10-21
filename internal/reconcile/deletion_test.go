@@ -27,8 +27,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // deletionTestScheme registers types needed by handleDeletion and
@@ -256,7 +256,7 @@ func TestHandleDeletion_SAMissing_OrphanAnnotation(t *testing.T) {
 
 // TestHandleDeletion_SAMissing_AnnotationNotTrue covers Task 5.3: only the
 // literal string "true" triggers orphan-exit. Any other value (here "yes")
-// is treated as absent so the operator cannot accidentally release the
+// is treated as absent so an operator cannot accidentally release the
 // finalizer by typo or a legacy YAML value.
 func TestHandleDeletion_SAMissing_AnnotationNotTrue(t *testing.T) {
 	scheme := deletionTestScheme(t)

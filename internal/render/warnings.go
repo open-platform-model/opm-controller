@@ -8,12 +8,12 @@ import (
 )
 
 // renderWarnings words the render's advisory diagnostic rows as the
-// operator's RenderResult.Warnings: one line per resolved-versions row
+// controller's RenderResult.Warnings: one line per resolved-versions row
 // marked Newer (catalog skew the Warn policy let through), in the build's
 // path order, then one line per unhandled optional trait, components
 // sorted, traits in the build's order. The render itself carries no
 // message string (library principle: the kernel reports verdicts as data);
-// the operator owns this wording, and the reconciler keys its transition
+// the controller owns this wording, and the reconciler keys its transition
 // check on the rows, not on these strings, so rewording here re-emits
 // nothing.
 //

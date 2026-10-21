@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define what the operator-generated platform package is a function of once claims can be active, what wakes it, how it is identified, and how long a generated package remains readable. Enhancement 0015 ("The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted") states the function and the triggers; D17 states the unit the operator holds.
+Define what the controller-generated platform package is a function of once claims can be active, what wakes it, how it is identified, and how long a generated package remains readable. Enhancement 0015 ("The platform package regenerates edge-triggered and level-computed, keyed by generation plus the active-claim set; blast radius accepted") states the function and the triggers; D17 states the unit the controller holds.
 
 Judging a claim is not part of this capability. Acceptance and activation decide `status.accepted` and `status.active`; this capability consumes the result.
 
@@ -10,7 +10,7 @@ Judging a claim is not part of this capability. Acceptance and activation decide
 
 ### Requirement: Regeneration is edge-triggered by every input
 
-The operator SHALL wake regeneration when the `Platform` CR changes and when any `TransformerRegistration` changes, so a claim activating does not wait for an unrelated reconcile. Bursts SHALL coalesce: several claims becoming active together SHALL converge in one or a few regenerations rather than one per claim.
+The controller SHALL wake regeneration when the `Platform` CR changes and when any `TransformerRegistration` changes, so a claim activating does not wait for an unrelated reconcile. Bursts SHALL coalesce: several claims becoming active together SHALL converge in one or a few regenerations rather than one per claim.
 
 #### Scenario: Activating a claim wakes regeneration
 
@@ -51,7 +51,7 @@ A generated package SHALL remain readable for as long as any render is consuming
 - **THEN** that package is reclaimed
 
 ### Requirement: The platform package is generated from the Platform spec and the accepted and active claims
-The operator SHALL generate the platform package from exactly two inputs: the `Platform` CR's spec, and the set of claims that are both accepted and active. A platform with no active claims SHALL generate the package it would have generated from its spec alone.
+The controller SHALL generate the platform package from exactly two inputs: the `Platform` CR's spec, and the set of claims that are both accepted and active. A platform with no active claims SHALL generate the package it would have generated from its spec alone.
 
 #### Scenario: An active claim's catalog reaches the generated package
 
@@ -64,7 +64,7 @@ The operator SHALL generate the platform package from exactly two inputs: the `P
 - **THEN** the generated package is a function of the `Platform` spec alone
 
 ### Requirement: Generation computes from the current state, never from the waking event
-The operator SHALL generate the platform package from exactly two inputs: the `Platform` CR's spec, and the set of claims that are both accepted and active. Generation SHALL compute from the current state of both, never from the content of the event that woke it, so that repeated or reordered events yield the same package.
+The controller SHALL generate the platform package from exactly two inputs: the `Platform` CR's spec, and the set of claims that are both accepted and active. Generation SHALL compute from the current state of both, never from the content of the event that woke it, so that repeated or reordered events yield the same package.
 
 #### Scenario: Generation ignores the waking event's content
 

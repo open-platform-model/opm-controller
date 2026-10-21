@@ -16,9 +16,9 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/object"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // identityErr mirrors the acquire path: verifyModuleIdentity returns a bare
@@ -286,7 +286,7 @@ func TestClassifyRenderError(t *testing.T) {
 			wantReason:  status.RenderFailedReason,
 		},
 		{
-			name:        "pre-evaluation operator defect stays RenderFailed",
+			name:        "pre-evaluation controller defect stays RenderFailed",
 			err:         fmt.Errorf("rendering module instance: %w", errors.New(`platform "cluster" carries no Source`)),
 			wantOutcome: FailedStalled,
 			wantReason:  status.RenderFailedReason,

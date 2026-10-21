@@ -9,9 +9,9 @@ import (
 	"github.com/open-platform-model/library/opm/kernel"
 	"github.com/open-platform-model/library/opm/module"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/moduleacquire"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/moduleacquire"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // ErrPlatformNotReady is returned by the renderers when the platform store
@@ -93,7 +93,7 @@ var _ ModuleRenderer = (*KernelModuleRenderer)(nil)
 // the module, loads the values as one values source with origin spec.values
 // (an empty document when none are supplied, letting the module's #config
 // defaults apply), synthesizes the instance, renders it against the platform,
-// and adapts the compiled output to operator resources plus inventory
+// and adapts the compiled output to controller resources plus inventory
 // entries. The kernel's synthesis is the one check of the values against the
 // module's #config.
 //
@@ -196,7 +196,7 @@ func (r *KernelModuleRenderer) synthesizeFrom(
 	return inst, nil
 }
 
-// resultFromRender adapts the kernel's render output to the operator's
+// resultFromRender adapts the kernel's render output to the controller's
 // RenderResult: compiled objects to resources with provenance, the advisory
 // rows worded as warnings (renderWarnings), and the rows themselves
 // (unhandled traits, resolved versions) carried through for the reconciler.

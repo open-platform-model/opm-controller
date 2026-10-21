@@ -1,6 +1,6 @@
 # Test fixtures and the registry they resolve from
 
-Covers where the test fixtures live, how they are published and bumped, which registry each test flow uses, and how the operator binary picks its registry. Test tiers and commands are not covered here.
+Covers where the test fixtures live, how they are published and bumped, which registry each test flow uses, and how the controller binary picks its registry. Test tiers and commands are not covered here.
 
 ## Contents
 
@@ -9,7 +9,7 @@ Covers where the test fixtures live, how they are published and bumped, which re
 - Publishing and bumping a fixture
 - Catalog fixtures
 - Shared scripts
-- Registry on the operator binary
+- Registry on the controller binary
 - Pitfalls
 - Check before you finish
 
@@ -17,7 +17,7 @@ Covers where the test fixtures live, how they are published and bumped, which re
 
 Workspace registry policy applies: reads of `opmodel.dev/*` resolve from GHCR. Two repo-specific points:
 
-- **No local registry is required by default.** The fixtures live at `testing.opmodel.dev/modules/operator/*`, and their modulepackages at `testing.opmodel.dev/releases/operator/*`. They are published to GHCR on merge (`publish-fixtures.yml`), on release and by the e2e workflow. So `task dev:test`, the controller and every non-PR context resolve them from GHCR with nothing running locally.
+- **No local registry is required by default.** The fixtures live at `testing.opmodel.dev/modules/controller/*`, and their modulepackages at `testing.opmodel.dev/releases/controller/*`. They are published to GHCR on merge (`publish-fixtures.yml`), on release and by the e2e workflow. So `task dev:test`, the controller and every non-PR context resolve them from GHCR with nothing running locally.
 - **PR CI is the one exception, by design.** The PR test workflow seeds a job-local registry from the tree (`task examples:seed`) and runs `task dev:test TEST_CUE_REGISTRY=<MIXED_CUE_REGISTRY>`. Reason: a fixture bump and all its consumers land in one PR. `task examples:check` enforces that a changed fixture carries an unpublished version.
 
 | Flow | Task | Registry |
@@ -28,7 +28,7 @@ Workspace registry policy applies: reads of `opmodel.dev/*` resolve from GHCR. T
 
 ## Fixture layout and identity
 
-- `test/fixtures/modules/*` declare `testing.opmodel.dev/modules/operator/<name>@v0`.
+- `test/fixtures/modules/*` declare `testing.opmodel.dev/modules/controller/<name>@v0`.
 - Each carries an `identity/` package as the single source of path and version. Edit the `identity/` package, never the `metadata` block, which derives from it.
 - **Never give a fixture an `opmodel.dev/*` path.** CUE routes by longest prefix, so a fixture there drags core and the catalogs onto whatever registry serves it. The publish gates refuse a nested path under `opmodel.dev` outright.
 - Tests read a fixture's version through the helpers in `test/fixtures/`, never a literal.
@@ -42,7 +42,7 @@ Workspace registry policy applies: reads of `opmodel.dev/*` resolve from GHCR. T
 
 ## Catalog fixtures
 
-`test/fixtures/catalogs/*` hold catalog fixtures on `testing.opmodel.dev/catalogs/operator/<name>@v0`. They are published by the same script through `opm catalog publish`. Bump one with `opm catalog version set`; tests read it through `fixtures.MustCatalog`.
+`test/fixtures/catalogs/*` hold catalog fixtures on `testing.opmodel.dev/catalogs/controller/<name>@v0`. They are published by the same script through `opm catalog publish`. Bump one with `opm catalog version set`; tests read it through `fixtures.MustCatalog`.
 
 - `provider`: the second, resolvable catalog that the registry-backed platform specs subscribe to or claim beside `opmodel.dev/catalogs/opm@v4`.
 - `backup`: the provider of opm's backup trait. The `backup_provider` module fixture claims it and `backup_consumer` demands it. It sits outside `task deps:cascade` because the claim names its build literally. That is a deliberate deviation from enhancement 0015 (every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version), which the fixture README explains.
@@ -51,11 +51,11 @@ Workspace registry policy applies: reads of `opmodel.dev/*` resolve from GHCR. T
 
 The fixture script in `hack/` and the helper in `test/fixtures/` are byte-identical copies of the cli's. The workspace root `task fixtures:lint` checks that, so edit both.
 
-## Registry on the operator binary
+## Registry on the controller binary
 
 The manager in `cmd/` resolves in this order: `--registry` (default empty), then the `OPM_REGISTRY` env var, then the built-in `defaultRegistry`. The default is GHCR for `opmodel.dev` and `testing.opmodel.dev`, and `registry.cue.works` for the rest. The binary logs the winning source at startup.
 
-Retarget the operator with `--registry` or `OPM_REGISTRY` on the Deployment. `CUE_REGISTRY` as pod env is still ignored: the binary overwrites it with the resolved value.
+Retarget the controller with `--registry` or `OPM_REGISTRY` on the Deployment. `CUE_REGISTRY` as pod env is still ignored: the binary overwrites it with the resolved value.
 
 ## Pitfalls
 

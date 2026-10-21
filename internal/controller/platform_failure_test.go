@@ -33,12 +33,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/internal/version"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/internal/version"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // failureReconciler builds a PlatformReconciler with a concrete *FakeRecorder so
@@ -122,7 +122,7 @@ var _ = Describe("Platform Controller failure handling", func() {
 		Expect(fetched.Status.ObservedGeneration).NotTo(BeZero())
 	})
 
-	It("stamps operatorVersion on the failure path", func() {
+	It("stamps controllerVersion on the failure path", func() {
 		r, _ := failureReconciler(platformstore.NewStore())
 		plat := createSingleton()
 		patcher := freshPatcher(plat)
@@ -132,7 +132,7 @@ var _ = Describe("Platform Controller failure handling", func() {
 
 		fetched := &releasesv1alpha1.Platform{}
 		Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(plat), fetched)).To(Succeed())
-		Expect(fetched.Status.OperatorVersion).To(Equal(version.Full()))
+		Expect(fetched.Status.ControllerVersion).To(Equal(version.Full()))
 	})
 
 	It("does not re-emit the warning event across repeated identical failures", func() {

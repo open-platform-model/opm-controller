@@ -39,12 +39,12 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // healthDeploymentName is the Deployment deploymentRenderResult renders.
@@ -137,7 +137,7 @@ var _ = Describe("ModuleInstance Healthy condition", func() {
 			ResourceManager:     apply.NewResourceManager(k8sClient, "opm-controller"),
 			EventRecorder:       events.NewFakeRecorder(100),
 			Renderer:            renderer,
-			OperatorVersion:     testOperatorVersion,
+			ControllerVersion:   testControllerVersion,
 			LibraryVersion:      testLibraryVersion,
 			DriftRenderInterval: drift,
 		}
@@ -415,7 +415,7 @@ var _ = Describe("ModulePackage Healthy condition", func() {
 			EventRecorder:       events.NewFakeRecorder(100),
 			Fetcher:             &stubFetcher{pathInArtifact: "releases/app"},
 			Renderer:            renderer,
-			OperatorVersion:     testOperatorVersion,
+			ControllerVersion:   testControllerVersion,
 			LibraryVersion:      testLibraryVersion,
 			DriftRenderInterval: 30 * time.Minute,
 		}

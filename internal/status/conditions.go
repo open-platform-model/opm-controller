@@ -67,7 +67,7 @@ const (
 	ApplyFailedReason = "ApplyFailed"
 	// ClaimConflictReason: Ready=False, not stalled, spec.rollout.forceConflicts
 	// is set and the API server refuses the update of a PersistentVolumeClaim.
-	// The operator does not delete and recreate the claim, because
+	// The controller does not delete and recreate the claim, because
 	// spec.dataPolicy is not Delete, and applies nothing. It retries on the
 	// backoff: the conflict can be resolved on the claim alone. Also the
 	// reason of the Warning event of that apply.
@@ -84,10 +84,10 @@ const (
 	DriftCheckForbiddenReason = "DriftCheckForbidden"
 	ManagedExternallyReason   = "ManagedExternally"
 	// SelfManagementRefusedReason: Ready=False, Stalled=True, the instance
-	// deploys the operator itself and its owner is absent or operator. The
-	// operator never applies, prunes or finalizes the instance that deploys
-	// it, so that re-running install can always repair the operator without
-	// the running operator's help. The fix is setting spec.owner to cli.
+	// deploys the controller itself and its owner is absent or controller. The
+	// controller never applies, prunes or finalizes the instance that deploys
+	// it, so that re-running install can always repair the controller without
+	// the running controller's help. The fix is setting spec.owner to cli.
 	SelfManagementRefusedReason = "SelfManagementRefused"
 	// ReconcilePanicReason: Ready=False, Reconciling=True, the reconcile of a
 	// ModuleInstance or ModulePackage panicked and the attempt was recorded as
@@ -323,8 +323,8 @@ func MarkSuspended(obj conditions.Setter) {
 
 // MarkManagedExternally sets Ready=Unknown with reason ManagedExternally and
 // removes Reconciling, Stalled and Healthy conditions. Used by the owner-skip
-// gate for CLI-owned instances the operator deliberately does not reconcile;
-// it judges no health there, so a Healthy left from an operator-owned past
+// gate for CLI-owned instances the controller deliberately does not reconcile;
+// it judges no health there, so a Healthy left from a controller-owned past
 // would describe objects it no longer follows. The static message keeps the
 // write idempotent: re-acknowledging an already-marked instance produces an
 // empty patch diff.
@@ -335,7 +335,7 @@ func MarkManagedExternally(obj conditions.Setter) {
 	conditions.MarkUnknown(obj, ReadyCondition, ManagedExternallyReason, "ModuleInstance is managed externally by the CLI")
 }
 
-// MarkSelfManagementRefused records the refusal of the operator's own
+// MarkSelfManagementRefused records the refusal of the controller's own
 // instance: Ready=False and Stalled=True with reason SelfManagementRefused,
 // and Reconciling, ModuleResolved, Drifted and Healthy removed. The last
 // three may be left by an earlier adoption and would read as live next to
@@ -369,7 +369,7 @@ func MarkNotReady(obj conditions.Setter, reason, messageFormat string, messageAr
 // MarkReconcilePanic records a reconcile that panicked: Reconciling=True,
 // Stalled removed and Ready=False, all with reason ReconcilePanic. Not
 // stalled, because the controller runtime retries a recovered panic on its
-// rate limiter, and the next attempt may succeed (after an operator upgrade).
+// rate limiter, and the next attempt may succeed (after a controller upgrade).
 func MarkReconcilePanic(obj conditions.Setter, messageFormat string, messageArgs ...any) {
 	conditions.MarkReconciling(obj, ReconcilePanicReason, messageFormat, messageArgs...)
 	conditions.MarkFalse(obj, ReadyCondition, ReconcilePanicReason, messageFormat, messageArgs...)

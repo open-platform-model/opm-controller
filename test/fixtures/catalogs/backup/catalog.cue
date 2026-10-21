@@ -1,4 +1,4 @@
-// backup — the operator's provider catalog fixture: the smallest catalog that
+// backup — the controller's provider catalog fixture: the smallest catalog that
 // implements a provider-fulfilled contract. Its one transformer implements
 // opm's backup trait (opmodel.dev/catalogs/opm/traits/backup@v1alpha1), which
 // opm declares and nothing else in the workspace implements, so a
@@ -19,15 +19,15 @@ package backup
 
 import (
 	c "opmodel.dev/core@v2"
-	id "testing.opmodel.dev/catalogs/operator/backup/identity"
-	t "testing.opmodel.dev/catalogs/operator/backup/transformers"
+	id "testing.opmodel.dev/catalogs/controller/backup/identity"
+	t "testing.opmodel.dev/catalogs/controller/backup/transformers"
 )
 
 c.#Catalog
 metadata: {
 	modulePath:  id.ModulePath
 	version:     id.Version
-	description: "Operator test catalog: a provider for opm's backup trait"
+	description: "Controller test catalog: a provider for opm's backup trait"
 }
 
 #transformers: {

@@ -1,18 +1,18 @@
 # example-module-publishing Specification
 
 ## Purpose
-Defines how CI publishes the operator's example modules to GHCR on a release: each module keeps its own version, a re-publish is safe, and the release attaches example manifests and an examples bundle that reference what the release published. It also defines how a pre-release publish keeps the artifact's declared version equal to its tag.
+Defines how CI publishes the controller's example modules to GHCR on a release: each module keeps its own version, a re-publish is safe, and the release attaches example manifests and an examples bundle that reference what the release published. It also defines how a pre-release publish keeps the artifact's declared version equal to its tag.
 
 ## Requirements
 
 ### Requirement: Independent per-module versioning
 
-Each example module SHALL declare its own semver in its `identity/` package, independent of the operator's release version. The publish step SHALL publish that version and no other.
+Each example module SHALL declare its own semver in its `identity/` package, independent of the controller's release version. The publish step SHALL publish that version and no other.
 
-#### Scenario: Module version differs from operator version
+#### Scenario: Module version differs from controller version
 
-- **WHEN** the operator releases `v0.5.0` and `podinfo`'s identity package declares `0.1.0`
-- **THEN** the publish step publishes `testing.opmodel.dev/modules/operator/podinfo` at `v0.1.0`, not `v0.5.0`
+- **WHEN** the controller releases `v0.5.0` and `podinfo`'s identity package declares `0.1.0`
+- **THEN** the publish step publishes `testing.opmodel.dev/modules/controller/podinfo` at `v0.1.0`, not `v0.5.0`
 
 ### Requirement: Idempotent re-publish
 
@@ -33,7 +33,7 @@ The release SHALL attach the example `moduleinstance.yaml` manifests, each refer
 #### Scenario: Attached manifests reference published modules
 
 - **WHEN** a user downloads an attached example manifest
-- **THEN** its `spec.module.path` references a `testing.opmodel.dev/modules/operator/<m>@v0` version that the same release published
+- **THEN** its `spec.module.path` references a `testing.opmodel.dev/modules/controller/<m>@v0` version that the same release published
 
 ### Requirement: Version bumps are load-bearing on a schema crossing
 
@@ -60,12 +60,12 @@ The examples bundle SHALL package the `test/fixtures/modulepackages/` OCIReposit
 - **THEN** `dist/opm-examples.tar.gz` contains the ModuleInstance manifests and the modulepackage OCIRepository/ModulePackage manifests
 
 ### Requirement: Example modules are published to GHCR on a release through a registry mapping that routes both domains
-On an operator release, CI SHALL publish each example module to `ghcr.io/open-platform-model` under its `testing.opmodel.dev/modules/operator/<m>` path, using a registry mapping that routes BOTH `testing.opmodel.dev` (the fixtures) and `opmodel.dev` (their core and catalog dependencies) to GHCR. A mapping missing either domain falls through to a public mirror and fails with 401.
+On a controller release, CI SHALL publish each example module to `ghcr.io/open-platform-model` under its `testing.opmodel.dev/modules/controller/<m>` path, using a registry mapping that routes BOTH `testing.opmodel.dev` (the fixtures) and `opmodel.dev` (their core and catalog dependencies) to GHCR. A mapping missing either domain falls through to a public mirror and fails with 401.
 
 #### Scenario: Release triggers module publish
 
 - **WHEN** a release is created
-- **THEN** the release job publishes each example module via `opm module publish` to `ghcr.io/open-platform-model` under its `testing.opmodel.dev/modules/operator/<m>` path
+- **THEN** the release job publishes each example module via `opm module publish` to `ghcr.io/open-platform-model` under its `testing.opmodel.dev/modules/controller/<m>` path
 
 #### Scenario: No publish without a release
 

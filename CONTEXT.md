@@ -1,4 +1,4 @@
-# opm-operator: where do I go?
+# opm-controller: where do I go?
 
 Router only. Facts and rules are in `AGENTS.md`.
 
@@ -9,7 +9,7 @@ Router only. Facts and rules are in `AGENTS.md`.
 | Write or fix a Go test, run one test, run e2e | `references/testing-and-lint.md` | `Taskfile.yml`, `.tasks/` |
 | Fix a lint error, or move the golangci-lint version | `references/testing-and-lint.md` | `.golangci.yml` |
 | Add, bump or publish a test fixture, or a test needs a registry | `references/fixtures.md` | `.tasks/`, `hack/` |
-| Choose a commit type, break the API, or change the operator module | `references/release-units.md` | `release-please-config.json` |
+| Choose a commit type, break the API, or change the controller module | `references/release-units.md` | `release-please-config.json` |
 | Recover a failed release or a stranded draft | `references/release-units.md` | `.github/workflows/` |
 | Edit a workflow, a cascade pin, `.opm-cli-version` or `deps:cascade` | `references/release-cascade.md` | `.tasks/cascade/`, `RELEASING.md` at the workspace root |
 | Edit a site page, `docs-kit.cue` or a docs-kit pin | `references/docs-bundles.md` | `docs/site/`, workspace `STYLE.md` and `VOICE.md` |

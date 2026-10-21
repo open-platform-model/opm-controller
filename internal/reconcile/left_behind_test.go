@@ -8,8 +8,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/ownership"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 // One LeftBehind event per run: Normal when only kinds OPM never deletes were

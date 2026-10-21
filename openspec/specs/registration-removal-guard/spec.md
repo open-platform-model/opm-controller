@@ -2,7 +2,7 @@
 
 Define what stops a provider abandoning its dependents: when a `TransformerRegistration` may not be deleted, when a re-rendered one may not be applied, and what each refusal tells the operator. Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost") treat deletion and shrinking as the same act through two doors; this capability governs both.
 
-**The shrinking door is bounded to writes the operator makes.** The refusal site is the operator's own apply path: a claim is rendered output, so the operator is its writer and can decline to write, which takes effect while the previously accepted claim is still the stored one. Neither of the alternatives was needed — a validating webhook would change the install surface this operator ships, and D16's hold-last-good fallback would give a claim two answers to what it provides. The cost is that a writer who is not the operator is outside the guarantee: editing a claim directly requires platform-admin RBAC, which ships unbound. A webhook would stack on top of this without undoing it, and is its own decision.
+**The shrinking door is bounded to writes the controller makes.** The refusal site is the controller's own apply path: a claim is rendered output, so the controller is its writer and can decline to write, which takes effect while the previously accepted claim is still the stored one. Neither of the alternatives was needed — a validating webhook would change the install surface this controller ships, and D16's hold-last-good fallback would give a claim two answers to what it provides. The cost is that a writer who is not the controller is outside the guarantee: editing a claim directly requires platform-admin RBAC, which ships unbound. A webhook would stack on top of this without undoing it, and is its own decision.
 
 The mechanism by which dependents are counted is deliberately not specified: this capability states the guarantee rather than the machinery.
 
@@ -10,7 +10,7 @@ The mechanism by which dependents are counted is deliberately not specified: thi
 
 ### Requirement: A claim with dependents cannot be deleted
 
-The operator SHALL prevent deletion of a `TransformerRegistration` while instances depend on contracts it provides, and SHALL report the refusal on the claim naming how many depend on it. The block SHALL be released once no dependents remain, so a claim never becomes permanently undeletable.
+The controller SHALL prevent deletion of a `TransformerRegistration` while instances depend on contracts it provides, and SHALL report the refusal on the claim naming how many depend on it. The block SHALL be released once no dependents remain, so a claim never becomes permanently undeletable.
 
 #### Scenario: Deleting a depended-on claim is blocked
 
@@ -42,7 +42,7 @@ The dependent count SHALL be derived from what instances actually demand, and SH
 - **THEN** the same count and the same refusal are reported
 
 ### Requirement: Shrinking provides while dependents exist is refused before it takes effect
-The operator SHALL refuse to apply a rendered `TransformerRegistration` that removes a contract from `spec.provides` while instances still demand that contract, and the refusal SHALL take effect while the previously accepted claim is still the stored one. A refusal that arrives after the new spec has replaced the accepted claim SHALL NOT be considered to satisfy this requirement: by then the old claim is gone and dependents are broken regardless of the reason reported.
+The controller SHALL refuse to apply a rendered `TransformerRegistration` that removes a contract from `spec.provides` while instances still demand that contract, and the refusal SHALL take effect while the previously accepted claim is still the stored one. A refusal that arrives after the new spec has replaced the accepted claim SHALL NOT be considered to satisfy this requirement: by then the old claim is gone and dependents are broken regardless of the reason reported.
 
 #### Scenario: A shrinking upgrade is refused
 
@@ -76,15 +76,15 @@ As in requirement "Shrinking provides while dependents exist is refused before i
 - **WHEN** a rendered `TransformerRegistration` removes a contract from `spec.provides` while instances still demand that contract
 - **THEN** the refusal names the dropped contracts and the dependent count, matching the blocked delete's shape
 
-### Requirement: The guarantee against shrinking is bounded to writes the operator makes
-As in requirement "Shrinking provides while dependents exist is refused before it takes effect": This guarantee is bounded to writes the operator makes. A `TransformerRegistration` written by another actor, which requires platform-admin RBAC the operator ships unbound, is outside it, and the operator SHALL NOT report a guarantee it does not hold.
+### Requirement: The guarantee against shrinking is bounded to writes the controller makes
+As in requirement "Shrinking provides while dependents exist is refused before it takes effect": This guarantee is bounded to writes the controller makes. A `TransformerRegistration` written by another actor, which requires platform-admin RBAC the controller ships unbound, is outside it, and the controller SHALL NOT report a guarantee it does not hold.
 
 #### Scenario: A claim written by another actor is outside the guarantee
 - **WHEN** a `TransformerRegistration` is written by another actor
-- **THEN** it is outside the guarantee, and the operator does not report a guarantee it does not hold
+- **THEN** it is outside the guarantee, and the controller does not report a guarantee it does not hold
 
 ### Requirement: A refused shrink is reported on the ModuleInstance whose render produced the claim
-The operator SHALL report a refused shrink on the `ModuleInstance` whose render produced the claim, naming the claim, the dropped contracts and the dependent count. The instance SHALL NOT report ready while one of its rendered resources is being withheld, so a refused upgrade is visible as an unconverged instance rather than as a silent partial apply.
+The controller SHALL report a refused shrink on the `ModuleInstance` whose render produced the claim, naming the claim, the dropped contracts and the dependent count. The instance SHALL NOT report ready while one of its rendered resources is being withheld, so a refused upgrade is visible as an unconverged instance rather than as a silent partial apply.
 
 #### Scenario: The instance names what was refused
 

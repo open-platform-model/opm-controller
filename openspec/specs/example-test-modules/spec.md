@@ -1,7 +1,7 @@
 # example-test-modules Specification
 
 ## Purpose
-The operator's example test module fleet and its modulepackage fixtures: how they are versioned, pinned, checked and published.
+The controller's example test module fleet and its modulepackage fixtures: how they are versioned, pinned, checked and published.
 
 ## Requirements
 
@@ -33,16 +33,16 @@ The repo SHALL provide a redis example module modelling a stateful workload. It 
 
 ### Requirement: Example modules ship ready-to-apply manifests
 
-Each example module SHALL include a `ModuleInstance` manifest (and, where applicable, `ModulePackage`/`OCIRepository` manifests) that a user can apply against a running operator to deploy the example. The manifests SHALL reference the `testing.opmodel.dev/modules/operator/<m>@v0` path and a concrete version.
+Each example module SHALL include a `ModuleInstance` manifest (and, where applicable, `ModulePackage`/`OCIRepository` manifests) that a user can apply against a running controller to deploy the example. The manifests SHALL reference the `testing.opmodel.dev/modules/controller/<m>@v0` path and a concrete version.
 
 #### Scenario: Manifest references public module
 
 - **WHEN** a user inspects an example module's `moduleinstance.yaml`
-- **THEN** its `spec.module.path` is `testing.opmodel.dev/modules/operator/podinfo@v0` with an explicit `spec.module.version`
+- **THEN** its `spec.module.path` is `testing.opmodel.dev/modules/controller/podinfo@v0` with an explicit `spec.module.version`
 
 ### Requirement: podinfo liveness/readiness e2e validation
 
-An e2e test SHALL deploy the podinfo `ModuleRelease` against a Kind-backed operator and assert that the rendered probes function — the Deployment's pods become Ready, which requires both the liveness and readiness probes to pass.
+An e2e test SHALL deploy the podinfo `ModuleRelease` against a Kind-backed controller and assert that the rendered probes function — the Deployment's pods become Ready, which requires both the liveness and readiness probes to pass.
 
 #### Scenario: podinfo pods become ready
 - **WHEN** the e2e suite applies the podinfo ModuleRelease and the controller reconciles it
@@ -54,12 +54,12 @@ An e2e test SHALL deploy the podinfo `ModuleRelease` against a Kind-backed opera
 
 ### Requirement: hello_web ready-to-apply ModuleInstance
 
-The `hello_web` example SHALL ship a `ModuleInstance` manifest referencing the `testing.opmodel.dev/modules/operator/hello_web@v0` path and a concrete version, so all four fleet members are applyable.
+The `hello_web` example SHALL ship a `ModuleInstance` manifest referencing the `testing.opmodel.dev/modules/controller/hello_web@v0` path and a concrete version, so all four fleet members are applyable.
 
 #### Scenario: hello_web manifest references public module
 
 - **WHEN** a user inspects `hello_web`'s `moduleinstance.yaml`
-- **THEN** its `spec.module.path` is `testing.opmodel.dev/modules/operator/hello_web@v0` with an explicit `spec.module.version`
+- **THEN** its `spec.module.path` is `testing.opmodel.dev/modules/controller/hello_web@v0` with an explicit `spec.module.version`
 
 ### Requirement: ModulePackage render integration coverage
 
@@ -79,19 +79,19 @@ controller's ownership labels. The coverage SHALL remain gated on the local test
 - **THEN** the modulepackage render cases skip rather than fail
 
 ### Requirement: Example test modules are authored under the public module path
-All example test modules SHALL be authored under the CUE module path `testing.opmodel.dev/modules/operator/<module>@v0`, where `<module>` is the module's short name.
+All example test modules SHALL be authored under the CUE module path `testing.opmodel.dev/modules/controller/<module>@v0`, where `<module>` is the module's short name.
 
 #### Scenario: New module declares public path
 
 - **WHEN** a new example module is added
-- **THEN** its `cue.mod/module.cue` declares `module: "testing.opmodel.dev/modules/operator/podinfo@v0"` and `metadata.modulePath` resolves to the same value
+- **THEN** its `cue.mod/module.cue` declares `module: "testing.opmodel.dev/modules/controller/podinfo@v0"` and `metadata.modulePath` resolves to the same value
 
 ### Requirement: A module declares and publishes the public module path
 As in requirement "Example test modules are authored under the public module path": Each module's `cue.mod/module.cue` `module:` field and its `#Module.metadata.modulePath` SHALL agree with this path, and SHALL be published to `ghcr.io/open-platform-model` so the module resolves under the canonical registry mapping, which routes both `opmodel.dev` (core, catalogs) and `testing.opmodel.dev` (these fixtures) to GHCR.
 
 #### Scenario: Consumer resolves without extra config
 
-- **WHEN** a user with the canonical `CUE_REGISTRY` mapping resolves `testing.opmodel.dev/modules/operator/podinfo@v0`
+- **WHEN** a user with the canonical `CUE_REGISTRY` mapping resolves `testing.opmodel.dev/modules/controller/podinfo@v0`
 - **THEN** it resolves from `ghcr.io/open-platform-model` with no additional registry configuration
 
 ### Requirement: Fixtures are not authored under opmodel.dev
@@ -103,22 +103,22 @@ Fixtures SHALL NOT be authored under `opmodel.dev/*`. CUE resolves modules by lo
 - **THEN** `opm module publish` refuses it as not fitting the namespace the domain publishes
 
 ### Requirement: Each workload fleet module has a sibling modulepackage fixture
-Each example module of the workload fleet (`hello`, `hello_web`, `podinfo`, `redis`) SHALL have a sibling modulepackage fixture declaring `testing.opmodel.dev/releases/operator/<module>@v0`, an `instance.cue` that imports the published module, and a `cue.mod/module.cue` that pins the same `testing.opmodel.dev/modules/operator/<module>@v0` version the module declares.
+Each example module of the workload fleet (`hello`, `hello_web`, `podinfo`, `redis`) SHALL have a sibling modulepackage fixture declaring `testing.opmodel.dev/releases/controller/<module>@v0`, an `instance.cue` that imports the published module, and a `cue.mod/module.cue` that pins the same `testing.opmodel.dev/modules/controller/<module>@v0` version the module declares.
 
 #### Scenario: Each module has a modulepackage fixture
 
 - **WHEN** the modulepackage fixtures are enumerated
-- **THEN** there SHALL be one per workload fleet module, declaring `testing.opmodel.dev/releases/operator/<module>@v0`
+- **THEN** there SHALL be one per workload fleet module, declaring `testing.opmodel.dev/releases/controller/<module>@v0`
 
 #### Scenario: instance.cue imports and embeds the published module
 
 - **WHEN** a modulepackage fixture is loaded
-- **THEN** it embeds `core.#ModuleInstance`, imports `testing.opmodel.dev/modules/operator/<module>@v0`, and sets `#module` to the imported module
+- **THEN** it embeds `core.#ModuleInstance`, imports `testing.opmodel.dev/modules/controller/<module>@v0`, and sets `#module` to the imported module
 
 #### Scenario: ModulePackage CR references its OCIRepository
 
 - **WHEN** a modulepackage fixture's `ModulePackage` is inspected
-- **THEN** its `spec.sourceRef` names the `OCIRepository` declared in the sibling `ocirepository.yaml`, whose `url` ends in `testing.opmodel.dev/releases/operator/<module>`
+- **THEN** its `spec.sourceRef` names the `OCIRepository` declared in the sibling `ocirepository.yaml`, whose `url` ends in `testing.opmodel.dev/releases/controller/<module>`
 
 ### Requirement: The backup fixture set has no modulepackage fixture
 As in requirement "Each workload fleet module has a sibling modulepackage fixture": The backup fixture set (`backup_provider`, `backup_consumer`) SHALL have no modulepackage fixture: it exists to exercise a registration, and `backup_consumer` does not render on a platform without an active provider.
@@ -199,12 +199,12 @@ As in requirement "task examples:consumers checks every modulepackage and the te
 - **THEN** the step prints a `FAIL` line naming the modulepackage and the version, still checks the others, and exits non-zero
 
 ### Requirement: The repo carries a provider catalog fixture
-The repo SHALL carry a catalog fixture under `test/fixtures/catalogs/provider`, declaring the CUE module path `testing.opmodel.dev/catalogs/operator/provider@v0`. It SHALL be the smallest valid core `#Catalog`: one resource and one transformer that requires it, each with an FQN under the catalog's own registry path, so a platform can subscribe it beside `opmodel.dev/catalogs/opm@v4` without a key collision.
+The repo SHALL carry a catalog fixture under `test/fixtures/catalogs/provider`, declaring the CUE module path `testing.opmodel.dev/catalogs/controller/provider@v0`. It SHALL be the smallest valid core `#Catalog`: one resource and one transformer that requires it, each with an FQN under the catalog's own registry path, so a platform can subscribe it beside `opmodel.dev/catalogs/opm@v4` without a key collision.
 
 #### Scenario: The provider catalog fixture declares its module path
 
 - **WHEN** the catalog fixtures of the repo are enumerated
-- **THEN** `test/fixtures/catalogs/provider` declares `testing.opmodel.dev/catalogs/operator/provider@v0`
+- **THEN** `test/fixtures/catalogs/provider` declares `testing.opmodel.dev/catalogs/controller/provider@v0`
 
 ### Requirement: The provider catalog fixture carries an identity package
 As in requirement "The repo carries a provider catalog fixture": It SHALL carry an `identity/identity.cue` package as the single source of its module path and version, with `Version` a plain SemVer literal.
@@ -221,7 +221,7 @@ As in requirement "The repo carries a provider catalog fixture": The fixture SHA
 #### Scenario: The catalog passes the catalog publish gates
 
 - **WHEN** `opm catalog publish --dry-run test/fixtures/catalogs/provider` runs
-- **THEN** the plan resolves with no refusals, checking two members through the member FQN gate, and derives repository `testing.opmodel.dev/catalogs/operator/provider` and the tag from the identity package
+- **THEN** the plan resolves with no refusals, checking two members through the member FQN gate, and derives repository `testing.opmodel.dev/catalogs/controller/provider` and the tag from the identity package
 
 #### Scenario: A changed catalog must carry a new version
 
@@ -234,7 +234,7 @@ As in requirement "The repo carries a provider catalog fixture": The fixture SHA
 #### Scenario: PR CI seeds the catalog from the tree
 
 - **WHEN** `test.yml` runs on a pull request
-- **THEN** the seed step publishes `testing.opmodel.dev/catalogs/operator/provider` at its declared version into the job-local registry before any registry-backed spec runs
+- **THEN** the seed step publishes `testing.opmodel.dev/catalogs/controller/provider` at its declared version into the job-local registry before any registry-backed spec runs
 
 ### Requirement: Registry-backed specs use the provider catalog fixture
 As in requirement "The repo carries a provider catalog fixture": Registry-backed specs that need a resolvable catalog other than `opmodel.dev/catalogs/opm@v4` SHALL use this fixture and SHALL read its coordinate from its identity package (`fixtures.MustCatalog`), never a literal.
@@ -242,10 +242,10 @@ As in requirement "The repo carries a provider catalog fixture": Registry-backed
 #### Scenario: The claim specs build against the test catalog
 
 - **WHEN** the claim-driven regeneration specs activate a claim for a catalog the Platform does not subscribe
-- **THEN** that catalog is `testing.opmodel.dev/catalogs/operator/provider@v0` at the version its identity package declares, and the regenerated platform pins, imports and builds it
+- **THEN** that catalog is `testing.opmodel.dev/catalogs/controller/provider@v0` at the version its identity package declares, and the regenerated platform pins, imports and builds it
 
 ### Requirement: The repo carries a backup catalog fixture that implements only the backup trait
-The repo SHALL carry a catalog fixture under `test/fixtures/catalogs/backup`, declaring `testing.opmodel.dev/catalogs/operator/backup@v0`, whose transformers implement opm's provider-fulfilled backup trait (`opmodel.dev/catalogs/opm/traits/backup@v1alpha1`) and nothing else, so the provider contracts derived from it are exactly that trait.
+The repo SHALL carry a catalog fixture under `test/fixtures/catalogs/backup`, declaring `testing.opmodel.dev/catalogs/controller/backup@v0`, whose transformers implement opm's provider-fulfilled backup trait (`opmodel.dev/catalogs/opm/traits/backup@v1alpha1`) and nothing else, so the provider contracts derived from it are exactly that trait.
 
 #### Scenario: The catalog provides exactly the backup trait
 
@@ -261,7 +261,7 @@ As in requirement "The repo carries a backup catalog fixture that implements onl
 - **THEN** the plan resolves with no refusals, checking one member through the member FQN gate
 
 ### Requirement: The backup catalog fixture keeps a core pin older than ProvidesSince while the fold exists
-As in requirement "The repo carries a backup catalog fixture that implements only the backup trait": While the library keeps its deprecated provider-set fold, its core pin SHALL stay older than the library's `ProvidesSince`, since the operator's old-catalog acceptance spec relies on it.
+As in requirement "The repo carries a backup catalog fixture that implements only the backup trait": While the library keeps its deprecated provider-set fold, its core pin SHALL stay older than the library's `ProvidesSince`, since the controller's old-catalog acceptance spec relies on it.
 
 #### Scenario: The core pin stays older than ProvidesSince while the fold exists
 
@@ -311,10 +311,10 @@ As in requirement "backup_provider renders one TransformerRegistration": Its `mo
 - **AND** the instance's required contracts include `opmodel.dev/catalogs/opm/traits/backup@v1alpha1`
 
 ### Requirement: A registry-backed integration spec checks the registration, the refusal and the render
-As in requirements "backup_provider renders one TransformerRegistration" and "backup_consumer attaches the backup trait": So a cluster running an operator that resolves the catalog accepts it (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A registry-backed integration spec SHALL check all three.
+As in requirements "backup_provider renders one TransformerRegistration" and "backup_consumer attaches the backup trait": So a cluster running a controller that resolves the catalog accepts it (enhancement 0015, "A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version"). A registry-backed integration spec SHALL check all three.
 
 #### Scenario: A cluster accepts and activates the claim
 
-- **WHEN** both `moduleinstance.yaml` files are applied to a cluster whose operator resolves the published fixtures and accepts a bare SemVer in `spec.version`
+- **WHEN** both `moduleinstance.yaml` files are applied to a cluster whose controller resolves the published fixtures and accepts a bare SemVer in `spec.version`
 - **THEN** the claim `default.backup-provider` reports `accepted: true` and, once `backup-provider` is Ready, `active: true`
 - **AND** `backup-consumer` reaches Ready

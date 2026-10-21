@@ -44,12 +44,12 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
 	"github.com/open-platform-model/library/opm/helper/platformmodule"
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/controller"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/controller"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // backupTraitFQN is the provider-fulfilled contract the backup fixture set is
@@ -124,7 +124,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		// SemVer opm renders included, and re-derives provides from it
 		// (enhancement 0015): this is the same call with the same inputs. A library
 		// that resolves only a v-prefixed version fails here, as acceptance
-		// would refuse the claim CatalogUnresolved (opm-operator#210).
+		// would refuse the claim CatalogUnresolved (opm-controller#210).
 		cat, err := k.AcquireCatalogFromRegistry(ctx, catalogPath, version)
 		Expect(err).NotTo(HaveOccurred())
 		derived, err := cat.Provides()

@@ -8,7 +8,7 @@ import (
 	"github.com/fluxcd/pkg/runtime/conditions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // DeletionUnconfirmedReason is the reason of the Warning event a deletion

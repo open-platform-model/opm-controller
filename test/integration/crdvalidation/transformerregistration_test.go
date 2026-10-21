@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // TransformerRegistration is validated at admission rather than by the
@@ -65,7 +65,7 @@ func TestTransformerRegistrationAtAdmission(t *testing.T) {
 	k8sClient, err := client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	require.NoError(t, err)
 
-	// The shape the catalog_opm renderer emits, recorded in opm-operator issue
+	// The shape the catalog_opm renderer emits, recorded in opm-controller issue
 	// 132. The apiVersion is this repo's flat group: the issue's JSON recorded
 	// the prefixed "opm.opmodel.dev" spelling, which catalog_opm corrected to
 	// this one in its correct-registration-api-group change (PR 91).

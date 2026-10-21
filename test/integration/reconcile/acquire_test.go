@@ -25,8 +25,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/kernel"
 
-	"github.com/open-platform-model/opm-operator/internal/moduleacquire"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	"github.com/open-platform-model/opm-controller/internal/moduleacquire"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // These tests require the fixture module published to a local OCI registry.
@@ -83,7 +83,7 @@ var _ = Describe("Module Acquisition Integration", func() {
 			before := countAcquireTempDirs()
 
 			mod, err := moduleacquire.Acquire(ctx, k,
-				"testing.opmodel.dev/modules/operator/does-not-exist@v0", "v9.9.9", registry)
+				"testing.opmodel.dev/modules/controller/does-not-exist@v0", "v9.9.9", registry)
 			Expect(err).To(HaveOccurred())
 			Expect(mod).To(BeNil())
 			Expect(err.Error()).To(ContainSubstring("acquiring module"))

@@ -32,10 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 var _ = Describe("Drift Detection", func() {
@@ -361,7 +361,7 @@ var _ = Describe("Drift Detection with the render skip", func() {
 		params := reconcileParams()
 		params.Renderer = &stubRenderer{result: result}
 		params.ResourceManager = apply.NewResourceManager(counting, "opm-controller")
-		params.OperatorVersion = "v1.0.0-test"
+		params.ControllerVersion = "v1.0.0-test"
 		params.LibraryVersion = "v1.0.0-test.library"
 		params.DriftRenderInterval = 30 * time.Minute
 

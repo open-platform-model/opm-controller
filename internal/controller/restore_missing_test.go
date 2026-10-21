@@ -37,11 +37,11 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // configMapResource is a rendered ConfigMap named name with data.message.
@@ -404,7 +404,7 @@ var _ = Describe("Restore of a missing ModuleInstance object", func() {
 		fresh()
 		reconcileOnce(ctx, r, nn)
 
-		// The operator records no outcome of a Job, so the failure is no
+		// The controller records no outcome of a Job, so the failure is no
 		// longer reported once the Job is gone. The Job's own events and
 		// logs are the record of it.
 		Expect(jobExists(ctx, jobName)).To(BeFalse(), "a failed Job is not run again")

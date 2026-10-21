@@ -18,7 +18,7 @@ import (
 )
 
 // The tests in this file guard one rule: Flux's staged apply, which is the
-// operator's only apply order, may refine the order the library's kind
+// controller's only apply order, may refine the order the library's kind
 // weights give and never contradicts it (enhancement 0012). Flux's order is read
 // by calling the pinned Flux module (its stage rules, its sorter and its
 // ReconcileOrder variable), so a Flux bump that moves a kind fails here.
@@ -215,7 +215,7 @@ func compareOrders(order []*unstructured.Unstructured, weight func(schema.GroupV
 	return c
 }
 
-// goModPath is the operator's go.mod, seen from this package's directory,
+// goModPath is the controller's go.mod, seen from this package's directory,
 // which is where go test runs the package's tests.
 const goModPath = "../../go.mod"
 

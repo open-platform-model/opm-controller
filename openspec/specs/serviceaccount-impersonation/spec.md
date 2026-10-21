@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator applies, prunes and deletes as the ServiceAccount a release names: which ServiceAccount is effective, what the controller's own role may do with ServiceAccounts, and how a missing or unauthorised ServiceAccount stalls and recovers.
+Define how the controller applies, prunes and deletes as the ServiceAccount a release names: which ServiceAccount is effective, what the controller's own role may do with ServiceAccounts, and how a missing or unauthorised ServiceAccount stalls and recovers.
 
 ## Requirements
 
@@ -72,7 +72,7 @@ The ServiceAccount MUST be in the same namespace as the ModuleRelease.
 - **THEN** it impersonates `system:serviceaccount:team-a:deploy-sa` (same namespace)
 
 ### Requirement: Controller may impersonate ServiceAccounts only
-The controller's own ClusterRole MUST grant the `impersonate` verb on `serviceaccounts` and on no other resource. It MUST NOT grant `impersonate` on `users` or on `groups`. This MUST hold in every form the role ships in: the kustomize role, the install manifest and the operator module's rendered RBAC. With that role alone the apply path MUST still work.
+The controller's own ClusterRole MUST grant the `impersonate` verb on `serviceaccounts` and on no other resource. It MUST NOT grant `impersonate` on `users` or on `groups`. This MUST hold in every form the role ships in: the kustomize role, the install manifest and the controller module's rendered RBAC. With that role alone the apply path MUST still work.
 
 #### Scenario: Shipped role names serviceaccounts only
 - **WHEN** the rules of the shipped manager ClusterRole are read
@@ -150,7 +150,7 @@ The same spec > flag > empty resolution used during apply and prune MUST also be
 
 ### Requirement: Controller may list and watch ServiceAccounts
 
-The controller's own ClusterRole MUST grant `list` and `watch` on `serviceaccounts`, beside `get` and `impersonate`, in every form the role ships in: the kustomize role, the install manifest and the operator module's rendered RBAC. The controller MUST watch ServiceAccount metadata only. The role MUST NOT grant a write verb on `serviceaccounts`.
+The controller's own ClusterRole MUST grant `list` and `watch` on `serviceaccounts`, beside `get` and `impersonate`, in every form the role ships in: the kustomize role, the install manifest and the controller module's rendered RBAC. The controller MUST watch ServiceAccount metadata only. The role MUST NOT grant a write verb on `serviceaccounts`.
 
 #### Scenario: Shipped role lets the controller watch ServiceAccounts
 

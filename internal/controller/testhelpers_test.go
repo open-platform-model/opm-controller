@@ -29,8 +29,8 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/render"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/render"
 )
 
 // stubRenderer is a test ModuleRenderer that returns a pre-built result or
@@ -91,11 +91,11 @@ const (
 	stubSkewPolicy       = releasesv1alpha1.SkewPolicyWarn
 )
 
-// testOperatorVersion and testLibraryVersion stand in for version.Full() and
+// testControllerVersion and testLibraryVersion stand in for version.Full() and
 // version.Library(), which a test binary cannot report for the library.
 const (
-	testOperatorVersion = "v1.0.0-test"
-	testLibraryVersion  = "v1.0.0-test.library"
+	testControllerVersion = "v1.0.0-test"
+	testLibraryVersion    = "v1.0.0-test.library"
 )
 
 // stubRenderResult builds a ConfigMap render result named "test-module" in the

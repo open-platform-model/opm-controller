@@ -28,10 +28,10 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/test/fixtures"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/test/fixtures"
 )
 
 // These tests exercise KernelModuleRenderer directly (the ModuleInstance
@@ -78,7 +78,7 @@ var _ = Describe("KernelModuleRenderer Integration", func() {
 
 			res, err := renderer.RenderModule(ctx,
 				"hello", "default",
-				"testing.opmodel.dev/modules/operator/does-not-exist@v0", "v9.9.9",
+				"testing.opmodel.dev/modules/controller/does-not-exist@v0", "v9.9.9",
 				nil)
 
 			Expect(res).To(BeNil())
@@ -281,7 +281,7 @@ var _ = Describe("KernelModuleRenderer Integration", func() {
 			Expect(res).To(BeNil())
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("spec.values"),
-				"a values error names the origin the operator gave the source")
+				"a values error names the origin the controller gave the source")
 			Expect(store.Leased()).To(BeEmpty(), "a failed render releases its lease on return")
 		})
 	})

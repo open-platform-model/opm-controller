@@ -53,7 +53,7 @@ type ModuleReference struct {
 // a LocalObjectReference when absent. A TransformerRegistration is
 // cluster-scoped, so it has no namespace of its own to fall back to and an
 // omitted namespace would name nothing findable. Both fields are required
-// here. The operator stamps them from the rendering instance rather than
+// here. The controller stamps them from the rendering instance rather than
 // accepting them from a module author (enhancement 0015).
 type ProviderReference struct {
 	// Namespace of the claiming ModuleInstance.
@@ -74,12 +74,12 @@ type RolloutSpec struct {
 	// +optional
 	Strategy string `json:"strategy,omitempty"`
 
-	// ForceConflicts lets the operator delete and create again an object
+	// ForceConflicts lets the controller delete and create again an object
 	// whose update the API server refuses, such as an object with a changed
 	// immutable field. A PersistentVolumeClaim is recreated this way only
 	// when spec.dataPolicy is Delete; otherwise the claim is kept and the
 	// apply reports the reason ClaimConflict. The field does not change
-	// field ownership: the operator always takes ownership of the fields it
+	// field ownership: the controller always takes ownership of the fields it
 	// applies.
 	// +optional
 	ForceConflicts bool `json:"forceConflicts,omitempty"`
@@ -109,7 +109,7 @@ type SourceStatus struct {
 type RenderInputs struct {
 	// digest is a SHA-256 over the render's inputs: the module source, the
 	// values, the platform package identity, the catalog skew policy, and the
-	// operator and library versions.
+	// controller and library versions.
 	// +required
 	Digest string `json:"digest"`
 
@@ -133,22 +133,22 @@ type FailureCounters struct {
 	Drift int64 `json:"drift,omitempty"`
 }
 
-// DataPolicy says what the operator does with PersistentVolumeClaims.
+// DataPolicy says what the controller does with PersistentVolumeClaims.
 type DataPolicy string
 
 const (
 	// DataPolicyKeep keeps PersistentVolumeClaims. An absent value means the
 	// same.
 	DataPolicyKeep DataPolicy = "Keep"
-	// DataPolicyDelete lets the operator delete PersistentVolumeClaims under
+	// DataPolicyDelete lets the controller delete PersistentVolumeClaims under
 	// spec.prune, and delete and recreate one under
 	// spec.rollout.forceConflicts.
 	DataPolicyDelete DataPolicy = "Delete"
 )
 
-// DeletesClaims reports whether the policy lets the operator delete
+// DeletesClaims reports whether the policy lets the controller delete
 // PersistentVolumeClaims. Only Delete does: an absent value, Keep, and any
-// value this operator does not know all keep them.
+// value this controller does not know all keep them.
 func (p DataPolicy) DeletesClaims() bool {
 	return p == DataPolicyDelete
 }

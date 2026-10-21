@@ -34,9 +34,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // platformListCountingClient counts the cluster-wide ModulePackageList calls.
@@ -64,9 +64,9 @@ func (c *platformListCountingClient) List(
 
 func (c *platformListCountingClient) count() int64 { return c.lists.Load() }
 
-// The manager-driven proof that the ModulePackage controller's Platform watch
+// The manager-driven proof that the ModulePackage reconciler's Platform watch
 // carries the shared consumed-fields predicate: a Ready-only edge, a pin-set
-// change and an operatorVersion-only write each reach the mapper, and a status
+// change and a controllerVersion-only write each reach the mapper, and a status
 // write that changes only a message or a report does not. No ModulePackage
 // and no Platform reconciler run, so the spec needs no registry, source or
 // render; the field-by-field table lives in the predicate's unit test.
@@ -151,7 +151,7 @@ var _ = Describe("ModulePackage Platform watch (manager-driven)", func() {
 		grows(0, "the Platform create event reaches the mapper")
 		writePlatformStatus(func(p *releasesv1alpha1.Platform) {
 			p.Status.ObservedGeneration = p.Generation
-			p.Status.OperatorVersion = "v1.0.0-beta.1"
+			p.Status.ControllerVersion = "v1.0.0-beta.1"
 			setReady(p, metav1.ConditionFalse, status.BuildFailedReason, "building platform module: not yet")
 		})
 		blocked := quiesce(300 * time.Millisecond)
@@ -183,12 +183,12 @@ var _ = Describe("ModulePackage Platform watch (manager-driven)", func() {
 		grows(settled, "a pin-set change re-enqueues packages")
 		afterPin := quiesce(300 * time.Millisecond)
 
-		// An operator upgrade into an already-Ready Platform: the regenerated
-		// Platform's status write moves only status.operatorVersion, and that
+		// A controller upgrade into an already-Ready Platform: the regenerated
+		// Platform's status write moves only status.controllerVersion, and that
 		// alone must re-enqueue packages blocked on the empty store.
 		writePlatformStatus(func(p *releasesv1alpha1.Platform) {
-			p.Status.OperatorVersion = "v1.0.0-beta.2"
+			p.Status.ControllerVersion = "v1.0.0-beta.2"
 		})
-		grows(afterPin, "an operatorVersion-only write re-enqueues packages")
+		grows(afterPin, "a controllerVersion-only write re-enqueues packages")
 	})
 })

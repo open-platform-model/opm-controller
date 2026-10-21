@@ -62,9 +62,9 @@ type ModulePackageSpec struct {
 	// +optional
 	Prune bool `json:"prune,omitempty"`
 
-	// DataPolicy says what the operator does with the PersistentVolumeClaims it
+	// DataPolicy says what the controller does with the PersistentVolumeClaims it
 	// would otherwise delete under spec.prune. With Keep, or when the field is
-	// absent, the operator does not delete a PersistentVolumeClaim when it
+	// absent, the controller does not delete a PersistentVolumeClaim when it
 	// prunes or when the ModulePackage is deleted: a claim that a new render
 	// no longer produces stays in the cluster and is no longer tracked, and
 	// deleting the ModulePackage leaves its claims in place. With
@@ -73,11 +73,11 @@ type ModulePackageSpec struct {
 	// For pruning and deletion the field has no effect unless spec.prune is
 	// true: Delete without spec.prune is accepted and prunes nothing. Claims
 	// that a StatefulSet creates from its volumeClaimTemplates are never
-	// tracked and never deleted by the operator, whatever this field says.
+	// tracked and never deleted by the controller, whatever this field says.
 	//
 	// The field also governs the forced recreate of
 	// spec.rollout.forceConflicts, with or without spec.prune. With Keep, or
-	// when the field is absent, the operator does not delete and recreate a
+	// when the field is absent, the controller does not delete and recreate a
 	// PersistentVolumeClaim whose update the API server refuses, such as a
 	// change of storageClassName or accessModes: it leaves the claim as it
 	// is, applies nothing of that render, and reports Ready=False with the
@@ -107,7 +107,7 @@ type ModulePackageStatus struct {
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
-	// InstanceUUID is the identity of the instance the operator last rendered and
+	// InstanceUUID is the identity of the instance the controller last rendered and
 	// began to apply: the value of the module-instance.opmodel.dev/uuid label on
 	// its objects. The prune and the deletion cleanup use it to tell the
 	// instance's own objects from another instance's.
@@ -123,7 +123,7 @@ type ModulePackageStatus struct {
 	PreviousInstanceUUID string `json:"previousInstanceUUID,omitempty"`
 
 	// conditions represent the current state of the ModulePackage resource.
-	// Ready reports whether the operator applied the last render. Healthy
+	// Ready reports whether the controller applied the last render. Healthy
 	// reports whether the applied objects have rolled out: True once every
 	// object in the inventory reports ready, False while one is still rolling
 	// out, missing, or stalled past its progress deadline, and Unknown when
@@ -162,7 +162,7 @@ type ModulePackageStatus struct {
 	// +optional
 	LastAppliedSourceDigest string `json:"lastAppliedSourceDigest,omitempty"`
 
-	// lastAppliedVersion is the version of the module the operator last
+	// lastAppliedVersion is the version of the module the controller last
 	// applied, in plain text, as the module declares it in metadata.version
 	// (bare SemVer, for example 0.1.0). It is set with the other last-applied
 	// fields when an apply succeeds, and rewritten by a reconcile that renders
@@ -174,7 +174,7 @@ type ModulePackageStatus struct {
 	// lastAppliedInputs identifies the inputs of the last render that left
 	// the cluster holding its output: a digest over the module source, the
 	// values, the platform package identity, the catalog skew policy, and the
-	// operator and library versions, and renderedAt, when that render ran. It
+	// controller and library versions, and renderedAt, when that render ran. It
 	// is set with the other last-applied fields when an apply succeeds, and
 	// rewritten by a reconcile that renders and finds nothing to change.
 	//
@@ -219,7 +219,7 @@ type ModulePackageStatus struct {
 // ModulePackage renders the ModuleInstance package that a Flux source
 // artifact carries.
 //
-// The operator fetches the artifact spec.sourceRef names, loads instance.cue
+// The controller fetches the artifact spec.sourceRef names, loads instance.cue
 // from the directory at spec.path, and renders and applies it when it
 // evaluates to #ModuleInstance; any other kind is rejected as unsupported.
 type ModulePackage struct {

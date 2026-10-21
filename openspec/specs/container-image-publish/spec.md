@@ -1,24 +1,24 @@
 ## Purpose
 
-Publish the controller manager container image to GHCR from CI, with distinct PR-validation and release-gated workflows, cosign keyless signatures, SBOM and SLSA provenance on releases, and a digest-pinned `dist/install.yaml` attached to GitHub releases.
+Publish the controller manager container image to GHCR from CI, with distinct PR-validation and release-gated workflows, cosign keyless signatures, SBOM and SLSA provenance on releases, with the install manifest left to the controller module's releases.
 
 ## Requirements
 
 ### Requirement: Image registry and repository
 
-The CI pipeline SHALL publish the controller manager container image to `ghcr.io/open-platform-model/opm-operator`. No other registry or repository path is used by this capability.
+The CI pipeline SHALL publish the controller manager container image to `ghcr.io/open-platform-model/opm-controller`. No other registry or repository path is used by this capability.
 
 #### Scenario: PR build push target
 - **WHEN** the PR image workflow builds and pushes an image
-- **THEN** the image reference SHALL begin with `ghcr.io/open-platform-model/opm-operator:`
+- **THEN** the image reference SHALL begin with `ghcr.io/open-platform-model/opm-controller:`
 
 #### Scenario: Release build push target
 - **WHEN** the release image job builds and pushes an image
-- **THEN** the image reference SHALL begin with `ghcr.io/open-platform-model/opm-operator:`
+- **THEN** the image reference SHALL begin with `ghcr.io/open-platform-model/opm-controller:`
 
 ### Requirement: Release image build trigger gated on release-please
 
-The release image job SHALL only execute when the `release-please` job in the same workflow run reports that the operator package `"."` created a release (`outputs.release_created == 'true'`), and SHALL take the release tag from that package's `outputs.tag_name`. A release created only by the operator module's package SHALL NOT run it. When a Release PR is opened or updated without a release being cut, the image job SHALL be skipped.
+The release image job SHALL only execute when the `release-please` job in the same workflow run reports that the controller package `"."` created a release (`outputs.release_created == 'true'`), and SHALL take the release tag from that package's `outputs.tag_name`. A release created only by the controller module's package SHALL NOT run it. When a Release PR is opened or updated without a release being cut, the image job SHALL be skipped.
 
 #### Scenario: Release cut after merge of Release PR
 - **WHEN** a push to `main` causes release-please to tag version `v1.2.3` and create a GitHub release
@@ -33,7 +33,7 @@ The release image job SHALL only execute when the `release-please` job in the sa
 - **THEN** the image-release job SHALL be skipped
 
 #### Scenario: Module release only
-- **WHEN** a push to `main` merges the module's release PR and release-please creates only `opm_operator-v0.2.0`
+- **WHEN** a push to `main` merges the module's release PR and release-please creates only `opm_controller-v0.2.0`
 - **THEN** the image-release job SHALL be skipped, and no image tag is pushed
 
 ### Requirement: Multi-architecture support
@@ -82,7 +82,7 @@ Release image-release job SHALL attach, in addition to the cosign signature, an 
 
 ### Requirement: Workflow permissions and action pinning
 
-The PR image workflow and the release image-release job SHALL declare the minimal permissions required: `contents: read` (`contents: write` on the release job only, to upload release assets), `packages: write`, `id-token: write`, and `attestations: write` (release job only). All third-party GitHub Actions SHALL be pinned by full commit SHA, not by floating tag.
+The PR image workflow and the release image-release job SHALL declare the minimal permissions required: `contents: read`, `packages: write`, `id-token: write`, and `attestations: write` (release job only). All third-party GitHub Actions SHALL be pinned by full commit SHA, not by floating tag.
 
 #### Scenario: PR workflow permissions
 - **WHEN** the PR image workflow is defined
@@ -90,14 +90,14 @@ The PR image workflow and the release image-release job SHALL declare the minima
 
 #### Scenario: Release job permissions
 - **WHEN** the image-release job is defined
-- **THEN** it SHALL declare `contents: write`, `packages: write`, `id-token: write`, and `attestations: write`
+- **THEN** it SHALL declare `contents: read`, `packages: write`, `id-token: write`, and `attestations: write`, and no `contents: write`
 
 #### Scenario: Action pinning
 - **WHEN** any third-party action is referenced in the PR workflow or the image-release job
 - **THEN** it SHALL be referenced by a 40-character commit SHA, never by `@v1`, `@v5`, `@main`, or any other floating ref
 
 ### Requirement: The PR image workflow runs on pull request events and skips bot heads
-The PR image workflow SHALL run on `pull_request` events (types: `opened`, `synchronize`, `reopened`) whatever paths they touch (the workflow has no `paths` filter), except for a head named `deps/cascade` or starting with `release-please--`, `module/` (the operator module's bot heads) or `dependabot/`, where the job SHALL be skipped so that unreviewed bot-head code never builds under a `packages: write` and `id-token: write` token.
+The PR image workflow SHALL run on `pull_request` events (types: `opened`, `synchronize`, `reopened`) whatever paths they touch (the workflow has no `paths` filter), except for a head named `deps/cascade` or starting with `release-please--`, `module/` (the controller module's bot heads) or `dependabot/`, where the job SHALL be skipped so that unreviewed bot-head code never builds under a `packages: write` and `id-token: write` token.
 
 #### Scenario: Non-applicable event
 - **WHEN** a comment-only or label-only event fires on a pull request (without code changes)
@@ -112,7 +112,7 @@ As in requirement "The PR image workflow runs on pull request events and skips b
 
 #### Scenario: New PR opened
 - **WHEN** a contributor opens a pull request whose head commit is `abcd123...`
-- **THEN** the workflow SHALL push `ghcr.io/open-platform-model/opm-operator:sha-abcd123` and `ghcr.io/open-platform-model/opm-operator:pr-<PR_ID>`
+- **THEN** the workflow SHALL push `ghcr.io/open-platform-model/opm-controller:sha-abcd123` and `ghcr.io/open-platform-model/opm-controller:pr-<PR_ID>`
 
 #### Scenario: Force push updates an open PR
 - **WHEN** a contributor force-pushes a new head commit `ef01234...` to an existing PR with `PR_ID=42`
@@ -155,7 +155,7 @@ As in requirement "The version tag always resolves to the manifest list first pu
 
 #### Scenario: Re-run after the version tag was pushed
 - **WHEN** the image-release job is re-run for `v1.0.0-beta.3` after a previous attempt pushed `:v1.0.0-beta.3` built from the release commit
-- **THEN** the job SHALL NOT build or push `:v1.0.0-beta.3`, its digest stays unchanged, and the job SHALL sign, attest and render `install.yaml` against that digest
+- **THEN** the job SHALL NOT build or push `:v1.0.0-beta.3`, its digest stays unchanged, and the job SHALL sign and attest that digest
 
 ### Requirement: A version tag held by another revision fails the job
 As in requirement "The version tag always resolves to the manifest list first pushed under it": When it exists with any other revision, or the probe fails for any reason other than the tag being absent, the job SHALL fail without pushing. (Requirement: The release image carries the release commit and the release tag)
@@ -164,27 +164,9 @@ As in requirement "The version tag always resolves to the manifest list first pu
 - **WHEN** `:v1.0.0-beta.3` already exists and its revision label names a commit other than the release commit
 - **THEN** the job SHALL fail without pushing any tag, and the release stays a draft
 
-### Requirement: The image-release job renders the install manifest with the image pinned by digest and uploads it
-On a gated release run, the image-release job SHALL invoke `task operator:installer IMG="ghcr.io/open-platform-model/opm-operator:v<VERSION>@sha256:<DIGEST>"` where `<DIGEST>` is the manifest-list digest returned by the push step, or the existing digest when the version tag was reused, render `dist/install.yaml`, and upload that file as an asset on the draft GitHub release created by release-please.
-
-#### Scenario: Release asset upload
-- **WHEN** the image-release job finishes building and signing `v1.2.3` at digest `sha256:abc...`
-- **THEN** `dist/install.yaml` SHALL be rendered with image references pinned to `ghcr.io/open-platform-model/opm-operator:v1.2.3@sha256:abc...` AND the file SHALL be uploaded as an asset on the draft GitHub release tagged `v1.2.3`
-
-#### Scenario: Install manifest image is immutable
-- **WHEN** a consumer downloads the release-attached `dist/install.yaml` and runs `kubectl apply -f install.yaml`
-- **THEN** the controller Deployment SHALL pull the image by digest, guaranteeing the exact bytes from the release regardless of future tag movement
-
-### Requirement: The install manifest upload follows the draft-release rule
-As in requirement "The image-release job renders the install manifest with the image pinned by digest and uploads it" (upload that file as an asset on the draft GitHub release created by release-please): The upload SHALL follow "Release assets upload only to a draft release" in `release-automation`.
-
-#### Scenario: The install manifest upload follows the draft-release rule
-- **WHEN** the image-release job uploads `dist/install.yaml`
-- **THEN** the upload follows "Release assets upload only to a draft release" in `release-automation`
-
 ### Requirement: The installer target stays unchanged in behavior
-The existing `task operator:installer` target SHALL remain unchanged in behavior and its default invocation (no `IMG` override) SHALL still produce a manifest using `controller:latest`.
+The existing `task controller:installer` target SHALL remain unchanged in behavior and its default invocation (no `IMG` override) SHALL still produce a manifest using `controller:latest`.
 
 #### Scenario: Default build-installer unchanged
-- **WHEN** a developer runs `task operator:installer` locally without an `IMG` override
+- **WHEN** a developer runs `task controller:installer` locally without an `IMG` override
 - **THEN** the rendered `dist/install.yaml` SHALL continue to reference `controller:latest` as before this change

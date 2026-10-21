@@ -19,7 +19,7 @@ Covers how upstream pins move (`task -x deps:cascade`, `.opm-cli-version`), the 
 - It edits the working tree only. Exit 0: it changed something. Exit 3: nothing to do. Other: error. Always run it with `task -x`, or go-task turns 3 into 201.
 - Every version comes from the shared resolver in `open-platform-model/.github` (`CASCADE_RESOLVER`, or the checkout beside this repo).
 - `task -x deps:cascade:title` and `deps:cascade:body` print the cascade PR title and body. `task -x deps:cascade:test` tests the task against a stub resolver (`CASCADE_TEST_SET=offline` runs in the `Lint` job, the full set in `cascade-task.yml`). The scripts live in `.tasks/cascade/`.
-- `task deps:cascade` never touches the operator module. The module has its own `task -x deps:cascade:module`.
+- `task deps:cascade` never touches the controller module. The module has its own `task -x deps:cascade:module`.
 
 ## The three cascade workflows
 
@@ -80,7 +80,7 @@ Spec: `openspec/specs/workflow-hardening`.
 - Moving fewer than all six cascade references leaves two SHAs; the wiring check refuses it.
 - A cache in a publishing workflow fails the wiring check.
 - A `.github` checkout without `persist-credentials: false` fails the wiring check.
-- A pin PR typed `fix` cuts an operator release; type it `ci(deps)`.
+- A pin PR typed `fix` cuts a controller release; type it `ci(deps)`.
 
 ## Check before you finish
 

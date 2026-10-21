@@ -4,14 +4,14 @@ on:
   push:
     branches:
       - main
-  # Recovery for an operator module release whose run left the draft
-  # unpublished (operator-module-release, "The release workflow
+  # Recovery for a controller module release whose run left the draft
+  # unpublished (controller-module-release, "The release workflow
   # accepts a module recovery dispatch"). Only the module jobs run: they take main's
   # scripts and run them against the tag's tree. Dispatch from main.
   workflow_dispatch:
     inputs:
       module_tag:
-        description: 'Draft operator module release to finish, e.g. opm_operator-v0.1.0'
+        description: 'Draft controller module release to finish, e.g. opm_controller-v0.1.0'
         required: true
         type: string
 
@@ -35,7 +35,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: open-platform-model/opm-operator
+  IMAGE_NAME: open-platform-model/opm-controller
   # CUE CLI used to publish the example modules. Must be >= the language version
   # the modules + catalog declare (v0.17.0), since an older CLI refuses to read
   # them; kept in step with catalog_opm CI.
@@ -48,13 +48,13 @@ jobs:
   # job token gets no grant.
   release-please:
     name: Release Please
-    # Never on the recovery dispatch: every operator job needs this one, so
+    # Never on the recovery dispatch: every controller job needs this one, so
     # they are all skipped with it.
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    # Two release-please packages: the operator "." (tags vX.Y.Z) and the
-    # operator module "modules/opm_operator" (tags opm_operator-vX.Y.Z). The
-    # action's root outputs are the operator's; its any-package output would also be
+    # Two release-please packages: the controller "." (tags vX.Y.Z) and the
+    # controller module "modules/opm_controller" (tags opm_controller-vX.Y.Z). The
+    # action's root outputs are the controller's; its any-package output would also be
     # true for a module-only release, so no job reads it. The module's outputs
     # are prefixed with its path and re-exported here under plain names.
     environment: release
@@ -62,9 +62,9 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
-      module_release_created: ${{ steps.release.outputs['modules/opm_operator--release_created'] }}
-      module_tag_name: ${{ steps.release.outputs['modules/opm_operator--tag_name'] }}
-      module_version: ${{ steps.release.outputs['modules/opm_operator--version'] }}
+      module_release_created: ${{ steps.release.outputs['modules/opm_controller--release_created'] }}
+      module_tag_name: ${{ steps.release.outputs['modules/opm_controller--tag_name'] }}
+      module_version: ${{ steps.release.outputs['modules/opm_controller--version'] }}
     steps:
       # A PR opened or pushed with GITHUB_TOKEN holds its CI runs for manual
       # approval. Acting as the release App lets the release PR's CI start on
@@ -84,8 +84,8 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # The operator module's identity.Version has one writer: this job, on the
-  # module's open release PR (operator-module-release, "The identity-advance
+  # The controller module's identity.Version has one writer: this job, on the
+  # module's open release PR (controller-module-release, "The identity-advance
   # step is the only writer of the module's identity version"). release-please writes the proposed version into
   # the branch's manifest; opm writes it into identity.cue, so the tagged tree
   # is exactly what module-publish pushes. Idempotent: a branch that already
@@ -99,7 +99,7 @@ jobs:
   # Nothing here holds the App token until opm and the cli install are done:
   # the checkout persists no credentials and the token is minted for the push.
   module-identity-advance:
-    name: Advance the operator module's identity version
+    name: Advance the controller module's identity version
     needs: release-please
     runs-on: ubuntu-latest
     # It reads the release App key.
@@ -107,9 +107,9 @@ jobs:
     permissions:
       contents: read
     env:
-      BRANCH: release-please--branches--main--components--opm_operator
+      BRANCH: release-please--branches--main--components--opm_controller
     steps:
-      - name: Find the operator module's release PR branch
+      - name: Find the controller module's release PR branch
         id: module-branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -118,11 +118,11 @@ jobs:
           if gh api "repos/${REPO}/branches/${BRANCH}" --silent 2>/dev/null; then
             echo "exists=true" >> "${GITHUB_OUTPUT}"
           else
-            echo "no open operator module release branch; nothing to advance"
+            echo "no open controller module release branch; nothing to advance"
             echo "exists=false" >> "${GITHUB_OUTPUT}"
           fi
 
-      - name: Checkout the operator module's release PR branch
+      - name: Checkout the controller module's release PR branch
         if: steps.module-branch.outputs.exists == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -151,10 +151,10 @@ jobs:
         if: steps.module-branch.outputs.exists == 'true'
         run: |
           set -euo pipefail
-          VERSION=$(jq -r '.["modules/opm_operator"] // empty' .release-please-manifest.json)
+          VERSION=$(jq -r '.["modules/opm_controller"] // empty' .release-please-manifest.json)
           [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-            || { echo "::error::${BRANCH} proposes no operator module version: '${VERSION}'"; exit 1; }
-          opm module version set "${VERSION}" ./modules/opm_operator
+            || { echo "::error::${BRANCH} proposes no controller module version: '${VERSION}'"; exit 1; }
+          opm module version set "${VERSION}" ./modules/opm_controller
           if git diff --quiet; then
             echo "identity.Version already declares ${VERSION}"
             echo "changed=false" >> "${GITHUB_OUTPUT}"
@@ -162,8 +162,8 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add modules/opm_operator/identity/identity.cue
-          git commit -m "chore: advance opm_operator identity.Version to ${VERSION}"
+          git add modules/opm_controller/identity/identity.cue
+          git commit -m "chore: advance opm_controller identity.Version to ${VERSION}"
           echo "changed=true" >> "${GITHUB_OUTPUT}"
 
       # Pushed as the release App: a GITHUB_TOKEN push would hold the release
@@ -190,7 +190,7 @@ jobs:
     if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
       id-token: write
       attestations: write
@@ -199,11 +199,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
-
-      - name: Install Task
-        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
-        with:
-          version: 3.54.0 # exact, never a floating 3.x
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
@@ -345,23 +340,6 @@ jobs:
           subject-digest: ${{ steps.digest.outputs.digest }}
           push-to-registry: true
 
-      - name: Render digest-pinned install manifest
-        env:
-          IMG: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.release-please.outputs.tag_name }}@${{ steps.digest.outputs.digest }}
-        run: |
-          task operator:installer IMG="${IMG}"
-
-      # Assets go to the draft only; --clobber keeps "Re-run failed jobs"
-      # idempotent and never touches a published release.
-      - name: Upload install.yaml to the draft release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
-        run: |
-          .github/scripts/release-guard.sh assert-draft "${TAG}"
-          gh release upload "${TAG}" dist/install.yaml --repo "${GH_REPO}" --clobber
-
   publish-examples:
     name: Publish example modules and manifests
     # Runs after the image is built, so a failed image release blocks module
@@ -422,7 +400,7 @@ jobs:
           OPM_REGISTRY: 'testing.opmodel.dev=ghcr.io/open-platform-model,opmodel.dev=ghcr.io/open-platform-model,registry.cue.works'
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
-          # --match: the previous operator release, never an operator module tag.
+          # --match: the previous controller release, never a controller module tag.
           PREV_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' "${TAG}^" 2>/dev/null || true)
           echo "Publishing example modules changed since: ${PREV_TAG:-<none>}"
           task examples:publish SINCE="${PREV_TAG}"
@@ -441,7 +419,7 @@ jobs:
           .github/scripts/release-guard.sh assert-draft "${TAG}"
           gh release upload "${TAG}" dist/examples/*.yaml --repo "${GH_REPO}" --clobber
 
-  # The operator docs bundle of the release (docs-kit.cue, opm-operator), built
+  # The controller docs bundle of the release (docs-kit.cue, opm-controller), built
   # from the released tag and published as <version>.0 by docs-kit's
   # publish.yml (docs-kit docs/contracts.md C5). It runs here, in the run the
   # release-PR merge starts, because publish.yml publishes only from
@@ -457,16 +435,16 @@ jobs:
   # certificate names it at this ref, and the site trusts only docs-kit's v*
   # tags (C5, C9). It moves with .opm-docs-version in one PR.
   publish-docs:
-    name: Publish the operator docs bundle
+    name: Publish the controller docs bundle
     needs: [release-please, image-release]
     if: needs.release-please.outputs.release_created == 'true'
     permissions:
       contents: read
       packages: write
       id-token: write
-    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.0
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.1
     with:
-      project: opm-operator
+      project: opm-controller
       mode: release
       tag: ${{ needs.release-please.outputs.tag_name }}
 
@@ -515,15 +493,15 @@ jobs:
           private-key: ${{ secrets.CASCADE_APP_PRIVATE_KEY }}
 
   # The module release the module jobs act on. On a push, the one
-  # release-please just created (none for an operator-only release). On the
+  # release-please just created (none for a controller-only release). On the
   # recovery dispatch, the input tag, refused unless it is a module release
   # tag whose release is still a draft and the dispatch runs on main. The
   # module jobs run release scripts from scripts_ref: the tag on a push, so
   # the push path runs the tag's own scripts as before; main's commit on the
-  # dispatch, so a script fixed since the tag (the opm_operator-v0.1.0
-  # read-back) is the one that runs, against the tag's tree.
+  # dispatch, so a script fixed since the tag (the first module
+  # release's read-back) is the one that runs, against the tag's tree.
   module-target:
-    name: Resolve the operator module release
+    name: Resolve the controller module release
     needs: release-please
     # The push branch keeps the old gate: release-please succeeded and cut a
     # module release. On the dispatch release-please is skipped, so only
@@ -569,12 +547,12 @@ jobs:
             } >> "${GITHUB_OUTPUT}"
             exit 0
           fi
-          [ "${REPO}" = open-platform-model/opm-operator ] \
-            || { echo "::error::the operator module recovers only in open-platform-model/opm-operator, not ${REPO}"; exit 1; }
+          [ "${REPO}" = open-platform-model/opm-controller ] \
+            || { echo "::error::the controller module recovers only in open-platform-model/opm-controller, not ${REPO}"; exit 1; }
           [ "${REF}" = refs/heads/main ] \
             || { echo "::error::dispatch the recovery from main (its scripts run), not ${REF}"; exit 1; }
-          [[ ${INPUT_TAG} =~ ^opm_operator-v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-            || { echo "::error::'${INPUT_TAG}' is not an operator module release tag"; exit 1; }
+          [[ ${INPUT_TAG} =~ ^opm_controller-v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            || { echo "::error::'${INPUT_TAG}' is not a controller module release tag"; exit 1; }
           gh api "repos/${GH_REPO}/git/ref/tags/${INPUT_TAG}" --silent \
             || { echo "::error::no tag ${INPUT_TAG}"; exit 1; }
           status=$(gh api "repos/${GH_REPO}/compare/main...${INPUT_TAG}" --jq .status)
@@ -585,20 +563,20 @@ jobs:
           .github/scripts/release-guard.sh assert-draft "${INPUT_TAG}"
           {
             echo "tag=${INPUT_TAG}"
-            echo "version=${INPUT_TAG#opm_operator-v}"
+            echo "version=${INPUT_TAG#opm_controller-v}"
             echo "scripts_ref=${GITHUB_SHA}"
           } >> "${GITHUB_OUTPUT}"
           echo "recovering draft ${INPUT_TAG} with the scripts of ${GITHUB_SHA}"
 
-  # The operator module's release (operator-module-release): its tagged tree is
+  # The controller module's release (controller-module-release): its tagged tree is
   # published once, at the version its identity package declares; then
   # module-manifest attaches the install manifest rendered from the published
   # module to its draft. The module's release gate runs again first, so a
-  # release PR merged past a red check publishes nothing. It never runs for an
-  # operator release. On the recovery dispatch it finds the version already
+  # release PR merged past a red check publishes nothing. It never runs for a
+  # controller release. On the recovery dispatch it finds the version already
   # published and reuses it only when it equals the tag's tree.
   module-publish:
-    name: Publish the operator module
+    name: Publish the controller module
     needs: module-target
     # An explicit status check: the implicit success() also looks at the
     # skipped release-please upstream on the dispatch and would skip this job
@@ -611,7 +589,7 @@ jobs:
       packages: write # opm module publish to GHCR
     services:
       # Job-local registry: a re-run compares GHCR's held version with this
-      # tag's tree published here (hack/operator-module/publish.sh).
+      # tag's tree published here (hack/controller-module/publish.sh).
       registry:
         image: registry:2
         ports:
@@ -629,23 +607,23 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         run: |
-          [ "${REPO}" = open-platform-model/opm-operator ] \
-            || { echo "::error::the operator module publishes only from open-platform-model/opm-operator, not ${REPO}"; exit 1; }
-          [[ ${MODULE_TAG} =~ ^opm_operator-v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-            || { echo "::error::'${MODULE_TAG}' is not an operator module release tag"; exit 1; }
-          [ "${MODULE_TAG}" = "opm_operator-v${MODULE_VERSION}" ] \
+          [ "${REPO}" = open-platform-model/opm-controller ] \
+            || { echo "::error::the controller module publishes only from open-platform-model/opm-controller, not ${REPO}"; exit 1; }
+          [[ ${MODULE_TAG} =~ ^opm_controller-v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            || { echo "::error::'${MODULE_TAG}' is not a controller module release tag"; exit 1; }
+          [ "${MODULE_TAG}" = "opm_controller-v${MODULE_VERSION}" ] \
             || { echo "::error::tag ${MODULE_TAG} and version ${MODULE_VERSION} disagree"; exit 1; }
 
       - name: Checkout the module release tag
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.MODULE_TAG }}
-          # The release check needs the operator tags (minimum version, drift
+          # The release check needs the controller tags (minimum version, drift
           # against the deployed tag's config/).
           fetch-depth: 0
 
       # TOOLS holds the release scripts: the checked-out tag itself on a push;
-      # on the recovery dispatch, main's hack/operator-module and
+      # on the recovery dispatch, main's hack/controller-module and
       # .github/scripts, unpacked outside the tag's tree so it stays clean.
       - name: Resolve the release scripts
         run: |
@@ -660,7 +638,7 @@ jobs:
           git cat-file -e "${SCRIPTS_REF}^{commit}" 2>/dev/null \
             || git fetch --no-tags --depth=1 origin "${SCRIPTS_REF}"
           mkdir -p "${RUNNER_TEMP}/tools"
-          git archive "${SCRIPTS_REF}" hack/operator-module .github/scripts | tar -x -C "${RUNNER_TEMP}/tools"
+          git archive "${SCRIPTS_REF}" hack/controller-module .github/scripts | tar -x -C "${RUNNER_TEMP}/tools"
           echo "TOOLS=${RUNNER_TEMP}/tools" >> "${GITHUB_ENV}"
 
       - name: Setup CUE
@@ -695,22 +673,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Operator module release check
+      - name: Controller module release check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-        run: task operator-module:release-check VERSION="${MODULE_VERSION}"
+        run: task controller-module:release-check VERSION="${MODULE_VERSION}"
 
-      - name: Publish the operator module (once)
+      - name: Publish the controller module (once)
         id: publish
         run: |
-          "${TOOLS}/hack/operator-module/publish.sh" "${MODULE_VERSION}" >> "${GITHUB_OUTPUT}"
+          "${TOOLS}/hack/controller-module/publish.sh" "${MODULE_VERSION}" >> "${GITHUB_OUTPUT}"
 
   # The install manifest rendered from the published module, attached to the
   # module's draft. A job of its own, so "Re-run failed jobs" after a failed
   # render or upload never goes back through the publish.
   module-manifest:
-    name: Attach the operator module's install manifest
+    name: Attach the controller module's install manifest
     needs: [module-target, module-publish]
     if: ${{ !cancelled() && needs.module-publish.result == 'success' }}
     runs-on: ubuntu-latest
@@ -730,7 +708,7 @@ jobs:
           ref: ${{ env.MODULE_TAG }}
 
       # TOOLS holds the release scripts: the checked-out tag itself on a push;
-      # on the recovery dispatch, main's hack/operator-module and
+      # on the recovery dispatch, main's hack/controller-module and
       # .github/scripts, unpacked outside the tag's tree so it stays clean.
       - name: Resolve the release scripts
         run: |
@@ -745,7 +723,7 @@ jobs:
           git cat-file -e "${SCRIPTS_REF}^{commit}" 2>/dev/null \
             || git fetch --no-tags --depth=1 origin "${SCRIPTS_REF}"
           mkdir -p "${RUNNER_TEMP}/tools"
-          git archive "${SCRIPTS_REF}" hack/operator-module .github/scripts | tar -x -C "${RUNNER_TEMP}/tools"
+          git archive "${SCRIPTS_REF}" hack/controller-module .github/scripts | tar -x -C "${RUNNER_TEMP}/tools"
           echo "TOOLS=${RUNNER_TEMP}/tools" >> "${GITHUB_ENV}"
 
       - name: Setup Go
@@ -771,17 +749,17 @@ jobs:
 
       # The published version, rendered from the registry at its #config
       # defaults (never debugValues) with no cluster: the kubectl manifest. It
-      # must name the operator image by the tag and digest the module names.
+      # must name the controller image by the tag and digest the module names.
       - name: Render the install manifest from the published module
         env:
           KUBECONFIG: /nonexistent
         run: |
           mkdir -p "${RUNNER_TEMP}/module"
-          opm module build opmodel.dev/modules/opm_operator --version "${MODULE_VERSION}" \
-            --name opm-operator -n opm-operator-system \
-            -f hack/operator-module/defaults.cue > "${RUNNER_TEMP}/module/install.yaml"
-          "${TOOLS}/hack/operator-module/manifest-order.sh" "${RUNNER_TEMP}/module/install.yaml"
-          "${TOOLS}/hack/operator-module/manifest-image.sh" "${RUNNER_TEMP}/module/install.yaml"
+          opm module build opmodel.dev/modules/opm_controller --version "${MODULE_VERSION}" \
+            --name opm-controller -n opm-system \
+            -f hack/controller-module/defaults.cue > "${RUNNER_TEMP}/module/install.yaml"
+          "${TOOLS}/hack/controller-module/manifest-order.sh" "${RUNNER_TEMP}/module/install.yaml"
+          "${TOOLS}/hack/controller-module/manifest-image.sh" "${RUNNER_TEMP}/module/install.yaml"
 
       # Assets go to the draft only; --clobber keeps "Re-run failed jobs"
       # idempotent and never touches a published release.
@@ -794,7 +772,7 @@ jobs:
           gh release upload "${MODULE_TAG}" "${RUNNER_TEMP}/module/install.yaml" --repo "${GH_REPO}" --clobber
 
   module-publish-release:
-    name: Publish the operator module's draft release
+    name: Publish the controller module's draft release
     # The module's single publish point: public only once install.yaml is
     # attached. Recover a failed run with "Re-run failed jobs" when the failed
     # step's script is sound, else with the recovery dispatch.
@@ -818,12 +796,12 @@ jobs:
         run: |
           .github/scripts/release-guard.sh publish "${MODULE_TAG}"
 
-  # After every published operator release, the PR that moves the operator
-  # module to it (module-image.yml; operator-module-release, "An operator
-  # release opens one pull request on module/operator-image"). It produces no
+  # After every published controller release, the PR that moves the controller
+  # module to it (module-image.yml; controller-module-release, "A controller
+  # release opens one pull request on module/controller-image"). It produces no
   # release artifact. Recover a failed run with module-image.yml's dispatch.
   module-image-pr:
-    name: Open the operator module image PR
+    name: Open the controller module image PR
     needs: [release-please, publish-release]
     if: needs.release-please.outputs.release_created == 'true'
     permissions:

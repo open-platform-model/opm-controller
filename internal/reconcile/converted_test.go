@@ -9,10 +9,10 @@ import (
 	k8sinventory "github.com/open-platform-model/library/opm/k8s/inventory"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/inventory"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/inventory"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 func convertTestResource(t *testing.T, src string) *object.Resource {
@@ -217,8 +217,8 @@ func TestRenderDigestFailure(t *testing.T) {
 }
 
 // TestConvertRender_RenderDigestIgnoresTheRuntimeName pins that the render
-// digest the operator records leaves out the managed-by value, so the cli
-// (opm-cli) and the operator (opm-controller) digest one render alike, while
+// digest the controller records leaves out the managed-by value, so the cli
+// (opm-cli) and the controller (opm-controller) digest one render alike, while
 // any other label still counts.
 func TestConvertRender_RenderDigestIgnoresTheRuntimeName(t *testing.T) {
 	digestWith := func(labels string) string {

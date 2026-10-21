@@ -1,6 +1,6 @@
 // Package deletecalls is a fixture for the delete call-site test: one call of
 // each form that deletes a cluster object, and calls of the same method names
-// that delete none. It is never built into the operator.
+// that delete none. It is never built into the controller.
 package deletecalls
 
 import (

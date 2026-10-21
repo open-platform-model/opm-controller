@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The live verification tier for the operator's Flux-facing and deployed-controller surfaces: a real source-controller at the pinned distribution version, a real artifact round-trip, and lifecycle/prune/orphan assertions against the running controller. (Test-infrastructure capability; product behavior is specified elsewhere — precedent: `test-registry-lifecycle`, `example-test-modules`.)
+The live verification tier for the controller's Flux-facing and deployed-controller surfaces: a real source-controller at the pinned distribution version, a real artifact round-trip, and lifecycle/prune/orphan assertions against the running controller. (Test-infrastructure capability; product behavior is specified elsewhere — precedent: `test-registry-lifecycle`, `example-test-modules`.)
 
 ## Requirements
 
@@ -22,7 +22,7 @@ The e2e environment SHALL install Flux's source-controller (and only source-cont
 
 ### Requirement: Live artifact pipeline proof
 
-The e2e suite SHALL push the podinfo modulepackage fixture as a real OCI artifact (`flux push artifact` to the local registry), apply the fixture's `OCIRepository` and `ModulePackage`, and assert: the real source-controller reports an `Artifact` with revision and digest; the operator fetches and extracts that artifact; the `ModulePackage` reaches `Ready: True`; the rendered Deployment becomes Ready; and the artifact revision propagates into the `ModulePackage` status.
+The e2e suite SHALL push the podinfo modulepackage fixture as a real OCI artifact (`flux push artifact` to the local registry), apply the fixture's `OCIRepository` and `ModulePackage`, and assert: the real source-controller reports an `Artifact` with revision and digest; the controller fetches and extracts that artifact; the `ModulePackage` reaches `Ready: True`; the rendered Deployment becomes Ready; and the artifact revision propagates into the `ModulePackage` status.
 
 #### Scenario: Real artifact renders to a Ready workload
 
@@ -80,7 +80,7 @@ As in requirement "The suite drives a claim into a platform build": The suite SH
 - **WHEN** the sample Platform is Ready and the `backup_provider` ModuleInstance is applied
 - **THEN** the claim `default.backup-provider` SHALL carry the backup catalog fixture's bare version in `spec.version`
 - **AND** the claim SHALL report `accepted: true`, `Ready=True` with reason `Accepted` and, once the provider is Ready, `active: true`
-- **AND** the Platform's `status.registry` SHALL list `testing.opmodel.dev/catalogs/operator/backup@v0` with `source: Registration` at the claim's bare version, under a new `status.packageIdentity`
+- **AND** the Platform's `status.registry` SHALL list `testing.opmodel.dev/catalogs/controller/backup@v0` with `source: Registration` at the claim's bare version, under a new `status.packageIdentity`
 - **AND** the Platform SHALL report `Ready=True` with reason `Generated`
 
 ### Requirement: The v-prefixed claim is covered
@@ -116,15 +116,15 @@ As in requirement "The suite asserts the Platform registry entry under a new pac
 - **THEN** that move shows the platform was regenerated for the edited claim, because the package identity is a function of the claims' coordinates
 
 ### Requirement: The spec deploys and tears down its own controller
-As in requirement "The suite drives a claim into a platform build": The spec SHALL deploy and tear down its own controller. It SHALL need no registry credentials when the fixtures are on the public default registry, and it SHALL use the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do.
+As in requirement "The suite drives a claim into a platform build": The spec SHALL deploy and tear down its own controller. It SHALL need no registry credentials when the fixtures are on the public default registry, and it SHALL use the `LOCAL_REGISTRY` and `CONTROLLER_DOCKER_CONFIG` overrides as the other deployed-controller specs do.
 
 #### Scenario: The spec needs no registry credentials on the public default registry
 - **WHEN** the fixtures are on the public default registry
 - **THEN** the spec needs no registry credentials
 
-#### Scenario: The spec uses the LOCAL_REGISTRY and OPERATOR_DOCKER_CONFIG overrides
+#### Scenario: The spec uses the LOCAL_REGISTRY and CONTROLLER_DOCKER_CONFIG overrides
 - **WHEN** the spec runs
-- **THEN** it uses the `LOCAL_REGISTRY` and `OPERATOR_DOCKER_CONFIG` overrides as the other deployed-controller specs do
+- **THEN** it uses the `LOCAL_REGISTRY` and `CONTROLLER_DOCKER_CONFIG` overrides as the other deployed-controller specs do
 
 ### Requirement: The last step deletes the provider instance and teardown removes any remaining claim
 As in requirement "The spec deploys and tears down its own controller": Its last ordered step SHALL delete the provider instance and assert that the claim is pruned with its guard released. Teardown SHALL then remove any claim still present, with a bounded wait and a finalizer strip, before it removes the applier RBAC and the Platform and before it undeploys the controller and uninstalls the CRDs.

@@ -1,6 +1,6 @@
 ## Purpose
 
-The boundary between the API's inventory entry (`v1alpha1.InventoryEntry`, the shape `status.inventory` stores) and the library's `opm/k8s/inventory`, which owns the entry, the stale set and the inventory digest. The operator converts between the two entry types and builds its entries from its one export of a render.
+The boundary between the API's inventory entry (`v1alpha1.InventoryEntry`, the shape `status.inventory` stores) and the library's `opm/k8s/inventory`, which owns the entry, the stale set and the inventory digest. The controller converts between the two entry types and builds its entries from its one export of a render.
 
 ## Requirements
 
@@ -65,7 +65,7 @@ The reconciler MUST build the inventory entries of a render from the objects tha
 `status.inventory.digest` MUST be `inventory.Digest` from `opm/k8s/inventory` over the entries of the rendered set that the last apply recorded. It equals the digest of `status.inventory.entries`, with one exception: after a ModuleInstance reconcile removed the entry of an expired Job (`drift-detection`, "An expired Job leaves the inventory"), the entries are fewer and the digest still names the rendered set. Source: enhancement 0012.
 
 #### Scenario: The stored digest changes once on upgrade
-- **WHEN** an instance whose `status.inventory.digest` was written by an earlier operator is applied by this operator with the same entries
+- **WHEN** an instance whose `status.inventory.digest` was written by an earlier controller is applied by this controller with the same entries
 - **THEN** the new `status.inventory.digest` equals `inventory.Digest` of those entries and differs from the stored value
 
 #### Scenario: The digest after an expired Job left the entries

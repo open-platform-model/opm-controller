@@ -39,7 +39,7 @@ metadata:
   namespace: default
 spec:
   module:
-    path: testing.opmodel.dev/modules/operator/redis@v0
+    path: testing.opmodel.dev/modules/controller/redis@v0
     version: v0.1.15
   serviceAccountName: redis-applier
   # Defaults: redis:7.4, 1Gi PVC (storageClass "standard"). Set

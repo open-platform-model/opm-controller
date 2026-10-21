@@ -9,13 +9,13 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: open-platform-model/opm-operator
+  IMAGE_NAME: open-platform-model/opm-controller
 
 jobs:
   image-pr:
     name: Build and push PR image
-    # Code on the cascade, release-please, operator module bot (module/deps,
-    # module/operator-image) and Dependabot heads has had no human review yet
+    # Code on the cascade, release-please, controller module bot (module/deps,
+    # module/controller-image) and Dependabot heads has had no human review yet
     # (a Dependabot head can carry a new upstream action release), so it never
     # builds under packages: write and id-token: write.
     if: >-

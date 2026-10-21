@@ -10,25 +10,25 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // renderedKey is the render input key of a render that has run: the source
 // and config digests the reconcile computed, the platform package identity
 // and skew policy the render itself reports (the platform record it leased,
-// never what was read before it), and the running operator and library
+// never what was read before it), and the running controller and library
 // versions.
-func renderedKey(source, config string, result *render.RenderResult, operatorVersion, libraryVersion string) status.RenderInputKey {
+func renderedKey(source, config string, result *render.RenderResult, controllerVersion, libraryVersion string) status.RenderInputKey {
 	return status.RenderInputKey{
-		Source:          source,
-		Config:          config,
-		PackageIdentity: result.PlatformIdentity,
-		SkewPolicy:      result.SkewPolicy,
-		OperatorVersion: operatorVersion,
-		LibraryVersion:  libraryVersion,
+		Source:            source,
+		Config:            config,
+		PackageIdentity:   result.PlatformIdentity,
+		SkewPolicy:        result.SkewPolicy,
+		ControllerVersion: controllerVersion,
+		LibraryVersion:    libraryVersion,
 	}
 }
 
@@ -62,7 +62,7 @@ func noOpInputs(interval time.Duration, key *status.RenderInputKey) *status.Rend
 // platformKeyParts reads the platform parts of the pre-render key from the
 // cluster Platform: its pin set ([platformstore.PinSet]), and the resolved
 // spec.skewPolicy in its API spelling. It reads the CR rather than the
-// platform store because the CR survives an operator restart: an unchanged
+// platform store because the CR survives a controller restart: an unchanged
 // object can skip while the store is still empty. A missing Platform or any
 // read error returns empty parts, which make the key incomplete, so the
 // reconcile renders.

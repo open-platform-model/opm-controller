@@ -30,9 +30,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // dependentDemanding creates a ModuleInstance in the namespace whose status
@@ -58,7 +58,7 @@ func dependentDemanding(ctx context.Context, namespace, name string, contracts .
 }
 
 // claimExists reports whether the claim is still stored. A blocked deletion
-// is exactly the case where the object is gone from the operator's intent and
+// is exactly the case where the object is gone from the controller's intent and
 // still present here.
 func claimExists(ctx context.Context, name string) bool {
 	GinkgoHelper()

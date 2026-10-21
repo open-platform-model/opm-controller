@@ -3,18 +3,18 @@ version: '3'
 # Example test module publishing + manifest bundling.
 #
 # Modules under test/fixtures/modules/<m>/ are published as CUE modules to
-# testing.opmodel.dev/modules/operator/<m> at each module's OWN declared version,
-# independent of the operator's release version. The version lives in
+# testing.opmodel.dev/modules/controller/<m> at each module's OWN declared version,
+# independent of the controller's release version. The version lives in
 # identity/identity.cue (core #IdentityPackage; enhancement 0010 ("A module declares a version, supplied by an identity subpackage") and enhancement 0011 ("Modules carry an identity subpackage and a version; `version set` and `--version` behave identically on both artifact types")),
 # never in module.cue.
 #
 # Catalog fixtures under test/fixtures/catalogs/<c>/ (the catalogs/ sibling of
 # MODULES_DIR) publish through the same script with `opm catalog publish`, to
-# testing.opmodel.dev/catalogs/operator/<c>; check, seed and publish cover them.
+# testing.opmodel.dev/catalogs/controller/<c>; check, seed and publish cover them.
 #
 # Publishing, seeding and the publish gates live in hack/fixtures.sh (one script,
-# identical in cli and opm-operator); these tasks are thin wrappers plus the
-# operator-only pieces: pinning moduleinstance.yaml / modulepackage / sample
+# identical in cli and opm-controller); these tasks are thin wrappers plus the
+# controller-only pieces: pinning moduleinstance.yaml / modulepackage / sample
 # manifests and bundling release assets. Publishing is idempotent: a version
 # already present in the registry is treated as success (CUE module versions are
 # immutable). On release, CI runs `examples:publish` against GHCR, then

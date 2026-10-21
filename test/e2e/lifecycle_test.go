@@ -29,7 +29,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/open-platform-model/opm-operator/test/utils"
+	"github.com/open-platform-model/opm-controller/test/utils"
 )
 
 // Live-tier lifecycle coverage.
@@ -99,7 +99,7 @@ func ensureFluxPrereqs() {
 	}
 }
 
-// This spec proves the operator consumes a real source-controller Artifact:
+// This spec proves the controller consumes a real source-controller Artifact:
 // the podinfo modulepackage fixture is pushed with `flux push artifact` to the
 // kind-connected local registry, the fixture's OCIRepository is reconciled by
 // the real source-controller, and the deployed controller fetches, extracts,
@@ -143,12 +143,12 @@ var _ = Describe("ModulePackage live artifact pipeline", Ordered, func() {
 		_, _ = utils.Run(exec.Command("kubectl", "create", "ns", namespace))
 
 		By("installing CRDs")
-		_, err = utils.Run(exec.Command("make", "install"))
+		_, err = utils.Run(exec.Command("task", "controller:crds"))
 		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
 
-		By("deploying the controller-manager")
-		_, err = utils.Run(exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", managerImage)))
-		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+		By("deploying the manager")
+		_, err = utils.Run(exec.Command("task", "controller:deploy", fmt.Sprintf("IMG=%s", managerImage)))
+		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the manager")
 
 		// Local-dev override: resolve catalog/module deps from the in-cluster
 		// registry (opm-registry:5000) instead of the ghcr default.
@@ -158,16 +158,16 @@ var _ = Describe("ModulePackage live artifact pipeline", Ordered, func() {
 				`-p=[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry=%s"}]`,
 				localRegistry)
 			_, err = utils.Run(exec.Command("kubectl", "-n", namespace, "patch", "deployment",
-				"opm-operator-controller-manager", "--type=json", patch))
+				"opm-controller-manager", "--type=json", patch))
 			Expect(err).NotTo(HaveOccurred(), "Failed to override controller registry")
 		}
 
-		By("waiting for the controller-manager to be Available")
+		By("waiting for the manager to be Available")
 		Eventually(func(g Gomega) {
 			out, err := utils.Run(exec.Command("kubectl", "-n", namespace, "get", "deploy",
-				"opm-operator-controller-manager", "-o", "jsonpath={.status.availableReplicas}"))
+				"opm-controller-manager", "-o", "jsonpath={.status.availableReplicas}"))
 			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(out).To(Equal("1"), "controller-manager not Available yet")
+			g.Expect(out).To(Equal("1"), "manager not Available yet")
 		}, 3*time.Minute, 3*time.Second).Should(Succeed())
 
 		By("applying the cluster Platform")
@@ -241,11 +241,11 @@ var _ = Describe("ModulePackage live artifact pipeline", Ordered, func() {
 		_, _ = utils.Run(exec.Command("kubectl", "delete", "--ignore-not-found", "--wait=false", "-f",
 			filepath.Join(projectDir, "config/samples/opmodel.dev_v1alpha1_platform.yaml")))
 
-		By("undeploying the controller-manager")
-		_, _ = utils.Run(exec.Command("make", "undeploy"))
+		By("undeploying the manager")
+		_, _ = utils.Run(exec.Command("task", "controller:uninstall", "IGNORE_NOT_FOUND=true"))
 
 		By("uninstalling CRDs")
-		_, _ = utils.Run(exec.Command("make", "uninstall"))
+		_, _ = utils.Run(exec.Command("task", "controller:crds:remove", "IGNORE_NOT_FOUND=true"))
 
 		if fluxInstalledBySuite {
 			By("uninstalling Flux (installed by this suite)")
@@ -278,8 +278,8 @@ var _ = Describe("ModulePackage live artifact pipeline", Ordered, func() {
 			_, _ = fmt.Fprintf(GinkgoWriter, "--- source-controller logs ---\n%s\n", out)
 		}
 		if out, err := utils.Run(exec.Command("kubectl", "-n", namespace, "logs",
-			"-l", "control-plane=controller-manager", "--tail=300")); err == nil {
-			_, _ = fmt.Fprintf(GinkgoWriter, "--- controller-manager logs ---\n%s\n", out)
+			"-l", "control-plane=manager", "--tail=300")); err == nil {
+			_, _ = fmt.Fprintf(GinkgoWriter, "--- manager logs ---\n%s\n", out)
 		}
 	})
 

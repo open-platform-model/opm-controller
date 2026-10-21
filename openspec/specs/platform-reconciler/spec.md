@@ -7,14 +7,14 @@ surfacing the build outcome on the `Platform` status.
 
 ## Requirements
 
-### Requirement: Reconciler stamps status.operatorVersion on every outcome
+### Requirement: Reconciler stamps status.controllerVersion on every outcome
 
-`PlatformReconciler` SHALL set `status.operatorVersion` to the running operator's version on every status patch it makes, on `Generated`, `BuildFailed` and `GenerateFailed` alike.
+`PlatformReconciler` SHALL set `status.controllerVersion` to the running controller's version on every status patch it makes, on `Generated`, `BuildFailed` and `GenerateFailed` alike.
 
 #### Scenario: Stamped on success and failure
 
 - **WHEN** the singleton Platform reconciles to any outcome
-- **THEN** `status.operatorVersion` equals the running operator's version string
+- **THEN** `status.controllerVersion` equals the running controller's version string
 
 ### Requirement: Clear the store on Platform deletion
 
@@ -54,7 +54,7 @@ The reconciler SHALL resolve `spec.skewPolicy` (`Warn` when unset) and record it
 - **THEN** the Platform reconciles to a new generation with reason `Generated`, the store record carries `Refuse`, and blocked or rendered workloads are re-enqueued
 
 ### Requirement: The Platform named cluster is generated, built and recorded in the store
-The operator SHALL reconcile the `Platform` named `cluster` by generating its platform CUE module on the operator's own disk, building it through the kernel's shape-gated platform loader, and recording the generated module (its package identity, directory, built platform) together with the resolved skew policy (`spec.skewPolicy`, `Warn` when unset) in the process-local store.
+The controller SHALL reconcile the `Platform` named `cluster` by generating its platform CUE module on the controller's own disk, building it through the kernel's shape-gated platform loader, and recording the generated module (its package identity, directory, built platform) together with the resolved skew policy (`spec.skewPolicy`, `Warn` when unset) in the process-local store.
 No second, derived copy of the platform exists.
 
 #### Scenario: Valid platform is generated
@@ -207,7 +207,7 @@ A module-file source injected into the reconciler (tests) SHALL be used as given
 
 #### Scenario: A transient registry failure does not outlive its reconcile
 
-- **WHEN** a reconcile of the `cluster` Platform ends `Ready=False` with reason `BuildFailed` because the registry refused the catalog's module file, and the registry then serves it again, with no change to the Platform spec, the reconciler's configuration or the operator process
+- **WHEN** a reconcile of the `cluster` Platform ends `Ready=False` with reason `BuildFailed` because the registry refused the catalog's module file, and the registry then serves it again, with no change to the Platform spec, the reconciler's configuration or the controller process
 - **THEN** the next reconcile fetches the module file from the registry, builds successfully, and sets `Ready=True` (reason `Generated`) at the same generation
 
 ### Requirement: Transient and other failures are requeued on different intervals

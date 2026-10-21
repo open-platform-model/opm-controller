@@ -7,7 +7,7 @@
 /release-please-config.json     @emil-jacero
 /.release-please-manifest.json  @emil-jacero
 /.cascade-frozen                @emil-jacero
-# hack/fixtures.sh, hack/render-config.sh and hack/operator-module/ run in jobs
+# hack/fixtures.sh, hack/render-config.sh and hack/controller-module/ run in jobs
 # that hold write tokens or the release App key.
 /hack/                          @emil-jacero
 # .opm-cli-version picks the opm binary the fixture and example publish jobs

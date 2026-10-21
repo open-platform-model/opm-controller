@@ -1,5 +1,5 @@
 ## Purpose
-Limit what each GitHub Actions workflow in this repo can hold. Workflows declare least-privilege permissions explicitly. Only jobs in the main-only `release` Environment read the release App key. Publishing jobs never use the Actions cache. Code from the cascade, release-please, operator module bot and Dependabot heads never runs with a write token or OIDC. Code owners guard the release machinery.
+Limit what each GitHub Actions workflow in this repo can hold. Workflows declare least-privilege permissions explicitly. Only jobs in the main-only `release` Environment read the release App key. Publishing jobs never use the Actions cache. Code from the cascade, release-please, controller module bot and Dependabot heads never runs with a write token or OIDC. Code owners guard the release machinery.
 
 ## Requirements
 
@@ -33,7 +33,7 @@ A job that publishes, signs or attests anything (a container image, a CUE module
 - **WHEN** `release.yml`'s `publish-examples`, `publish-fixtures.yml` or `test-e2e.yml`'s `publish-fixtures` job sets up Go
 - **THEN** `actions/setup-go` runs with `cache: false`
 
-#### Scenario: Operator module release jobs skip the Go cache
+#### Scenario: Controller module release jobs skip the Go cache
 - **WHEN** `release.yml`'s `module-identity-advance` (which later holds the release App key), `module-publish` or `module-manifest` job sets up Go
 - **THEN** `actions/setup-go` runs with `cache: false`, and `module-image.yml` and `module-deps.yml` use no cache in any job
 
@@ -49,7 +49,7 @@ Every workflow step that installs a tool SHALL name an exact version, never a fl
 - **THEN** it downloads the pinned release assets (`KIND_VERSION`, and `FLUX_VERSION` from `.tasks/flux.yaml`), checks each against its in-tree sha256 (`KIND_SHA256`, `FLUX_CLI_SHA256_LINUX_AMD64`), and pipes no install script into `bash`
 
 ### Requirement: Code owners on the release machinery
-`.github/CODEOWNERS` SHALL name the owner (`@emil-jacero`) as the only code owner for `/.github/`, `/.tasks/`, `/Taskfile*.yml`, `/release-please-config.json`, `/.release-please-manifest.json`, `/.cascade-frozen`, `/hack/` (scripts that run in jobs holding write tokens or the release App key, `hack/operator-module/` included), `/.opm-cli-version` (the opm binary the publishing jobs install), and `/.opm-docs-version` and `/docs-kit.cue` (the signed docs publish).
+`.github/CODEOWNERS` SHALL name the owner (`@emil-jacero`) as the only code owner for `/.github/`, `/.tasks/`, `/Taskfile*.yml`, `/release-please-config.json`, `/.release-please-manifest.json`, `/.cascade-frozen`, `/hack/` (scripts that run in jobs holding write tokens or the release App key, `hack/controller-module/` included), `/.opm-cli-version` (the opm binary the publishing jobs install), and `/.opm-docs-version` and `/docs-kit.cue` (the signed docs publish).
 
 #### Scenario: Workflow edit needs a code owner
 - **WHEN** a pull request edits a file under `.github/workflows/`
@@ -59,15 +59,15 @@ Every workflow step that installs a tool SHALL name an exact version, never a fl
 - **WHEN** `.github/CODEOWNERS` is read
 - **THEN** every path line names `@emil-jacero` and no other owner
 
-### Requirement: Operator module bot PRs commit plain files only
-The `publish` jobs of `module-image.yml` and `module-deps.yml` SHALL refuse a handed-over change tarball holding any member that is not a plain file or a directory, before extracting it. `hack/operator-module/bot-pr.sh` SHALL refuse a changed path that is a symlink or a hard link, and a staged change whose mode is anything but `100644` (an executable bit, a symlink or a gitlink), before it commits or pushes.
+### Requirement: Controller module bot PRs commit plain files only
+The `publish` jobs of `module-image.yml` and `module-deps.yml` SHALL refuse a handed-over change tarball holding any member that is not a plain file or a directory, before extracting it. `hack/controller-module/bot-pr.sh` SHALL refuse a changed path that is a symlink or a hard link, and a staged change whose mode is anything but `100644` (an executable bit, a symlink or a gitlink), before it commits or pushes.
 
 #### Scenario: A link member in the tarball is refused
-- **WHEN** the module change tarball holds a symlink or hard link member under `modules/opm_operator/`
+- **WHEN** the module change tarball holds a symlink or hard link member under `modules/opm_controller/`
 - **THEN** the publish job fails before extracting it, and no token-bearing step reads the link's target
 
 #### Scenario: bot-pr.sh refuses a symlink, a hard link or a mode change
-- **WHEN** the working tree under `modules/opm_operator/` holds a symlink, a hard link, or a file whose mode changed
+- **WHEN** the working tree under `modules/opm_controller/` holds a symlink, a hard link, or a file whose mode changed
 - **THEN** `bot-pr.sh` exits non-zero naming the path or the mode change, and pushes nothing
 
 ### Requirement: Every job that reads the release App key runs in the release Environment
@@ -95,7 +95,7 @@ A job triggered by `pull_request` that holds any write scope or `id-token: write
 - **WHEN** a pull request from `deps/cascade` opens or updates
 - **THEN** `image-pr.yml`'s job is skipped
 
-#### Scenario: Dependabot and operator module bot PRs hold no write token
+#### Scenario: Dependabot and controller module bot PRs hold no write token
 - **WHEN** a pull request from a `dependabot/*` or `module/*` head opens or updates
 - **THEN** `image-pr.yml`'s job and `test-e2e.yml`'s `publish-fixtures` job are skipped
 
@@ -104,7 +104,7 @@ A job triggered by `pull_request` that holds any write scope or `id-token: write
 - **THEN** `publish-fixtures` publishes the pre-release fixtures holding `packages: write`, and the `test-e2e` job pins them and runs the suite holding only read scopes, with a docker config built from its own read-only token
 
 ### Requirement: A job that runs bot-head code holds only read scopes
-As in requirement "A write-scope pull_request job does not run for a bot head": The code on those heads comes from the release cascade, release-please, the operator module's bot (`module/deps`, `module/operator-image`, pushed with the release App's token) or Dependabot, and no human has reviewed it yet; a Dependabot `github-actions` bump runs a new upstream action release in the job itself. A job that runs such code SHALL hold only read scopes.
+As in requirement "A write-scope pull_request job does not run for a bot head": The code on those heads comes from the release cascade, release-please, the controller module's bot (`module/deps`, `module/controller-image`, pushed with the release App's token) or Dependabot, and no human has reviewed it yet; a Dependabot `github-actions` bump runs a new upstream action release in the job itself. A job that runs such code SHALL hold only read scopes.
 
 #### Scenario: Cascade PR e2e runs read-only
 - **WHEN** a pull request from `deps/cascade` or `release-please--*` opens or updates

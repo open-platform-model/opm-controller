@@ -64,9 +64,9 @@ func TestFullPrefixAndMetadata(t *testing.T) {
 	}
 }
 
-// installPage is the docs page whose operator versions release-please
+// installPage is the docs page whose controller versions release-please
 // rewrites through extra-files (keep-install-page-current).
-const installPage = "../../docs/site/start/install-the-operator.md"
+const installPage = "../../docs/site/start/install-the-controller.md"
 
 // pageVersionRe matches a version as release-please's generic updater does.
 var pageVersionRe = regexp.MustCompile(`v?\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?`)
@@ -109,9 +109,9 @@ func installPageBlockVersions(src string) ([][2]string, error) {
 
 // TestInstallPageNamesThisRelease guards the install page's release-please
 // blocks: release-please rewrites every version inside them in the Release
-// PR, so they must exist, be balanced, and name only the operator's Version.
+// PR, so they must exist, be balanced, and name only the controller's Version.
 // A core or catalog version inside a block would be rewritten to the
-// operator's version.
+// controller's version.
 func TestInstallPageNamesThisRelease(t *testing.T) {
 	src, err := os.ReadFile(installPage)
 	if err != nil {
@@ -123,7 +123,7 @@ func TestInstallPageNamesThisRelease(t *testing.T) {
 	}
 	for _, f := range found {
 		if strings.TrimPrefix(f[1], "v") != Version {
-			t.Errorf("%s:%s: version %s inside a release-please block, want %s (the operator's Version)", installPage, f[0], f[1], Version)
+			t.Errorf("%s:%s: version %s inside a release-please block, want %s (the controller's Version)", installPage, f[0], f[1], Version)
 		}
 	}
 }

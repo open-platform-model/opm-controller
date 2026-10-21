@@ -27,8 +27,8 @@ import (
 	oerrors "github.com/open-platform-model/library/opm/errors"
 	"github.com/open-platform-model/library/opm/platform"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The FQNs below model the shapes the refusals name; no published catalog
@@ -299,7 +299,7 @@ func TestInventoryRefusal(t *testing.T) {
 		},
 		{
 			// Core reads the platform unroutable and names no row: a term
-			// in routable the operator does not know. Refuse anyway, and
+			// in routable the controller does not know. Refuse anyway, and
 			// never claim a count of zero.
 			name: "an unroutable inventory naming no row still refuses without a zero count",
 			inv: &platform.ContractInventory{

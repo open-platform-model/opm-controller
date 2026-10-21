@@ -1,6 +1,6 @@
 // Package writecalls is a fixture for the write call-site test: one call of
 // each form that creates or changes a cluster object, and calls of the same
-// method names that write none. It is never built into the operator.
+// method names that write none. It is never built into the controller.
 package writecalls
 
 import (

@@ -199,9 +199,9 @@ As in requirement "The prune keeps a PersistentVolumeClaim unless the instance o
 - **WHEN** the controller reconciles
 - **THEN** the claim is kept
 
-#### Scenario: An existing instance is protected after an operator upgrade
-- **GIVEN** a ModuleInstance with `spec.prune: true` that an earlier operator release reconciled, with a PersistentVolumeClaim in `status.inventory`
-- **WHEN** the upgraded operator reconciles a render that no longer holds the claim
+#### Scenario: An existing instance is protected after a controller upgrade
+- **GIVEN** a ModuleInstance with `spec.prune: true` that an earlier controller release reconciled, with a PersistentVolumeClaim in `status.inventory`
+- **WHEN** the upgraded controller reconciles a render that no longer holds the claim
 - **THEN** the claim is kept
 
 ### Requirement: spec.dataPolicy has no effect without spec.prune
@@ -221,12 +221,12 @@ For pruning and deletion, `spec.dataPolicy` MUST have no effect unless `spec.pru
 - **THEN** the claim is kept with its UID
 
 ### Requirement: The description of spec.dataPolicy names the claims that are never tracked
-As in requirement "ModuleInstance and ModulePackage accept an optional spec.dataPolicy of Keep or Delete": The field's description, which `kubectl explain` and the resource reference show, MUST say that claims a StatefulSet creates from its `volumeClaimTemplates` are never tracked and never deleted by the operator.
+As in requirement "ModuleInstance and ModulePackage accept an optional spec.dataPolicy of Keep or Delete": The field's description, which `kubectl explain` and the resource reference show, MUST say that claims a StatefulSet creates from its `volumeClaimTemplates` are never tracked and never deleted by the controller.
 
 #### Scenario: The description of spec.dataPolicy names claims that are never tracked
 
 - **WHEN** the description of `spec.dataPolicy` is read in `kubectl explain` or the resource reference
-- **THEN** it says that claims a StatefulSet creates from its `volumeClaimTemplates` are never tracked and never deleted by the operator
+- **THEN** it says that claims a StatefulSet creates from its `volumeClaimTemplates` are never tracked and never deleted by the controller
 
 ### Requirement: The description of spec.dataPolicy states the forced recreate
 As in requirement "The description of spec.dataPolicy names the claims that are never tracked": It MUST also say that with `Keep` the forced recreate of `spec.rollout.forceConflicts` leaves a claim in place and the apply reports a conflict, and that with `Delete` the claim is deleted and recreated. It MUST NOT name the forced recreate as an exception to the protection.
@@ -332,7 +332,7 @@ The prune of stale resources MUST judge with the identities the status held when
 - **THEN** the ConfigMap still exists and the prune result names it with the reason `owner-mismatch`
 
 ### Requirement: A stale object that carries a recorded identity is deleted when the verdict allows
-As in requirement "The prune judges with the identities the status held when the apply started": A stale object that carries either identity, and that the verdict lets the operator delete under it, MUST be deleted.
+As in requirement "The prune judges with the identities the status held when the apply started": A stale object that carries either identity, and that the verdict lets the controller delete under it, MUST be deleted.
 **Source**: owner decisions of 2026-10-08 (prune judges with the identity stored in the instance's record, also after the instance identity changed; the status keeps both identities until the prune succeeded).
 
 #### Scenario: Stale object after the instance identity changed

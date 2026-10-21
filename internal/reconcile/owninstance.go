@@ -19,29 +19,29 @@ package reconcile
 import (
 	"strings"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
-// The coordinates every CLI install records the operator's own instance
-// under, and the module path the operator module is published under.
+// The coordinates every CLI install records the controller's own instance
+// under, and the module path the controller module is published under.
 const (
-	ownInstanceName       = "opm-operator"
-	ownInstanceNamespace  = "opm-operator-system"
-	ownInstanceModulePath = "opmodel.dev/modules/opm_operator"
+	ownInstanceName       = "opm-controller"
+	ownInstanceNamespace  = "opm-system"
+	ownInstanceModulePath = "opmodel.dev/modules/opm_controller"
 )
 
-// isOwnInstance reports whether mi deploys this operator, and which signal
+// isOwnInstance reports whether mi deploys this controller, and which signal
 // matched. It reads the stored object only (no render, no registry pull),
 // because the refusal must be decided before the cleanup finalizer is
 // registered. Signals are tried in order and the first match names the
 // instance in the refusal message:
 //
-//  1. the fixed coordinates opm-operator in opm-operator-system;
-//  2. a module path of the operator module, in any major;
+//  1. the fixed coordinates opm-controller in opm-system;
+//  2. a module path of the controller module, in any major;
 //  3. a recorded inventory holding a CustomResourceDefinition of the
-//     operator's own API group, which catches a renamed or forked copy
+//     controller's own API group, which catches a renamed or forked copy
 //     of the module once anything has recorded what it deployed. Only the
-//     operator module may ship CRDs of that group.
+//     controller module may ship CRDs of that group.
 func isOwnInstance(mi *releasesv1alpha1.ModuleInstance) (string, bool) {
 	if mi.Name == ownInstanceName && mi.Namespace == ownInstanceNamespace {
 		return "name " + ownInstanceName + " in namespace " + ownInstanceNamespace, true
@@ -63,7 +63,7 @@ func isOwnInstance(mi *releasesv1alpha1.ModuleInstance) (string, bool) {
 }
 
 // isOwnCRD reports whether an inventory entry is a CustomResourceDefinition
-// of the operator's API group: the part of the CRD name after its first "."
+// of the controller's API group: the part of the CRD name after its first "."
 // must equal the group exactly, so widgets.example.opmodel.dev does not match
 // where a suffix check on ".opmodel.dev" would.
 func isOwnCRD(e releasesv1alpha1.InventoryEntry) bool {

@@ -27,9 +27,9 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // panicMessage is what the deferred commit writes for the panicking
@@ -61,7 +61,7 @@ func expectPanicRecorded(
 	Expect(history).NotTo(BeEmpty())
 	Expect(history[0].Message).To(ContainSubstring(panicMessage), "the newest history entry is the failure")
 	Expect(history[0].Phase).NotTo(Equal("complete"), "the newest history entry is not a success")
-	Expect(nextRetryAt).To(BeNil(), "the operator schedules no retry of its own")
+	Expect(nextRetryAt).To(BeNil(), "the controller schedules no retry of its own")
 }
 
 var _ = Describe("Render panic", func() {

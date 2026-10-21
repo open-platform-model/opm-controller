@@ -1,7 +1,7 @@
 # cascade-receiver Specification
 
 ## Purpose
-The opm-operator side of the release cascade wiring: the `deps-cascade.yml` receiver that runs `task -x deps:cascade` through the shared receive workflow on every upstream release, a daily sweep and by hand, and publishes through a caller-owned job; the `cascade-gates.yml` caller that keeps the G2 and G3 commit statuses on every pull request; and the one-SHA pin of the cascade code, checked on every pull request.
+The opm-controller side of the release cascade wiring: the `deps-cascade.yml` receiver that runs `task -x deps:cascade` through the shared receive workflow on every upstream release, a daily sweep and by hand, and publishes through a caller-owned job; the `cascade-gates.yml` caller that keeps the G2 and G3 commit statuses on every pull request; and the one-SHA pin of the cascade code, checked on every pull request.
 
 ## Requirements
 
@@ -19,8 +19,8 @@ The receiver SHALL declare `cancel-in-progress: false` and the concurrency group
 ### Requirement: The Deps cascade workflow
 The repo SHALL have `.github/workflows/deps-cascade.yml`, named `Deps cascade`, triggered by `repository_dispatch` of type `upstream-released`, by the schedule `47 5 * * *`, and by `workflow_dispatch` with the boolean inputs `dry_run` and `gates_only` (both default `false`). Its top-level keys SHALL be exactly `name`, `on`, `permissions`, `concurrency` and `jobs`, with `permissions: {}`.
 
-#### Scenario: A library release reaches the operator
-- **WHEN** library publishes `v1.0.0-beta.5`, its notify job dispatches `upstream-released` to opm-operator, and `CASCADE_DRY_RUN` is `false`
+#### Scenario: A library release reaches the controller
+- **WHEN** library publishes `v1.0.0-beta.5`, its notify job dispatches `upstream-released` to opm-controller, and `CASCADE_DRY_RUN` is `false`
 - **THEN** a `Deps cascade` run starts on `main`, runs `task -x deps:cascade`, and the `deps/cascade` PR names library `v1.0.0-beta.5`
 
 #### Scenario: Daily sweep
@@ -137,7 +137,7 @@ Every reference to the cascade code SHALL name one full 40-character SHA of a co
 - **THEN** the wiring check fails on the notify `uses` and on `one .github SHA`
 
 ### Requirement: The other cascade references name one .github main SHA
-Every reference to the cascade code SHALL name one full 40-character SHA of a commit on `open-platform-model/.github` `main`, never a branch or a tag, followed by the comment `# .github main`: the `ref:` of the `open-platform-model/.github` checkout in `cascade-task.yml`, and the `ref:` of the resolver checkout in `module-deps.yml` (the operator module's own cascade PR, see `deps-cascade`).
+Every reference to the cascade code SHALL name one full 40-character SHA of a commit on `open-platform-model/.github` `main`, never a branch or a tag, followed by the comment `# .github main`: the `ref:` of the `open-platform-model/.github` checkout in `cascade-task.yml`, and the `ref:` of the resolver checkout in `module-deps.yml` (the controller module's own cascade PR, see `deps-cascade`).
 (Requirement: The cite-lint call names one .github main SHA)
 
 #### Scenario: The resolver checkouts name one .github SHA

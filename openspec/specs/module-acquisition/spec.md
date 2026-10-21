@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator acquires a `ModuleRelease`'s target module from the OCI
+Define how the controller acquires a `ModuleRelease`'s target module from the OCI
 registry as a library `*module.Module`. Acquisition delegates to the shared
 `*kernel.Kernel`'s registry module loader (`Kernel.LoadModuleFromRegistry`),
 which fetches the published module and loads it as the main module, then decodes
@@ -19,8 +19,8 @@ Acquisition SHALL drive registry resolution from the shared kernel's configured 
 - **THEN** the kernel's configured registry mapping is used for the fetch and load
 - **AND** the process environment (`os.Environ`) is not modified
 
-### Requirement: The operator acquires a module from the registry as a library Module
-The operator SHALL acquire a `ModuleRelease`'s target module from the OCI registry as a library `*module.Module`, given the module path, version, and registry mapping. Registry configuration and the absence of process-environment mutation are the library's responsibility (the kernel's configured registry); acquisition remains safe to call concurrently from reconcilers.
+### Requirement: The controller acquires a module from the registry as a library Module
+The controller SHALL acquire a `ModuleRelease`'s target module from the OCI registry as a library `*module.Module`, given the module path, version, and registry mapping. Registry configuration and the absence of process-environment mutation are the library's responsibility (the kernel's configured registry); acquisition remains safe to call concurrently from reconcilers.
 
 #### Scenario: Published module is acquired
 
@@ -51,7 +51,7 @@ As in requirement "Acquisition delegates to the library kernel's registry module
 #### Scenario: Module with catalog imports is acquired
 
 - **WHEN** acquisition loads a module whose components import catalog resource definitions (for example `opmodel.dev/catalogs/opm/resources`)
-- **THEN** those transitive dependencies resolve and acquisition succeeds without the operator declaring them
+- **THEN** those transitive dependencies resolve and acquisition succeeds without the controller declaring them
 
 #### Scenario: Acquisition writes no temporary directory
 - **WHEN** acquisition loads a module

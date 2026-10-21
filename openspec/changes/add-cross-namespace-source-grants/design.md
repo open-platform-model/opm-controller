@@ -2,7 +2,7 @@
 
 `internal/source.Resolve` (`internal/source/resolve.go:42`) honors a caller-supplied `sourceRef.namespace` and looks the source up with the controller's own client, which holds cluster-wide `get;list;watch` on Flux `ocirepositories`/`gitrepositories`/`buckets` (`config/rbac/role.yaml:77`). `SourceReference` is a type alias for Flux's `NamespacedObjectKindReference` (`api/v1alpha1/common_types.go:33`), so `spec.sourceRef.namespace` is a settable, unvalidated field on every `Release`. A tenant who can create a `Release` in namespace A can point it at a source in namespace B and have the controller read and render B's private artifact into A — the CRITICAL finding from the 2026-06 security audit.
 
-The operator's tenancy boundary is the **namespace** (`docs/TENANCY.md`), and that boundary is enforced everywhere else: `checkDependsOn` (`internal/reconcile/release.go:546`) rejects cross-namespace `dependsOn`, and SA impersonation never resolves cross-namespace (`internal/reconcile/modulerelease.go:785`). Source resolution is the one unguarded crossing. The fix restores the boundary by default, then offers a consent-based, auditable opt-in so platform teams that legitimately want shared-source namespaces are not forced to choose between "blunt global switch" and "no sharing at all."
+The controller's tenancy boundary is the **namespace** (`docs/TENANCY.md`), and that boundary is enforced everywhere else: `checkDependsOn` (`internal/reconcile/release.go:546`) rejects cross-namespace `dependsOn`, and SA impersonation never resolves cross-namespace (`internal/reconcile/modulerelease.go:785`). Source resolution is the one unguarded crossing. The fix restores the boundary by default, then offers a consent-based, auditable opt-in so platform teams that legitimately want shared-source namespaces are not forced to choose between "blunt global switch" and "no sharing at all."
 
 ## Goals / Non-Goals
 
@@ -27,7 +27,7 @@ The operator's tenancy boundary is the **namespace** (`docs/TENANCY.md`), and th
 
 ### D2: OPM-native `SourceRefGrant`, not Gateway API `ReferenceGrant`
 We adopt the ReferenceGrant *model* — grant lives in the target namespace, `from`/`to` shape, additive, fail-closed — but as an OPM-owned CRD named `SourceRefGrant` in `releases.opmodel.dev`.
-- **Alternative considered:** reuse `gateway.networking.k8s.io/v1beta1.ReferenceGrant`. Rejected: the operator is not a Gateway API consumer (`go.mod` confirms no dependency) and many clusters never install Gateway API. Coupling a Flux-source feature to an unrelated, often-absent CRD is a fragile, surprising runtime dependency. Owning the type also lets us scope it to source kinds and extend it later without negotiating an upstream schema.
+- **Alternative considered:** reuse `gateway.networking.k8s.io/v1beta1.ReferenceGrant`. Rejected: the controller is not a Gateway API consumer (`go.mod` confirms no dependency) and many clusters never install Gateway API. Coupling a Flux-source feature to an unrelated, often-absent CRD is a fragile, surprising runtime dependency. Owning the type also lets us scope it to source kinds and extend it later without negotiating an upstream schema.
 - **Consequence:** we accept the cost of authoring/documenting a CRD that resembles an existing standard, in exchange for zero external coupling and full control of semantics.
 
 ### D3: Consent originates from the namespace being read
@@ -45,7 +45,7 @@ For a `Release` of kind `K_from` in `N_from` referencing a source of kind `K_to`
 ## Risks / Trade-offs
 
 - **Behavioral change for existing deployments relying on implicit cross-namespace reads** → Document prominently in `docs/TENANCY.md` and the changelog; the migration is "set the flag and author a grant." The behavior being removed is the vulnerability, so a hard default-deny is intended.
-- **`SourceRefGrant` is itself a namespaced object — "who may create grants in namespace B" becomes security-relevant** → This collapses to "is namespace RBAC correct," the operator's existing trust assumption (same as who may place a privileged SA per `docs/TENANCY.md`). No new trust root is introduced; call it out in the tenancy doc.
+- **`SourceRefGrant` is itself a namespaced object — "who may create grants in namespace B" becomes security-relevant** → This collapses to "is namespace RBAC correct," the controller's existing trust assumption (same as who may place a privileged SA per `docs/TENANCY.md`). No new trust root is introduced; call it out in the tenancy doc.
 - **Reinventing a known standard (ReferenceGrant)** → Mitigated by mirroring its shape and semantics exactly, so operators familiar with Gateway API transfer their mental model; documented as a deliberate trade in D2.
 - **In-flight fetch after grant deletion may complete once** → Negligible; next reconcile denies. No mid-fetch interruption is attempted.
 - **Scope vs. Principle VIII (small batches)** → Implementation is sequenced into independently-verifiable steps (see `tasks.md`): the default-deny security fix lands and is testable before any grant/flag/CRD machinery, so the CRITICAL is closed early even if the opt-in work is staged across commits.

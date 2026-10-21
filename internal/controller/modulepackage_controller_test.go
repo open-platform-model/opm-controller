@@ -37,12 +37,12 @@ import (
 	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // stubFetcher creates a placeholder instance.cue at dir/<path>/instance.cue so
@@ -273,7 +273,7 @@ var _ = Describe("ModulePackage Controller", func() {
 			fetcher := &stubFetcher{pathInArtifact: "releases/app"}
 			renderer := &stubPackageRenderer{result: stubRenderResult(namespace, nil)}
 			r := buildReconciler(fetcher, renderer)
-			r.OperatorVersion, r.LibraryVersion = testOperatorVersion, testLibraryVersion
+			r.ControllerVersion, r.LibraryVersion = testControllerVersion, testLibraryVersion
 			// No Platform exists, so the pre-render key is incomplete and no
 			// reconcile here skips its render.
 			r.DriftRenderInterval = 30 * time.Minute
@@ -284,12 +284,12 @@ var _ = Describe("ModulePackage Controller", func() {
 			Expect(k8sClient.Get(ctx, nn, &got)).To(Succeed())
 			Expect(got.Status.LastAppliedInputs).NotTo(BeNil(), "a successful apply records the key")
 			want := status.RenderInputKey{
-				Source:          "sha256:ccc",
-				Config:          status.ConfigDigest(nil),
-				PackageIdentity: stubPlatformIdentity,
-				SkewPolicy:      stubSkewPolicy,
-				OperatorVersion: testOperatorVersion,
-				LibraryVersion:  testLibraryVersion,
+				Source:            "sha256:ccc",
+				Config:            status.ConfigDigest(nil),
+				PackageIdentity:   stubPlatformIdentity,
+				SkewPolicy:        stubSkewPolicy,
+				ControllerVersion: testControllerVersion,
+				LibraryVersion:    testLibraryVersion,
 			}
 			Expect(got.Status.LastAppliedInputs.Digest).To(Equal(want.Digest()))
 

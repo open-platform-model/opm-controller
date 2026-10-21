@@ -25,11 +25,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // DefaultModulePackageInterval is the fallback requeue interval when spec.interval
@@ -74,12 +74,12 @@ type ModulePackageParams struct {
 	// events are emitted on transition only. Nil emits every non-empty set.
 	Warnings *WarningTracker
 
-	// OperatorVersion and LibraryVersion are the running operator's
+	// ControllerVersion and LibraryVersion are the running controller's
 	// version.Full() and version.Library(), parts of the render input key.
 	// They are injected so tests can set them; an empty one makes every key
 	// incomplete, so nothing is recorded and nothing is skipped.
-	OperatorVersion string
-	LibraryVersion  string
+	ControllerVersion string
+	LibraryVersion    string
 
 	// DriftRenderInterval is the manager's --drift-render-interval: how long
 	// a reconcile whose render inputs are unchanged may skip its render after
@@ -349,7 +349,7 @@ func ReconcileModulePackage(
 
 	computeModulePackageDigests(converted, &digests)
 	renderedVersion = &converted.result.ModuleVersion
-	key := renderedKey(digests.Source, digests.Config, converted.result, params.OperatorVersion, params.LibraryVersion)
+	key := renderedKey(digests.Source, digests.Config, converted.result, params.ControllerVersion, params.LibraryVersion)
 	renderedInputs = &key
 
 	// Decide what this render's identity means for the recorded ones, as a
@@ -483,12 +483,12 @@ func packageRenderSkippable(
 	key := func() status.RenderInputKey {
 		identity, skew := platformKeyParts(ctx, params.Client)
 		return status.RenderInputKey{
-			Source:          sourceDigest,
-			Config:          status.ConfigDigest(nil),
-			PackageIdentity: identity,
-			SkewPolicy:      skew,
-			OperatorVersion: params.OperatorVersion,
-			LibraryVersion:  params.LibraryVersion,
+			Source:            sourceDigest,
+			Config:            status.ConfigDigest(nil),
+			PackageIdentity:   identity,
+			SkewPolicy:        skew,
+			ControllerVersion: params.ControllerVersion,
+			LibraryVersion:    params.LibraryVersion,
 		}
 	}
 	skip := renderSkip{interval: params.DriftRenderInterval, now: time.Now()}

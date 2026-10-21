@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 const (
@@ -34,10 +34,10 @@ const (
 	claimRefusalLimit = 300
 	// claimConflictAdvice closes every ClaimConflict note.
 	claimConflictAdvice = " The claim and its data are kept. Revert the change, or move the data and delete " +
-		"the claim yourself, or set spec.dataPolicy to Delete to let the operator delete and recreate the claim."
+		"the claim yourself, or set spec.dataPolicy to Delete to let the controller delete and recreate the claim."
 	// claimsKeptAdvice closes every ClaimsKept note.
 	claimsKeptAdvice = " They are no longer tracked. Delete one with: kubectl delete pvc <name> -n <namespace>. " +
-		"To let the operator delete claims from now on, set spec.dataPolicy to Delete."
+		"To let the controller delete claims from now on, set spec.dataPolicy to Delete."
 )
 
 // ClaimsKeptNote is the note of a ClaimsKept event: how many

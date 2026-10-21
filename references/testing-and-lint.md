@@ -18,13 +18,13 @@ Pick the lightest tier that proves the behaviour.
 | Tier | Where | What it proves | Runs in |
 | --- | --- | --- | --- |
 | Unit | `internal/*/` | Single-package logic | `task dev:test` |
-| Integration | `test/integration/` (`apply`, `crdvalidation`, `operatormodule`, `reconcile`) | Cross-package behaviour against a real API server (envtest) | `task dev:test` |
+| Integration | `test/integration/` (`apply`, `crdvalidation`, `controllermodule`, `reconcile`) | Cross-package behaviour against a real API server (envtest) | `task dev:test` |
 | E2E | `test/e2e/` (`e2e` build tag) | The deployed controller on a Kind cluster | `task dev:e2e` |
 
 - `task dev:test` runs unit and integration tests and excludes `/test/e2e`. No Kind test runs in the default path.
 - E2E needs Kind. It may install cert-manager unless `CERT_MANAGER_INSTALL_SKIP=true`. Say so in your report when you skipped e2e for lack of Kind or a cluster.
 - Style: Ginkgo v2 and Gomega. Give `Describe`, `Context` and `It` descriptive text so `-ginkgo.focus` works. Use `Eventually` for async Kubernetes behaviour, never sleeps. Assert errors with `Expect(err).NotTo(HaveOccurred())` or `Expect(...).To(Succeed())`. Put repeated assertions in package-local helpers.
-- `test/integration/operatormodule` renders the operator module (`modules/opm_operator`) against a platform generated from its own catalog pin. It needs core and the catalog from `CUE_REGISTRY` (GHCR under `task dev:test`), the `cue` CLI and the kustomize binary that `task dev:test` passes as `KUSTOMIZE`. Without them its specs skip; under `OPM_TEST_REGISTRY_FORCE=1` (PR CI) they fail. Its minimum-operator-version spec needs none of them.
+- `test/integration/controllermodule` renders the controller module (`modules/opm_controller`) against a platform generated from its own catalog pin. It needs core and the catalog from `CUE_REGISTRY` (GHCR under `task dev:test`), the `cue` CLI and the kustomize binary that `task dev:test` passes as `KUSTOMIZE`. Without them its specs skip; under `OPM_TEST_REGISTRY_FORCE=1` (PR CI) they fail. Its minimum-controller-version spec needs none of them.
 - `test/integration/crdvalidation` proves that every sample in `config/samples` is admitted by the CRDs.
 
 ## Run one test
@@ -35,7 +35,7 @@ Pick the lightest tier that proves the behaviour.
 export KUBEBUILDER_ASSETS="$(./bin/setup-envtest use <k8s-minor> --bin-dir "$PWD/bin" -p path)"
 go test ./internal/controller                                   # one package
 go test -tags=e2e ./test/e2e -v -ginkgo.v                       # e2e only
-KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run <suite-func> -ginkgo.focus="should run successfully" -v -ginkgo.v
+KIND_CLUSTER=opm-controller-test-e2e go test -tags=e2e ./test/e2e -run <suite-func> -ginkgo.focus="should run successfully" -v -ginkgo.v
 ```
 
 `<k8s-minor>` is the `1.N` that `task dev:test` prints in its envtest line. `KUBEBUILDER_ASSETS` must be an absolute path.
@@ -45,7 +45,7 @@ KIND_CLUSTER=opm-operator-test-e2e go test -tags=e2e ./test/e2e -run <suite-func
 - `.golangci.yml` enables, among others: `errcheck`, `ginkgolinter`, `gocyclo`, `govet`, `misspell`, `modernize`, `revive`, `staticcheck`, `unused`, `depguard`, `logcheck`. Formatters: `gofmt` and `goimports`.
 - `logcheck` (a custom plugin built from the custom-gcl config) validates structured logging and balanced key/value parameters.
 - `lll` and `dupl` are relaxed in `api/*` and `internal/*`. Do not rely on the exclusions without need.
-- The `depguard` rule keeps the operator from copying the library's Kubernetes tier decisions (the comment in `.golangci.yml` says why).
+- The `depguard` rule keeps the controller from copying the library's Kubernetes tier decisions (the comment in `.golangci.yml` says why).
 - `ginkgolinter` flags non-idiomatic Ginkgo.
 
 ## Moving the golangci-lint version

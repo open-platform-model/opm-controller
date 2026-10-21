@@ -33,7 +33,7 @@ import (
 	oerrors "github.com/open-platform-model/library/opm/errors"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
 )
 
 // tokenRegistry starts a registry that uses token authentication, as GHCR

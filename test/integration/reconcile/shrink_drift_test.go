@@ -27,9 +27,9 @@ import (
 	"k8s.io/client-go/tools/events"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // driftCondition returns the instance's Drifted condition, or nil.
@@ -40,7 +40,7 @@ func driftCondition(nn types.NamespacedName) *metav1.Condition {
 }
 
 // mutateSidecar changes the applied ConfigMap out of band, which is genuine
-// drift: the cluster moved away from what the operator asserts.
+// drift: the cluster moved away from what the controller asserts.
 func mutateSidecar(name string) {
 	var cm corev1.ConfigMap
 	nn := types.NamespacedName{Name: name, Namespace: namespace}
@@ -51,9 +51,9 @@ func mutateSidecar(name string) {
 
 var _ = Describe("Reconcile Withheld Resource Drift", func() {
 	// registration-shrink-refusal section 3: drift means the cluster diverged
-	// from what the operator asserts. A withheld resource is one the operator
+	// from what the controller asserts. A withheld resource is one the controller
 	// is deliberately not asserting, so reporting it would name a difference
-	// the operator created on purpose and will never close — and would bury
+	// the controller created on purpose and will never close — and would bury
 	// real drift on the same instance behind a condition that never clears.
 	It("does not report a withheld resource as drift", func() {
 		providerName := "drift-withheld-mr"

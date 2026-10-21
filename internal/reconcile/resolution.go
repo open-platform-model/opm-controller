@@ -6,8 +6,8 @@ import (
 	oerrors "github.com/open-platform-model/library/opm/errors"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // isTypedResolutionError reports whether err carries one of the library's
@@ -109,7 +109,7 @@ func isDuplicateIdentities(err error) bool {
 //  4. RenderFailed — a transform failure, an over-subscribed provider
 //     contract (*oerrors.TransformError,
 //     *oerrors.OverSubscribedContractsError) and every other refusal or
-//     evaluation error. The pre-evaluation refusals that indicate an operator
+//     evaluation error. The pre-evaluation refusals that indicate a controller
 //     defect (a missing Source, an uncovered OPM path) fall through to here
 //     with the kernel's message verbatim. A failed instance synthesis lands
 //     here too, unless it is a registry fetch failure (transient, routed

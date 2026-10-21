@@ -8,7 +8,7 @@ const (
 	// NoOp — all four digests match last applied. Ready=True, Reconciling=False.
 	// Requeue: watch-driven, plus the controller's periodic interval where one
 	// applies (ModulePackage requeues on spec.interval, ModuleInstance on the
-	// operator's --instance-reconcile-interval; Platform is watch-only on the
+	// controller's --instance-reconcile-interval; Platform is watch-only on the
 	// happy path).
 	NoOp Outcome = iota
 

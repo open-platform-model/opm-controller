@@ -36,12 +36,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/config"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmcontroller "github.com/open-platform-model/opm-operator/internal/controller"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmcontroller "github.com/open-platform-model/opm-controller/internal/controller"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // platformWatchStub reports PlatformNotReady until ready is set, then renders
@@ -107,8 +107,8 @@ func (c *getCountingClient) getsOf(key client.ObjectKey) int {
 // The manager-driven proof of the filtered Platform watch: an instance
 // blocked on PlatformNotReady still recovers through the watch, a Platform
 // status write that changes nothing an instance consumes renders nothing, a
-// pin-set change renders again, an operatorVersion-only write recovers an
-// instance blocked after an operator upgrade, and a CLI-owned instance is
+// pin-set change renders again, a controllerVersion-only write recovers an
+// instance blocked after a controller upgrade, and a CLI-owned instance is
 // never enqueued.
 // No Platform reconciler runs, so the spec owns every Platform status write
 // and needs no registry.
@@ -270,7 +270,7 @@ var _ = Describe("filtered Platform watch (manager-driven)", func() {
 		writePlatformStatus(func(p *releasesv1alpha1.Platform) {
 			p.Status.ObservedGeneration = p.Generation
 			p.Status.PackageIdentity = "g1"
-			p.Status.OperatorVersion = "v1.0.0-beta.1"
+			p.Status.ControllerVersion = "v1.0.0-beta.1"
 			setReady(p, metav1.ConditionTrue, status.GeneratedReason, "Platform module generated and built for generation 1")
 		})
 		Eventually(func(g Gomega) {
@@ -316,10 +316,10 @@ var _ = Describe("filtered Platform watch (manager-driven)", func() {
 		afterPin := stub.renders()
 		Consistently(stub.renders).WithTimeout(2 * time.Second).WithPolling(100 * time.Millisecond).Should(Equal(afterPin))
 
-		// (d) An operator upgrade into an already-Ready Platform: the new
+		// (d) A controller upgrade into an already-Ready Platform: the new
 		// process's store starts empty, so the instance renders into
 		// PlatformNotReady, and the regenerated Platform's status write moves
-		// only status.operatorVersion. That write alone must recover it.
+		// only status.controllerVersion. That write alone must recover it.
 		stub.ready.Store(false)
 		blockedBefore, _ := stub.calls()
 		writePlatformStatus(func(p *releasesv1alpha1.Platform) {
@@ -337,13 +337,13 @@ var _ = Describe("filtered Platform watch (manager-driven)", func() {
 
 		stub.ready.Store(true)
 		writePlatformStatus(func(p *releasesv1alpha1.Platform) {
-			p.Status.OperatorVersion = "v1.0.0-beta.2"
+			p.Status.ControllerVersion = "v1.0.0-beta.2"
 		})
 		Eventually(func() int {
 			_, ok := stub.calls()
 			return len(ok)
 		}).WithTimeout(10*time.Second).WithPolling(20*time.Millisecond).Should(BeNumerically(">", len(successesBefore)),
-			"an operatorVersion-only write re-renders the blocked instance")
+			"a controllerVersion-only write re-renders the blocked instance")
 		_, successes = stub.calls()
 		Expect(successes[len(successesBefore)]).To(BeTemporally("<", upgradeFloor),
 			"the upgrade recovery must come from the Platform watch, not the transient backoff")

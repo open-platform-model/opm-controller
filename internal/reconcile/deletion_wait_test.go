@@ -21,8 +21,8 @@ import (
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // holdFinalizer keeps an object terminating in the fake client after its
@@ -611,7 +611,7 @@ func TestRecordHoldsOnUnauthorizedReads(t *testing.T) {
 // (k8s.io/apiserver, endpoints/filters/impersonation).
 func impersonationRefused(client.Object) error {
 	return apierrors.NewForbidden(schema.GroupResource{Resource: "serviceaccounts"}, "deploy-sa",
-		errors.New("User \"system:serviceaccount:opm-operator-system:manager\" cannot impersonate resource \"serviceaccounts\""))
+		errors.New("User \"system:serviceaccount:opm-system:manager\" cannot impersonate resource \"serviceaccounts\""))
 }
 
 // TestForbiddenHoldsWithTheServiceAccountPresent: only a ServiceAccount that

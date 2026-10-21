@@ -35,26 +35,26 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/yaml"
 
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
-// The operator in these specs is a user that holds exactly the rules of the
+// The controller in these specs is a user that holds exactly the rules of the
 // shipped config/rbac/role.yaml, so they fail when that role cannot do what
 // the apply path needs, and when it can impersonate more than a
 // ServiceAccount.
 var _ = Describe("Impersonation under the shipped manager role", Ordered, ContinueOnFailure, func() {
 	const (
-		operatorUser = "shipped-role-operator"
-		roleName     = "imp-shipped-manager-role"
-		directNS     = "imp-shipped-direct"
-		groupNS      = "imp-shipped-group"
-		editRole     = "imp-shipped-configmap-editor"
+		controllerUser = "shipped-role-controller"
+		roleName       = "imp-shipped-manager-role"
+		directNS       = "imp-shipped-direct"
+		groupNS        = "imp-shipped-group"
+		editRole       = "imp-shipped-configmap-editor"
 	)
 
 	var (
-		shipped        rbacv1.ClusterRole
-		operatorCfg    *rest.Config
-		operatorClient client.Client
+		shipped          rbacv1.ClusterRole
+		controllerCfg    *rest.Config
+		controllerClient client.Client
 	)
 
 	configMap := func(namespace, name string) *unstructured.Unstructured {
@@ -67,9 +67,9 @@ var _ = Describe("Impersonation under the shipped manager role", Ordered, Contin
 	}
 
 	// applyAs applies one ConfigMap through the client the reconciler builds
-	// for the ServiceAccount, with the operator's own credentials underneath.
+	// for the ServiceAccount, with the controller's own credentials underneath.
 	applyAs := func(namespace, saName, cmName string) error {
-		impClient, err := apply.NewImpersonatedClient(ctx, operatorCfg, operatorClient, scheme.Scheme, namespace, saName)
+		impClient, err := apply.NewImpersonatedClient(ctx, controllerCfg, controllerClient, scheme.Scheme, namespace, saName)
 		Expect(err).NotTo(HaveOccurred())
 		rm := apply.NewResourceManager(impClient, "opm-controller")
 		_, err = apply.Apply(ctx, rm, []*unstructured.Unstructured{configMap(namespace, cmName)}, apply.ApplyOptions{})
@@ -89,13 +89,13 @@ var _ = Describe("Impersonation under the shipped manager role", Ordered, Contin
 		Expect(k8sClient.Create(ctx, &rbacv1.ClusterRoleBinding{
 			ObjectMeta: metav1.ObjectMeta{Name: roleName},
 			RoleRef:    rbacv1.RoleRef{APIGroup: rbacv1.GroupName, Kind: "ClusterRole", Name: roleName},
-			Subjects:   []rbacv1.Subject{{APIGroup: rbacv1.GroupName, Kind: rbacv1.UserKind, Name: operatorUser}},
+			Subjects:   []rbacv1.Subject{{APIGroup: rbacv1.GroupName, Kind: rbacv1.UserKind, Name: controllerUser}},
 		})).To(Succeed())
 
-		user, err := testEnv.AddUser(envtest.User{Name: operatorUser}, cfg)
+		user, err := testEnv.AddUser(envtest.User{Name: controllerUser}, cfg)
 		Expect(err).NotTo(HaveOccurred())
-		operatorCfg = user.Config()
-		operatorClient, err = client.New(operatorCfg, client.Options{Scheme: scheme.Scheme})
+		controllerCfg = user.Config()
+		controllerClient, err = client.New(controllerCfg, client.Options{Scheme: scheme.Scheme})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(k8sClient.Create(ctx, &rbacv1.ClusterRole{
@@ -159,7 +159,7 @@ var _ = Describe("Impersonation under the shipped manager role", Ordered, Contin
 	})
 
 	// The ServiceAccount watch of the ModuleInstance controller needs list and
-	// watch; nothing in the operator writes a ServiceAccount.
+	// watch; nothing in the controller writes a ServiceAccount.
 	It("reads ServiceAccounts and writes none", func() {
 		var verbs []string
 		for _, rule := range shipped.Rules {
@@ -171,9 +171,9 @@ var _ = Describe("Impersonation under the shipped manager role", Ordered, Contin
 
 		var list metav1.PartialObjectMetadataList
 		list.SetGroupVersionKind(corev1.SchemeGroupVersion.WithKind("ServiceAccountList"))
-		Expect(operatorClient.List(ctx, &list)).To(Succeed())
+		Expect(controllerClient.List(ctx, &list)).To(Succeed())
 
-		err := operatorClient.Create(ctx, &corev1.ServiceAccount{
+		err := controllerClient.Create(ctx, &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{Name: "never-created", Namespace: directNS},
 		})
 		Expect(apierrors.IsForbidden(err)).To(BeTrue(), "got %v", err)
@@ -205,7 +205,8 @@ var _ = Describe("Impersonation under the shipped manager role", Ordered, Contin
 	})
 
 	It("acts with the identity a ServiceAccount token would carry", func() {
-		impClient, err := apply.NewImpersonatedClient(ctx, operatorCfg, operatorClient, scheme.Scheme, groupNS, "member-sa")
+		impClient, err := apply.NewImpersonatedClient(
+			ctx, controllerCfg, controllerClient, scheme.Scheme, groupNS, "member-sa")
 		Expect(err).NotTo(HaveOccurred())
 
 		var review authenticationv1.SelfSubjectReview
@@ -220,7 +221,7 @@ var _ = Describe("Impersonation under the shipped manager role", Ordered, Contin
 
 	DescribeTable("cannot impersonate anything but a ServiceAccount",
 		func(imp rest.ImpersonationConfig) {
-			impCfg := rest.CopyConfig(operatorCfg)
+			impCfg := rest.CopyConfig(controllerCfg)
 			impCfg.Impersonate = imp
 			c, err := client.New(impCfg, client.Options{Scheme: scheme.Scheme})
 			Expect(err).NotTo(HaveOccurred())

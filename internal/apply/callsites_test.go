@@ -290,7 +290,7 @@ func TestDeleteCallMatcher(t *testing.T) {
 // (enhancement 0012). Objects of an instance are written by one call, the staged
 // apply, which the reconcilers reach only after the library's apply verdict.
 // Every other listed call writes no instance object: a dry run, or a status
-// or finalizer patch of one of the operator's own kinds.
+// or finalizer patch of one of the controller's own kinds.
 func TestWriteCallSitesAreClosed(t *testing.T) {
 	// The number of writes each file may hold. A further write in a listed
 	// file is either behind the apply verdict or no write of an instance
@@ -302,7 +302,7 @@ func TestWriteCallSitesAreClosed(t *testing.T) {
 		"internal/apply/claims.go": 1,
 		// The dry run of the taken-in check: it changes nothing.
 		"internal/apply/takein.go": 1,
-		// Status and finalizer patches of the operator's own kinds.
+		// Status and finalizer patches of the controller's own kinds.
 		"internal/reconcile/moduleinstance.go":                      10,
 		"internal/reconcile/modulepackage.go":                       5,
 		"internal/controller/platform_controller.go":                1,
@@ -355,8 +355,8 @@ func TestWriteCallMatcher(t *testing.T) {
 	}
 }
 
-// The operator never names the adopt annotation: it is read only inside the
-// library's verdicts, so no code of the operator can set, change or remove
+// The controller never names the adopt annotation: it is read only inside the
+// library's verdicts, so no code of the controller can set, change or remove
 // it (enhancement 0012).
 func TestNoFileNamesTheAdoptAnnotation(t *testing.T) {
 	root, err := filepath.Abs(moduleRoot)

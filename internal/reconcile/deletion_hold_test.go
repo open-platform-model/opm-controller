@@ -23,8 +23,8 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/lifecycle"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // cleanupFixture describes one deleting object for the cleanup tests of both
@@ -274,7 +274,7 @@ func forEachCleanupKind(t *testing.T, test func(t *testing.T, kind cleanupKind))
 }
 
 // TestCleanupFollowsTheHoldVerdict pairs every reason of the library's hold
-// verdict with what the operator does for it: the finalizer, the Ready
+// verdict with what the controller does for it: the finalizer, the Ready
 // reason, the event and the requeue. One row per lifecycle.HoldReason.
 func TestCleanupFollowsTheHoldVerdict(t *testing.T) {
 	saGone := func(r *cleanupRun) { r.env.restConfig = stubRestConfig }

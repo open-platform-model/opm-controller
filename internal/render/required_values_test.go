@@ -16,8 +16,8 @@ import (
 	oerrors "github.com/open-platform-model/library/opm/errors"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // These tests pin what each render path says about values that do not
@@ -465,7 +465,7 @@ func constrainedInstancePackage(t *testing.T, valuesCUE string) string {
 // A ModulePackage whose values do not satisfy the module's #config is told
 // every finding with its positions, where the kernel's own text holds the
 // first finding, a count and no position. A position in the package is
-// relative to the package's CUE module root: the operator extracts a package
+// relative to the package's CUE module root: the controller extracts a package
 // to a new temporary directory on every reconcile, and the message of an
 // unchanged package must not change with it.
 func TestKernelPackageRenderer_ValuesFailureListsEveryFinding(t *testing.T) {

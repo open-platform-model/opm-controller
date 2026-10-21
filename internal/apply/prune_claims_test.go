@@ -19,7 +19,7 @@ package apply
 import (
 	"testing"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // Only a PersistentVolumeClaim of the core API group is a data claim. A kind

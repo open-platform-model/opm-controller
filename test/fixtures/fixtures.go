@@ -3,7 +3,7 @@
 // carries instead of a literal that has to be edited on every bump.
 //
 // IDENTICAL COPY in cli/tests/fixtures/fixtures.go and
-// opm-operator/test/fixtures/fixtures.go. The workspace root `task
+// opm-controller/test/fixtures/fixtures.go. The workspace root `task
 // fixtures:lint` fails when the two drift; edit both.
 //
 // A module fixture lives at <this dir>/modules/<name>/, a catalog fixture at
@@ -28,8 +28,8 @@ import (
 // Coordinate is a fixture's declared module path and bare SemVer version.
 type Coordinate struct {
 	// ModulePath is the major-suffixed CUE module path, e.g.
-	// testing.opmodel.dev/modules/operator/hello@v0 or
-	// testing.opmodel.dev/catalogs/operator/provider@v0.
+	// testing.opmodel.dev/modules/controller/hello@v0 or
+	// testing.opmodel.dev/catalogs/controller/provider@v0.
 	ModulePath string
 	// Version is the bare SemVer, e.g. 0.0.6.
 	Version string

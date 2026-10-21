@@ -7,7 +7,7 @@ package hello_web
 
 import (
 	core "opmodel.dev/core@v2"
-	helloweb "testing.opmodel.dev/modules/operator/hello_web@v0"
+	helloweb "testing.opmodel.dev/modules/controller/hello_web@v0"
 )
 
 core.#ModuleInstance

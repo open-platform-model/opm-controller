@@ -35,7 +35,7 @@ import (
 
 	libobject "github.com/open-platform-model/library/opm/k8s/object"
 
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 // recordingClient records every write that is not a dry run, in the order
@@ -199,7 +199,7 @@ func orderSet(suffix string) []*unstructured.Unstructured {
 
 // fluxStage is the stage Flux's own rules put an object in: the cluster
 // definitions, then the class definitions, then everything else. The
-// operator sets no custom stage.
+// controller sets no custom stage.
 func fluxStage(u *unstructured.Unstructured) int {
 	switch {
 	case ssautils.IsClusterDefinition(u):
@@ -229,7 +229,7 @@ What to do:
     Flux list in its flux_order_test.go, so that the table agrees with the
     pinned Flux version. Hold the pin bump until that library release exists.
   - A stage contradiction: Flux changed the precedence of its stages, or the
-    operator changed what it passes to Flux. internal/apply/flux_order_test.go
+    controller changed what it passes to Flux. internal/apply/flux_order_test.go
     mirrors that precedence in stagedOrder; bring it in line with the pinned
     ApplyAllStaged, then read what that test reports.
 `

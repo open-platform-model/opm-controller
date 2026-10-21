@@ -76,12 +76,12 @@ When any provider-fulfilled contract is provided by more than one enabled regist
 - **WHEN** the catalog defining a provider-fulfilled contract is disabled or absent and two enabled registry entries provide that contract
 - **THEN** the Platform reports `Ready=False` with reason `OverSubscribedContracts`, the message names the contract and both providing registry entries with no defining catalog, and no package is recorded for that tuple
 
-### Requirement: The operator does not recount the over-subscription
-When any provider-fulfilled contract is provided by more than one enabled registry entry, the reconciler SHALL refuse the package. As listed in requirement "The over-subscription count is the one core computes": The operator SHALL NOT recount it, so the generation gate and the render refusal fire on the same platforms.
+### Requirement: The controller does not recount the over-subscription
+When any provider-fulfilled contract is provided by more than one enabled registry entry, the reconciler SHALL refuse the package. As listed in requirement "The over-subscription count is the one core computes": The controller SHALL NOT recount it, so the generation gate and the render refusal fire on the same platforms.
 
-#### Scenario: The operator does not recount
+#### Scenario: The controller does not recount
 - **WHEN** a provider-fulfilled contract is provided by more than one enabled registry entry
-- **THEN** the operator does not recount it, so the generation gate and the render refusal fire on the same platforms
+- **THEN** the controller does not recount it, so the generation gate and the render refusal fire on the same platforms
 
 ### Requirement: The over-subscription finding is printed only for an over-subscribed contract
 The over-subscription finding SHALL be printed only when the inventory lists an over-subscribed contract. An inventory that is not routable while listing neither an over-subscribed contract nor a colliding key SHALL still be refused (fail closed), with reason `OverSubscribedContracts` and a message saying the platform is not routable and the inventory names no over-subscribed or colliding contract.
@@ -195,12 +195,12 @@ After a generated platform module builds, when the built platform's contract inv
 - **WHEN** a package cannot be generated because enabled entries share contract keys
 - **THEN** the message says that a package cannot be generated until all but one of those entries is disabled
 
-### Requirement: The operator reads colliding keys from the inventory
-The colliding keys and their defining entries SHALL be read from the inventory as core reports them; the operator SHALL NOT count definers.
+### Requirement: The controller reads colliding keys from the inventory
+The colliding keys and their defining entries SHALL be read from the inventory as core reports them; the controller SHALL NOT count definers.
 
 #### Scenario: Definers are read, not counted
 - **WHEN** core reports a colliding key and its defining entries
-- **THEN** they are read from the inventory as core reports them, and the operator does not count definers
+- **THEN** they are read from the inventory as core reports them, and the controller does not count definers
 
 ### Requirement: The collision refusal holds whatever the other verdicts read
 The refusal SHALL hold whatever the inventory's other verdicts read: a colliding key is absent from the defined, required and comparable reports, so `fulfilled` and `discriminated` can read true while a collision exists, and neither SHALL be taken as clearing it.

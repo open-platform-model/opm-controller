@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: SourceRefGrant CRD
-The operator MUST define a namespaced `SourceRefGrant` custom resource in the `releases.opmodel.dev` API group. A `SourceRefGrant` lives in the namespace that owns the source being referenced and declares which referrers may reference which source objects within that namespace. The CRD MUST be additive and permissive only: it grants access and never denies it; absence of a matching grant is a denial.
+The controller MUST define a namespaced `SourceRefGrant` custom resource in the `releases.opmodel.dev` API group. A `SourceRefGrant` lives in the namespace that owns the source being referenced and declares which referrers may reference which source objects within that namespace. The CRD MUST be additive and permissive only: it grants access and never denies it; absence of a matching grant is a denial.
 
 #### Scenario: Grant is namespaced and lives with the source
 - **WHEN** an administrator authors a `SourceRefGrant`

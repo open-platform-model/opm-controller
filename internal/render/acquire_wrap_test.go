@@ -14,7 +14,7 @@ import (
 	oerrors "github.com/open-platform-model/library/opm/errors"
 	"github.com/open-platform-model/library/opm/kernel"
 
-	platformstore "github.com/open-platform-model/opm-operator/internal/platform"
+	platformstore "github.com/open-platform-model/opm-controller/internal/platform"
 )
 
 // These tests drive the production wrap sites without a registry: each

@@ -35,13 +35,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/yaml"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // Every opmodel.dev object in config/samples is admitted by the CRDs as they
 // are: a server-side dry-run create with strict field validation, so a
 // sample carrying a field the schema dropped fails here instead of being
-// pruned silently. The operator resource reference, which the docs bundle
+// pruned silently. The controller resource reference, which the docs bundle
 // generates from the CRD types and config/samples, shows these samples as its
 // examples, so this is what keeps them current with the schema.
 func TestSamplesAdmittedByTheCRDs(t *testing.T) {

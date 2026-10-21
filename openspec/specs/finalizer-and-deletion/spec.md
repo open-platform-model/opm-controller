@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator registers its cleanup finalizer on a release, what the deletion cleanup prunes or orphans, when the finalizer is kept, and which events make a stalled deletion run again.
+Define how the controller registers its cleanup finalizer on a release, what the deletion cleanup prunes or orphans, when the finalizer is kept, and which events make a stalled deletion run again.
 
 ## Requirements
 
@@ -293,7 +293,7 @@ A deletion cleanup has sent every delete when one reconcile of it ended with a r
 - **THEN** the reconcile renders and applies as usual and replaces the condition
 
 #### Scenario: The shipped roles cannot write the record
-- **GIVEN** every role under `config/rbac` that the operator ships for users (the editor, admin and viewer roles)
+- **GIVEN** every role under `config/rbac` that the controller ships for users (the editor, admin and viewer roles)
 - **WHEN** their rules are read
 - **THEN** no rule grants `update` or `patch` on a `status` subresource
 
@@ -645,7 +645,7 @@ As in requirement "A wait survives the loss of the ServiceAccount": Known limit,
 - **THEN** the next reconcile removes the finalizer
 
 ### Requirement: The wait reasons are set only during a deletion
-As in requirement "A wait survives the loss of the ServiceAccount": The controller MUST NOT set the reasons `DeletionInProgress` and `DeletionBlocked` anywhere else, and MUST NOT set them on an object that is not being deleted. The roles the operator ships MUST NOT grant a user a write verb on `moduleinstances/status` or `modulepackages/status`.
+As in requirement "A wait survives the loss of the ServiceAccount": The controller MUST NOT set the reasons `DeletionInProgress` and `DeletionBlocked` anywhere else, and MUST NOT set them on an object that is not being deleted. The roles the controller ships MUST NOT grant a user a write verb on `moduleinstances/status` or `modulepackages/status`.
 **Source**: owner decisions of 2026-10-09 (the `Ready` reason is the record, with no new CRD field; during the wait the finalizer is released "only when the ServiceAccount is gone").
 
 #### Scenario: A wait reason is not set on a live object

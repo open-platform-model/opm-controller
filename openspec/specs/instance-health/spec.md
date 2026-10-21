@@ -29,7 +29,7 @@ ModuleInstance and ModulePackage SHALL each carry a printer column `Healthy` sho
 - **THEN** the output has a `HEALTHY` column showing `True`, `False`, `Unknown` or nothing
 
 ### Requirement: Healthy reports whether the inventory rolled out
-The operator SHALL write a `Healthy` condition on a ModuleInstance and on a ModulePackage. It reports whether the objects in `status.inventory` have rolled out, as judged by the library's `opm/k8s/health`. When more than one applies, `ProgressDeadlineExceeded` wins over `NotRolledOut`, which wins over `HealthUnknown`. `RolledOut` holds only when none of the others applies.
+The controller SHALL write a `Healthy` condition on a ModuleInstance and on a ModulePackage. It reports whether the objects in `status.inventory` have rolled out, as judged by the library's `opm/k8s/health`. When more than one applies, `ProgressDeadlineExceeded` wins over `NotRolledOut`, which wins over `HealthUnknown`. `RolledOut` holds only when none of the others applies.
 
 #### Scenario: More than one reason applies
 - **GIVEN** an instance with a Deployment for which `health.ProgressDeadlineExceeded` holds and another object that is not healthy
@@ -201,7 +201,7 @@ A reconcile that would skip its render SHALL NOT report an absent Job as `Missin
 - **THEN** the Job stays in `status.inventory`, and `Healthy` is `False` with reason `NotRolledOut` and names the Job as `Missing`
 
 ### Requirement: A failed Job with a TTL counts while it exists
-The operator does not know how the Job ended. A Job with a TTL that failed makes `Healthy` `False` while it exists; once the cluster removed it, it is an expired Job like any other and no longer counts. A Job without a TTL that does not exist, and every other missing object, SHALL be judged as before. This requirement does not apply to a ModulePackage.
+The controller does not know how the Job ended. A Job with a TTL that failed makes `Healthy` `False` while it exists; once the cluster removed it, it is an expired Job like any other and no longer counts. A Job without a TTL that does not exist, and every other missing object, SHALL be judged as before. This requirement does not apply to a ModulePackage.
 
 #### Scenario: A failed Job with a TTL counts while it exists
 - **GIVEN** a ModuleInstance whose inventory holds a Job with a TTL that failed and still exists

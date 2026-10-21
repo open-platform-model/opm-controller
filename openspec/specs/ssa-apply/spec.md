@@ -291,7 +291,7 @@ The order in which the staged apply writes two objects of different kinds MUST N
 - **AND** the library weight never decreases along the order of the writes
 
 ### Requirement: A kind Flux applies first never weighs more than the kind it applies second
-When Flux's staged apply, at the version the operator pins, applies an object of kind A before an object of kind B, the library's weight of A, at the version the operator pins, MUST NOT be higher than its weight of B. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
+When Flux's staged apply, at the version the controller pins, applies an object of kind A before an object of kind B, the library's weight of A, at the version the controller pins, MUST NOT be higher than its weight of B. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 #### Scenario: A Flux bump moves a kind
 - **WHEN** the Flux pin moves to a version whose reconcile order puts a Deployment before a Service, and the library still weighs a Service below a Deployment
@@ -314,14 +314,14 @@ The order in which the staged apply writes two objects of different kinds MUST N
 - **THEN** Flux's order refines the library's order
 
 ### Requirement: The test suite fails when the pinned versions break the order rule
-The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The operator's test suite MUST fail when the two pinned versions break this rule. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
+The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The controller's test suite MUST fail when the two pinned versions break this rule. Source: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 #### Scenario: The pinned versions agree
 - **WHEN** the test suite runs with the Flux version and the library version of `go.mod`
 - **THEN** the check finds no pair of kinds in opposite order and passes
 
 ### Requirement: The check reads the order from the pinned Flux module
-The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST read Flux's order from the pinned Flux module itself (its stage rules and its sort), not from a copy of Flux's kind list, so that a bump of the Flux pin that moves a kind fails the suite without an edit to the check.
+The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The controller's test suite MUST fail when the two pinned versions break this rule. The check MUST read Flux's order from the pinned Flux module itself (its stage rules and its sort), not from a copy of Flux's kind list, so that a bump of the Flux pin that moves a kind fails the suite without an edit to the check.
 **Source**: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 #### Scenario: The check reads the pinned module
@@ -329,7 +329,7 @@ The order in which the staged apply writes two objects of different kinds MUST N
 - **THEN** the suite fails without an edit to the check, because the check reads Flux's order from the pinned Flux module itself
 
 ### Requirement: The check covers the kinds of both orders and the kinds of another owner
-The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The operator's test suite MUST fail when the two pinned versions break this rule. The check MUST cover every kind Flux's order names, every kind the library's weight table names, the same kind names in an API group of another owner, a custom kind and a custom kind whose name ends in `Class`.
+The order in which the staged apply writes two objects of different kinds MUST NOT be the opposite of the order the library's kind weights give them. The controller's test suite MUST fail when the two pinned versions break this rule. The check MUST cover every kind Flux's order names, every kind the library's weight table names, the same kind names in an API group of another owner, a custom kind and a custom kind whose name ends in `Class`.
 **Source**: enhancement 0012 ("Ordering is kind-class order in the Kubernetes tier; no module-internal ordering is planned, and cross-module order belongs to a future Bundle").
 
 #### Scenario: The check covers a custom kind whose name ends in Class

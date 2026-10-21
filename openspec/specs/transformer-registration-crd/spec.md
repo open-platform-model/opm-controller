@@ -6,7 +6,7 @@ Define the cluster-scoped `TransformerRegistration` custom resource: the shape a
 
 ### Requirement: Cluster-scoped TransformerRegistration resource
 
-The operator SHALL define a `TransformerRegistration` custom resource in group `opmodel.dev`, version `v1alpha1`, with `scope: Cluster` and a status subresource — `apiVersion: opmodel.dev/v1alpha1`, `kind: TransformerRegistration`. Nothing in a catalog can derive a CRD this repo owns, so the `catalog_opm` renderer SHALL emit these three literals exactly; the operator's group is authoritative. The types SHALL be registered in the runtime scheme.
+The controller SHALL define a `TransformerRegistration` custom resource in group `opmodel.dev`, version `v1alpha1`, with `scope: Cluster` and a status subresource — `apiVersion: opmodel.dev/v1alpha1`, `kind: TransformerRegistration`. Nothing in a catalog can derive a CRD this repo owns, so the `catalog_opm` renderer SHALL emit these three literals exactly; the controller's group is authoritative. The types SHALL be registered in the runtime scheme.
 
 #### Scenario: The kind is installable and cluster-scoped
 
@@ -35,7 +35,7 @@ The operator SHALL define a `TransformerRegistration` custom resource in group `
 
 ### Requirement: Creating a claim requires platform-admin RBAC
 
-The operator SHALL ship a ClusterRole granting create, update and delete on `transformerregistrations`, and SHALL NOT grant those verbs to any tenant-facing role it ships. A module applied under an impersonated tenant ServiceAccount therefore cannot create a claim unless a cluster administrator has deliberately bound that role. The operator's own manager role SHALL carry the read and status verbs it needs.
+The controller SHALL ship a ClusterRole granting create, update and delete on `transformerregistrations`, and SHALL NOT grant those verbs to any tenant-facing role it ships. A module applied under an impersonated tenant ServiceAccount therefore cannot create a claim unless a cluster administrator has deliberately bound that role. The controller's own manager role SHALL carry the read and status verbs it needs.
 
 #### Scenario: A tenant ServiceAccount cannot create a claim
 

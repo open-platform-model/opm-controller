@@ -44,16 +44,16 @@ import (
 	k8sinventory "github.com/open-platform-model/library/opm/k8s/inventory"
 	"github.com/open-platform-model/library/opm/k8s/object"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
-// upgradedOperatorVersion is the operator version the upgrade specs move to
-// from testOperatorVersion.
-const upgradedOperatorVersion = "v1.0.1-test"
+// upgradedControllerVersion is the controller version the upgrade specs move to
+// from testControllerVersion.
+const upgradedControllerVersion = "v1.0.1-test"
 
 // callCountingRenderer counts the module renders a reconcile asks for.
 type callCountingRenderer struct {
@@ -144,7 +144,7 @@ func setPackageIdentity(ctx context.Context, identity string) {
 	}, 5*time.Second, 100*time.Millisecond).Should(Succeed())
 }
 
-// preUpgradeInventoryDigest is the inventory digest the operator recorded
+// preUpgradeInventoryDigest is the inventory digest the controller recorded
 // before it adopted the library's opm/k8s/inventory: the entries sorted by
 // group, kind, namespace, name, component and version, hashed as their JSON.
 // It is kept here only to seed status with a pre-upgrade value.
@@ -170,7 +170,7 @@ func preUpgradeInventoryDigest(entries []releasesv1alpha1.InventoryEntry) string
 	return fmt.Sprintf("sha256:%x", sha256.Sum256(b))
 }
 
-// preUpgradeRenderDigest is the render digest the operator recorded before it
+// preUpgradeRenderDigest is the render digest the controller recorded before it
 // adopted the library's opm/k8s/inventory: the exported objects sorted by
 // group, kind, namespace and name, their JSON hashed in that order, with the
 // managed-by value included. It is kept here only to seed status with a
@@ -202,7 +202,7 @@ func preUpgradeRenderDigest(exported []object.Exported) string {
 }
 
 // libraryDigestsOf returns the render digest and the inventory digest the
-// operator now records for result: the library's digests over one export of
+// controller now records for result: the library's digests over one export of
 // its resources and over the entries built from that export.
 func libraryDigestsOf(result *render.RenderResult) (renderDigest, inventoryDigest string, exported []object.Exported) {
 	exported, err := object.Export(result.Resources)
@@ -234,7 +234,7 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 				ResourceManager:     apply.NewResourceManager(k8sClient, "opm-controller"),
 				EventRecorder:       events.NewFakeRecorder(100),
 				Renderer:            renderer,
-				OperatorVersion:     testOperatorVersion,
+				ControllerVersion:   testControllerVersion,
 				LibraryVersion:      testLibraryVersion,
 				DriftRenderInterval: drift,
 			}
@@ -295,9 +295,9 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 
 		// seedPreUpgradeDigests overwrites the stored inventory and render
 		// digests with the values the earlier encoding gives for the same
-		// entries and render, as an instance applied by the earlier operator
+		// entries and render, as an instance applied by the earlier controller
 		// holds them. The key stays the one appliedInstance recorded, under
-		// testOperatorVersion.
+		// testControllerVersion.
 		seedPreUpgradeDigests := func(ctx context.Context, nn types.NamespacedName) {
 			mi := get(ctx, nn)
 			Expect(mi.Status.LastAppliedInputs).NotTo(BeNil())
@@ -353,12 +353,12 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			// names gen-1, never the gen-2 read before the render.
 			after := get(ctx, nn)
 			leased := status.RenderInputKey{
-				Source:          after.Status.LastAppliedSourceDigest,
-				Config:          after.Status.LastAppliedConfigDigest,
-				PackageIdentity: stubPlatformIdentity,
-				SkewPolicy:      stubSkewPolicy,
-				OperatorVersion: testOperatorVersion,
-				LibraryVersion:  testLibraryVersion,
+				Source:            after.Status.LastAppliedSourceDigest,
+				Config:            after.Status.LastAppliedConfigDigest,
+				PackageIdentity:   stubPlatformIdentity,
+				SkewPolicy:        stubSkewPolicy,
+				ControllerVersion: testControllerVersion,
+				LibraryVersion:    testLibraryVersion,
 			}
 			Expect(after.Status.LastAppliedInputs.Digest).To(Equal(leased.Digest()),
 				"the recorded identity is the one the render leased")
@@ -460,20 +460,20 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			Expect(after.Status.ObservedGeneration).To(Equal(after.Generation))
 		})
 
-		It("renders and applies once after an operator upgrade, and records the new key", func() {
+		It("renders and applies once after a controller upgrade, and records the new key", func() {
 			ctx := context.Background()
 			renderer := &callCountingRenderer{}
 			nn := appliedInstance(ctx, "skip-upgrade-mi", renderer)
 			before := get(ctx, nn)
 			calls := renderer.calls.Load()
 
-			// The new operator computes a different render digest for the
+			// The new controller computes a different render digest for the
 			// same inputs, as a change to how a stored digest is computed would.
 			values := &releasesv1alpha1.RawValues{}
 			values.Raw = []byte(`{"message": "re-digested"}`)
 			upgraded := &callCountingRenderer{stubRenderer: stubRenderer{result: stubRenderResult(namespace, values)}}
 			r := newReconciler(upgraded, interval)
-			r.OperatorVersion = upgradedOperatorVersion
+			r.ControllerVersion = upgradedControllerVersion
 			reconcileOnce(ctx, r, nn)
 
 			Expect(renderer.calls.Load()).To(Equal(calls))
@@ -482,12 +482,12 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			Expect(after.Status.LastAppliedRenderDigest).NotTo(Equal(before.Status.LastAppliedRenderDigest), "and applies")
 			Expect(after.Status.History).To(HaveLen(len(before.Status.History) + 1))
 			want := status.RenderInputKey{
-				Source:          after.Status.LastAppliedSourceDigest,
-				Config:          after.Status.LastAppliedConfigDigest,
-				PackageIdentity: stubPlatformIdentity,
-				SkewPolicy:      stubSkewPolicy,
-				OperatorVersion: upgradedOperatorVersion,
-				LibraryVersion:  testLibraryVersion,
+				Source:            after.Status.LastAppliedSourceDigest,
+				Config:            after.Status.LastAppliedConfigDigest,
+				PackageIdentity:   stubPlatformIdentity,
+				SkewPolicy:        stubSkewPolicy,
+				ControllerVersion: upgradedControllerVersion,
+				LibraryVersion:    testLibraryVersion,
 			}
 			Expect(after.Status.LastAppliedInputs.Digest).To(Equal(want.Digest()))
 		})
@@ -495,7 +495,7 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 		// The one-time digest change of adopting the library's
 		// opm/k8s/inventory, pinned against the render skip: an instance
 		// whose stored digests are in the earlier encoding renders once and
-		// applies once under the next operator version, then converges.
+		// applies once under the next controller version, then converges.
 		It("applies the library's digests once after an upgrade, then converges", func() {
 			ctx := context.Background()
 			renderer := &callCountingRenderer{}
@@ -504,11 +504,11 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			before := get(ctx, nn)
 			calls := renderer.calls.Load()
 
-			By("the first reconcile under the new operator renders and applies once")
+			By("the first reconcile under the new controller renders and applies once")
 			r := newReconciler(renderer, interval)
-			r.OperatorVersion = upgradedOperatorVersion
+			r.ControllerVersion = upgradedControllerVersion
 			reconcileOnce(ctx, r, nn)
-			Expect(renderer.calls.Load()).To(Equal(calls+1), "the key moved with the operator version")
+			Expect(renderer.calls.Load()).To(Equal(calls+1), "the key moved with the controller version")
 			after := get(ctx, nn)
 			Expect(after.Status.History).To(HaveLen(len(before.Status.History)+1), "one apply")
 			Expect(after.Status.Inventory.Revision).To(Equal(before.Status.Inventory.Revision + 1))
@@ -516,7 +516,7 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			Expect(after.Status.LastAppliedRenderDigest).To(Equal(wantRender))
 			Expect(after.Status.Inventory.Digest).To(Equal(wantInventory))
 
-			By("the next reconcile under the same operator skips and patches nothing")
+			By("the next reconcile under the same controller skips and patches nothing")
 			calls = renderer.calls.Load()
 			counting, writes := patchCountingClient()
 			r.Client = counting
@@ -536,7 +536,7 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 		})
 
 		// The documented boundary: the key holds no digest, so a key recorded
-		// by the running operator version hides the earlier encoding until
+		// by the running controller version hides the earlier encoding until
 		// the drift render interval passes. Release images always move the
 		// version, so this costs only a development image the interval.
 		It("keeps the earlier digests under a key from the same version until the interval", func() {
@@ -648,7 +648,7 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 				EventRecorder:       events.NewFakeRecorder(100),
 				Fetcher:             fetcher,
 				Renderer:            renderer,
-				OperatorVersion:     testOperatorVersion,
+				ControllerVersion:   testControllerVersion,
 				LibraryVersion:      testLibraryVersion,
 				DriftRenderInterval: interval,
 			}
@@ -750,8 +750,8 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			Expect(k8sClient.Get(ctx, nn, &before)).To(Succeed())
 			renders := renderer.calls.Load()
 
-			By("the first reconcile under the new operator renders and applies once")
-			r.OperatorVersion = upgradedOperatorVersion
+			By("the first reconcile under the new controller renders and applies once")
+			r.ControllerVersion = upgradedControllerVersion
 			_, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(renderer.calls.Load()).To(Equal(renders + 1))
@@ -762,7 +762,7 @@ var _ = Describe("Render skip on unchanged inputs", func() {
 			Expect(after.Status.LastAppliedRenderDigest).To(Equal(wantRender))
 			Expect(after.Status.Inventory.Digest).To(Equal(wantInventory))
 
-			By("the next reconcile under the same operator skips and patches nothing")
+			By("the next reconcile under the same controller skips and patches nothing")
 			counting, writes := patchCountingClient()
 			r.Client = counting
 			_, err = r.Reconcile(ctx, reconcile.Request{NamespacedName: nn})

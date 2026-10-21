@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# pins.sh <WORKTREE|git-ref>: opm-operator's upstream pins, one TSV row each:
+# pins.sh <WORKTREE|git-ref>: opm-controller's upstream pins, one TSV row each:
 # <pin-key> <display> <class> <v-version> <labels> (Phase 2 cascade contract §4.1).
 # WORKTREE reads the files on disk; anything else is read with git show <ref>:<path>.
 # A file missing at that ref omits its row; any other failure exits 1.

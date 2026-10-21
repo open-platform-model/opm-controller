@@ -185,7 +185,7 @@ The drift render interval (`--drift-render-interval`) bounds how long such skips
 
 ### Requirement: Drift detection skips a resource the reconcile withheld from apply
 Drift detection SHALL skip a resource the reconcile withheld from apply, and its difference from live state SHALL NOT set the `Drifted` condition.
-Drift reports that the cluster diverged from what the operator asserts. A withheld resource is one the operator is deliberately not asserting, so reporting it as drift would name a difference the operator created on purpose and intends not to close: a condition that never clears, and one that would bury real drift on the same instance behind it.
+Drift reports that the cluster diverged from what the controller asserts. A withheld resource is one the controller is deliberately not asserting, so reporting it as drift would name a difference the controller created on purpose and intends not to close: a condition that never clears, and one that would bury real drift on the same instance behind it.
 
 #### Scenario: A withheld resource does not set Drifted
 

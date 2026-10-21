@@ -1,5 +1,5 @@
 ---
-# Per-release applier ServiceAccount the operator impersonates when applying
+# Per-release applier ServiceAccount the controller impersonates when applying
 # web-app's rendered resources. Mirrors the hello fixture's applier pattern, but
 # scoped to every kind the web_app module renders: Deployment (apps), Service +
 # ConfigMaps (core), and HTTPRoute (gateway.networking.k8s.io).

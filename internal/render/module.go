@@ -13,7 +13,7 @@ type RenderResult struct {
 	// Resources is the ordered list of rendered Kubernetes resources.
 	Resources []*object.Resource
 
-	// Warnings are the render's advisory findings, worded by the operator
+	// Warnings are the render's advisory findings, worded by the controller
 	// (renderWarnings) from the diagnostics' rows: effectively-optional unhandled
 	// traits and, under the Warn skew policy, catalog version skew. Unresolved
 	// demands (undemandable resources, unhandled load-bearing traits) refuse the

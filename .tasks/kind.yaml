@@ -30,8 +30,8 @@ tasks:
       - task: :registry:connect
       - task: :flux:install
       - task: load
-      - task: :operator:controller:install
+      - task: :controller:install
       - |
-        {{.KUBECTL}} -n opm-operator-system patch deployment opm-operator-controller-manager \
+        {{.KUBECTL}} -n opm-system patch deployment opm-controller-manager \
           --type=json \
           -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry={{.KIND_CUE_REGISTRY}}"}]'

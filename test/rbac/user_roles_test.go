@@ -1,4 +1,4 @@
-// Package rbac tests the roles the operator ships for users.
+// Package rbac tests the roles the controller ships for users.
 package rbac
 
 import (
@@ -63,7 +63,7 @@ func userRoleFiles(t *testing.T) []string {
 // The Ready reason of a deleting ModuleInstance or ModulePackage is the
 // record that its cleanup sent every delete (internal/reconcile,
 // recordedWaitReason). A user who could write the status subresource could
-// forge it, so no role the operator ships for users may grant that.
+// forge it, so no role the controller ships for users may grant that.
 func TestUserRolesCannotWriteAStatusSubresource(t *testing.T) {
 	sawStatusRule := false
 	for _, file := range userRoleFiles(t) {

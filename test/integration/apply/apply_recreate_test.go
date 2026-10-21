@@ -14,7 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 var _ = Describe("Deletes of the resource manager", func() {

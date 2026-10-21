@@ -1,12 +1,12 @@
 # deps-cascade Specification
 
 ## Purpose
-The operator's `task deps:cascade`: how it moves the repo's upstream pins (library, the opm catalog and core with fixtures and consumers, and the opm CLI) to the newest published versions, which pins it leaves alone, how it reports by exit code, and how it is tested.
+The controller's `task deps:cascade`: how it moves the repo's upstream pins (library, the opm catalog and core with fixtures and consumers, and the opm CLI) to the newest published versions, which pins it leaves alone, how it reports by exit code, and how it is tested.
 
 ## Requirements
 
 ### Requirement: deps:cascade moves pins in the working tree and reports by exit code
-The repo SHALL provide `task deps:cascade`, which moves opm-operator's upstream pins to the newest published versions in the working tree only. It SHALL NOT commit, push or create a branch. Run as `task -x deps:cascade`, it SHALL exit 0 when the working tree changed, 3 when there was nothing to do, and any other code on error, and it SHALL never turn a failure into 0 or 3. It SHALL move exactly the library, opm catalog, core and opm CLI pins.
+The repo SHALL provide `task deps:cascade`, which moves opm-controller's upstream pins to the newest published versions in the working tree only. It SHALL NOT commit, push or create a branch. Run as `task -x deps:cascade`, it SHALL exit 0 when the working tree changed, 3 when there was nothing to do, and any other code on error, and it SHALL never turn a failure into 0 or 3. It SHALL move exactly the library, opm catalog, core and opm CLI pins.
 
 #### Scenario: Up-to-date tree
 - **WHEN** every pin already equals the newest published version the resolver reports
@@ -96,12 +96,12 @@ Every version decision of `task deps:cascade` SHALL come from the shared cascade
 - **WHEN** the task moves the opm CLI pin and other pins in one run
 - **THEN** `.opm-cli-version` is written after every other pin
 
-### Requirement: deps:cascade leaves the generated operator reference alone
-`task deps:cascade` SHALL NOT edit `docs/site/reference/operator/_index.md`: the docs bundle generates the resource reference from `config/samples` when it is built.
+### Requirement: deps:cascade leaves the generated controller reference alone
+`task deps:cascade` SHALL NOT edit `docs/site/reference/controller/_index.md`: the docs bundle generates the resource reference from `config/samples` when it is built.
 
 #### Scenario: Sample Platform moved
 - **WHEN** the task moves the catalog `version:` in the sample Platform
-- **THEN** `docs/site/reference/operator/_index.md` is unchanged, and `task docs:bundle` on the resulting tree shows the moved version in the example of `reference/operator/platform.md`
+- **THEN** `docs/site/reference/controller/_index.md` is unchanged, and `task docs:bundle` on the resulting tree shows the moved version in the example of `reference/controller/platform.md`
 
 ### Requirement: deps:cascade runs cue mod get on OPM modules only
 In `task deps:cascade`, `cue mod get` SHALL name only `opmodel.dev/*` and `testing.opmodel.dev/*` modules, each with an exact version, and SHALL run, followed by one `cue mod tidy`, only in a module where a pin moved. Third-party pins SHALL never be named. The task SHALL never edit an import path or a `@vN` key; a new major SHALL appear only as the resolver's warning.
@@ -184,12 +184,12 @@ In the same run that sets a fixture module's declared version, `task deps:cascad
 - **WHEN** the task moves every pin
 - **THEN** `git diff --name-only` names no path under `.github/`, no release-please file and no `.cascade-*` file
 
-### Requirement: deps:cascade leaves the operator module to its own task
-`task deps:cascade` SHALL NOT modify anything under the operator module's directory `modules/opm_operator/`, whose pins `deps:cascade:module` moves in a PR of its own.
+### Requirement: deps:cascade leaves the controller module to its own task
+`task deps:cascade` SHALL NOT modify anything under the controller module's directory `modules/opm_controller/`, whose pins `deps:cascade:module` moves in a PR of its own.
 
-#### Scenario: The operator module is left to its own task
-- **WHEN** the newest published catalog is newer than the one the operator module pins
-- **THEN** `task deps:cascade` leaves every file under `modules/opm_operator/` unchanged
+#### Scenario: The controller module is left to its own task
+- **WHEN** the newest published catalog is newer than the one the controller module pins
+- **THEN** `task deps:cascade` leaves every file under `modules/opm_controller/` unchanged
 
 ### Requirement: deps:cascade only reads from registries
 `task deps:cascade` SHALL only read from registries and SHALL never publish or seed.
@@ -206,10 +206,10 @@ When an upstream's `language.version` is newer than the `CUE_VERSION` in `.githu
 - **THEN** the task still moves the pin and writes a warning naming both versions
 
 ### Requirement: deps:cascade warns about install page drift and leaves the page unchanged
-When the example output in `docs/site/start/install-the-operator.md` names a catalog other than the sample Platform's, or a core other than `test/fixtures/modules/hello`'s, `task deps:cascade` SHALL warn and SHALL NOT edit that page.
+When the example output in `docs/site/start/install-the-controller.md` names a catalog other than the sample Platform's, or a core other than `test/fixtures/modules/hello`'s, `task deps:cascade` SHALL warn and SHALL NOT edit that page.
 
 #### Scenario: Install page example output drifted
-- **WHEN** `docs/site/start/install-the-operator.md` prints a catalog or core version the tree no longer pins
+- **WHEN** `docs/site/start/install-the-controller.md` prints a catalog or core version the tree no longer pins
 - **THEN** the task writes a warning naming the page and both versions, and leaves the page unchanged
 
 ### Requirement: deps:cascade:test reports each scenario against a stub resolver
@@ -241,7 +241,7 @@ The full set of `task deps:cascade:test` SHALL run in a separate, non-required w
 - **THEN** `task -x deps:cascade:title` prints `fix(deps): bump library to v1.0.0-beta.3 and opm catalog to v4.5.1`
 
 ### Requirement: The classes file holds the contract's path classes
-`.tasks/cascade/classes` SHALL classify `.opm-cli-version` as release-tool and `config/samples/`, `test/`, any `testdata/` directory and `*_test.go` as test, the contract's opm-operator block and nothing more. Any other path, including `go.mod` and `go.sum`, SHALL be shipped.
+`.tasks/cascade/classes` SHALL classify `.opm-cli-version` as release-tool and `config/samples/`, `test/`, any `testdata/` directory and `*_test.go` as test, the contract's opm-controller block and nothing more. Any other path, including `go.mod` and `go.sum`, SHALL be shipped.
 
 #### Scenario: Only fixtures moved
 - **WHEN** the diff changes only paths under `test/` and `config/samples/`
@@ -263,14 +263,14 @@ The full set of `task deps:cascade:test` SHALL run in a separate, non-required w
 - **THEN** `pins.sh WORKTREE` and `pins.sh HEAD` print the same rows
 
 ### Requirement: deps:cascade:module moves the module's catalog and core
-`task deps:cascade:module` SHALL move the operator module's pins in `modules/opm_operator/cue.mod/module.cue` and nothing else, with the rules `deps:cascade` applies to a fixture module: the opm catalog `opmodel.dev/catalogs/opm@v4` to the newest published catalog `K` when it is below `K`, and core `opmodel.dev/core@v2` to the core the module's catalog pins after the move when that is greater. The module's pins are shipped pins: every user who installs the module receives them.
+`task deps:cascade:module` SHALL move the controller module's pins in `modules/opm_controller/cue.mod/module.cue` and nothing else, with the rules `deps:cascade` applies to a fixture module: the opm catalog `opmodel.dev/catalogs/opm@v4` to the newest published catalog `K` when it is below `K`, and core `opmodel.dev/core@v2` to the core the module's catalog pins after the move when that is greater. The module's pins are shipped pins: every user who installs the module receives them.
 
 #### Scenario: Module pins move, image and version stay
-- **WHEN** the newest published catalog is newer than the operator module's
+- **WHEN** the newest published catalog is newer than the controller module's
 - **THEN** the module's `cue.mod/module.cue` names the new catalog and the core it pins, `git diff --name-only` names only that file and the module's `cue.mod` files `tidy` writes, and the module's image reference, `identity.Version`, generated files, `CHANGELOG.md` and `RELEASE` are unchanged
 
 ### Requirement: deps:cascade:module honours holds and frozen paths
-`task deps:cascade:module` SHALL apply holds and frozen paths under the same pin keys, `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, so a hold on either holds the module too, and a `.cascade-frozen` entry for `modules/opm_operator` freezes only the module.
+`task deps:cascade:module` SHALL apply holds and frozen paths under the same pin keys, `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, so a hold on either holds the module too, and a `.cascade-frozen` entry for `modules/opm_controller` freezes only the module.
 
 #### Scenario: Catalog hold holds the module
 - **WHEN** an in-date hold on `opmodel.dev/catalogs/opm@v4` caps the catalog below the newest
@@ -284,11 +284,11 @@ The full set of `task deps:cascade:test` SHALL run in a separate, non-required w
 - **THEN** the task exits 3 and the tree is unchanged
 
 ### Requirement: deps:cascade:module edits only the module's pins
-`task deps:cascade:module` SHALL NOT edit any file outside `modules/opm_operator/`, nor the module's `operator/operator.cue`, its `identity.Version`, its generated CRD and RBAC files, its `CHANGELOG.md` or its `RELEASE`: the image moves only through the image-bump PR, the version only through the identity advance, the generated files only through the generator, and the release files only through release-please.
+`task deps:cascade:module` SHALL NOT edit any file outside `modules/opm_controller/`, nor the module's `controller/controller.cue`, its `identity.Version`, its generated CRD and RBAC files, its `CHANGELOG.md` or its `RELEASE`: the image moves only through the image-bump PR, the version only through the identity advance, the generated files only through the generator, and the release files only through release-please.
 
 #### Scenario: Files the module task never edits
 - **WHEN** `task deps:cascade:module` runs and a newer catalog exists
-- **THEN** it edits no file outside `modules/opm_operator/` and leaves the module's `operator/operator.cue`, `identity.Version`, generated CRD and RBAC files, `CHANGELOG.md` and `RELEASE` unchanged
+- **THEN** it edits no file outside `modules/opm_controller/` and leaves the module's `controller/controller.cue`, `identity.Version`, generated CRD and RBAC files, `CHANGELOG.md` and `RELEASE` unchanged
 
 ### Requirement: The offline test set covers deps:cascade:module
 The offline test set of `task deps:cascade:test` SHALL cover `task deps:cascade:module`.
@@ -302,7 +302,7 @@ The offline test set of `task deps:cascade:test` SHALL cover `task deps:cascade:
 
 #### Scenario: Catalog published
 - **WHEN** this repository receives `upstream-released` for catalog `opm-v4.6.0`, `CASCADE_DRY_RUN` is `false`, and the module pins `v4.5.2`
-- **THEN** a PR from `module/deps` moves the module to `v4.6.0` and the core it pins, titled `fix(deps): bump the operator module's opm catalog to v4.6.0 and core to <v>`, and merging it proposes a module release and no operator release
+- **THEN** a PR from `module/deps` moves the module to `v4.6.0` and the core it pins, titled `fix(deps): bump the controller module's opm catalog to v4.6.0 and core to <v>`, and merging it proposes a module release and no controller release
 
 ### Requirement: The module/deps branch is rebuilt only while it holds bot commits
 While the branch `module/deps` carries only bot commits, a later run of `module-deps.yml` SHALL rebuild it from `main`. Once a human commit is on it, a run SHALL add its own commit and never rewrite the branch.
@@ -316,18 +316,18 @@ While the branch `module/deps` carries only bot commits, a later run of `module-
 - **THEN** the run adds its own commit and does not rewrite the branch
 
 ### Requirement: The module pull request title and body come from the resolver
-The title and body of the `module-deps.yml` pull request SHALL come from the resolver's `title` and `body` with `.tasks/cascade/module-classes`, which classifies every path under `modules/opm_operator/` as shipped, and `.tasks/cascade/module-pins.sh`, which prints two rows keyed `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, displayed as the operator module's opm catalog and core. Because that report is its own, each key appears once.
+The title and body of the `module-deps.yml` pull request SHALL come from the resolver's `title` and `body` with `.tasks/cascade/module-classes`, which classifies every path under `modules/opm_controller/` as shipped, and `.tasks/cascade/module-pins.sh`, which prints two rows keyed `opmodel.dev/catalogs/opm@v4` and `opmodel.dev/core@v2`, displayed as the controller module's opm catalog and core. Because that report is its own, each key appears once.
 
 #### Scenario: Pin report keys are unique
 - **WHEN** the resolver reads `.tasks/cascade/module-pins.sh WORKTREE`
 - **THEN** it accepts the report, and `pins.sh WORKTREE` for the repository's cascade lists no row for the module
 
 ### Requirement: The module pull request changes only the module directory
-The pull request of `module-deps.yml` SHALL change no file outside `modules/opm_operator/`, so its squash commit proposes a module release and no operator release.
+The pull request of `module-deps.yml` SHALL change no file outside `modules/opm_controller/`, so its squash commit proposes a module release and no controller release.
 
 #### Scenario: Module pull request touches only the module
 - **WHEN** `module-deps.yml` opens its pull request
-- **THEN** the pull request changes no file outside `modules/opm_operator/`, and its squash commit proposes a module release and no operator release
+- **THEN** the pull request changes no file outside `modules/opm_controller/`, and its squash commit proposes a module release and no controller release
 
 ### Requirement: module-deps.yml writes only a summary in a dry run
 While the repository variable `CASCADE_DRY_RUN` is not exactly `false`, a run of `module-deps.yml` SHALL write the diff to the job summary and push nothing.

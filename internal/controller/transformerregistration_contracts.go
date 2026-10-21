@@ -20,7 +20,7 @@ import (
 	"context"
 	"slices"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // subscribedContract returns the first contract the claim provides that some

@@ -9,9 +9,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/events"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // The render slot is held through the export of the rendered set for apply,
@@ -42,7 +42,7 @@ func instanceSlotParams(
 ) *ModuleInstanceParams {
 	t.Helper()
 	return &ModuleInstanceParams{
-		Client:        loopTestClient(t, operatorInstance(nil)),
+		Client:        loopTestClient(t, controllerInstance(nil)),
 		EventRecorder: events.NewFakeRecorder(32),
 		Renderer:      moduleRendererFunc(func() (*render.RenderResult, error) { return configMapRenderResult(t), nil }),
 		RenderSlots:   pool,
@@ -98,7 +98,7 @@ func TestSlotConversion_ModulePackage(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	converted, fail, err := renderModulePackage(context.Background(), params, operatorPackage(nil), dir, dir, DefaultModulePackageInterval)
+	converted, fail, err := renderModulePackage(context.Background(), params, controllerPackage(nil), dir, dir, DefaultModulePackageInterval)
 	if err != nil || fail != nil {
 		t.Fatalf("renderModulePackage: fail=%+v err=%v", fail, err)
 	}

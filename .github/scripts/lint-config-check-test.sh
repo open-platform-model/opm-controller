@@ -42,7 +42,10 @@ fresh() {
   local dir=$work/$1
   mkdir -p "$dir/.github/workflows" "$dir/.tasks"
   cp "$repo/.golangci.yml" "$repo/.golangci-lint-version" "$repo/.custom-gcl.yml" \
-    "$repo/Taskfile.yml" "$repo/Makefile" "$dir/"
+    "$repo/Taskfile.yml" "$dir/"
+  # The repository has no Makefile. The check still judges one that comes
+  # back, so the scenarios run against this stand-in.
+  printf '%s\n' "GOLANGCI_LINT_VERSION ?= \$(shell tr -d '[:space:]' <.golangci-lint-version)" >"$dir/Makefile"
   cp "$repo"/.tasks/*.yaml "$dir/.tasks/"
   cp -r "$repo/.github/golangci-lint" "$dir/.github/"
   cp "$repo"/.github/workflows/*.yml "$dir/.github/workflows/"

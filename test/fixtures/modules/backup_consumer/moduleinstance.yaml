@@ -36,7 +36,7 @@ metadata:
   namespace: default
 spec:
   module:
-    path: testing.opmodel.dev/modules/operator/backup_consumer@v0
+    path: testing.opmodel.dev/modules/controller/backup_consumer@v0
     version: v0.1.1
   serviceAccountName: backup-consumer-applier
   values:

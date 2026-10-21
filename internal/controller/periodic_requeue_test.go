@@ -29,8 +29,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 // periodicInterval is the instance reconcile interval of the periodic specs,
@@ -53,14 +53,14 @@ func periodicReconciler(renderer *callCountingRenderer, drift time.Duration) *Mo
 		ResourceManager:     apply.NewResourceManager(k8sClient, "opm-controller"),
 		EventRecorder:       events.NewFakeRecorder(100),
 		Renderer:            renderer,
-		OperatorVersion:     testOperatorVersion,
+		ControllerVersion:   testControllerVersion,
 		LibraryVersion:      testLibraryVersion,
 		DriftRenderInterval: drift,
 		ReconcileInterval:   periodicInterval,
 	}
 }
 
-// createPeriodicInstance creates an operator-owned ModuleInstance whose stub
+// createPeriodicInstance creates a controller-owned ModuleInstance whose stub
 // render is the ConfigMap "test-module", and removes both when the spec ends.
 func createPeriodicInstance(ctx context.Context, name string) types.NamespacedName {
 	const namespace = periodicNamespace
@@ -90,7 +90,7 @@ func beThePeriodicRequeue() OmegaMatcher {
 	return And(BeNumerically(">=", periodicInterval), BeNumerically("<=", periodicUpper))
 }
 
-// A healthy ModuleInstance is reconciled again on the operator's instance
+// A healthy ModuleInstance is reconciled again on the controller's instance
 // reconcile interval; suspended and CLI-owned instances are not.
 var _ = Describe("Periodic reconcile of a healthy ModuleInstance", func() {
 	reconcileOnce := func(ctx context.Context, r *ModuleInstanceReconciler, nn types.NamespacedName) reconcile.Result {

@@ -30,20 +30,20 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/open-platform-model/opm-operator/test/utils"
+	"github.com/open-platform-model/opm-controller/test/utils"
 )
 
 // namespace where the project is deployed in
-const namespace = "opm-operator-system"
+const namespace = "opm-system"
 
 // serviceAccountName created for the project
-const serviceAccountName = "opm-operator-controller-manager"
+const serviceAccountName = "opm-controller-manager"
 
 // metricsServiceName is the name of the metrics service of the project
-const metricsServiceName = "opm-operator-controller-manager-metrics-service"
+const metricsServiceName = "opm-controller-manager-metrics-service"
 
 // metricsRoleBindingName is the name of the RBAC that will be created to allow get the metrics data
-const metricsRoleBindingName = "opm-operator-metrics-binding"
+const metricsRoleBindingName = "opm-controller-metrics-binding"
 
 var _ = Describe("Manager", Ordered, func() {
 	var controllerPodName string
@@ -64,14 +64,14 @@ var _ = Describe("Manager", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to label namespace with restricted policy")
 
 		By("installing CRDs")
-		cmd = exec.Command("make", "install")
+		cmd = exec.Command("task", "controller:crds")
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
 
-		By("deploying the controller-manager")
-		cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", managerImage))
+		By("deploying the manager")
+		cmd = exec.Command("task", "controller:deploy", fmt.Sprintf("IMG=%s", managerImage))
 		_, err = utils.Run(cmd)
-		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the manager")
 
 		// Local-dev override: when LOCAL_REGISTRY is set, append a --registry arg
 		// so the controller resolves catalog deps from a registry reachable
@@ -80,7 +80,7 @@ var _ = Describe("Manager", Ordered, func() {
 		if localRegistry := os.Getenv("LOCAL_REGISTRY"); localRegistry != "" {
 			By("overriding controller registry for local dev")
 			cmd = exec.Command("kubectl", "-n", namespace, "patch", "deployment",
-				"opm-operator-controller-manager",
+				"opm-controller-manager",
 				"--type=json",
 				fmt.Sprintf(`-p=[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--registry=%s"}]`, localRegistry))
 			_, err = utils.Run(cmd)
@@ -96,7 +96,7 @@ var _ = Describe("Manager", Ordered, func() {
 			// cache) before the ModuleInstance specs apply their CRs.
 			By("waiting for the registry-override rollout to settle")
 			cmd = exec.Command("kubectl", "-n", namespace, "rollout", "status",
-				"deployment/opm-operator-controller-manager", "--timeout=120s")
+				"deployment/opm-controller-manager", "--timeout=120s")
 			_, err = utils.Run(cmd)
 			Expect(err).NotTo(HaveOccurred(), "registry-override rollout did not settle")
 		}
@@ -117,12 +117,12 @@ var _ = Describe("Manager", Ordered, func() {
 		cmd = exec.Command("kubectl", "delete", "clusterrolebinding", metricsRoleBindingName, "--ignore-not-found")
 		_, _ = utils.Run(cmd)
 
-		By("undeploying the controller-manager")
-		cmd = exec.Command("make", "undeploy")
+		By("undeploying the manager")
+		cmd = exec.Command("task", "controller:uninstall", "IGNORE_NOT_FOUND=true")
 		_, _ = utils.Run(cmd)
 
 		By("uninstalling CRDs")
-		cmd = exec.Command("make", "uninstall")
+		cmd = exec.Command("task", "controller:crds:remove", "IGNORE_NOT_FOUND=true")
 		_, _ = utils.Run(cmd)
 
 		By("removing manager namespace")
@@ -178,11 +178,11 @@ var _ = Describe("Manager", Ordered, func() {
 
 	Context("Manager", func() {
 		It("should run successfully", func() {
-			By("validating that the controller-manager pod is running as expected")
+			By("validating that the manager pod is running as expected")
 			verifyControllerUp := func(g Gomega) {
-				// Get the name of the controller-manager pod
+				// Get the name of the manager pod
 				cmd := exec.Command("kubectl", "get",
-					"pods", "-l", "control-plane=controller-manager",
+					"pods", "-l", "control-plane=manager",
 					"-o", "go-template={{ range .items }}"+
 						"{{ if not .metadata.deletionTimestamp }}"+
 						"{{ .metadata.name }}"+
@@ -191,11 +191,11 @@ var _ = Describe("Manager", Ordered, func() {
 				)
 
 				podOutput, err := utils.Run(cmd)
-				g.Expect(err).NotTo(HaveOccurred(), "Failed to retrieve controller-manager pod information")
+				g.Expect(err).NotTo(HaveOccurred(), "Failed to retrieve manager pod information")
 				podNames := utils.GetNonEmptyLines(podOutput)
 				g.Expect(podNames).To(HaveLen(1), "expected 1 controller pod running")
 				controllerPodName = podNames[0]
-				g.Expect(controllerPodName).To(ContainSubstring("controller-manager"))
+				g.Expect(controllerPodName).To(HavePrefix("opm-controller-manager-"))
 
 				// Validate the pod's status
 				cmd = exec.Command("kubectl", "get",
@@ -204,7 +204,7 @@ var _ = Describe("Manager", Ordered, func() {
 				)
 				output, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output).To(Equal("Running"), "Incorrect controller-manager pod status")
+				g.Expect(output).To(Equal("Running"), "Incorrect manager pod status")
 			}
 			Eventually(verifyControllerUp).Should(Succeed())
 		})
@@ -212,7 +212,7 @@ var _ = Describe("Manager", Ordered, func() {
 		It("should ensure the metrics endpoint is serving metrics", func() {
 			By("creating a ClusterRoleBinding for the service account to allow access to metrics")
 			cmd := exec.Command("kubectl", "create", "clusterrolebinding", metricsRoleBindingName,
-				"--clusterrole=opm-operator-metrics-reader",
+				"--clusterrole=opm-controller-metrics-reader",
 				fmt.Sprintf("--serviceaccount=%s:%s", namespace, serviceAccountName),
 			)
 			_, err := utils.Run(cmd)

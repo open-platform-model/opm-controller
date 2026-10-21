@@ -35,7 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/yaml"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // Creating a TransformerRegistration is a platform-admin privilege
@@ -44,9 +44,9 @@ import (
 // how another team's traits render.
 //
 // The gate works by absence: rendered objects reach the cluster through a
-// ServiceAccount the operator impersonates per tenant, and this repo ships no
+// ServiceAccount the controller impersonates per tenant, and this repo ships no
 // tenant-facing role granting create on the kind. The test drives that
-// impersonation path directly, so what it measures is what the operator's
+// impersonation path directly, so what it measures is what the controller's
 // apply would hit.
 //
 // This lives beside the admission tests because it answers the other half of
@@ -54,7 +54,7 @@ import (
 // with authorization rather than schema doing the refusing.
 //
 // The ClusterRole is read from config/rbac/ rather than written inline, so the
-// test asserts the artifact the operator actually ships. An edit that widens
+// test asserts the artifact the controller actually ships. An edit that widens
 // or narrows the shipped role moves this test with it.
 func TestTransformerRegistrationRBAC(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)

@@ -10,7 +10,7 @@
 ## 1. What is under test
 
 The **library kernel fix** for the output-local hidden field bug
-(`library/docs/design/transformer-output-hidden-field-scope-bug.md`; first surfaced operator-side in
+(`library/docs/design/transformer-output-hidden-field-scope-bug.md`; first surfaced controller-side in
 [`FINDINGS.md`](./FINDINGS.md) §2/§3a).
 
 Root cause (confirmed): `materialize.Materialize` `FillPath`-ed the composed transformer map into the
@@ -22,7 +22,7 @@ as `non-concrete value _`.
 The fix: `materialize.MaterializedPlatform` now exposes the **open** `Composed` map, and the executor
 reads each `#transform` from it instead of out of the closed `Package`.
 
-**This plan proves the kernel fix end-to-end through the operator on a real cluster.**
+**This plan proves the kernel fix end-to-end through the controller on a real cluster.**
 
 ---
 
@@ -40,7 +40,7 @@ transformers still declare `_convertedSidecars` **inside `output`**:
 | `v0.5.0`–`v0.5.4` | inside `output` (**buggy**) | ✅ **use `v0.5.2`** (matches cleanly; `0.5.0/0.5.1` hit the separate matcher miss) |
 | `v0.5.5`+ | `#transform` scope (workaround) | ❌ masks the kernel fix — do NOT use |
 
-So: **module pins catalog `@v0.5.2`**, operator built against the **fixed** library. A container
+So: **module pins catalog `@v0.5.2`**, controller built against the **fixed** library. A container
 workload that renders here can only have rendered because the kernel stopped corrupting the transform.
 
 ---
@@ -185,13 +185,13 @@ Reuse the `FINDINGS.md` §6 environment. Confirm before starting:
 
 ---
 
-## 5. Build & deploy the FIXED operator
+## 5. Build & deploy the FIXED controller
 
-The operator pins `github.com/open-platform-model/library v0.5.0`, which does **not** contain the fix.
+The controller pins `github.com/open-platform-model/library v0.5.0`, which does **not** contain the fix.
 Build the manager image against the fix branch via a local `replace`:
 
 ```bash
-cd opm-operator
+cd opm-controller
 
 # Point the library dependency at the local checkout on the fix branch.
 go mod edit -replace github.com/open-platform-model/library=../library
@@ -199,23 +199,23 @@ go mod tidy
 git -C ../library rev-parse --abbrev-ref HEAD     # expect: fix/materialized-platform-composed
 
 # Build + load the image into kind, then (re)install the controller.
-KIND_CLUSTER=opm-dev IMG=opm-operator:hiddenfix task docker:build
-kind load docker-image opm-operator:hiddenfix --name opm-dev
-KIND_CLUSTER=opm-dev IMG=opm-operator:hiddenfix task operator:controller:install
+KIND_CLUSTER=opm-dev IMG=opm-controller:hiddenfix task docker:build
+kind load docker-image opm-controller:hiddenfix --name opm-dev
+KIND_CLUSTER=opm-dev IMG=opm-controller:hiddenfix task controller:install
 # installer patches --registry=testing.opmodel.dev=opm-registry:5000+insecure,opmodel.dev=opm-registry:5000+insecure,registry.cue.works
 ```
 
 - [ ] Manager pod `Running`, no crashloop, logs show the platform materialized.
 
 > Revert the `replace` (`go mod edit -dropreplace github.com/open-platform-model/library`) once the
-> fix is released and the operator bumps the dependency normally.
+> fix is released and the controller bumps the dependency normally.
 
 ---
 
 ## 6. Execution
 
 ```bash
-cd opm-operator
+cd opm-controller
 
 # 6.1 Publish the hello-web module to the local registry.
 task module:publish MODULE_DIR=test/fixtures/modules/hello-web MODULE_VERSION=v0.1.0
@@ -260,17 +260,17 @@ kubectl -n default get deploy,po -l module-release.opmodel.dev/name=hello-web
 
 ---
 
-## 8. Negative control (proves it is the KERNEL fix, not the catalog or the operator)
+## 8. Negative control (proves it is the KERNEL fix, not the catalog or the controller)
 
-Run the **identical** module against an **unfixed** operator to confirm the fix is the differentiator:
+Run the **identical** module against an **unfixed** controller to confirm the fix is the differentiator:
 
 ```bash
-cd opm-operator
+cd opm-controller
 go mod edit -dropreplace github.com/open-platform-model/library   # back to library v0.5.0 (no fix)
 go mod tidy
-KIND_CLUSTER=opm-dev IMG=opm-operator:nofix task docker:build
-kind load docker-image opm-operator:nofix --name opm-dev
-KIND_CLUSTER=opm-dev IMG=opm-operator:nofix task operator:controller:install
+KIND_CLUSTER=opm-dev IMG=opm-controller:nofix task docker:build
+kind load docker-image opm-controller:nofix --name opm-dev
+KIND_CLUSTER=opm-dev IMG=opm-controller:nofix task controller:install
 kubectl delete -f hack/kind-opm-dev-test/hello-web.yaml --ignore-not-found
 kubectl apply  -f hack/kind-opm-dev-test/hello-web.yaml
 ```
@@ -291,9 +291,9 @@ change. The only variable is the library version ⇒ the kernel fix is what unbl
 
 ```bash
 kubectl delete -f hack/kind-opm-dev-test/hello-web.yaml --ignore-not-found
-KIND_CLUSTER=opm-dev IMG=opm-operator:hiddenfix task operator:controller:uninstall   # optional
+KIND_CLUSTER=opm-dev IMG=opm-controller:hiddenfix task controller:uninstall   # optional
 go mod edit -dropreplace github.com/open-platform-model/library && go mod tidy        # if not already
-# (optionally) docker image rm opm-operator:hiddenfix opm-operator:nofix
+# (optionally) docker image rm opm-controller:hiddenfix opm-controller:nofix
 ```
 
 The kind cluster, registry, and published deps are left intact for reuse.
@@ -304,6 +304,8 @@ The kind cluster, registry, and published deps are left intact for reuse.
 
 **Executed 2026-06-14** on `kind-opm-dev` against `library` branch `fix/materialized-platform-composed`
 (commit `5490696` "fix(materialize): source transforms from open composed map").
+The results below are the record of that run and keep the names then in use; the project was renamed
+opm-controller afterwards (ADR-021).
 
 | Item | Result | Notes |
 | --- | --- | --- |
@@ -351,7 +353,7 @@ On PASS, the open item in [`FINDINGS.md`](./FINDINGS.md) §7
 - `library/docs/design/transformer-output-hidden-field-scope-bug.md` — root cause (§11–§12) + landed
   fix (§13).
 - `library/docs/design/repro-hidden-field/` — pure-CUE control proving the defect was in Go, not CUE.
-- [`FINDINGS.md`](./FINDINGS.md) — original operator-side discovery (§2/§3a) and the standing
+- [`FINDINGS.md`](./FINDINGS.md) — original controller-side discovery (§2/§3a) and the standing
   environment (§6).
 - Library regression guards: `opm/materialize/composed_open_test.go`,
   `opm/compile` `TestExecute_ReadsTransformFromComposedNotPackage`.

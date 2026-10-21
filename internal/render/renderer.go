@@ -3,7 +3,7 @@ package render
 import (
 	"context"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // ModuleRenderer is the injection boundary for module rendering in the

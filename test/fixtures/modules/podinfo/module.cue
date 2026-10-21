@@ -2,7 +2,7 @@
 // Deployment + Service via the catalog's deployment- and service-transformers,
 // with an HTTP livenessProbe (/healthz) and readinessProbe (/readyz) on the
 // podinfo HTTP port (9898). Serves as a real-world "getting started" example a
-// newcomer can apply against a running operator to see OPM work end-to-end.
+// newcomer can apply against a running controller to see OPM work end-to-end.
 package podinfo
 
 import (
@@ -11,7 +11,7 @@ import (
 	m "opmodel.dev/core@v2"
 	res "opmodel.dev/catalogs/opm/resources/v1beta1"
 
-	id "testing.opmodel.dev/modules/operator/podinfo/identity"
+	id "testing.opmodel.dev/modules/controller/podinfo/identity"
 )
 
 m.#Module

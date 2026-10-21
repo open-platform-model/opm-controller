@@ -49,20 +49,20 @@ As in requirement "The ModulePackage reconciler watches the Platform": A package
 - the pin set: `status.packageIdentity` or `status.registry`
 - `spec.skewPolicy`
 - `status.observedGeneration`
-- `status.operatorVersion`
+- `status.controllerVersion`
 
 #### Scenario: Packages re-render under a new pin set
 
 - **WHEN** the Platform's `status.packageIdentity` changes because a claim became active, and the Platform's generation is unchanged
 - **THEN** the reconciler re-enqueues every `ModulePackage`
 
-### Requirement: The Platform status update and an operatorVersion change re-enqueue ModulePackages
-As in requirement "ModulePackages are re-enqueued on the fields a package render consumes": The trigger SHALL include the Platform reconciler's own status update, which does not bump the Platform's generation. This lets packages blocked on `PlatformNotReady` retry promptly, not only on their interval requeue. A `status.operatorVersion` change SHALL re-enqueue because, after an operator upgrade, it is the only status change the regenerated Platform writes.
+### Requirement: The Platform status update and a controllerVersion change re-enqueue ModulePackages
+As in requirement "ModulePackages are re-enqueued on the fields a package render consumes": The trigger SHALL include the Platform reconciler's own status update, which does not bump the Platform's generation. This lets packages blocked on `PlatformNotReady` retry promptly, not only on their interval requeue. A `status.controllerVersion` change SHALL re-enqueue because, after a controller upgrade, it is the only status change the regenerated Platform writes.
 
-#### Scenario: An operator upgrade into an already-Ready Platform recovers blocked packages
+#### Scenario: A controller upgrade into an already-Ready Platform recovers blocked packages
 
-- **GIVEN** a Platform that is already `Ready=True` with reason `Generated`, and an operator that restarts under a new version with an empty platform store
-- **WHEN** the packages render before the platform is regenerated and report `PlatformNotReady`, and the Platform reconciler then regenerates the platform and writes a status whose only change is `status.operatorVersion`
+- **GIVEN** a Platform that is already `Ready=True` with reason `Generated`, and a controller that restarts under a new version with an empty platform store
+- **WHEN** the packages render before the platform is regenerated and report `PlatformNotReady`, and the Platform reconciler then regenerates the platform and writes a status whose only change is `status.controllerVersion`
 - **THEN** the reconciler re-enqueues every `ModulePackage` and renders it on the next reconcile, without waiting for the interval requeue
 
 ### Requirement: A Platform update that changes none of the consumed fields enqueues no ModulePackage
@@ -70,7 +70,7 @@ As in requirement "ModulePackages are re-enqueued on the fields a package render
 
 #### Scenario: A message-only status write enqueues no package
 
-- **WHEN** the Platform reconciler rewrites the `Ready` condition's message or updates `ContractsFulfilled`, and the `Ready` status, `packageIdentity`, `registry`, `skewPolicy`, `observedGeneration` and `operatorVersion` are unchanged
+- **WHEN** the Platform reconciler rewrites the `Ready` condition's message or updates `ContractsFulfilled`, and the `Ready` status, `packageIdentity`, `registry`, `skewPolicy`, `observedGeneration` and `controllerVersion` are unchanged
 - **THEN** no `ModulePackage` is enqueued and no package renders
 
 ### Requirement: Unresolved demands are ResolutionFailed and a skew refusal is SkewRefused
@@ -143,11 +143,11 @@ As in requirement "A ModulePackage that leaves a required config value unset is 
 - **THEN** the ModulePackage reports `Ready=False` and `Stalled=True` with reason `ResolutionFailed`, and the message contains `not fully concrete: values.tier: incomplete value`
 
 ### Requirement: The refusal of an unset required value is a package load failure, not retried on the registry backoff
-As in requirements "A ModulePackage that leaves a required config value unset is refused when it loads" and "A package value default that does not unify with the config default is refused": The refusal SHALL be the kernel's: the operator SHALL report it as a package load failure, with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, and SHALL NOT retry it on the registry backoff. Nothing SHALL be applied or pruned.
+As in requirements "A ModulePackage that leaves a required config value unset is refused when it loads" and "A package value default that does not unify with the config default is refused": The refusal SHALL be the kernel's: the controller SHALL report it as a package load failure, with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, and SHALL NOT retry it on the registry backoff. Nothing SHALL be applied or pruned.
 
 #### Scenario: A refused package is a load failure that is not retried on the registry backoff
 - **WHEN** a ModulePackage is refused because its values leave a required `#config` value unset
-- **THEN** the operator reports a package load failure with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, does not retry it on the registry backoff, and applies and prunes nothing
+- **THEN** the controller reports a package load failure with reason `ResolutionFailed`, `Ready=False` and `Stalled=True`, does not retry it on the registry backoff, and applies and prunes nothing
 
 ### Requirement: The message of the refusal carries the prefix, the kernel error text and the findings
 As in requirements "A ModulePackage that leaves a required config value unset is refused when it loads" and "A package value default that does not unify with the config default is refused": The message SHALL be the prefix `loading package: `, the kernel's error text up to its first finding, and the kernel's findings, each with its positions; it names the unset value as `values.<field>`.
@@ -207,7 +207,7 @@ As in requirement "A package load failure lists every finding with its positions
 - **THEN** it keeps whole findings from the first and ends with `; and <N> more findings`
 
 ### Requirement: A position in a file of the package is relative to the CUE module root
-As in requirement "A package load failure lists every finding with its positions": A position in a file of the package SHALL be written relative to the package's CUE module root, so no position names the temporary directory the operator extracts the package to, which is a new one on every reconcile. A position in any other file SHALL be written as the kernel reports it.
+As in requirement "A package load failure lists every finding with its positions": A position in a file of the package SHALL be written relative to the package's CUE module root, so no position names the temporary directory the controller extracts the package to, which is a new one on every reconcile. A position in any other file SHALL be written as the kernel reports it.
 
 #### Scenario: The same package in another directory
 

@@ -1,0 +1,123 @@
+## REMOVED Requirements
+
+### Requirement: The operator uses the library's object and label packages and keeps no copy
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "The controller uses the library's object and label packages and keeps no copy" in this capability.
+
+### Requirement: The operator uses the library's inventory package and keeps no copy
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "The controller uses the library's inventory package and keeps no copy" in this capability.
+
+### Requirement: The operator judges the health of inventory objects only through the library's health package
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "The controller judges the health of inventory objects only through the library's health package" in this capability.
+
+### Requirement: The operator decides prune and cleanup deletes only through the library's ownership package
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "The controller decides prune and cleanup deletes only through the library's ownership package" in this capability.
+
+### Requirement: The operator decides every apply only through the library's ownership package
+
+**Reason**: The project is renamed from opm-operator to opm-controller (ADR-021); this requirement is restated under the controller's name.
+
+**Migration**: See the requirement "The controller decides every apply only through the library's ownership package" in this capability.
+
+## ADDED Requirements
+
+### Requirement: The controller uses the library's object and label packages and keeps no copy
+
+The controller SHALL take the Kubernetes resource wrapper over the kernel's compiled output, its JSON and unstructured conversion, the duplicate-identity check, the OPM label keys and values, and the recognition of an OPM manager label value from the library's Kubernetes tier (`opm/k8s/object` and `opm/k8s/labels`). It SHALL declare no type, constant or function of its own for any of them and no alias to them. Its lint SHALL refuse an import of the package path that held its earlier copy, `github.com/open-platform-model/opm-controller/pkg/core`. Source: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module").
+
+#### Scenario: No local copy
+
+- **WHEN** the controller's Go source is searched for the package `pkg/core`, a `Resource` type wrapping a CUE value with instance, component and transformer provenance, or a declaration of the `app.kubernetes.io/managed-by` or `module-instance.opmodel.dev/uuid` label key
+- **THEN** none is found; every reader imports `opm/k8s/object` or `opm/k8s/labels`
+
+#### Scenario: Lint refuses the old path
+
+- **WHEN** a package exists at `github.com/open-platform-model/opm-controller/pkg/core` and a Go file in the repository imports it
+- **THEN** `task dev:lint` fails on the rule `no-local-kubernetes-tier-copy`, with a message naming the library packages to use instead
+
+### Requirement: The controller uses the library's inventory package and keeps no copy
+
+The controller SHALL compute the inventory stale set, the inventory digest and the render digest only with the library's `opm/k8s/inventory` (`StaleSet`, `Digest`, `RenderDigest`). It SHALL build inventory entries with that package's `NewEntry`. It SHALL declare no entry constructor, identity relation, stale-set function, inventory digest or render digest of its own. Its only inventory code is the conversion between the API's `InventoryEntry` and `inventory.Entry`, and a test of `internal/inventory` SHALL refuse any further export from that package, so a copy cannot come back there unnoticed. Source: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module").
+
+#### Scenario: No local copy
+
+- **WHEN** the controller's Go source is searched for `ComputeStaleSet`, `ComputeDigest`, `NewEntryFromResource`, `IdentityEqual`, `K8sIdentityEqual` or a render digest function in `internal/status`
+- **THEN** none is found, and every reader calls `opm/k8s/inventory`
+
+#### Scenario: A copy in the conversion package fails the tests
+
+- **WHEN** a function is exported from `internal/inventory` beyond `Current`, `FromEntries`, `FromEntry`, `ToEntries` and `ToEntry`
+- **THEN** the package's closed-surface test fails
+
+### Requirement: The controller judges the health of inventory objects only through the library's health package
+
+The controller SHALL judge the readiness of an object in `status.inventory` only with the library's `opm/k8s/health` (`Evaluate`, `IsHealthy`, `Aggregate`, `ProgressDeadlineExceeded`). The code that computes the `Healthy` condition SHALL read no status field of a fetched object and SHALL declare no readiness rule of its own for any Kubernetes kind: no rollout, replica-count, Job, PersistentVolumeClaim or `Ready`-condition check, and no alias to the library's. The controller fetches each object with its own client and passes it in, because the library reads no cluster. This requirement covers applied inventory objects only; the controller's own resources (a `dependsOn` ModulePackage, a TransformerRegistration's provider, the `cluster` Platform) keep their own condition checks. Source: enhancement 0012 ("The Kubernetes runtime decisions live in a fenced tier, `opm/k8s`, beside the kernel and inside the library module").
+
+#### Scenario: No local evaluator
+
+- **WHEN** the non-test files of `internal/reconcile` are parsed by the package's unit test
+- **THEN** none calls an `unstructured.Nested*` accessor and `health.go` holds no `"status"` string literal, so every verdict comes from `health.Evaluate`, `health.IsHealthy`, `health.Aggregate` and `health.ProgressDeadlineExceeded`
+
+### Requirement: The controller decides prune and cleanup deletes only through the library's ownership package
+Every delete of a cluster object that the controller makes in a prune of stale resources or in a deletion cleanup, for a ModuleInstance or a ModulePackage, MUST follow a delete verdict of the library's `opm/k8s/ownership` package on a live read of that object. The controller MUST take the kinds that are never deleted from the same package. The controller MUST NOT set the verdict's install admission input. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply").
+
+Each such delete MUST be an action the library's `opm/k8s/lifecycle` transition named, performed with the propagation policy and the precondition of that action. The controller MUST build each plan with the library's constructor and MUST NOT order the entries or set a propagation policy with code of its own. One function of the controller MUST perform the plan's reads and deletes.
+
+The one other delete the controller makes, the delete inside a forced recreate, asks no verdict and MUST carry the UID precondition (capability `ssa-apply`).
+
+A test MUST keep the list of places that may delete a cluster object closed: the function that performs the plan, and the forced recreate. It MUST find a delete by the type of the receiver, a Kubernetes client, and not by the method name alone, so that a method of the same name on another type is not counted, and a second test MUST show that the matcher finds a delete of each form the client offers.
+
+#### Scenario: The prune's outcome is the verdict's
+- **GIVEN** one stale object for each answer of the library's delete verdict
+- **WHEN** the prune runs
+- **THEN** it deletes exactly the objects for which the verdict says proceed, and names each other object with the verdict's reason
+
+#### Scenario: A new delete outside the listed places fails the tests
+- **GIVEN** a change that adds a call that deletes a cluster object in a file the test does not list
+- **WHEN** the unit tests run
+- **THEN** the call-site test fails and names the file
+
+#### Scenario: A method of the same name on another type is not a delete
+- **GIVEN** the controller's calls that remove a status condition
+- **WHEN** the call-site test runs
+- **THEN** it does not count them
+
+#### Scenario: The plan's order and propagation reach the API server unchanged
+- **GIVEN** a plan over a ConfigMap and a Deployment
+- **WHEN** the controller performs it
+- **THEN** the DELETE requests arrive in the plan's order, each with the action's propagation policy and UID precondition
+
+#### Scenario: The forced recreate is not a plan step
+- **GIVEN** an apply that is allowed to recreate objects, and an object the API server refuses to update
+- **WHEN** the object is deleted and created again
+- **THEN** the DELETE carries the UID precondition and no deletion plan is built for it
+
+### Requirement: The controller decides every apply only through the library's ownership package
+Every write of a cluster object that the controller makes on behalf of a ModuleInstance or a ModulePackage MUST follow an apply verdict of the library's `opm/k8s/ownership` package on a live read of that object. The controller MUST declare no ownership rule of its own for an apply: it compares no managed-by label, no UUID label and no adopt annotation itself. The controller MUST NOT set, change or remove the `opmodel.dev/adopt` annotation on any object. Source: enhancement 0012 ("The library owns the whole deletion sequence but only the per-object verdict and the order for apply" and "The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
+
+A test MUST keep the list of places that may write a cluster object closed: the staged apply, the dry runs of drift detection and of the claim check, and the status and finalizer patches of the controller's own kinds. It MUST find a write by the type of the receiver, as the test of the delete call sites does, and a second test MUST show that the matcher finds a write of each form the client and the resource manager offer.
+
+#### Scenario: The apply's outcome is the verdict's
+- **GIVEN** one rendered object for each answer of the library's apply verdict
+- **WHEN** the guard runs
+- **THEN** it allows exactly the objects for which the verdict says apply, and names each other object with the verdict's reason and message
+
+#### Scenario: A new write outside the listed places fails the tests
+- **GIVEN** a change that adds a call that creates, updates, patches or applies a cluster object in a file the test does not list
+- **WHEN** the unit tests run
+- **THEN** the call-site test fails and names the file
+
+#### Scenario: No write of the adopt annotation
+- **WHEN** the non-test Go files of the controller are parsed by a unit test
+- **THEN** none names the library's adopt annotation key, so the annotation is read only inside the library's verdicts and is never written

@@ -205,8 +205,8 @@ A ModulePackage MUST carry the identity of the instance it renders in the option
 A ModulePackage stored before the fields existed MUST be valid unchanged and MUST gain `status.instanceUUID`, with no change to its spec, in its first reconcile that renders: before the apply when that reconcile applies, and in its status commit when it applies nothing. Source: enhancement 0012 ("The apply guard runs on every apply, refusing foreign objects outside the inventory and any object adopted by another instance; a per-object adopt annotation is its only override").
 
 #### Scenario: An existing package gains the field
-- **GIVEN** a ModulePackage with an inventory and no `status.instanceUUID`, reconciled by an earlier operator release
-- **WHEN** the upgraded operator reconciles it with unchanged inputs
+- **GIVEN** a ModulePackage with an inventory and no `status.instanceUUID`, reconciled by an earlier controller release
+- **WHEN** the upgraded controller reconciles it with unchanged inputs
 - **THEN** `status.instanceUUID` is set, `status.previousInstanceUUID` is empty and nothing is applied
 
 ### Requirement: The prune and the deletion cleanup of a ModulePackage judge with the recorded identities
@@ -232,7 +232,7 @@ While no identity is recorded, a ModulePackage MUST delete what it deleted befor
 
 #### Scenario: The first render after the upgrade also changes the identity
 - **GIVEN** a ModulePackage with an inventory and no `status.instanceUUID`, whose source now renders the instance under another module path, and a stale ConfigMap that is managed by OPM and carries the UUID label of the earlier identity
-- **WHEN** the upgraded operator reconciles it
+- **WHEN** the upgraded controller reconciles it
 - **THEN** the stale ConfigMap is deleted, as before the field existed
 
 ### Requirement: A ModulePackage reconcile judges every rendered object with the instance's identity

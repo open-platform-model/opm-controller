@@ -8,7 +8,7 @@
 // opm/helper/platformmodule generator.
 //
 // The store records one [Generated] platform module per [PackageIdentity]: the
-// module directory on the operator's own disk, the platform value the kernel
+// module directory on the controller's own disk, the platform value the kernel
 // built from it and the resolved catalog-skew policy (enhancement 0019). A render
 // leases the record for its duration ([Store.Lease]) so the PlatformReconciler
 // never prunes a module directory a render build is still reading from.
@@ -25,7 +25,7 @@ import (
 
 // Generated is the process-local record of the platform module the
 // reconciler generated and built for one [PackageIdentity]: the identity, the
-// module directory on the operator's own disk (a per-identity directory under
+// module directory on the controller's own disk (a per-identity directory under
 // the manager's --platform-dir), the source-carrying platform the kernel's
 // shape-gated loader built from it and the skew policy the CR resolved to.
 // The render path consumes it through [Store.Lease]; the module is never

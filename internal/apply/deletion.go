@@ -15,7 +15,7 @@ import (
 	"github.com/open-platform-model/library/opm/k8s/lifecycle"
 	"github.com/open-platform-model/library/opm/k8s/ownership"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // StepResult is what happened to one inventory entry in one deletion plan.
@@ -57,7 +57,7 @@ type DeletionRun struct {
 }
 
 // runDeletion drives plan from the zero State to done with c (enhancement 0012). It
-// is the only function of the operator that deletes an inventory object, and
+// is the only function of the controller that deletes an inventory object, and
 // it deletes only what lifecycle.Advance names: every delete was judged by
 // the library's delete verdict inside Advance. It sets no propagation policy
 // and no precondition of its own; it sends the action's.

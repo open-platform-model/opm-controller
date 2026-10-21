@@ -14,14 +14,14 @@ The controller image is a pure-Go static binary, platform-portable in principle.
 
 ## Decision
 
-Build and publish the controller image from CI with two separate flows sharing the GHCR registry `ghcr.io/open-platform-model/opm-operator`:
+Build and publish the controller image from CI with two separate flows sharing the GHCR registry `ghcr.io/open-platform-model/opm-controller`:
 
 - **PR flow** (`.github/workflows/image-pr.yml`, `pull_request`): single-arch `linux/amd64`, tags `:sha-<short7>` and `:pr-<N>`, cosign keyless signature only.
 - **Release flow** (`image-release` job inside `.github/workflows/release.yml`, gated on `needs.release-please.outputs.releases_created == 'true'`): multi-arch `linux/amd64,linux/arm64`, tags `:sha-<short7>`, `:v<version>`, `:latest`, cosign keyless signature + SPDX-JSON SBOM attestation (`anchore/sbom-action` + `cosign attest`) + SLSA build provenance (`actions/attest-build-provenance`).
 
 Sign images with **cosign keyless** (Sigstore OIDC via GitHub Actions token, Fulcio certificate, Rekor transparency log). No long-lived signing key is stored or rotated. The signer identity is the workflow path + ref, verifiable via `--certificate-identity-regexp` and `--certificate-oidc-issuer=https://token.actions.githubusercontent.com`.
 
-Pin the install manifest image reference by digest. The release job invokes the existing `task operator:installer IMG="ghcr.io/open-platform-model/opm-operator:v<VERSION>@sha256:<DIGEST>"` (no new task needed — `kustomize edit set image` natively supports `<tag>@<digest>`), then uploads `dist/install.yaml` as an asset on the release via `gh release upload`. Default dev invocation (`task operator:installer` without `IMG`) is unchanged and still produces `controller:latest`.
+Pin the install manifest image reference by digest. The release job invokes the existing `task controller:installer IMG="ghcr.io/open-platform-model/opm-controller:v<VERSION>@sha256:<DIGEST>"` (no new task needed — `kustomize edit set image` natively supports `<tag>@<digest>`), then uploads `dist/install.yaml` as an asset on the release via `gh release upload`. Default dev invocation (`task controller:installer` without `IMG`) is unchanged and still produces `controller:latest`.
 
 Pin all third-party GitHub Actions by full commit SHA, matching the existing repo convention in `release.yml`.
 
@@ -32,7 +32,7 @@ Alternatives considered and rejected:
 - **Full four-arch matrix on every PR** — rejected on cost and latency; PRs need Dockerfile-build signal, not production coverage.
 - **Keeping s390x and ppc64le on release** — rejected; QEMU cost outweighs value without a named consumer. Adding them back is a one-line change if a downstream need is identified.
 - **Trigger image-release on `on: release` event** — rejected; querying `release-please.outputs.releases_created` in the same run is more reliable than depending on the external `release` event firing in time.
-- **Parallel `operator:installer:release` task** — rejected as duplication; `kustomize edit set image <name>:<tag>@<digest>` is a first-class kustomize primitive.
+- **Parallel `controller:installer:release` task** — rejected as duplication; `kustomize edit set image <name>:<tag>@<digest>` is a first-class kustomize primitive.
 
 ## Consequences
 
@@ -46,6 +46,6 @@ Alternatives considered and rejected:
 
 **Negative:** Consumers on s390x or ppc64le must either build the image themselves or wait for the matrix to be re-expanded. No known such consumer today.
 
-**Trade-off:** Image name `opm-operator` diverges from in-cluster identifiers (`poc-controller-system` namespace, `app.kubernetes.io/name: poc-controller` labels, kustomize resource names). Reconciling those is a separate, non-blocking change — captured as follow-up work, not scope creep here.
+**Trade-off:** Image name `opm-controller` diverges from in-cluster identifiers (`poc-controller-system` namespace, `app.kubernetes.io/name: poc-controller` labels, kustomize resource names). Reconciling those is a separate, non-blocking change — captured as follow-up work, not scope creep here.
 
 **Trade-off:** The release workflow now carries significantly more moving parts (buildx, QEMU, cosign, anchore, attest-build-provenance). Re-pinning SHAs on upgrade is a recurring maintenance task; the pinning itself is the correct hygiene for a workflow that publishes signed artifacts.

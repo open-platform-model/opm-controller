@@ -7,7 +7,7 @@ package redis
 
 import (
 	core "opmodel.dev/core@v2"
-	redis "testing.opmodel.dev/modules/operator/redis@v0"
+	redis "testing.opmodel.dev/modules/controller/redis@v0"
 )
 
 core.#ModuleInstance

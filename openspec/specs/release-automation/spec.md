@@ -41,19 +41,19 @@ On the prerelease line (`versioning: prerelease`, `prerelease: true`, current ve
 - **THEN** the proposed version SHALL be `2.0.0`
 
 ### Requirement: Beta prerelease line
-The release-please package `"."` SHALL be configured with `versioning: prerelease`, `prerelease: true` and `prerelease-type: beta` while the operator is on its beta line. From its first beta, a prerelease line (opmodel.dev/core@v2, library, cli, opm-operator) is on the path to GA. Every beta GitHub Release SHALL be flagged Pre-release. GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
+The release-please package `"."` SHALL be configured with `versioning: prerelease`, `prerelease: true` and `prerelease-type: beta` while the controller is on its beta line. From its first beta, a prerelease line (opmodel.dev/core@v2, library, cli, opm-controller) is on the path to GA. Every beta GitHub Release SHALL be flagged Pre-release. GA drops the suffix: `prerelease: false` plus a visible carrier commit per package, in dependency order.
 
 #### Scenario: Beta releases are flagged Pre-release
 - **WHEN** the Release PR for `1.0.0-beta.N` is merged
-- **THEN** release-please creates tag `v1.0.0-beta.N` and a GitHub Release marked Pre-release, and the image and `install.yaml` asset are published under that tag
+- **THEN** release-please creates tag `v1.0.0-beta.N` and a GitHub Release marked Pre-release, and the image and the example assets are published under that tag
 
 #### Scenario: Breaking change during beta carries its migration note
 - **WHEN** a pull request titled `feat(api)!: ...`, whose body describes the migration, is squash-merged on the beta line
 - **THEN** the next Release PR proposes the next `-beta.N`, its CHANGELOG section lists the PR title as a breaking-change entry linking the pull request, and the migration note is read from that pull request
 
-#### Scenario: Operator break waits for a cli that can drive it
-- **WHEN** an operator `feat!` changes behavior the newest released cli cannot drive
-- **THEN** it merges only after a cli release that can drive it, ships as the next `1.0.0-beta.N`, and no `release-as` value moves the operator to `1.1.0-beta.1` or any other minor or major
+#### Scenario: Controller break waits for a cli that can drive it
+- **WHEN** a controller `feat!` changes behavior the newest released cli cannot drive
+- **THEN** it merges only after a cli release that can drive it, ships as the next `1.0.0-beta.N`, and no `release-as` value moves the controller to `1.1.0-beta.1` or any other minor or major
 
 #### Scenario: Label flip alone keeps the old label
 - **WHEN** only `prerelease-type` changes from `alpha` to `beta` while the manifest reads `1.0.0-alpha.22` and `release-please-config.json` carries no `release-as`
@@ -75,14 +75,14 @@ The release workflow SHALL declare a workflow-level concurrency group keyed by t
 - **THEN** every upload step and the publish job fail with a message naming the count, and neither release is published
 
 ### Requirement: Release assets upload only to a draft release
-Every step that uploads an asset to the GitHub Release (`install.yaml` of an operator or a module release, `opm-examples.tar.gz`, the example manifests) SHALL first confirm that the single release for the tag is a draft and SHALL fail without uploading when it is published. Replacing an existing asset (`--clobber`) SHALL be used only on a draft. Every GitHub CLI call in the release workflow SHALL name the repository explicitly. Source: enhancement 0021 ("Release tags are immutable").
+Every step that uploads an asset to the GitHub Release (`install.yaml` of a module release, `opm-examples.tar.gz`, the example manifests) SHALL first confirm that the single release for the tag is a draft and SHALL fail without uploading when it is published. Replacing an existing asset (`--clobber`) SHALL be used only on a draft. Every GitHub CLI call in the release workflow SHALL name the repository explicitly. Source: enhancement 0021 ("Release tags are immutable").
 
 #### Scenario: Upload to the draft
-- **WHEN** the image job uploads `install.yaml` for a release that is still a draft
+- **WHEN** the example publishing job uploads `opm-examples.tar.gz` for a release that is still a draft
 - **THEN** the upload succeeds, and re-running the job replaces the asset on the draft
 
 #### Scenario: Module manifest upload to the draft
-- **WHEN** the module publish job uploads `install.yaml` for `opm_operator-v0.2.0` while its release is a draft
+- **WHEN** the module publish job uploads `install.yaml` for `opm_controller-v0.2.0` while its release is a draft
 - **THEN** the upload succeeds, and re-running the job replaces the asset on the draft
 
 #### Scenario: Upload to a published release refused
@@ -90,7 +90,7 @@ Every step that uploads an asset to the GitHub Release (`install.yaml` of an ope
 - **THEN** the step fails before uploading and tells the operator to release the next version instead
 
 ### Requirement: Release published once after every release job
-The release workflow SHALL contain a publish job (`publish-release`) that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the operator package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required assets (`install.yaml`, `opm-examples.tar.gz`) are attached to the draft, and then publishes the draft.
+The release workflow SHALL contain a publish job (`publish-release`) that depends on every job producing a release artifact (the image job and the example publishing job), runs only when the controller package `"."` created a release (a module-only release does not run it), holds `contents: write` and no other write permission, checks out only the files it runs, confirms the required asset `opm-examples.tar.gz` is attached to the draft, and then publishes the draft.
 
 #### Scenario: All release jobs succeed
 - **WHEN** the image and example jobs finish successfully for `v1.0.0-beta.3`
@@ -101,12 +101,16 @@ The release workflow SHALL contain a publish job (`publish-release`) that depend
 - **THEN** `publish-release` does not run, the release stays a draft, and "Re-run failed jobs" on the same workflow run completes and publishes it
 
 #### Scenario: Required asset missing
-- **WHEN** `publish-release` runs and the draft lacks `install.yaml`
+- **WHEN** `publish-release` runs and the draft lacks `opm-examples.tar.gz`
 - **THEN** the job fails and the release stays a draft
 
 #### Scenario: Module-only release
 - **WHEN** a push to `main` creates only a module release
 - **THEN** `publish-release` does not run
+
+#### Scenario: No controller manifest
+- **WHEN** a controller release `v1.0.0-beta.9` is published
+- **THEN** its GitHub Release carries `opm-examples.tar.gz` and no `install.yaml`
 
 ### Requirement: Release tags are never moved, deleted or re-created
 No workflow, task or script in this repository SHALL move, delete or re-create a git tag or delete a GitHub Release. A failed run before publish SHALL be recovered by re-running its failed jobs; a wrong published release SHALL be fixed by releasing the next version. Source: enhancement 0021 ("Release tags are immutable").
@@ -158,14 +162,14 @@ A forced version SHALL be a `release-as` value on package `"."` of `release-plea
 - **THEN** release-please opens no Release PR; the forced version is proposed once a commit of a visible type lands
 
 ### Requirement: Dependabot leaves cuelang.org/go to library releases
-The `gomod` entry of `.github/dependabot.yml` SHALL ignore the dependencies `cuelang.org/go` and `cuelabs.dev/go/oci/ociregistry` (the CUE team's OCI module, whose version the library's `go.mod` sets, `cuelang.org/go` setting only a floor), so the operator's CUE version moves only through a library release.
+The `gomod` entry of `.github/dependabot.yml` SHALL ignore the dependencies `cuelang.org/go` and `cuelabs.dev/go/oci/ociregistry` (the CUE team's OCI module, whose version the library's `go.mod` sets, `cuelang.org/go` setting only a floor), so the controller's CUE version moves only through a library release.
 Other third-party Go modules SHALL keep their Dependabot updates.
-(Requirement: The operator's CUE version moves only through a library release)
+(Requirement: The controller's CUE version moves only through a library release)
 **Source**: owner decision j4 of the kernel beta.1 plan walkthrough (2026-10-03); workspace RELEASING.md, section "Pin classes".
 
 #### Scenario: New CUE release opens no Dependabot PR
 - **WHEN** a new `cuelang.org/go` version is published and Dependabot's weekly `gomod` run executes
-- **THEN** Dependabot opens no pull request for `cuelang.org/go` or `cuelabs.dev/go/oci/ociregistry` in opm-operator
+- **THEN** Dependabot opens no pull request for `cuelang.org/go` or `cuelabs.dev/go/oci/ociregistry` in opm-controller
 
 #### Scenario: CUE arrives with a library release
 - **WHEN** a library release that requires a newer `cuelang.org/go` is pinned by the cascade's library bump
@@ -176,11 +180,11 @@ Other third-party Go modules SHALL keep their Dependabot updates.
 - **THEN** Dependabot still proposes the bump
 
 ### Requirement: The changelog groups entries under the visible sections
-The workflow SHALL generate and maintain a `CHANGELOG.md` file at the repository root for the operator package. Entries SHALL be grouped under the visible sections that `release-please-config.json` declares (Features, Bug Fixes, Performance Improvements, Reverts, Dependencies, Code Refactoring). Commits of a hidden type (`docs`, `chore`, `test`, `ci`, `build`) SHALL NOT appear.
+The workflow SHALL generate and maintain a `CHANGELOG.md` file at the repository root for the controller package. Entries SHALL be grouped under the visible sections that `release-please-config.json` declares (Features, Bug Fixes, Performance Improvements, Reverts, Dependencies, Code Refactoring). Commits of a hidden type (`docs`, `chore`, `test`, `ci`, `build`) SHALL NOT appear.
 
 #### Scenario: Changelog includes all commit types
 - **WHEN** the Release PR is created or updated
-- **THEN** `CHANGELOG.md` SHALL list every commit since the last release whose type has a visible section in `release-please-config.json` and that changes a file outside `modules/opm_operator/`, grouped under that section, with commit messages as entries, and SHALL list no commit of a hidden type
+- **THEN** `CHANGELOG.md` SHALL list every commit since the last release whose type has a visible section in `release-please-config.json` and that changes a file outside `modules/opm_controller/`, grouped under that section, with commit messages as entries, and SHALL list no commit of a hidden type
 
 ### Requirement: Earlier changelog entries stay as they are
 Documentation entries already in CHANGELOG.md from earlier releases SHALL stay as they are.
@@ -190,29 +194,29 @@ Documentation entries already in CHANGELOG.md from earlier releases SHALL stay a
 - **THEN** the new changelog section SHALL be prepended to existing content, preserving prior release entries
 
 ### Requirement: A module-only commit stays out of the root changelog
-A commit that changes only files under the operator module's directory `modules/opm_operator/` belongs to the module's own changelog (see `operator-module-release`) and SHALL NOT appear in the root `CHANGELOG.md`.
+A commit that changes only files under the controller module's directory `modules/opm_controller/` belongs to the module's own changelog (see `controller-module-release`) and SHALL NOT appear in the root `CHANGELOG.md`.
 
-#### Scenario: Module-only commit stays out of the operator changelog
-- **WHEN** `fix(deps): deploy operator v1.0.0-beta.6 from the operator module`, which changes only `modules/opm_operator/`, is merged
-- **THEN** the operator's Release PR and root `CHANGELOG.md` do not list it
+#### Scenario: Module-only commit stays out of the controller changelog
+- **WHEN** `fix(deps): deploy controller v1.0.0-beta.6 from the controller module`, which changes only `modules/opm_controller/`, is merged
+- **THEN** the controller's Release PR and root `CHANGELOG.md` do not list it
 
 ### Requirement: A merged Release PR creates the tag and a draft GitHub Release
-When a Release PR is merged to `main`, release-please SHALL create the git tag eagerly at the release commit and a GitHub Release in draft state with the changelog section as release notes. The operator package `"."` tags `vX.Y.Z` (e.g. `v0.2.0`, or `v1.0.0-beta.6` on the beta line); the operator module's package tags `opm_operator-vX.Y.Z` (see `operator-module-release`).
+When a Release PR is merged to `main`, release-please SHALL create the git tag eagerly at the release commit and a GitHub Release in draft state with the changelog section as release notes. The controller package `"."` tags `vX.Y.Z` (e.g. `v0.2.0`, or `v1.0.0-beta.6` on the beta line); the controller module's package tags `opm_controller-vX.Y.Z` (see `controller-module-release`).
 
 #### Scenario: Release PR merged
 - **WHEN** the Release PR is merged to `main`
-- **THEN** release-please creates a git tag matching the version (prefixed with `v` for the operator, with `opm_operator-v` for the module) at the release commit and a draft GitHub Release with the changelog for that version as the body, and the release is not visible as published until every release job has succeeded
+- **THEN** release-please creates a git tag matching the version (prefixed with `v` for the controller, with `opm_controller-v` for the module) at the release commit and a draft GitHub Release with the changelog for that version as the body, and the release is not visible as published until every release job has succeeded
 
 #### Scenario: Release PR closed without merge
 - **WHEN** the Release PR is closed without merging
 - **THEN** no tag or release SHALL be created; the next push to `main` re-opens or creates a new Release PR
 
 ### Requirement: Releases are drafts that a publish job makes public
-Each release-please package SHALL be configured with `draft: true` and `force-tag-creation: true`. An operator release's draft SHALL become public only through the publish job `publish-release` defined in "Release published once after every release job"; a module release's draft only through the module's final publish job `module-publish-release`.
+Each release-please package SHALL be configured with `draft: true` and `force-tag-creation: true`. A controller release's draft SHALL become public only through the publish job `publish-release` defined in "Release published once after every release job"; a module release's draft only through the module's final publish job `module-publish-release`.
 
 #### Scenario: Config enables draft-first
 - **WHEN** `release-please-config.json` is inspected on `main`
-- **THEN** package `"."` and package `"modules/opm_operator"` SHALL each set `"draft": true` and `"force-tag-creation": true`
+- **THEN** package `"."` and package `"modules/opm_controller"` SHALL each set `"draft": true` and `"force-tag-creation": true`
 
 ### Requirement: Commits set the proposed version
 The workflow SHALL determine the proposed version from the commits since the last release tag using Conventional Commits v1 semantics, applied per release line. (Requirement: Version bump determination per release line)
@@ -243,7 +247,7 @@ The release-please workflow SHALL run on every push to the `main` branch. It SHA
 - **THEN** release-please opens a Release PR listing them under Code Refactoring
 
 ### Requirement: Hidden commit types do not open a Release PR
-As in requirement "The release-please workflow opens or updates a Release PR on every push to main": `docs`, `chore`, `test`, `ci` and `build` are hidden and SHALL NOT by themselves open a Release PR, and a `release-as` value in `release-please-config.json` does not make them releasable. Hiding `docs` keeps a doc-only commit from cutting an operator release that would cascade a pointless bump into the cli (owner decision 2026-10-01 (RELEASING.md, Pin classes)).
+As in requirement "The release-please workflow opens or updates a Release PR on every push to main": `docs`, `chore`, `test`, `ci` and `build` are hidden and SHALL NOT by themselves open a Release PR, and a `release-as` value in `release-please-config.json` does not make them releasable. Hiding `docs` keeps a doc-only commit from cutting a controller release that would cascade a pointless bump into the cli (owner decision 2026-10-01 (RELEASING.md, Pin classes)).
 
 #### Scenario: Only non-releasable commits
 - **WHEN** only `docs`, `chore`, `test`, `ci` or `build` commits are pushed since the last release, whether or not `release-please-config.json` carries a `release-as` value
@@ -261,14 +265,14 @@ On every Release PR, the release-pin gate (G1, workspace RELEASING.md, section "
 - **THEN** the job carrying the release-pin gate reports `Lint`, and no other job reports that name
 
 ### Requirement: A Release PR is told by its head branch
-As in requirement "The release-pin gate is a step of an existing job": A PR is a Release PR when `${{ github.head_ref || github.ref_name }}` starts with `release-please--`, except the operator module's release PR (`release-please--branches--main--components--opm_operator`): it ships none of the files this gate checks, and the module release gate (`operator-module-release`) checks its pins. On pull requests that are not Release PRs the gate step SHALL be skipped.
+As in requirement "The release-pin gate is a step of an existing job": A PR is a Release PR when `${{ github.head_ref || github.ref_name }}` starts with `release-please--`, except the controller module's release PR (`release-please--branches--main--components--opm_controller`): it ships none of the files this gate checks, and the module release gate (`controller-module-release`) checks its pins. On pull requests that are not Release PRs the gate step SHALL be skipped.
 
 #### Scenario: Ordinary PRs skip the gate
 - **WHEN** a pull request's head branch does not start with `release-please--`
 - **THEN** the gate step is skipped and the job's result depends only on its other steps
 
 #### Scenario: The module's release PR skips the gate
-- **WHEN** the head branch is `release-please--branches--main--components--opm_operator`
+- **WHEN** the head branch is `release-please--branches--main--components--opm_controller`
 - **THEN** the release-pin gate step is skipped and the module release gate step runs
 
 ### Requirement: The gate fails on a replace directive or an unreleased pin
@@ -314,7 +318,7 @@ The `gomod` entry of `.github/dependabot.yml` SHALL ignore every dependency matc
 
 #### Scenario: Library release opens no Dependabot PR
 - **WHEN** library publishes a new tag
-- **THEN** Dependabot opens no PR bumping `github.com/open-platform-model/library` in opm-operator
+- **THEN** Dependabot opens no PR bumping `github.com/open-platform-model/library` in opm-controller
 
 ### Requirement: Dependabot ignores the cascade references of the .github repository
 As in requirement "Dependabot ignores the OPM Go modules": The `github-actions` entry SHALL ignore `open-platform-model/.github*`: the cascade references move together, one `.github` SHA for the repo, only through a `ci(deps): pin the cascade to .github <sha7>` pull request (Phase 3 wiring contract (version 3.1) §2.4, §10.1 item 7).
@@ -358,8 +362,8 @@ As in requirement "Forced version via the release-as config key": A `Release-As:
 - **WHEN** a pull request body or a branch commit carries a `Release-As:` footer and the pull request is squash-merged
 - **THEN** the squash commit on `main` carries only the PR title (`squash_merge_commit_message: BLANK`), so the footer never reaches `main`
 
-### Requirement: The install page's operator version sits in release-please blocks
-`release-please-config.json` SHALL list `docs/site/start/install-the-operator.md` under the root package's `extra-files`, and every passage of that page that names the operator's version SHALL sit inside an `x-release-please-start-version` ... `x-release-please-end` block of HTML comment markers, each on its own line outside code fences and at the content indentation of its enclosing block (three spaces inside an ordered-list item), so the page renders as it would without them.
+### Requirement: The install page's controller version sits in release-please blocks
+`release-please-config.json` SHALL list `docs/site/start/install-the-controller.md` under the root package's `extra-files`, and every passage of that page that names the controller's version SHALL sit inside an `x-release-please-start-version` ... `x-release-please-end` block of HTML comment markers, each on its own line outside code fences and at the content indentation of its enclosing block (three spaces inside an ordered-list item), so the page renders as it would without them.
 
 #### Scenario: A Release PR moves the page with the constant
 
@@ -367,12 +371,12 @@ As in requirement "Forced version via the release-as config key": A `Release-As:
 - **THEN** the PR rewrites `Version` in `internal/version/version.go` and every version inside the install page's blocks to `1.0.0-beta.6`, and the release's docs bundle names `v1.0.0-beta.6` in its install commands
 
 ### Requirement: The install page's version blocks are tested
-As in requirement "The install page's operator version sits in release-please blocks": A block SHALL name no version other than the operator's. A test in `internal/version` SHALL fail when the page has no block, when a block is not closed, or when a version inside a block differs from the `Version` constant.
+As in requirement "The install page's controller version sits in release-please blocks": A block SHALL name no version other than the controller's. A test in `internal/version` SHALL fail when the page has no block, when a block is not closed, or when a version inside a block differs from the `Version` constant.
 
 #### Scenario: Another project's version inside a block is refused
 
 - **WHEN** a commit puts a core or catalog version inside one of the install page's blocks
-- **THEN** `task dev:test` fails, naming the version and the expected operator version
+- **THEN** `task dev:test` fails, naming the version and the expected controller version
 
 #### Scenario: A detached marker is refused
 
@@ -396,8 +400,8 @@ The release workflow SHALL contain a job `notify-downstream`, owned by this repo
 - **WHEN** a pull request adds a checkout or a `run:` step to `notify-downstream`
 - **THEN** the `Lint` job's "Verify the cascade wiring" step fails naming `release.yml:notify-downstream step count`
 
-### Requirement: The notify-downstream job runs only after a published operator release
-As in requirement "The notify-downstream job needs release-please and publish-release": Its `if` SHALL be `needs.release-please.outputs.release_created == 'true' && vars.CASCADE_NOTIFY != 'off'`: it SHALL run only when the operator package `"."` created a release, never for a release created only by the operator module's package, `publish-release` succeeded, and the repo variable `CASCADE_NOTIFY` is not `off`.
+### Requirement: The notify-downstream job runs only after a published controller release
+As in requirement "The notify-downstream job needs release-please and publish-release": Its `if` SHALL be `needs.release-please.outputs.release_created == 'true' && vars.CASCADE_NOTIFY != 'off'`: it SHALL run only when the controller package `"."` created a release, never for a release created only by the controller module's package, `publish-release` succeeded, and the repo variable `CASCADE_NOTIFY` is not `off`.
 
 #### Scenario: Release left a draft does not notify
 - **WHEN** `publish-examples` fails, so `publish-release` does not run and the release stays a draft
@@ -416,15 +420,15 @@ As in requirement "The notify-downstream job needs release-please and publish-re
 - **THEN** `notify-downstream` is skipped
 
 #### Scenario: Module-only release does not notify
-- **WHEN** a push to `main` creates only `opm_operator-v0.2.0`
+- **WHEN** a push to `main` creates only `opm_controller-v0.2.0`
 - **THEN** `notify-downstream` is skipped, and no dispatch carries an empty tag
 
 ### Requirement: The cascade action dispatches upstream-released only to the cli
 As in requirement "The notify-downstream job has exactly one step, the cascade action": The action mints the App token and SHALL dispatch `upstream-released` only to `cli` (Phase 3 wiring contract (version 3.1) §3.1, §4.3, §4.6, §10.1 item 9; workspace RELEASING.md, "Notify after publish").
 
 #### Scenario: Published release notifies the cli
-- **WHEN** the release run for `v1.0.0-beta.9` publishes the draft with `install.yaml` attached
-- **THEN** `notify-downstream` runs after `publish-release` in the `cascade` Environment, and the cli receives a `repository_dispatch` of type `upstream-released` with source `opm-operator` and tag `v1.0.0-beta.9`
+- **WHEN** the release run for `v1.0.0-beta.9` publishes the draft with `opm-examples.tar.gz` attached
+- **THEN** `notify-downstream` runs after `publish-release` in the `cascade` Environment, and the cli receives a `repository_dispatch` of type `upstream-released` with source `opm-controller` and tag `v1.0.0-beta.9`
 
 ### Requirement: The cascade App key is read only by the notify job
 As in requirement "The notify-downstream job has exactly one step, the cascade action": The key SHALL be read only in the caller-owned `notify-downstream` or `publish` job, which declares `environment: cascade` and passes `secrets.CASCADE_APP_PRIVATE_KEY` only as the `private-key` input of the SHA-pinned cascade action; that job SHALL have no checkout or `run:` of its own, and no `env:`, `container:` or `services:`; no reusable call SHALL pass `secrets:` or `secrets: inherit`.
@@ -433,13 +437,13 @@ As in requirement "The notify-downstream job has exactly one step, the cascade a
 - **WHEN** the key `CASCADE_APP_PRIVATE_KEY` is read
 - **THEN** it is read only in the caller-owned `notify-downstream` or `publish` job, as the `private-key` input of the SHA-pinned cascade action
 
-### Requirement: The operator's CUE version moves only through a library release
-As in requirement "Dependabot leaves cuelang.org/go to library releases": the library bumps CUE in its own pull request, where the closedness canary runs, and the operator picks the new version up when the release cascade (or a hand-made `fix(deps)` pull request) moves the library pin, whose `go get` of the library raises `cuelang.org/go` by minimal version selection (kept by `go mod tidy`). Other third-party Go modules SHALL keep their Dependabot updates.
+### Requirement: The controller's CUE version moves only through a library release
+As in requirement "Dependabot leaves cuelang.org/go to library releases": the library bumps CUE in its own pull request, where the closedness canary runs, and the controller picks the new version up when the release cascade (or a hand-made `fix(deps)` pull request) moves the library pin, whose `go get` of the library raises `cuelang.org/go` by minimal version selection (kept by `go mod tidy`). Other third-party Go modules SHALL keep their Dependabot updates.
 **Source**: owner decision j4 of the kernel beta.1 plan walkthrough (2026-10-03); workspace RELEASING.md, section "Pin classes".
 
-#### Scenario: The operator picks up CUE with the library pin
+#### Scenario: The controller picks up CUE with the library pin
 - **WHEN** the release cascade or a hand-made `fix(deps)` pull request moves the library pin
-- **THEN** the operator picks the new CUE version up, because the `go get` of the library raises `cuelang.org/go` by minimal version selection
+- **THEN** the controller picks the new CUE version up, because the `go get` of the library raises `cuelang.org/go` by minimal version selection
 
 ### Requirement: The publish job leaves the Pre-release flag unchanged and succeeds on a published release
 As in requirement "Release published once after every release job" (a publish job (`publish-release`)): It SHALL leave the Pre-release flag set by release-please unchanged. When the release is already published it SHALL succeed without changing anything.
@@ -453,11 +457,11 @@ As in requirement "Release published once after every release job" (a publish jo
 - **THEN** `publish-release` succeeds without changing anything
 
 ### Requirement: Only the cascade notify job and the module's image-bump PR job depend on the publish job
-As in requirement "Release published once after every release job" (a publish job (`publish-release`)): The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`), neither of which produces a release artifact.
+As in requirement "Release published once after every release job" (a publish job (`publish-release`)): The only jobs that SHALL depend on it are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `controller-module-release`), neither of which produces a release artifact.
 
 #### Scenario: Only two jobs depend on the publish job
 - **WHEN** the jobs that depend on `publish-release` are listed
-- **THEN** they are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `operator-module-release`)
+- **THEN** they are the cascade notify job and the module's image-bump PR job (`module-image-pr`, see `controller-module-release`)
 
 ### Requirement: A breaking change during beta is a ! in the PR title and advances the beta counter
 As in requirement "Beta prerelease line": A breaking change is still allowed during beta, but only as a `!` in the PR title (`feat!:`), which becomes the CHANGELOG entry; its migration note goes in the PR body, which the entry links and which never reaches `main`. It SHALL advance the `-beta.N` counter and never move the module path to a new major.
@@ -470,19 +474,19 @@ As in requirement "Beta prerelease line": A breaking change is still allowed dur
 - **WHEN** a breaking change is made during beta
 - **THEN** it advances the `-beta.N` counter and never moves the module path to a new major
 
-### Requirement: Stable lines keep the normal SemVer rule and the operator module follows its 0.x rule
-As in requirement "Beta prerelease line": Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) keep the normal SemVer rule: a break is a new major. The operator module's own package SHALL follow its 0.x rule instead (`operator-module-release`).
+### Requirement: Stable lines keep the normal SemVer rule and the controller module follows its 0.x rule
+As in requirement "Beta prerelease line": Stable lines (opmodel.dev/catalogs/opm@v4 and the module fleets) keep the normal SemVer rule: a break is a new major. The controller module's own package SHALL follow its 0.x rule instead (`controller-module-release`).
 
 #### Scenario: A break on a stable line is a new major
 - **WHEN** a break lands on a stable line (`opmodel.dev/catalogs/opm@v4` or a module fleet)
 - **THEN** it is a new major
 
-#### Scenario: The operator module's package follows its 0.x rule
-- **WHEN** the operator module's own package is released
-- **THEN** it follows its 0.x rule instead (`operator-module-release`)
+#### Scenario: The controller module's package follows its 0.x rule
+- **WHEN** the controller module's own package is released
+- **THEN** it follows its 0.x rule instead (`controller-module-release`)
 
 ### Requirement: Beta breaks wait for owner sign-off or for the cli that can drive them
-As in requirement "Beta prerelease line": A core beta break that would force a catalogs/opm major needs owner sign-off. An operator `feat!` that the released cli cannot drive SHALL merge only after the cli release that can drive it, and no `release-as` value SHALL hop the operator to a new minor or major (such as `1.1.0-beta.1`) during beta.
+As in requirement "Beta prerelease line": A core beta break that would force a catalogs/opm major needs owner sign-off. A controller `feat!` that the released cli cannot drive SHALL merge only after the cli release that can drive it, and no `release-as` value SHALL hop the controller to a new minor or major (such as `1.1.0-beta.1`) during beta.
 
 #### Scenario: A core beta break that forces a catalogs/opm major needs owner sign-off
 - **WHEN** a core beta break would force a catalogs/opm major

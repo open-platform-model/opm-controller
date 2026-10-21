@@ -19,8 +19,8 @@ package reconcile
 import (
 	"testing"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 // A prune that only kept PersistentVolumeClaims deleted nothing, so the

@@ -1,4 +1,4 @@
-module: "testing.opmodel.dev/modules/operator/hello_web@v0"
+module: "testing.opmodel.dev/modules/controller/hello_web@v0"
 language: {
 	version: "v0.17.0"
 }

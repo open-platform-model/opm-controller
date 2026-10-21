@@ -23,7 +23,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/open-platform-model/opm-operator/internal/shrink"
+	"github.com/open-platform-model/opm-controller/internal/shrink"
 )
 
 // ClaimShrinkDecider judges whether one rendered resource must be withheld
@@ -53,7 +53,7 @@ func shrinkDecider(params *ModuleInstanceParams) *shrink.Decider {
 //
 // The inventory is deliberately not derived from the returned list: the
 // reconciler reads converted.entries, which convertRender builds from the
-// full converted set. The operator still owns a resource it declined to
+// full converted set. The controller still owns a resource it declined to
 // update, and dropping it from the inventory would mark it stale and prune
 // the very object the refusal exists to protect. A refusal returns before
 // the prune and the inventory commit (pinned by the shrink refusal

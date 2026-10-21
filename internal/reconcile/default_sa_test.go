@@ -24,8 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
 )
 
 // TestResolveEffectiveSA covers the pure precedence logic: explicit spec wins
@@ -161,7 +161,7 @@ func TestBuildApplyClient_DefaultSAMissing(t *testing.T) {
 		t.Fatal("expected error when flag-defaulted SA is missing, got nil")
 	}
 	// Error must name the release namespace + SA so the stall message is
-	// attributable to the tenant-scoped identity the operator expected.
+	// attributable to the tenant-scoped identity the controller expected.
 	msg := err.Error()
 	if !strings.Contains(msg, "team-a") || !strings.Contains(msg, "opm-deployer") {
 		t.Fatalf("error %q should mention namespace and SA name", msg)

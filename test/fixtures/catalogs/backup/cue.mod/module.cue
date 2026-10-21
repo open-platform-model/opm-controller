@@ -1,4 +1,4 @@
-module: "testing.opmodel.dev/catalogs/operator/backup@v0"
+module: "testing.opmodel.dev/catalogs/controller/backup@v0"
 language: {
 	version: "v0.17.0"
 }

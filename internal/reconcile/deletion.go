@@ -21,9 +21,9 @@ import (
 	k8sinventory "github.com/open-platform-model/library/opm/k8s/inventory"
 	"github.com/open-platform-model/library/opm/k8s/lifecycle"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // deletionEnv is what a deletion cleanup needs from the reconciler params of
@@ -261,7 +261,7 @@ func runDeletionCleanup(ctx context.Context, env deletionEnv, t deletionTarget) 
 // write it. Its effect is bounded to this: when the deleting identity is also
 // gone, the finalizer of a deleting object is released early. That leaves
 // objects in the cluster and never deletes one; spec.prune=false does the
-// same for anyone who may edit the spec. The roles the operator ships give
+// same for anyone who may edit the spec. The roles the controller ships give
 // users no write verb on a status subresource (test/rbac).
 func recordedWaitReason(obj conditions.Getter) string {
 	if obj.GetDeletionTimestamp().IsZero() {

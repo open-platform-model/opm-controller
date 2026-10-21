@@ -1,6 +1,6 @@
 ## Purpose
 
-Define how the operator's reconcile loops for ModuleInstance and ModulePackage
+Define how the controller's reconcile loops for ModuleInstance and ModulePackage
 run their phases in order, classify each attempt's outcome, and always commit
 an honest status for it, including an attempt that ends in a recovered panic,
 so that Ready, the counters, the history and the inventory describe what the
@@ -211,7 +211,7 @@ A reconcile that skips its render because its inputs are unchanged (`render-inpu
 - **THEN** `status.requiredContracts` is updated to what the render reported
 
 ### Requirement: A NoOp patch carries requiredContracts because the demand can move without a digest
-As in requirement "requiredContracts is in the NoOp patch set": It SHALL describe what the instance demands, which a reconcile can observe as changed without any digest changing: a regenerated platform re-enqueues every instance, and the render that follows may be a no-op for apply while being the only evidence that the demand moved. Bounding it out of the `NoOp` patch would leave the field describing a render the operator has already superseded.
+As in requirement "requiredContracts is in the NoOp patch set": It SHALL describe what the instance demands, which a reconcile can observe as changed without any digest changing: a regenerated platform re-enqueues every instance, and the render that follows may be a no-op for apply while being the only evidence that the demand moved. Bounding it out of the `NoOp` patch would leave the field describing a render the controller has already superseded.
 
 #### Scenario: A regenerated platform moves the demand without a digest change
 - **WHEN** a regenerated platform re-enqueues an instance and the render that follows is a no-op for apply but reports a different contract demand
@@ -285,7 +285,7 @@ As in requirement "The instance's contract demand is recorded on its status": A 
 - **THEN** `status.requiredContracts` is unchanged from the last successful render
 
 ### Requirement: The reconciler evaluates rendered resources and may withhold one
-The reconciler SHALL evaluate the rendered resources before applying them and MAY withhold an individual resource whose application would break a guarantee the operator holds. A withheld resource SHALL NOT be applied, and every other rendered resource SHALL be applied as usual, so one refused object does not strand the rest of the module.
+The reconciler SHALL evaluate the rendered resources before applying them and MAY withhold an individual resource whose application would break a guarantee the controller holds. A withheld resource SHALL NOT be applied, and every other rendered resource SHALL be applied as usual, so one refused object does not strand the rest of the module.
 
 #### Scenario: The rest of the module still applies
 
@@ -298,7 +298,7 @@ The reconciler SHALL evaluate the rendered resources before applying them and MA
 - **THEN** apply, inventory, prune and the reported outcome are exactly as they were
 
 ### Requirement: Withholding does not change the inventory
-As in requirement "The reconciler evaluates rendered resources and may withhold one": Withholding SHALL NOT change the inventory. The inventory records which resources the instance owns, and the operator still owns a resource it declined to update; removing it would mark it stale and prune the very object the refusal exists to protect.
+As in requirement "The reconciler evaluates rendered resources and may withhold one": Withholding SHALL NOT change the inventory. The inventory records which resources the instance owns, and the controller still owns a resource it declined to update; removing it would mark it stale and prune the very object the refusal exists to protect.
 
 #### Scenario: The withheld resource stays owned
 
@@ -370,7 +370,7 @@ As in requirement "A recovered panic is never reported as a success": Before the
 
 ### Requirement: A panic keeps the applied state
 As in requirement "A recovered panic is never reported as a success": Before the panic leaves the reconcile function, the deferred commit MUST record the attempt as a transient failure and patch status:
-- `nextRetryAt` cleared, because the retry is scheduled by the controller runtime's rate limiter, not by the operator's backoff.
+- `nextRetryAt` cleared, because the retry is scheduled by the controller runtime's rate limiter, not by the controller's backoff.
 - `lastApplied*` and `inventory` left as they were.
 (Requirement: A panic is recorded in Ready and history)
 
@@ -393,7 +393,7 @@ As in requirement "A recovered panic is never reported as a success": Fields the
 - **THEN** `instanceUUID` is committed as on any other failed attempt
 
 ### Requirement: A recovered panic is raised again with its original value
-As in requirement "A recovered panic is never reported as a success": The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The operator SHOULD log the panic value with the object's name and namespace before it re-panics.
+As in requirement "A recovered panic is never reported as a success": The reconciler MUST then re-panic with the original panic value, so the controller runtime still recovers, logs (with the stack) and counts the panic and requeues the object. The controller SHOULD log the panic value with the object's name and namespace before it re-panics.
 
 #### Scenario: A panic during conversion is recorded and frees the slot
 
@@ -402,7 +402,7 @@ As in requirement "A recovered panic is never reported as a success": The reconc
 
 ### Requirement: The applied module version is recorded on status.lastAppliedVersion
 The ModuleInstance and ModulePackage reconcilers SHALL record on `status.lastAppliedVersion` the version of the module whose render they last applied, as plain text beside the `lastApplied*` digests. The value SHALL be the version the rendered instance's source module declares in its `metadata.version` (bare SemVer, for example `0.1.0`), read the same way on both kinds; for a ModuleInstance it is not copied from `spec.module.version`.
-**Source**: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Operator adds an additive status.lastAppliedVersion (plain text) next to the digest." The ADR-008 amendment (library#167) carries only j5's deletion half.
+**Source**: owner decision j5 of the kernel-plan walkthrough (2026-10-03): "Controller adds an additive status.lastAppliedVersion (plain text) next to the digest." The ADR-008 amendment (library#167) carries only j5's deletion half.
 
 #### Scenario: A successful apply records the module version
 
@@ -416,7 +416,7 @@ The ModuleInstance and ModulePackage reconcilers SHALL record on `status.lastApp
 - **THEN** `status.lastAppliedVersion` is `0.1.0`
 
 ### Requirement: The applied version is written with the lastApplied fields on a success
-As in requirement "The applied module version is recorded on status.lastAppliedVersion": The field SHALL be written together with the other `lastApplied*` fields, on an attempt whose apply (and prune, when enabled) succeeded. An attempt that fails, panics, is suspended, belongs to a CLI-owned instance, or is the operator's own instance (refused) SHALL leave it as it was.
+As in requirement "The applied module version is recorded on status.lastAppliedVersion": The field SHALL be written together with the other `lastApplied*` fields, on an attempt whose apply (and prune, when enabled) succeeded. An attempt that fails, panics, is suspended, belongs to a CLI-owned instance, or is the controller's own instance (refused) SHALL leave it as it was.
 
 #### Scenario: A failed apply keeps the previous version
 
@@ -465,16 +465,16 @@ As in requirement "The applied module version is recorded on status.lastAppliedV
 - **THEN** the recorded version is not an input to that decision, because the source digest already covers it
 
 ### Requirement: The instance reconcile interval comes from a flag
-The operator SHALL take an instance reconcile interval from the flag `--instance-reconcile-interval` (default 10 minutes). An interval of `0` SHALL disable the periodic requeue. The operator MUST refuse to start with a negative interval. The interval is operator-wide: the ModuleInstance API SHALL NOT gain a field for it. (Requirement: A reconciled instance requeues after the interval plus a random addition)
+The controller SHALL take an instance reconcile interval from the flag `--instance-reconcile-interval` (default 10 minutes). An interval of `0` SHALL disable the periodic requeue. The controller MUST refuse to start with a negative interval. The interval is controller-wide: the ModuleInstance API SHALL NOT gain a field for it. (Requirement: A reconciled instance requeues after the interval plus a random addition)
 
 #### Scenario: The interval is disabled
 
 - **WHEN** the interval is `0` and a ModuleInstance reconcile ends rolled out
 - **THEN** the reconcile returns without a requeue
 
-#### Scenario: A negative interval stops the operator
+#### Scenario: A negative interval stops the controller
 
-- **WHEN** the operator starts with `--instance-reconcile-interval=-1s`
+- **WHEN** the controller starts with `--instance-reconcile-interval=-1s`
 - **THEN** it logs the invalid value and exits with a non-zero status
 
 ### Requirement: A reconciled instance requeues after the interval plus a random addition
@@ -482,7 +482,7 @@ As in requirement "The instance reconcile interval comes from a flag": When a Mo
 
 #### Scenario: A rolled-out instance requeues on the interval
 
-- **WHEN** an operator-owned ModuleInstance reconcile ends `Applied` with `Healthy=True` and the interval is 10 minutes
+- **WHEN** a controller-owned ModuleInstance reconcile ends `Applied` with `Healthy=True` and the interval is 10 minutes
 - **THEN** the reconcile requeues after at least 10 and at most 11 minutes
 - **AND** `status.nextRetryAt` is unset
 
@@ -498,8 +498,8 @@ As in requirement "A reconciled instance requeues after the interval plus a rand
 - **WHEN** a ModuleInstance reconcile ends `Applied` and the periodic requeue is set
 - **THEN** `status.nextRetryAt` is unset and the requeue does not count as a failure
 
-### Requirement: A suspended, CLI-owned or operator instance is not requeued by the interval
-As in requirement "The instance reconcile interval comes from a flag": A suspended ModuleInstance, a CLI-owned ModuleInstance and the operator's own instance SHALL NOT be requeued by the interval. A failed reconcile SHALL keep the requeue of its failure class.
+### Requirement: A suspended, CLI-owned or controller instance is not requeued by the interval
+As in requirement "The instance reconcile interval comes from a flag": A suspended ModuleInstance, a CLI-owned ModuleInstance and the controller's own instance SHALL NOT be requeued by the interval. A failed reconcile SHALL keep the requeue of its failure class.
 
 #### Scenario: A suspended instance is not requeued
 
@@ -520,13 +520,13 @@ The periodic reconcile of an instance whose inputs and objects are unchanged SHA
 - **THEN** no patch and no status patch is sent for the instance
 
 ### Requirement: An instance carries its identity and the earlier one until a change is settled
-A ModuleInstance and a ModulePackage MUST carry in `status.instanceUUID` the identity of the instance the operator last rendered and began to apply, and in the optional field `status.previousInstanceUUID` the identity it had before, for as long as a change of identity is not settled.
+A ModuleInstance and a ModulePackage MUST carry in `status.instanceUUID` the identity of the instance the controller last rendered and began to apply, and in the optional field `status.previousInstanceUUID` the identity it had before, for as long as a change of identity is not settled.
 **Source**: owner decision of 2026-10-08 (the status holds the earlier and the new identity until the prune of that reconcile succeeded; then the earlier one is cleared).
 
 #### Scenario: An unsettled change of identity carries both identities
 - **GIVEN** a change of identity that is not settled
 - **WHEN** the controller reconciles
-- **THEN** `status.instanceUUID` holds the identity of the instance the operator last rendered and began to apply, and `status.previousInstanceUUID` holds the identity it had before
+- **THEN** `status.instanceUUID` holds the identity of the instance the controller last rendered and began to apply, and `status.previousInstanceUUID` holds the identity it had before
 
 ### Requirement: A first identity is stored
 When a render's identity differs from `status.instanceUUID`, the reconciler MUST store the new state in the object's status before it applies any object, and MUST NOT apply when that write fails:

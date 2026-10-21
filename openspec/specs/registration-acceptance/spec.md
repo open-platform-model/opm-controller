@@ -8,7 +8,7 @@ This capability decides one transition — whether a claim is accepted. Activati
 
 ### Requirement: Every claim receives a verdict
 
-The operator SHALL reconcile every `TransformerRegistration`, recording the outcome on its status as `conditions`, `accepted` and `observedGeneration`. A refusal SHALL name what failed and the value that failed it, so the claimant can act on it without reading operator logs. A claim SHALL NOT be partially honoured: acceptance is whole or it is a refusal.
+The controller SHALL reconcile every `TransformerRegistration`, recording the outcome on its status as `conditions`, `accepted` and `observedGeneration`. A refusal SHALL name what failed and the value that failed it, so the claimant can act on it without reading controller logs. A claim SHALL NOT be partially honoured: acceptance is whole or it is a refusal.
 
 #### Scenario: An accepted claim reports acceptance
 
@@ -147,7 +147,7 @@ As in requirement "A claim is refused when a contract it provides has another pr
 - **THEN** the claim is refused for the contract, naming the holder and the contract, and not as a duplicate claim
 
 ### Requirement: The provider count of a contract is read from the built platform
-As in requirement "A claim is refused when a contract it provides has another provider": Which enabled entries provide a contract SHALL be read from the built platform's own provider count (the contract inventory's providers, which core computes once and the render build refuses on), never recounted by the operator. When the built platform's provider count cannot be read, acceptance SHALL defer the verdict (not refuse), as it does when no platform has been built.
+As in requirement "A claim is refused when a contract it provides has another provider": Which enabled entries provide a contract SHALL be read from the built platform's own provider count (the contract inventory's providers, which core computes once and the render build refuses on), never recounted by the controller. When the built platform's provider count cannot be read, acceptance SHALL defer the verdict (not refuse), as it does when no platform has been built.
 
 #### Scenario: An unreadable provider count defers the verdict
 
@@ -302,24 +302,24 @@ When the acquisition of the claimed catalog fails with a transient registry fail
 - **AND** the claim reports `Reconciling=True` with reason `CatalogUnresolved`, a Warning event carries the registry error, and the claim is requeued after about 5 seconds
 
 ### Requirement: A Ready condition that reports no verdict becomes Unknown with reason CatalogUnresolved
-As in requirement "A transient registry failure leaves an accepted claim's verdict as it was": A `Ready` condition that is not `True` reports no verdict (an earlier reconcile deferred it, as the first reconcile after an operator restart does); it SHALL become `Unknown` with reason `CatalogUnresolved`, so it names the current cause.
+As in requirement "A transient registry failure leaves an accepted claim's verdict as it was": A `Ready` condition that is not `True` reports no verdict (an earlier reconcile deferred it, as the first reconcile after a controller restart does); it SHALL become `Unknown` with reason `CatalogUnresolved`, so it names the current cause.
 
-#### Scenario: A claim deferred after an operator restart stays accepted
+#### Scenario: A claim deferred after a controller restart stays accepted
 
 - **WHEN** an accepted and active claim reports `Ready=Unknown` because an earlier reconcile found no generated platform, and its next reconcile cannot reach the registry
 - **THEN** `status.accepted` and `status.active` stay true and `Active` stays `True`
 - **AND** `Ready` is `Unknown` with reason `CatalogUnresolved`
 
 ### Requirement: A transient registry failure is one the library classifies as transient or a 429 answer
-A transient registry failure SHALL be the one the library classifies as transient (the registry gave no HTTP response, or it answered with a 5xx status), or a 429 answer, which the operator reads from the status of the library's typed fetch failure. The operator SHALL NOT classify by message text.
+A transient registry failure SHALL be the one the library classifies as transient (the registry gave no HTTP response, or it answered with a 5xx status), or a 429 answer, which the controller reads from the status of the library's typed fetch failure. The controller SHALL NOT classify by message text.
 
 #### Scenario: A 5xx answer is transient
 
 - **WHEN** an accepted claim is reconciled and the registry answers the catalog fetch with a 5xx status
 - **THEN** the claim keeps its verdict and is retried
 
-### Requirement: The operator reports a transient failure without changing the verdict
-As in requirement "A transient registry failure leaves an accepted claim's verdict as it was": The operator SHALL report the failure without changing the verdict: the claim SHALL carry `Reconciling=True` with reason `CatalogUnresolved`, and the operator SHALL emit one Warning event that carries the registry error when the claim enters this state. The condition message SHALL NOT change between attempts, so repeated attempts write no status and emit no further event.
+### Requirement: The controller reports a transient failure without changing the verdict
+As in requirement "A transient registry failure leaves an accepted claim's verdict as it was": The controller SHALL report the failure without changing the verdict: the claim SHALL carry `Reconciling=True` with reason `CatalogUnresolved`, and the controller SHALL emit one Warning event that carries the registry error when the claim enters this state. The condition message SHALL NOT change between attempts, so repeated attempts write no status and emit no further event.
 
 #### Scenario: Repeated attempts do not repeat the event
 
@@ -327,7 +327,7 @@ As in requirement "A transient registry failure leaves an accepted claim's verdi
 - **THEN** no second Warning event is emitted
 
 ### Requirement: The retry of the acquisition backs off from the time the claim entered the state
-As in requirement "A transient registry failure leaves an accepted claim's verdict as it was": The operator SHALL retry the acquisition with an exponential backoff that starts at 5 seconds, doubles, and is capped at 5 minutes, with jitter. The backoff SHALL be measured from the time the claim entered this state, so an operator restart does not reset it.
+As in requirement "A transient registry failure leaves an accepted claim's verdict as it was": The controller SHALL retry the acquisition with an exponential backoff that starts at 5 seconds, doubles, and is capped at 5 minutes, with jitter. The backoff SHALL be measured from the time the claim entered this state, so a controller restart does not reset it.
 
 #### Scenario: The retry backs off
 
@@ -369,15 +369,15 @@ As in requirement "A transient registry failure leaves an accepted claim's verdi
 - **THEN** the claim is refused with reason `CatalogUnresolved`, naming the new version, and `status.accepted` is false
 
 ### Requirement: A token endpoint answer counts as an answer of the registry
-A registry that uses token authentication has a token endpoint, and an answer from that endpoint SHALL count as an answer from the registry. When the acquisition of the claimed catalog fails because the token endpoint answered with an error status, the operator SHALL judge the claim by that status, as the library classifies it, and SHALL NOT treat the failure as an unreachable registry.
+A registry that uses token authentication has a token endpoint, and an answer from that endpoint SHALL count as an answer from the registry. When the acquisition of the claimed catalog fails because the token endpoint answered with an error status, the controller SHALL judge the claim by that status, as the library classifies it, and SHALL NOT treat the failure as an unreachable registry.
 
 #### Scenario: A token endpoint error status is judged as the library classifies it
 
 - **WHEN** the acquisition of the claimed catalog fails because the token endpoint answered with an error status
-- **THEN** the operator judges the claim by that status, as the library classifies it, and does not treat the failure as an unreachable registry
+- **THEN** the controller judges the claim by that status, as the library classifies it, and does not treat the failure as an unreachable registry
 
-### Requirement: A token endpoint answer that reaches the operator through a dependency load is judged by its status
-As in requirement "A token endpoint answer counts as an answer of the registry": This holds where the answer reaches the operator through a failed dependency load, which carries no typed status. The operator SHALL NOT classify by message text itself.
+### Requirement: A token endpoint answer that reaches the controller through a dependency load is judged by its status
+As in requirement "A token endpoint answer counts as an answer of the registry": This holds where the answer reaches the controller through a failed dependency load, which carries no typed status. The controller SHALL NOT classify by message text itself.
 
 #### Scenario: A refused token during a dependency load un-accepts
 
@@ -402,7 +402,7 @@ A 5xx answer from the token endpoint is a transient registry failure: an accepte
 - **THEN** the failure is transient, and an accepted claim keeps `status.accepted`, `status.active` and its `Ready` condition
 
 ### Requirement: A 429 answer holds an accepted claim's verdict
-As in requirement "A 5xx answer from the token endpoint is a transient registry failure": A 429 answer (a rate limit) SHALL keep an accepted claim's verdict in the same way, with the same report and the same backoff: a rate limit passes with nothing changed and says nothing about the claim. The operator SHALL tell a 429 by the status of the library's typed fetch failure. That status does not say whether the registry or its token endpoint answered, so a 429 from either holds the claim.
+As in requirement "A 5xx answer from the token endpoint is a transient registry failure": A 429 answer (a rate limit) SHALL keep an accepted claim's verdict in the same way, with the same report and the same backoff: a rate limit passes with nothing changed and says nothing about the claim. The controller SHALL tell a 429 by the status of the library's typed fetch failure. That status does not say whether the registry or its token endpoint answered, so a 429 from either holds the claim.
 
 #### Scenario: A rate-limited token endpoint holds the claim
 

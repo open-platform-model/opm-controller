@@ -32,12 +32,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
-	"github.com/open-platform-model/opm-operator/internal/apply"
-	opmreconcile "github.com/open-platform-model/opm-operator/internal/reconcile"
-	"github.com/open-platform-model/opm-operator/internal/render"
-	opmsource "github.com/open-platform-model/opm-operator/internal/source"
-	"github.com/open-platform-model/opm-operator/internal/status"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
+	"github.com/open-platform-model/opm-controller/internal/apply"
+	opmreconcile "github.com/open-platform-model/opm-controller/internal/reconcile"
+	"github.com/open-platform-model/opm-controller/internal/render"
+	opmsource "github.com/open-platform-model/opm-controller/internal/source"
+	"github.com/open-platform-model/opm-controller/internal/status"
 )
 
 // waitSubject is one ModuleInstance or ModulePackage whose deletion the specs
@@ -608,14 +608,14 @@ var _ = Describe("Deletion cleanup waits for its deleted objects", func() {
 				Expect(s.object().GetFinalizers()).To(ContainElement(opmreconcile.FinalizerName))
 			})
 
-			// The operator sends no delete for a kept claim, also when the
+			// The controller sends no delete for a kept claim, also when the
 			// claim names a deleted object as its owner. What happens next is
 			// the garbage collector's: in a cluster it deletes the dependents
 			// of an owner that is deleted, with Foreground and with Background
 			// alike, so a kept claim that carries an owner reference to a
 			// deleted object IS collected there. envtest runs no garbage
 			// collector and the collector helper deletes no dependent, so here
-			// the claim stays. This spec pins the operator's side only.
+			// the claim stays. This spec pins the controller's side only.
 			It("sends no delete for a kept claim whose owner is deleted with Foreground", func() {
 				prefix := "dw-owned-" + kind.short
 				s := kind.new(prefix, "")

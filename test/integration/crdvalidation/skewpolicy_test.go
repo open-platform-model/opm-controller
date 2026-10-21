@@ -29,13 +29,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	releasesv1alpha1 "github.com/open-platform-model/opm-operator/api/v1alpha1"
+	releasesv1alpha1 "github.com/open-platform-model/opm-controller/api/v1alpha1"
 )
 
 // Platform.spec.skewPolicy is admission-validated by the CRD enum (change
 // operator-render-switch, task 1.2): the two documented values are accepted,
 // an unset field is accepted (the reconciler reads it as Warn), and any other
-// value is rejected by the API server before the operator sees it.
+// value is rejected by the API server before the controller sees it.
 func TestSkewPolicyEnumAtAdmission(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
