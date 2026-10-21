@@ -215,7 +215,7 @@ The output should look similar to this:
 
 ```text
 NAME      TYPE         READY   REASON      CONTROLLER
-cluster   kubernetes   True    Generated   v1.0.0-beta.8
+cluster   kubernetes   True    Generated   v1.0.0-beta.9
 ```
 
 <!-- x-release-please-end -->
@@ -245,7 +245,7 @@ The first lines should look similar to this; the second names the core version i
 <!-- x-release-please-start-version -->
 
 ```text
-INFO	setup	Starting opm-controller	{"version": "v1.0.0-beta.8"}
+INFO	setup	Starting opm-controller	{"version": "v1.0.0-beta.9"}
 INFO	setup	OPM core schema resolved	{"version": "..."}
 INFO	Flux source CRDs not installed; ModulePackage source watches disabled	{"controller": "modulepackage", "kinds": "OCIRepository,GitRepository,Bucket"}
 INFO	setup	Starting manager
