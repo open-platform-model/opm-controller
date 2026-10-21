@@ -15,11 +15,11 @@ package controller
 // TODO(cutover): Version and digest still name the last release published
 // under the image's former name; the module image PR of the first
 // opm-controller release replaces both before this module releases.
-Version: "1.0.0-beta.8"
+Version: "1.0.0-beta.9"
 
 Image: {
 	repository: "ghcr.io/open-platform-model/opm-controller"
 	tag:        "v\(Version)"
 	// The content digest of `tag` on GHCR, read when Version is bumped.
-	digest: "sha256:6ce599e344558c960b3f9e0fe5531d9ef30b118830dc8b611563172bf1949f68"
+	digest: "sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e"
 }
