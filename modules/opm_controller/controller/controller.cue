@@ -11,10 +11,6 @@
 package controller
 
 // The controller release this module version deploys, bare SemVer.
-//
-// TODO(cutover): Version and digest still name the last release published
-// under the image's former name; the module image PR of the first
-// opm-controller release replaces both before this module releases.
 Version: "1.0.0-beta.9"
 
 Image: {
