@@ -13,7 +13,7 @@
       "force-tag-creation": true,
       "package-name": "opm-controller",
       "changelog-path": "CHANGELOG.md",
-      "exclude-paths": ["modules/opm_controller", "modules/opm_operator"],
+      "exclude-paths": ["modules/opm_controller"],
       "extra-files": ["internal/version/version.go", "docs/site/start/install-the-controller.md"],
       "versioning": "prerelease",
       "prerelease": true,
