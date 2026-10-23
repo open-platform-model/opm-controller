@@ -11,11 +11,11 @@
 package controller
 
 // The controller release this module version deploys, bare SemVer.
-Version: "1.0.0-beta.9"
+Version: "1.0.0-beta.10"
 
 Image: {
 	repository: "ghcr.io/open-platform-model/opm-controller"
 	tag:        "v\(Version)"
 	// The content digest of `tag` on GHCR, read when Version is bumped.
-	digest: "sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e"
+	digest: "sha256:fb00c6414044055ed1ba09d41967c8366a950fbea3684d82b83258c1dc87adaa"
 }
