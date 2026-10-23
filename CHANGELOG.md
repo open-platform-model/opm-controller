@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-beta.10](https://github.com/open-platform-model/opm-controller/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** bump 4 upstream pins ([#311](https://github.com/open-platform-model/opm-controller/issues/311)) ([c2434e3](https://github.com/open-platform-model/opm-controller/commit/c2434e3b62bf608c26aa5664cceb012f23da3afa))
+* **deps:** require Go 1.26.10 ([#315](https://github.com/open-platform-model/opm-controller/issues/315)) ([294d9d0](https://github.com/open-platform-model/opm-controller/commit/294d9d01d6b569e99b295c1bc9566f10169a0e9d))
+
 ## [1.0.0-beta.9](https://github.com/open-platform-model/opm-controller/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2026-10-21)
 
 
