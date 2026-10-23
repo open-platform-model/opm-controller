@@ -7,4 +7,4 @@ ModulePath: "opmodel.dev/modules/opm_controller@v0"
 
 // Version is the module's bare SemVer, on its own train: it is not the
 // controller's version (that is controller.Version).
-Version: "0.1.0"
+Version: "0.1.1"
