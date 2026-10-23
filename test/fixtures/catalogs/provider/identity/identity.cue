@@ -13,7 +13,7 @@ ModulePath: "testing.opmodel.dev/catalogs/controller/provider@v0"
 // release-please's train, so a bump is `opm catalog version set <semver> .`
 // (published versions are immutable; `hack/fixtures.sh check` refuses an edit
 // without one). A plain literal, never a defaulted disjunction.
-Version: "0.1.0"
+Version: "0.1.1"
 
 // RegistryPath is the major-free OCI repository path.
 RegistryPath: "testing.opmodel.dev/catalogs/controller/provider"

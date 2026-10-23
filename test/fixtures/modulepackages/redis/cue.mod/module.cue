@@ -7,12 +7,12 @@ source: {
 }
 deps: {
 	"opmodel.dev/catalogs/opm@v4": {
-		v: "v4.6.0"
+		v: "v4.7.0"
 	}
 	"opmodel.dev/core@v2": {
-		v: "v2.0.0-beta.1"
+		v: "v2.0.0-beta.4"
 	}
 	"testing.opmodel.dev/modules/controller/redis@v0": {
-		v: "v0.1.15"
+		v: "v0.1.16"
 	}
 }

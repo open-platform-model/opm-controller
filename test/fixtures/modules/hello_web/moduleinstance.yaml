@@ -37,7 +37,7 @@ metadata:
 spec:
   module:
     path: testing.opmodel.dev/modules/controller/hello_web@v0
-    version: v0.1.11
+    version: v0.1.12
   serviceAccountName: hello-web-applier
   values:
     replicas: 2

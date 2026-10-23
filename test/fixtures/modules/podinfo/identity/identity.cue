@@ -15,4 +15,4 @@ ModulePath: "testing.opmodel.dev/modules/controller/podinfo@v0"
 // re-pin in moduleinstance.yaml and the modulepackage fixture. A plain
 // literal: the kernel's loader gate requires a concrete value, and a defaulted
 // disjunction is not one.
-Version: "0.1.12"
+Version: "0.1.13"
