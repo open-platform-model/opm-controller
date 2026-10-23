@@ -19,4 +19,4 @@ spec:
       # (`opm controller install` resolves the catalog version live), so bump
       # it as `test(fixtures)`: no controller release. The mirrored CLI seed
       # is shipped and bumps as `fix(deps)`.
-      version: "4.6.0"
+      version: "4.7.0"
