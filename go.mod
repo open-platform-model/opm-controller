@@ -1,17 +1,17 @@
 module github.com/open-platform-model/opm-controller
 
-go 1.26.10
+go 1.27.0
 
 require (
 	cuelang.org/go v0.17.1
 	github.com/fluxcd/cli-utils v1.2.2
-	github.com/fluxcd/pkg/apis/meta v1.31.0
+	github.com/fluxcd/pkg/apis/meta v1.36.0
 	github.com/fluxcd/pkg/runtime v0.111.0
 	github.com/fluxcd/pkg/ssa v0.77.0
 	github.com/fluxcd/source-controller/api v1.9.4
 	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.32.1
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	github.com/open-platform-model/library v1.0.0-beta.10
 	github.com/prometheus/client_golang v1.24.1
 	github.com/stretchr/testify v1.12.1
