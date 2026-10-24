@@ -1,6 +1,6 @@
 module github.com/open-platform-model/opm-controller
 
-go 1.26.10
+go 1.27.3
 
 require (
 	cuelang.org/go v0.17.1
