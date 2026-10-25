@@ -84,7 +84,7 @@ var _ = Describe("Instance identities of a ModulePackage", func() {
 		params.Renderer = &stubPackageRenderer{result: identityRender(identityA, names...)}
 		res, err := opmreconcile.ReconcileModulePackage(ctx, params, ctrl.Request{NamespacedName: nn})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(Equal(ctrl.Result{Requeue: true}), "the first reconcile registers the finalizer")
+		Expect(res).To(Equal(ctrl.Result{RequeueAfter: time.Second}), "the first reconcile registers the finalizer")
 		reconcilePackage(nn, identityRender(identityA, names...))
 		rec.events = nil
 		return nn

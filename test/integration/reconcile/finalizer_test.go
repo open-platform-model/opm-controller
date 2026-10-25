@@ -41,7 +41,7 @@ import (
 // Regression test for the finalizer-add requeue: when the first reconcile
 // adds the finalizer, the resulting watch event is filtered by
 // GenerationChangedPredicate (finalizer patches do not bump
-// metadata.generation). Without Requeue: true on the first return, the
+// metadata.generation). Without a requeue on the first return, the
 // manager never re-enqueues the request and the MR sits without status
 // conditions until the 10h periodic resync. This test exercises the path
 // through a real manager (not a direct Reconcile call); otherwise the

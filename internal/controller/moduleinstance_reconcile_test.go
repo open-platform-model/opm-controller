@@ -88,7 +88,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			// First reconcile adds finalizer.
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			// Second reconcile runs the full pipeline.
 			result, err = reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
@@ -180,7 +180,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			// First reconcile adds finalizer.
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			// Second reconcile hits suspend.
 			result, err = reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
@@ -715,7 +715,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			// Next reconcile falls through to the normal path: adds the finalizer.
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			var adopted releasesv1alpha1.ModuleInstance
 			Expect(k8sClient.Get(ctx, nn, &adopted)).To(Succeed())
@@ -767,7 +767,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			// CLI-owned single-pass acknowledgement.
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			var afterFinalizer releasesv1alpha1.ModuleInstance
 			Expect(k8sClient.Get(ctx, nn, &afterFinalizer)).To(Succeed())
@@ -1207,7 +1207,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 
 			result, err := newReconciler(events.NewFakeRecorder(10)).Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			var registered releasesv1alpha1.ModuleInstance
 			Expect(k8sClient.Get(ctx, nn, &registered)).To(Succeed())
@@ -1238,7 +1238,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			// Finalizer reconcile.
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			// First full reconcile — applies resources.
 			result, err = reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
@@ -1634,7 +1634,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			nn := types.NamespacedName{Name: "finalizer-add-mr", Namespace: namespace}
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			// Verify finalizer was added.
 			var updated releasesv1alpha1.ModuleInstance
@@ -1679,7 +1679,7 @@ var _ = Describe("ModuleInstance Reconcile Loop", func() {
 			// Finalizer reconcile.
 			result, err := reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(reconcile.Result{Requeue: true}))
+			Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}))
 
 			// Full reconcile — applies the ConfigMap.
 			_, err = reconciler.Reconcile(ctx, reconcile.Request{NamespacedName: nn})

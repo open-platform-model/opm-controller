@@ -45,9 +45,24 @@ linters:
       rules:
         - name: comment-spacings
         - name: import-shadowing
+    # golangci-lint v2.14.0 counts strings in composite literals; v2.8.0 did
+    # not. Keep the earlier scope: call arguments only.
+    goconst:
+      exclude-types:
+        - Call
+        - CompositeLit
     modernize:
       disable:
         - omitzero
+        # New modernize analyzers of golangci-lint v2.14.0, off to keep the
+        # rule set of v2.8.0.
+        - atomictypes
+        - embedlit
+        - errorsastype
+        - importcomment
+        - reflecttypeassert
+        - slicesbackward
+        - slicesclip
   exclusions:
     generated: lax
     rules:

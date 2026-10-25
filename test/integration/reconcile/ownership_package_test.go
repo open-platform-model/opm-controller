@@ -117,7 +117,7 @@ var _ = Describe("Ownership guard on the apply of a ModulePackage", func() {
 			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &pkg))).To(Succeed())
 		})
 		res := reconcilePackage(nn, ownedRender(identityA, "v1", names...))
-		Expect(res).To(Equal(ctrl.Result{Requeue: true}), "the first reconcile registers the finalizer")
+		Expect(res).To(Equal(ctrl.Result{RequeueAfter: time.Second}), "the first reconcile registers the finalizer")
 		reconcilePackage(nn, ownedRender(identityA, "v1", names...))
 		expectReady(nn)
 		Expect(packageOf(nn).Status.InstanceUUID).To(Equal(identityA))

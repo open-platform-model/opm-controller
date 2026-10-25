@@ -276,7 +276,7 @@ var _ = Describe("Render slots", func() {
 	addFinalizer := func(ctx context.Context, r reconcile.Reconciler, nn types.NamespacedName) {
 		result, err := r.Reconcile(ctx, reconcile.Request{NamespacedName: nn})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal(reconcile.Result{Requeue: true}), "the first reconcile only adds the finalizer")
+		Expect(result).To(Equal(reconcile.Result{RequeueAfter: time.Second}), "the first reconcile only adds the finalizer")
 	}
 
 	It("renders a ModuleInstance and a ModulePackage one at a time under one shared slot", func() {

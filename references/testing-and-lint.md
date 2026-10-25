@@ -52,25 +52,20 @@ KIND_CLUSTER=opm-controller-test-e2e go test -tags=e2e ./test/e2e -run <suite-fu
 
 `.golangci-lint-version` is the only place that names the linter version. `Taskfile.yml` and `Makefile` read it. The custom-gcl config at the repo root repeats it because `golangci-lint custom` reads only that file; `task dev:lint:config` refuses a tree where the two differ.
 
-No workflow, task file or `Makefile` line runs `golangci-lint config verify` on its own. Without `--schema` it downloads the schema from golangci-lint.run on every run, which failed the cli's required `Lint` job twice on 2026-10-08.
+The linter embeds the JSON schema of its own version, so `golangci-lint config verify` makes no request and the repository holds no schema file and no checksum file. The check runs it with the proxy variables at a closed local port. The binary that runs is the plugin build, which `golangci-lint custom` clones from the git tag of the version.
 
-- **Patch move** (`v2.8.0` to `v2.8.1`): edit `.golangci-lint-version` and the `version:` line of the custom-gcl config. The schema is per minor line and stays.
-- **Minor or major move**: edit both files, then replace the schema. Take `jsonschema/golangci.next.jsonschema.json` of the Go module `github.com/golangci/golangci-lint/v2` at the new version; the Go checksum database verifies it. Do not take `jsonschema/golangci.jsonschema.json`: the linter project updates that file only after a release, so at a release tag it still holds the line before.
-  1. `dir=$(go mod download -json github.com/golangci/golangci-lint/v2@vX.Y.Z | jq -r .Dir)`
-  2. Copy `$dir/jsonschema/golangci.next.jsonschema.json` to `.github/golangci-lint/golangci.vX.Y.jsonschema.json` and `chmod 644` it.
-  3. Remove the old schema file. In that directory run `sha256sum golangci.vX.Y.jsonschema.json > SHA256SUMS`.
-  4. Say in the PR body where the file came from, so the reviewer can compare the checksum.
+- **Any move** (patch, minor or major): edit `.golangci-lint-version` and the `version:` line of the custom-gcl config. Then run the commands below and read the new findings.
 - `task dev:lint:config dev:lint:config:test dev:lint` must pass.
-- The scenario `value-of-this-line` in the lint-config test in `.github/scripts/` proves the schema is not the one of the line before. On a minor move, change it to a value the new line added.
-- The check uses the hidden `--schema` flag of `golangci-lint config verify`. If a release drops the flag, the check fails on the bump PR and needs a new design, never a dropped check.
+- A new linter version can report on code the old one passed. Turn off the new check by name in `.golangci.yml` with a comment, or fix the code; do not leave a red `task dev:lint`.
+- The scenario `value-of-this-line` in the lint-config test in `.github/scripts/` proves the embedded schema is the one of the pinned line. On a minor move, change it to a value the new line added.
+- If a release changes `config verify` so that it needs the network or drops its offline check, the check fails on the bump PR and needs a new design, never a dropped check.
 - Installing the linter needs the network (the Go module proxy and the plugin build), and `task dev:lint*` reinstalls it on every run. Only the configuration check is offline: with the linter in `bin/`, `GOLANGCI_LINT=bin/golangci-lint bash .github/scripts/lint-config-check.sh` runs without a network.
 
 ## Pitfalls
 
 - A relative `KUBEBUILDER_ASSETS` makes envtest suites fail to find the binaries.
-- A schema taken from `golangci.jsonschema.json` is one release behind.
 - Editing `.golangci-lint-version` without the custom-gcl config fails `task dev:lint:config`.
-- Adding a bare `golangci-lint config verify` to CI reintroduces the schema download.
+- `config verify` does not check linter names: `nosuchlinter` in `enable` passes it, and `golangci-lint run` refuses it.
 - Registry-backed specs skip silently without `CUE_REGISTRY` outside PR CI; check the skip count.
 
 ## Check before you finish

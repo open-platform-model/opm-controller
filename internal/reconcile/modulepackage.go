@@ -130,13 +130,13 @@ func ReconcileModulePackage(
 
 	// Finalizer patches don't bump .metadata.generation, so
 	// GenerationChangedPredicate filters the subsequent UPDATE event —
-	// explicit Requeue re-enters the workqueue.
+	// an explicit requeue re-enters the workqueue.
 	if !controllerutil.ContainsFinalizer(&pkg, FinalizerName) {
 		log.Info("Adding finalizer to ModulePackage")
 		if err := addModulePackageFinalizer(ctx, params.Client, &pkg); err != nil {
 			return ctrl.Result{}, fmt.Errorf("adding finalizer: %w", err)
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: FinalizerRequeueDelay}, nil
 	}
 
 	if !pkg.DeletionTimestamp.IsZero() {
