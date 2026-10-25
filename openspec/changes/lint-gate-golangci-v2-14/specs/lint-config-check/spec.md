@@ -39,16 +39,13 @@ The check SHALL refuse, with one line per problem and a non-zero exit, a tree wh
 - **WHEN** the linter binary reports another version than the file names
 - **THEN** the check reports both versions
 
+#### Scenario: A committed schema or checksum file returns
+- **WHEN** `.github/golangci-lint/` holds a schema or a checksum file
+- **THEN** the check names the file
+
 #### Scenario: The linter action returns
 - **WHEN** a workflow, a task file or `Makefile` uses `golangci/golangci-lint-action`
 - **THEN** the check names the file and line
-
-### Requirement: A linter move keeps the rule set
-When `.golangci-lint-version` moves, `.golangci.yml` SHALL turn off, by name, each linter, analyzer or check that the new version adds or widens and that the old version did not report on the tree. A finding that no setting can keep off SHALL be fixed in code. `task dev:lint` SHALL pass on the tree after the move.
-
-#### Scenario: New check reports on the tree
-- **WHEN** the pinned linter version moves and a new check reports on the tree
-- **THEN** `.golangci.yml` names that check as off, or the code is fixed, and `task dev:lint` exits 0
 
 ## REMOVED Requirements
 
