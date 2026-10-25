@@ -105,10 +105,10 @@ jobs:
       - name: docs-kit pins agree
         run: task docs:pins:check
 
-      # golangci-lint config verify against the schema committed under
-      # .github/golangci-lint/, never the one golangci-lint.run serves, and
-      # the agreement of .golangci-lint-version, the schema, its checksum,
-      # .custom-gcl.yml and this step (.github/scripts/lint-config-check.sh).
+      # golangci-lint config verify against the schema embedded in the
+      # linter, with a closed proxy, and the agreement of
+      # .golangci-lint-version, .custom-gcl.yml and this step
+      # (.github/scripts/lint-config-check.sh).
       - name: Check linter configuration
         run: task dev:lint:config
 

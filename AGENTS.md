@@ -42,7 +42,7 @@ openspec/       OpenSpec config, specs, changes
 references/     detail files that CONTEXT.md routes to
 test/           e2e (build tag e2e), integration, fixtures, rbac, collector, utils
 .tasks/         Taskfile includes (dev, controller, controller-module, docker, kind, registry, flux, release, module, examples, deps, cascade, tools)
-.github/        workflows, scripts, golangci-lint schema, CODEOWNERS
+.github/        workflows, scripts, CODEOWNERS
 ```
 
 ## Commands
@@ -54,7 +54,7 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | `task dev:generate` | DeepCopy methods | Same |
 | `task dev:fmt dev:vet dev:test` | Format, vet, unit and integration tests with envtest | Minimum after a Go change in `cmd/` or `internal/` |
 | `task dev:lint` / `dev:lint:fix` | golangci-lint | Before you finish a non-trivial change |
-| `task dev:lint:config` | Check the lint config, schema and version agree | After a linter version move |
+| `task dev:lint:config` | Check the lint config and the linter version agree | After a linter version move |
 | `task docs:bundle:check` | Pins check, then build and lint the docs bundle | After `docs/site/`, `api/v1alpha1`, `config/samples`, `docs-kit.cue` or a docs-kit pin |
 | `task docs:bundle` | Build the bundle into `out/opm-controller/` | Preview |
 | `task cascade:wiring:check` | Offline check of the cascade workflows | After any edit under `.github/workflows/` |
