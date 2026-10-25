@@ -63,7 +63,6 @@ linters:
         - reflecttypeassert
         - slicesbackward
         - slicesclip
-        - stringscut
   exclusions:
     generated: lax
     rules:

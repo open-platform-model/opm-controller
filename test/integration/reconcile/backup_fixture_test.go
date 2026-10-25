@@ -171,7 +171,7 @@ var _ = Describe("Backup fixture set (registry-backed)", func() {
 		obj := res.Resources[0]
 		Expect(obj.Kind()).To(Equal("ConfigMap"))
 		Expect(obj.Name()).To(Equal("backup-consumer-data-backup"))
-		registryPath := strings.SplitN(backup.ModulePath, "@", 2)[0]
+		registryPath, _, _ := strings.Cut(backup.ModulePath, "@")
 		Expect(obj.Transformer).To(HavePrefix(registryPath+"/transformers/backup-transformer@"),
 			"the backup catalog's transformer rendered it")
 
