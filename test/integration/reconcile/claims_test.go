@@ -840,7 +840,7 @@ var _ = Describe("PersistentVolumeClaims of a ModulePackage", func() {
 		nn := types.NamespacedName{Name: name, Namespace: namespace}
 		result, err := opmreconcile.ReconcileModulePackage(ctx, params, ctrl.Request{NamespacedName: nn})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal(ctrl.Result{Requeue: true}), "the first reconcile registers the finalizer")
+		Expect(result).To(Equal(ctrl.Result{RequeueAfter: time.Second}), "the first reconcile registers the finalizer")
 		return nn
 	}
 

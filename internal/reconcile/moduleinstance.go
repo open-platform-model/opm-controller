@@ -42,6 +42,11 @@ const (
 	// FinalizerName is the finalizer registered on ModuleInstance resources
 	// to ensure owned resources are cleaned up before deletion completes.
 	FinalizerName = "opmodel.dev/cleanup"
+
+	// FinalizerRequeueDelay is the delay of the requeue that follows the
+	// reconcile which adds the finalizer. It is a fixed delay with no
+	// backoff; it matches the first delay of the controllers' rate limiter.
+	FinalizerRequeueDelay = time.Second
 )
 
 // ModuleInstanceParams holds the dependencies injected into the reconcile loop.
@@ -244,13 +249,13 @@ func ReconcileModuleInstance(
 
 	// Register finalizer if not present. Finalizer patches don't bump
 	// .metadata.generation, so GenerationChangedPredicate filters the
-	// subsequent UPDATE event — explicit Requeue re-enters the workqueue.
+	// subsequent UPDATE event — an explicit requeue re-enters the workqueue.
 	if !controllerutil.ContainsFinalizer(&mi, FinalizerName) {
 		log.Info("Adding finalizer to ModuleInstance")
 		if err := addFinalizer(ctx, params.Client, &mi); err != nil {
 			return ctrl.Result{}, fmt.Errorf("adding finalizer: %w", err)
 		}
-		return ctrl.Result{Requeue: true}, nil
+		return ctrl.Result{RequeueAfter: FinalizerRequeueDelay}, nil
 	}
 
 	// Deletion branch: if DeletionTimestamp is set, run cleanup and return.

@@ -8,11 +8,11 @@
 - [x] 1.6 Update `references/testing-and-lint.md` (move procedure, pitfalls, the `--schema` note) and the lint lines of `AGENTS.md` and the `dev:lint:config` task descriptions.
 - [x] 1.7 Rewrite the Purpose line of `openspec/specs/lint-config-check/spec.md` (it names the committed schema) when the change is archived.
 - [x] 1.8 Run `task dev:lint:config dev:lint:config:test`, and `unshare -rn` on the check; run `task dev:lint` and expect only SA1019 and prealloc findings.
-- [ ] 1.9 Commit as `ci(lint): move golangci-lint to v2.14.0 and verify the config without a schema file`.
+- [x] 1.9 Commit as `ci(lint): move golangci-lint to v2.14.0 and verify the config without a schema file`.
 
 ## 2. Requeue and prealloc
 
-- [ ] 2.1 Add a constant next to `FinalizerName` (`internal/reconcile`) and use `ctrl.Result{RequeueAfter: <constant>}` at `moduleinstance.go` and `modulepackage.go`.
-- [ ] 2.2 Update the 15 test assertions of `Requeue: true`; fix the prealloc site in `internal/apply/guard_test.go`.
-- [ ] 2.3 Run `task dev:fmt dev:vet dev:test` and `task dev:lint`; expect 0 issues.
-- [ ] 2.4 Commit as `refactor(controller): request the finalizer requeue with RequeueAfter`.
+- [x] 2.1 Add a constant next to `FinalizerName` (`internal/reconcile`) and use `ctrl.Result{RequeueAfter: <constant>}` at `moduleinstance.go` and `modulepackage.go`.
+- [x] 2.2 Update the 15 test assertions of `Requeue: true`; fix the prealloc site in `internal/apply/guard_test.go`.
+- [x] 2.3 Run `task dev:fmt dev:vet dev:test` and `task dev:lint`; expect 0 issues.
+- [x] 2.4 Commit as `refactor(controller): request the finalizer requeue with RequeueAfter`.
