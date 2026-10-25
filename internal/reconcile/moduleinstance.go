@@ -45,7 +45,8 @@ const (
 
 	// FinalizerRequeueDelay is the delay of the requeue that follows the
 	// reconcile which adds the finalizer. It is a fixed delay with no
-	// backoff; it matches the first delay of the controllers' rate limiter.
+	// backoff and no shared bucket limiter; it equals the first delay of the
+	// controllers' exponential limiter.
 	FinalizerRequeueDelay = time.Second
 )
 
