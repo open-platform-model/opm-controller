@@ -63,9 +63,6 @@ linters:
         - reflecttypeassert
         - slicesbackward
         - slicesclip
-        # New modernize analyzer that needs Go 1.27 (strings.CutLast); v2.8.0
-        # did not run it. Off for the same reason.
-        - stringscut
   exclusions:
     generated: lax
     rules:
