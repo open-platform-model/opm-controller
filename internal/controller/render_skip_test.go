@@ -177,8 +177,8 @@ func preUpgradeInventoryDigest(entries []releasesv1alpha1.InventoryEntry) string
 // pre-upgrade value.
 func preUpgradeRenderDigest(exported []object.Exported) string {
 	group := func(apiVersion string) string {
-		if idx := strings.LastIndex(apiVersion, "/"); idx >= 0 {
-			return apiVersion[:idx]
+		if before, _, found := strings.CutLast(apiVersion, "/"); found {
+			return before
 		}
 		return ""
 	}

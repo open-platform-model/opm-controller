@@ -3,7 +3,7 @@
 # CI runners) and cross-compiles to the target arch via GOARCH. The binary is pure
 # Go (CGO_ENABLED=0), so this avoids running the toolchain under QEMU emulation for
 # non-native targets — the dominant cost of multi-arch builds.
-FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27.3 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
