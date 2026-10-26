@@ -188,7 +188,7 @@ var _ = Describe("Stale prune with Foreground propagation", func() {
 			Expect(k8sClient.Update(ctx, &current)).To(Succeed())
 			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &current))).To(Succeed())
 		})
-		Expect(reconcilePackage(withDeployment("fgp-config", "fgp-web"))).To(Equal(ctrl.Result{Requeue: true}),
+		Expect(reconcilePackage(withDeployment("fgp-config", "fgp-web"))).To(Equal(ctrl.Result{RequeueAfter: time.Second}),
 			"the first reconcile registers the finalizer")
 
 		reconcilePackage(withDeployment("fgp-config", "fgp-web"))

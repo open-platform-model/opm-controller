@@ -1,44 +1,37 @@
 #!/usr/bin/env bash
-# Linter configuration check, offline. golangci-lint config verify downloads
-# its JSON schema from golangci-lint.run on every run, and a slow website
-# then fails the required Lint job. The same command runs here against the
-# schema committed under .github/golangci-lint/.
+# Linter configuration check, offline. golangci-lint config verify validates
+# .golangci.yml against the JSON schema embedded in the linter binary, so the
+# command makes no request. The check runs it with the proxy variables at a
+# closed local port: a linter old enough to download its schema (before the
+# schema was embedded) fails at once.
 #
 # One file, .golangci-lint-version, names the linter version that
 # .tasks/tools.yaml installs. This check refuses a tree where that file, the
-# committed schema, its checksum, the plugin build file and the use of the
-# check disagree:
+# plugin build file and the use of the check disagree:
 #
 #   - .golangci-lint-version is vX.Y.Z;
-#   - .github/golangci-lint/golangci.vX.Y.jsonschema.json exists, is the
-#     only schema there, and matches .github/golangci-lint/SHA256SUMS;
+#   - .github/golangci-lint/ holds no schema and no checksum file (the
+#     linter embeds the schema of its own version);
 #   - .custom-gcl.yml (read by golangci-lint custom, which cannot read
 #     another file) names the same vX.Y.Z;
 #   - Taskfile.yml and Makefile read the version file, and no workflow, task
-#     file or Makefile line carries a linter version of its own, runs config
-#     verify without --schema, or uses golangci/golangci-lint-action (its
-#     own configuration check downloads the schema);
+#     file or Makefile line carries a linter version of its own or uses
+#     golangci/golangci-lint-action (its own configuration check downloads
+#     the schema);
 #   - .github/workflows/lint.yml has a step 'run: task dev:lint:config', and
 #     .tasks/dev.yaml runs this script from it;
 #   - the linter binary is exactly vX.Y.Z (the plugin build reports
 #     vX.Y.Z-custom-gcl-<hash>);
-#   - golangci-lint config verify --schema <file> passes for .golangci.yml.
-#
-# The linter runs with its proxy variables set to a closed local port, so a
-# run that reaches for the network fails at once.
+#   - golangci-lint config verify passes for .golangci.yml.
 #
 # The file and workflow rules are line patterns, and comment lines are
 # skipped. They do not see a step that is present but disabled (if: false),
-# a command split over two lines, a --schema argument that is a URL, or an
-# install of @latest. The binary version compare catches a second version
-# that reaches the linter binary.
+# a command split over two lines, or an install of @latest. The binary
+# version compare catches a second version that reaches the linter binary.
 #
-# The schema is jsonschema/golangci.next.jsonschema.json of the Go module
-# github.com/golangci/golangci-lint/v2 at the version the file names: the
-# schema as it was when vX.Y.0 was tagged, which later module versions
-# carry as jsonschema/golangci.vX.Y.jsonschema.json. It is not
-# jsonschema/golangci.jsonschema.json, which at a release tag still holds
-# the line before. To move the linter: references/testing-and-lint.md,
+# The binary that runs is the plugin build: golangci-lint custom clones the
+# git tag of the version and adds the plugin modules. No checksum database
+# covers that clone. To move the linter: references/testing-and-lint.md,
 # "Moving the golangci-lint version".
 #
 # Usage: [GOLANGCI_LINT=path] lint-config-check.sh [--root DIR]
@@ -102,29 +95,12 @@ else
   fi
 fi
 
-# The committed schema and its checksum.
-schema=""
-if [ -n "$minor" ]; then
-  schema=$schema_dir/golangci.v$minor.jsonschema.json
-  if [ ! -f "$schema" ]; then
-    fail "$schema is missing: $version_file names $version, so commit the schema of the v$minor line"
-    schema=""
-  fi
-  for f in "$schema_dir"/*.jsonschema.json; do
+# The linter embeds its schema: no committed schema or checksum file.
+if [ -d "$schema_dir" ]; then
+  for f in "$schema_dir"/*; do
     [ -e "$f" ] || continue
-    [ "$f" = "$schema_dir/golangci.v$minor.jsonschema.json" ] || fail "$f is not the schema of $version; remove it"
+    fail "$f: the linter embeds the schema of its version; remove the file"
   done
-  if [ -n "$schema" ]; then
-    want=$(basename "$schema")
-    if [ ! -f "$schema_dir/SHA256SUMS" ]; then
-      fail "$schema_dir/SHA256SUMS is missing"
-    elif [ "$(awk 'NF' "$schema_dir/SHA256SUMS" | wc -l)" -ne 1 ] ||
-      [ "$(awk 'NF {print $2}' "$schema_dir/SHA256SUMS")" != "$want" ]; then
-      fail "$schema_dir/SHA256SUMS must hold one line, for $want"
-    elif ! (cd "$schema_dir" && sha256sum --check --status SHA256SUMS); then
-      fail "$schema does not match $schema_dir/SHA256SUMS"
-    fi
-  fi
 fi
 
 # The plugin build file: golangci-lint custom builds the linter at the
@@ -147,7 +123,6 @@ for f in .github/workflows/*.yml .github/workflows/*.yaml Taskfile.yml .tasks/*.
   while IFS=$'\t' read -r line kind; do
     case "$kind" in
       action) fail "$f:$line: uses golangci/golangci-lint-action; its own configuration check downloads the schema. Run 'task $check_task'" ;;
-      verify) fail "$f:$line: runs config verify without --schema, which downloads the schema. Run 'task $check_task'" ;;
       literal) fail "$f:$line: carries a linter version of its own; only $version_file names the version" ;;
     esac
   done < <(awk '
@@ -155,7 +130,6 @@ for f in .github/workflows/*.yml .github/workflows/*.yaml Taskfile.yml .tasks/*.
     {
       l = tolower($0)
       if (index(l, "golangci/golangci-lint-action")) printf "%d\taction\n", NR
-      if (l ~ /config[[:space:]]+verify/ && !index(l, "--schema")) printf "%d\tverify\n", NR
       if (l ~ /golangci-lint[^[:space:]]*@v?[0-9]/ ||
           l ~ /golangci_lint_version[^{$]*[:=][[:space:]]*["\047]?v?[0-9]+\.[0-9]+/) printf "%d\tliteral\n", NR
     }
@@ -182,11 +156,11 @@ elif [ -n "$minor" ]; then
   have=$("$linter" version --short 2>/dev/null || true)
   if [ "$have" != "$version" ] && [ "$have" != "${version#v}" ] && [[ "$have" != "$version"-custom-gcl-* ]]; then
     fail "golangci-lint is '$have' but $version_file names $version; remove bin/golangci-lint and run 'task $check_task'"
-  elif [ -n "$schema" ]; then
+  else
     HTTPS_PROXY=http://127.0.0.1:9 HTTP_PROXY=http://127.0.0.1:9 \
       https_proxy=http://127.0.0.1:9 http_proxy=http://127.0.0.1:9 NO_PROXY='' no_proxy='' \
-      "$linter" config verify --schema "$schema" ||
-      fail ".golangci.yml does not pass golangci-lint config verify against $schema"
+      "$linter" config verify ||
+      fail ".golangci.yml does not pass golangci-lint config verify"
   fi
 fi
 
@@ -194,4 +168,4 @@ if [ "$problems" -gt 0 ]; then
   echo "lint-config: $problems problem(s)" >&2
   exit 1
 fi
-echo "lint-config: ok ($version, $schema, no network)"
+echo "lint-config: ok ($version, no network)"

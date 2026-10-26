@@ -47,7 +47,6 @@ fresh() {
   # back, so the scenarios run against this stand-in.
   printf '%s\n' "GOLANGCI_LINT_VERSION ?= \$(shell tr -d '[:space:]' <.golangci-lint-version)" >"$dir/Makefile"
   cp "$repo"/.tasks/*.yaml "$dir/.tasks/"
-  cp -r "$repo/.github/golangci-lint" "$dir/.github/"
   cp "$repo"/.github/workflows/*.yml "$dir/.github/workflows/"
   echo "$dir"
 }
@@ -74,32 +73,24 @@ version=$(tr -d '[:space:]' <"$repo/.golangci-lint-version")
 d=$(fresh pass)
 expect pass 0 "lint-config: ok"
 
-# The committed schema is the one of the line the version file names, not
-# of the line before: a value the v2.8 line added passes. The linter
-# project's jsonschema/golangci.jsonschema.json at tag v2.8.0 refuses it.
+# The embedded schema is the one of the pinned line: a value that the
+# v2.14 line added passes. The v2.13 schema refuses the revive rule name.
 d=$(fresh value-of-this-line)
-sed -i 's|^\( *\)- omitzero$|\1- omitzero\n\1- stringscut|' "$d/.golangci.yml"
-grep -q -- '- stringscut$' "$d/.golangci.yml"
+sed -i 's|^\( *\)- name: comment-spacings$|\1- name: comment-spacings\n\1- name: use-slices-concat|' "$d/.golangci.yml"
+grep -q -- '- name: use-slices-concat$' "$d/.golangci.yml"
 expect value-of-this-line 0 "lint-config: ok"
 
-# The tree as it was before the check existed: the task and the Makefile
-# run the downloading command, and three files name the version.
-d=$(fresh direct-verify-in-task)
-sed -i 's|^\( *\)- GOLANGCI_LINT=.*lint-config-check\.sh$|\1- '"'"'"{{.GOLANGCI_LINT}}" config verify'"'"'|' "$d/.tasks/dev.yaml"
-expect direct-verify-in-task 1 ".tasks/dev.yaml:"
-expect direct-verify-in-task 1 "runs config verify without --schema"
-expect direct-verify-in-task 1 ".tasks/dev.yaml does not run 'bash .github/scripts/lint-config-check.sh'"
+# A schema file or a checksum file in the tree is refused: the linter
+# embeds its schema.
+d=$(fresh schema-file-returns)
+mkdir -p "$d/.github/golangci-lint"
+echo '{}' >"$d/.github/golangci-lint/golangci.v2.14.jsonschema.json"
+expect schema-file-returns 1 "golangci.v2.14.jsonschema.json: the linter embeds the schema"
 
-d=$(fresh direct-verify-in-makefile)
-printf '\nverify-again:\n\t"$(GOLANGCI_LINT)" config verify\n' >>"$d/Makefile"
-expect direct-verify-in-makefile 1 "Makefile:"
-expect direct-verify-in-makefile 1 "runs config verify without --schema"
-
-d=$(fresh direct-verify-in-workflow)
-sed -i 's|^\( *\)run: task dev:lint:config$|\1run: bin/golangci-lint config verify|' "$d/.github/workflows/lint.yml"
-expect direct-verify-in-workflow 1 "lint.yml:"
-expect direct-verify-in-workflow 1 "runs config verify without --schema"
-expect direct-verify-in-workflow 1 "lint.yml has no step 'run: task dev:lint:config'"
+d=$(fresh checksum-file-returns)
+mkdir -p "$d/.github/golangci-lint"
+echo 'x  y' >"$d/.github/golangci-lint/SHA256SUMS"
+expect checksum-file-returns 1 "SHA256SUMS: the linter embeds the schema"
 
 d=$(fresh no-check-step)
 sed -i '/^ *run: task dev:lint:config$/d' "$d/.github/workflows/lint.yml"
@@ -137,11 +128,9 @@ d=$(fresh custom-file-other-version)
 sed -i 's|^version: .*$|version: v2.7.2|' "$d/.custom-gcl.yml"
 expect custom-file-other-version 1 ".custom-gcl.yml names version 'v2.7.2' but .golangci-lint-version names $version"
 
-d=$(fresh minor-without-schema)
+d=$(fresh other-minor)
 echo v2.99.0 >"$d/.golangci-lint-version"
-expect minor-without-schema 1 "golangci.v2.99.jsonschema.json is missing"
-expect minor-without-schema 1 "is not the schema of v2.99.0"
-expect minor-without-schema 1 ".custom-gcl.yml names version '$version' but .golangci-lint-version names v2.99.0"
+expect other-minor 1 ".custom-gcl.yml names version '$version' but .golangci-lint-version names v2.99.0"
 
 d=$(fresh bad-version)
 echo latest >"$d/.golangci-lint-version"
@@ -150,22 +139,6 @@ expect bad-version 1 "want vX.Y.Z"
 d=$(fresh no-version-file)
 rm "$d/.golangci-lint-version"
 expect no-version-file 1 ".golangci-lint-version is missing"
-
-d=$(fresh edited-schema)
-for f in "$d"/.github/golangci-lint/*.jsonschema.json; do echo >>"$f"; done
-expect edited-schema 1 "does not match .github/golangci-lint/SHA256SUMS"
-
-d=$(fresh no-checksum)
-rm "$d/.github/golangci-lint/SHA256SUMS"
-expect no-checksum 1 "SHA256SUMS is missing"
-
-d=$(fresh two-checksum-lines)
-cat "$d/.github/golangci-lint/SHA256SUMS" "$d/.github/golangci-lint/SHA256SUMS" >"$d/sums" && mv "$d/sums" "$d/.github/golangci-lint/SHA256SUMS"
-expect two-checksum-lines 1 "SHA256SUMS must hold one line"
-
-d=$(fresh stale-schema)
-cp "$d"/.github/golangci-lint/golangci.v*.jsonschema.json "$d/.github/golangci-lint/golangci.v2.0.jsonschema.json"
-expect stale-schema 1 "golangci.v2.0.jsonschema.json is not the schema of"
 
 # The linter binary is another version than the file names: another minor,
 # another patch, and a plugin build of another patch.
@@ -178,7 +151,8 @@ use_linter="$work/stub-other-patch/golangci-lint"
 expect other-version-installed 1 "golangci-lint is '${version%.*}.999-custom-gcl-abc' but"
 use_linter=""
 
-# The linter runs with its proxy variables at a closed local port.
+# The linter runs with its proxy variables at a closed local port. A stub
+# stands for a linter that would reach for the network.
 d=$(fresh proxy-guard)
 stub_linter "$work/stub-same" "$version-custom-gcl-abc"
 use_linter="$work/stub-same/golangci-lint"

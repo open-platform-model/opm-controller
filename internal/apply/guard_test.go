@@ -3,6 +3,7 @@ package apply
 import (
 	"context"
 	"errors"
+	"slices"
 	"testing"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -183,7 +184,7 @@ func TestGuardMatchesTheInventoryByIdentity(t *testing.T) {
 	}
 
 	// The entry's version is no part of the match.
-	exact := append(near, releasesv1alpha1.InventoryEntry{Kind: "ConfigMap", Version: "v1beta1", Namespace: "team-a", Name: "x"})
+	exact := slices.Concat(near, []releasesv1alpha1.InventoryEntry{{Kind: "ConfigMap", Version: "v1beta1", Namespace: "team-a", Name: "x"}})
 	got, err = Guard(context.Background(), c, GuardInput{
 		Resources: []*unstructured.Unstructured{rendered}, Inventory: exact, Identity: guardOurs})
 	if err != nil {

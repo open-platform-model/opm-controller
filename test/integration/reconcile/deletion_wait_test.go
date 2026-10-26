@@ -187,7 +187,8 @@ func newPackageSubject(name, serviceAccount string) *waitSubject {
 	s.reconcile = func() (ctrl.Result, error) {
 		return opmreconcile.ReconcileModulePackage(ctx, params, ctrl.Request{NamespacedName: nn})
 	}
-	Expect(s.mustReconcile()).To(Equal(ctrl.Result{Requeue: true}), "the first reconcile registers the finalizer")
+	Expect(s.mustReconcile()).To(Equal(ctrl.Result{RequeueAfter: time.Second}),
+		"the first reconcile registers the finalizer")
 	s.apply = func(r *render.RenderResult) {
 		GinkgoHelper()
 		params.Renderer = &stubPackageRenderer{result: r}
