@@ -81,6 +81,16 @@ metadata: {
 
 	replicas: int & >=1 | *1
 
+	// Registry logins for the modules, catalogs and core the controller pulls.
+	// Name a Secret of type kubernetes.io/dockerconfigjson that already exists
+	// in opm-system; the module mounts its .dockerconfigjson key as
+	// /etc/opm/docker/config.json and sets DOCKER_CONFIG to that directory. One
+	// set of logins serves every ModuleInstance. The Secret is not created
+	// here, the controller gets no Secret permission, and a missing Secret
+	// keeps the pod in ContainerCreating. Unset mounts nothing. A restart
+	// rotates the login (see the README).
+	registryAuth?: secretName: string & !="" & =~"^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$" & strings.MaxRunes(253)
+
 	// Further controller arguments, after every argument the module renders.
 	// The registry mapping and the default service account have typed values
 	// and the module's own arguments are fixed, in either flag spelling.
