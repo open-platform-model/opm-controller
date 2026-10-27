@@ -6,8 +6,8 @@ require (
 	cuelabs.dev/go/oci/ociregistry v0.0.0-20260717083115-5eb5795f322a
 	cuelang.org/go v0.17.1
 	github.com/fluxcd/cli-utils v1.4.0
-	github.com/fluxcd/pkg/apis/meta v1.36.0
-	github.com/fluxcd/pkg/runtime v0.120.0
+	github.com/fluxcd/pkg/apis/meta v1.37.0
+	github.com/fluxcd/pkg/runtime v0.121.0
 	github.com/fluxcd/pkg/ssa v0.80.0
 	github.com/fluxcd/source-controller/api v1.9.4
 	github.com/go-logr/logr v1.4.4
