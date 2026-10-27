@@ -3,6 +3,7 @@ module github.com/open-platform-model/opm-controller
 go 1.27.3
 
 require (
+	cuelabs.dev/go/oci/ociregistry v0.0.0-20260717083115-5eb5795f322a
 	cuelang.org/go v0.17.1
 	github.com/fluxcd/cli-utils v1.4.0
 	github.com/fluxcd/pkg/apis/meta v1.36.0
@@ -27,7 +28,6 @@ require (
 
 require (
 	cel.dev/expr v0.25.2 // indirect
-	cuelabs.dev/go/oci/ociregistry v0.0.0-20260717083115-5eb5795f322a // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
