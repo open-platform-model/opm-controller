@@ -18,6 +18,7 @@ package controllermodule_test
 
 import (
 	"fmt"
+	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -35,6 +36,7 @@ var everyValue = fmt.Sprintf(`{
 		limits: {cpu: 4, memory: "2Gi"}
 	}
 	replicas: 2
+	registryAuth: secretName: "opm-registry-auth"
 	extraArgs: ["--max-concurrent-renders=2", "--zap-log-level=debug"]
 }`, mirrorRepository)
 
@@ -139,6 +141,12 @@ var _ = Describe("The controller module's #config", func() {
 			`"--leader-elect=false"`, "the module renders itself"),
 		Entry("the probe address in extraArgs", `{extraArgs: ["-health-probe-bind-address=:9091"]}`,
 			`"-health-probe-bind-address=:9091"`, "the module renders itself"),
+		Entry("an empty registry login Secret name", `{registryAuth: secretName: ""}`, "registryAuth.secretName"),
+		Entry("an uppercase registry login Secret name", `{registryAuth: secretName: "Opm-Auth"}`, "registryAuth.secretName"),
+		Entry("a registry login Secret name that ends in a dash",
+			`{registryAuth: secretName: "opm-auth-"}`, "registryAuth.secretName"),
+		Entry("a registry login Secret name over 253 characters",
+			fmt.Sprintf(`{registryAuth: secretName: %q}`, strings.Repeat("a", 254)), "registryAuth.secretName"),
 		Entry("a memory limit as a byte count", `{resources: limits: memory: 4294967296}`, "as <n>Mi or <n>Gi"),
 		Entry("a memory limit in decimal units", `{resources: limits: memory: "4G"}`, "as <n>Mi or <n>Gi"),
 		Entry("a fractional memory limit", `{resources: limits: memory: "1.5Gi"}`, "as <n>Mi or <n>Gi"),
