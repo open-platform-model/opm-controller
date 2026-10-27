@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-beta.11](https://github.com/open-platform-model/opm-controller/compare/v1.0.0-beta.10...v1.0.0-beta.11) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deps:** require Go 1.27.3 and bump the Flux pkg modules ([#325](https://github.com/open-platform-model/opm-controller/issues/325)) ([7ac4370](https://github.com/open-platform-model/opm-controller/commit/7ac4370973b1b301b10e36aa7794fa362b757dde))
+
+
+### Code Refactoring
+
+* **lint:** move to golangci-lint v2.14.0 and request the finalizer requeue with RequeueAfter ([#318](https://github.com/open-platform-model/opm-controller/issues/318)) ([d4b182b](https://github.com/open-platform-model/opm-controller/commit/d4b182b7bfbf0d1d5866b1b3aee17528f3c9f071))
+
 ## [1.0.0-beta.10](https://github.com/open-platform-model/opm-controller/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2026-10-23)
 
 
