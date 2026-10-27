@@ -98,6 +98,10 @@ let adminRoles = [
 						for a in #config.extraArgs {a},
 					]
 					env: GOMEMLIMIT: value: _goMemLimit
+					if #config.registryAuth != _|_ {
+						// The directory, never the login: the file holds it.
+						env: DOCKER_CONFIG: value: "/etc/opm/docker"
+					}
 					resources: #config.resources
 					livenessProbe: {
 						httpGet: {path: "/healthz", port: 8081}
@@ -115,10 +119,27 @@ let adminRoles = [
 						capabilities: drop: ["ALL"]
 					}
 					volumeMounts: tmp: spec.volumes.tmp & {mountPath: "/tmp"}
+					if #config.registryAuth != _|_ {
+						volumeMounts: "registry-auth": spec.volumes."registry-auth" & {mountPath: "/etc/opm/docker"}
+					}
 				}
 			}
 
 			volumes: tmp: {emptyDir: {}, readOnly: false}
+
+			// The administrator's dockerconfigjson Secret, as one read-only file.
+			// No optional (a missing Secret blocks the pod) and no defaultMode
+			// (the file is root-owned and the pod runs non-root, so only the
+			// default 0644 keeps it readable).
+			if #config.registryAuth != _|_ {
+				volumes: "registry-auth": {
+					secretRef: {
+						name: #config.registryAuth.secretName
+						items: [{key: ".dockerconfigjson", path: "config.json"}]
+					}
+					readOnly: true
+				}
+			}
 
 			// Pod level, covering the container: Pod Security restricted.
 			securityContext: {

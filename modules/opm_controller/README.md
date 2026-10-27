@@ -36,11 +36,28 @@ opm module build . --name opm-controller -n opm-system
 | `image.repository` | `ghcr.io/open-platform-model/opm-controller` | The image repository, for a mirror. The tag and digest stay the module's. |
 | `registry` | unset | `--registry=<value>`: the CUE registry mapping the controller resolves modules through. |
 | `defaultServiceAccount` | unset | `--default-service-account=<value>`: the identity the controller applies as when a ModuleInstance names none. |
+| `registryAuth.secretName` | unset | The name of a `kubernetes.io/dockerconfigjson` Secret in `opm-system`. The module mounts its `.dockerconfigjson` key as `/etc/opm/docker/config.json` (read-only, one container) and sets `DOCKER_CONFIG=/etc/opm/docker`, so the controller finds registry logins for the modules, catalogs and core it pulls. Unset renders none of this. See [Registry logins](#registry-logins). |
 | `resources` | requests `100m` CPU, `256Mi`; limits `2` CPU, `4Gi` | The manager container's resources. Each quantity defaults on its own. CPU is a number of cores (`4`, `0.5`) or a millicore string (`"500m"`); a string of cores such as `"4"` is refused. The memory limit is given as `<n>Mi` or `<n>Gi`; `GOMEMLIMIT` is derived as 80 percent of it, in MiB. |
 | `replicas` | `1` | The Deployment's replicas. |
 | `extraArgs` | `[]` | Further controller arguments, after all of the above. `--registry`, `--default-service-account` and the module's own `--metrics-bind-address`, `--leader-elect` and `--health-probe-bind-address` are refused in either flag spelling. |
 
 The arguments render in this order: `--metrics-bind-address=:8443`, `--leader-elect`, `--health-probe-bind-address=:8081`, `--registry`, `--default-service-account`, then `extraArgs`.
+
+## Registry logins
+
+Create the Secret yourself, in the namespace `opm-system`. The module renders that namespace, so do not create it by hand: `opm controller install` refuses a namespace that OPM does not manage. Install with `registryAuth.secretName` set, then create the Secret. The controller pod waits in `ContainerCreating` until the Secret exists, and the kubelet then mounts it:
+
+```bash
+kubectl -n opm-system create secret docker-registry opm-registry-auth \
+  --docker-server=ghcr.io --docker-username=<user> --docker-password=<read-only token>
+```
+
+Set `registryAuth.secretName` to `opm-registry-auth` in the values file. The module creates no Secret and adds no permission to read Secrets: the kubelet mounts the file. The login is in a file, never in an argument or an environment variable.
+
+- One set of logins serves every ModuleInstance and catalog. Give the token read access to the packages that users may pull, and no more.
+- A missing Secret, or one without the key `.dockerconfigjson`, keeps the controller pod in `ContainerCreating` with a `FailedMount` event.
+- To rotate, update the Secret and restart `deployment/opm-controller-manager` in `opm-system`. The controller reads the file again only after a pull fails.
+- The controller's own image pull is `imagePullSecrets`, not this value.
 
 The image tag, digest and pull policy are not values. `controller/controller.cue` names the one controller release this module version deploys, by version, tag and digest; read it without a render with `cue eval ./controller -e Version`. It never falls below `hack/controller-module/min-controller-version`, the first controller release that refuses to reconcile the instance deploying it.
 
