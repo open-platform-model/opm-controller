@@ -56,15 +56,19 @@ Mount rules from the secrets guidance, all met: the Secret is mounted as a read-
 
 ### Verified: no Go change is needed
 - `cueenv.Override` returns nil when the mapping and cache directory are empty (the process environment is used), else a copy of `os.Environ()` in which only `CUE_REGISTRY` and `CUE_CACHE_DIR` are replaced: `library/opm/internal/cueenv/cueenv.go:33-41`. `DOCKER_CONFIG` passes through in both cases. A search of `library/opm` for `DOCKER` finds no Go code that touches it.
-- The Platform closure client is built from `os.Environ()`: `opm-controller/internal/controller/platform_controller.go:418-427` (taken from exploration; section 1 re-checks it at the pinned commit).
+- The Platform closure client is built from `os.Environ()`: `internal/controller/platform_controller.go:418-427` (`modFiles` passes `Env: os.Environ()` to `platformmodule.NewRegistry`; re-checked in section 1 at commit 7ac43709).
 - CUE v0.17.1 `modconfig` loads logins with `ociauth.LoadWithEnv(nil, t.cfg.Env)`: `cuelang.org/go@v0.17.1/mod/modconfig/modconfig.go:331`. The pinned `ociauth` (`cuelabs.dev/go/oci/ociregistry@v0.0.0-20260717083115-5eb5795f322a`) reads `$DOCKER_AUTH_CONFIG`, then `$DOCKER_CONFIG/config.json`: `ociauth/authfile.go:136-169`.
-- Not verified by running: that a mounted Secret authenticates in the controller. Section 1 and section 4 prove it.
+- Run in section 1 (`test/integration/reconcile/registry_login_test.go`): an in-process OCI registry behind HTTP basic auth refuses a catalog or module pull with `FetchUnauthorized` when `DOCKER_CONFIG` holds no login, and accepts it when `config.json` holds one for the host. The kernel reads `DOCKER_CONFIG` from the process environment. The kubelet-mounted file is not run here; section 4 proves the mount on Kind.
 
 ### Behaviour after a refused pull
 **Trace**: The Kernel's shared registry client reads the logins once, when it is built. A failed registry call drops the client, and the next operation builds a new one, which reads the file again (`library/opm/internal/cueenv/registry.go:20-34`, `failed` and `drop`, lines 113-122 and 158-162). The Platform closure client is rebuilt for each reconcile.
-**Expected result**: after a refused pull, the next pull reads the (possibly updated) file again. The kubelet updates a mounted Secret volume in place within about a minute (not verified here; section 1 tests the file replacement, not the kubelet).
-**Consequence if true**: restart is needed only while the old login still works. A revoked login stops working, the first pull fails, and the next pull uses the new file. The docs still say: restart to rotate, because that is the approved and deterministic way.
-**Test (section 1)**: see Test plan. The test result is the source for the docs sentence. If the test disproves the expectation, section 1 rewrites the requirement "A pull after a refused pull reads the logins again" and this subsection to match, before section 2 starts.
+**Observed result** (section 1, six specs, all pass; each spec starts with an empty `CUE_CACHE_DIR`):
+- A wrong login is refused. After the file is replaced (new file, renamed over the old one) the next pull with the same Kernel and no restart succeeds. The refused pull dropped the client, and the new client read the new file.
+- Rotation while the old login still works: the controller keeps using the old login. A pull of a version the cache lacks, made after the file changed, reaches the registry as the old user.
+- The registry then revokes the old login: the next pull of an uncached version fails, and the pull after it succeeds as the new user. The failure is the price of the rotation.
+- A version already in the module cache is served from disk with no registry call, so a revoked login does not fail a pull of a cached version.
+**Consequence**: the expectation holds. Restart is needed only to move to a new login before the old one fails. A revoked login costs one failed pull (one `ResolutionFailed` with backoff), then the next pull uses the new file. The kubelet's own update of a mounted Secret volume is not run in section 1. The docs still say: restart to rotate, because that is the approved and deterministic way.
+**Test (section 1)**: see Test plan. The result is the source for the docs sentence. It confirms the requirement "A pull after a refused pull reads the logins again", so the requirement stands as approved.
 
 ### Exposure
 - Any ModuleInstance author can make the controller pull any path the shared login reaches (`spec.module.path` is user-controlled). This is a decision of the owner, stated in the docs: the token should have `read:packages` on the packages that the cluster's users may use, and no more.
