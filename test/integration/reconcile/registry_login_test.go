@@ -199,6 +199,16 @@ var _ = Describe("Registry logins from DOCKER_CONFIG", func() {
 		GinkgoT().Setenv("CUE_CACHE_DIR", dir)
 	}
 
+	// expectUnauthorized checks that err is a refusal by the registry's login
+	// check, not some other fetch failure.
+	expectUnauthorized := func(err error) {
+		GinkgoHelper()
+		Expect(err).To(HaveOccurred())
+		fe, typed := errors.AsType[*oerrors.FetchError](err)
+		Expect(typed).To(BeTrue(), "want a *FetchError, got %T: %v", err, err)
+		Expect(fe.Kind).To(Equal(oerrors.FetchUnauthorized), "kind %s: %v", fe.Kind, err)
+	}
+
 	pullCatalog := func(k *kernel.Kernel, version string) error {
 		_, err := k.AcquireCatalogFromRegistry(ctx, provider.ModulePath, version)
 		return err
@@ -270,7 +280,7 @@ var _ = Describe("Registry logins from DOCKER_CONFIG", func() {
 		writeDockerConfig(configDir, reg.host(), user, "wrong-password")
 		k := kernel.New(kernel.WithRegistry(reg.mapping()))
 
-		Expect(pullCatalog(k, provider.Tag())).To(HaveOccurred(), "a wrong login is refused")
+		expectUnauthorized(pullCatalog(k, provider.Tag())) // a wrong login is refused
 
 		// Replace the file the way the kubelet does, then pull with the same
 		// Kernel and no restart.
@@ -300,7 +310,7 @@ var _ = Describe("Registry logins from DOCKER_CONFIG", func() {
 		// The registry revokes the old login. The next pull fails and drops the
 		// client.
 		reg.revoke(user)
-		Expect(pullCatalog(k, "v0.1.3")).To(HaveOccurred(), "the revoked login is refused")
+		expectUnauthorized(pullCatalog(k, "v0.1.3")) // the revoked login is refused
 
 		// The pull after it reads the file again and uses the new login.
 		mark = reg.markServed()
