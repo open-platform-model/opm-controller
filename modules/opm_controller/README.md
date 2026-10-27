@@ -45,15 +45,14 @@ The arguments render in this order: `--metrics-bind-address=:8443`, `--leader-el
 
 ## Registry logins
 
-Create the Secret yourself, before you install, in the namespace `opm-system`:
+Create the Secret yourself, in the namespace `opm-system`. The module renders that namespace, so do not create it by hand: `opm controller install` refuses a namespace that OPM does not manage. Install with `registryAuth.secretName` set, then create the Secret. The controller pod waits in `ContainerCreating` until the Secret exists, and the kubelet then mounts it:
 
 ```bash
-kubectl create namespace opm-system
 kubectl -n opm-system create secret docker-registry opm-registry-auth \
   --docker-server=ghcr.io --docker-username=<user> --docker-password=<read-only token>
 ```
 
-Then set `registryAuth.secretName` to `opm-registry-auth` in the values file. The module creates no Secret and adds no permission to read Secrets: the kubelet mounts the file. The login is in a file, never in an argument or an environment variable.
+Set `registryAuth.secretName` to `opm-registry-auth` in the values file. The module creates no Secret and adds no permission to read Secrets: the kubelet mounts the file. The login is in a file, never in an argument or an environment variable.
 
 - One set of logins serves every ModuleInstance and catalog. Give the token read access to the packages that users may pull, and no more.
 - A missing Secret, or one without the key `.dockerconfigjson`, keeps the controller pod in `ContainerCreating` with a `FailedMount` event.
