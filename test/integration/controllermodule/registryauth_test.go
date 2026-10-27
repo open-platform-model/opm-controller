@@ -94,8 +94,10 @@ var _ = Describe("The controller module's registryAuth value", func() {
 				Expect(opt).To(BeFalse(), "a missing Secret must block the pod")
 			}
 			if mode, ok := secret["defaultMode"]; ok {
-				Expect(mode).To(BeNumerically(">=", 0o444),
-					"the file is root-owned and the pod has no fsGroup; a tighter mode makes it unreadable")
+				m, isNumber := mode.(float64)
+				Expect(isNumber).To(BeTrue(), "defaultMode is a number")
+				Expect(int(m)&0o004).NotTo(BeZero(),
+					"the file is root-owned and the pod has no fsGroup; a mode without the others-read bit makes it unreadable")
 			}
 		})
 
