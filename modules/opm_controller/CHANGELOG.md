@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/open-platform-model/opm-controller/compare/opm_controller-v0.1.1...opm_controller-v0.1.2) (2026-10-27)
+
+
+### Features
+
+* **module:** take registry logins from a Secret through registryAuth.secretName ([#326](https://github.com/open-platform-model/opm-controller/issues/326)) ([935d628](https://github.com/open-platform-model/opm-controller/commit/935d62824e9c47e9e2e9bd1ee650ddb7b176665b))
+
 ## [0.1.1](https://github.com/open-platform-model/opm-controller/compare/opm_controller-v0.1.0...opm_controller-v0.1.1) (2026-10-23)
 
 
