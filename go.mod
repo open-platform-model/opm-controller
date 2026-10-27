@@ -6,13 +6,13 @@ require (
 	cuelabs.dev/go/oci/ociregistry v0.0.0-20260717083115-5eb5795f322a
 	cuelang.org/go v0.17.1
 	github.com/fluxcd/cli-utils v1.4.0
-	github.com/fluxcd/pkg/apis/meta v1.36.0
+	github.com/fluxcd/pkg/apis/meta v1.38.0
 	github.com/fluxcd/pkg/runtime v0.120.0
 	github.com/fluxcd/pkg/ssa v0.80.0
 	github.com/fluxcd/source-controller/api v1.9.4
 	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.32.1
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.44.0
 	github.com/open-platform-model/library v1.0.0-beta.10
 	github.com/prometheus/client_golang v1.24.1
 	github.com/stretchr/testify v1.12.1
