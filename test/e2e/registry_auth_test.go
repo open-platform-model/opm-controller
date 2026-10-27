@@ -30,6 +30,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -184,9 +185,7 @@ var _ = Describe("Registry login for module pulls", Ordered, func() {
 
 	It("cannot resolve the module while the controller has no login", func() {
 		By("applying the hello ModuleInstance")
-		_, err := utils.Run(exec.Command("kubectl", "apply", "-f",
-			filepath.Join(projectDir, "test/fixtures/modules/hello/moduleinstance.yaml")))
-		Expect(err).NotTo(HaveOccurred(), "Failed to apply the hello ModuleInstance")
+		applyStdin(helloInstanceManifest(projectDir))
 
 		Eventually(func(g Gomega) {
 			out, err := utils.Run(exec.Command("kubectl", "-n", instanceNS, "get", "moduleinstance", instanceName,
@@ -267,6 +266,21 @@ var _ = Describe("Registry login for module pulls", Ordered, func() {
 		}, 15*time.Second, 3*time.Second).Should(Succeed())
 	})
 })
+
+// helloInstanceManifest is the hello fixture's instance manifest with the
+// module version set to the version this spec published. CI re-pins the file
+// on disk to a pre-release tag that only GHCR holds, so the file's own version
+// cannot be used.
+func helloInstanceManifest(projectDir string) []byte {
+	GinkgoHelper()
+	coord, err := fixtures.Load("hello")
+	Expect(err).NotTo(HaveOccurred())
+	b, err := os.ReadFile(filepath.Join(projectDir, "test/fixtures/modules/hello/moduleinstance.yaml"))
+	Expect(err).NotTo(HaveOccurred())
+	re := regexp.MustCompile(`(?m)^(\s+version:\s*)\S+$`)
+	Expect(re.FindAll(b, -1)).To(HaveLen(1), "the instance manifest must name one module version")
+	return re.ReplaceAll(b, []byte("${1}"+coord.Tag()))
+}
 
 // registryLogin is one login made for a run. It is never printed.
 type registryLogin struct{ user, pass string }
