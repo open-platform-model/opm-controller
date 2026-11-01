@@ -1,6 +1,6 @@
 # OPM controller
 
-The Kubernetes controller that renders OPM modules and applies the result to a cluster. It owns four CRDs (`ModuleInstance`, `ModulePackage`, `Platform`, `TransformerRegistration`) and calls the library Kernel for every render.
+The Kubernetes controller that renders OPM modules and applies the result to a cluster. It owns four CRDs (`ModuleInstance`, `ModulePackage`, `Platform`, `TransformerRegistration`) and calls the library Kernel for every render. The canonical OPM terms are in the [OPM glossary](https://github.com/open-platform-model/opm/blob/main/docs/legacy/glossary.md); this file gives the controller's meanings, and **Provider** here differs from the canonical one.
 
 ## Language
 
@@ -41,7 +41,7 @@ A fully qualified name that a component declares it needs and that a catalog's t
 _Avoid_: capability, interface
 
 **Subscription**:
-An entry in `Platform.spec.registry` by which a platform admin pins one catalog build and lists the contracts it provides. It is live the moment it is written.
+An entry in `Platform.spec.registry` by which a platform admin pins one catalog build by `version` and can turn it off with `enable`. The contracts come from the catalog itself. It is live the moment it is written.
 _Avoid_: dependency, install
 
 **Registry** (platform registry):
@@ -91,7 +91,7 @@ One of the `--max-concurrent-renders` places a reconcile takes before it renders
 _Avoid_: worker, lock, semaphore
 
 **Render inputs**:
-The record in `status.lastAppliedInputs` of what the last applied render consumed: a digest over module source, values, platform package identity, skew policy and the controller and library versions, plus the render time.
+The record in `status.lastAppliedInputs` of what the last applied render consumed: a digest over module source, values, package identity, skew policy and the controller and library versions, plus the render time.
 _Avoid_: render cache key, config
 
 ### Ownership and deletion
@@ -125,7 +125,7 @@ The identity in `status.instanceUUID` that matches the `module-instance.opmodel.
 _Avoid_: owner reference, release id
 
 **Drift**:
-A managed resource that differs from desired state. The controller detects it and does not correct it in v1alpha1.
+A managed resource that exists and differs from desired state. The controller detects it and does not correct it in v1alpha1; a missing resource is not drift, and the controller creates it again.
 _Avoid_: out of sync, divergence
 
 ### Failure
