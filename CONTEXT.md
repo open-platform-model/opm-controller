@@ -4,6 +4,7 @@ Router only. Facts and rules are in `AGENTS.md`.
 
 | Task | Read first | Then |
 | --- | --- | --- |
+| Name a concept, or check what a domain word means, before design or a refactor | `GLOSSARY.md` | `adr/` |
 | Change a CRD type, marker or RBAC marker (`api/v1alpha1`) | `CONSTITUTION.md` | `references/docs-bundles.md` |
 | Change reconcile logic, or anything that calls the Kernel | `CONSTITUTION.md` | `docs/`, `openspec/config.yaml` |
 | Write or fix a Go test, run one test, run e2e | `references/testing-and-lint.md` | `Taskfile.yml`, `.tasks/` |
