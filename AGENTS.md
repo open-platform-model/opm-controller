@@ -30,6 +30,7 @@ Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the n
 ## Layout
 
 ```text
+GLOSSARY.md     Domain terms of this repo, one word per concept
 adr/            Architecture Decision Records
 api/            CRD types (v1alpha1), validation markers, generated DeepCopy
 cmd/            manager entrypoint and controller registration
