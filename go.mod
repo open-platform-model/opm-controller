@@ -16,7 +16,7 @@ require (
 	github.com/open-platform-model/library v1.0.0-beta.10
 	github.com/prometheus/client_golang v1.24.1
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/mod v0.41.0
+	golang.org/x/mod v0.42.0
 	golang.org/x/time v0.16.0
 	k8s.io/api v0.37.1
 	k8s.io/apiextensions-apiserver v0.37.1
