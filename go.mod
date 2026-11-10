@@ -8,7 +8,7 @@ require (
 	github.com/fluxcd/cli-utils v1.4.0
 	github.com/fluxcd/pkg/apis/meta v1.36.0
 	github.com/fluxcd/pkg/runtime v0.120.0
-	github.com/fluxcd/pkg/ssa v0.80.0
+	github.com/fluxcd/pkg/ssa v0.82.0
 	github.com/fluxcd/source-controller/api v1.9.4
 	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.32.1
