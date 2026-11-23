@@ -17,6 +17,7 @@ Router only. Facts and rules are in `AGENTS.md`.
 | Add a controller or a new kind | `references/docs-bundles.md` | `internal/controller/` |
 | Record an architecture decision | `adr/TEMPLATE.md` | `adr/` |
 | Start a feature change | `openspec/config.yaml` | `CONSTITUTION.md` |
+| Verify a change before archive | `openspec/verify.md` | `.agents/skills/` |
 | Deliver or cite an enhancement | `references/enhancements.md` at the workspace root | `openspec/config.yaml`, the `references:` entry |
 | Commit, open a PR or write GitHub text | `references/git-text.md` at the workspace root | |
 | Tag or publish by hand, or change tag rules | `references/releases.md` at the workspace root | |
