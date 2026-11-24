@@ -44,6 +44,7 @@ references/     detail files that CONTEXT.md routes to
 test/           e2e (build tag e2e), integration, fixtures, rbac, collector, utils
 .tasks/         Taskfile includes (dev, controller, controller-module, docker, kind, registry, flux, release, module, examples, deps, cascade, tools)
 .github/        workflows, scripts, CODEOWNERS
+.agents/        skills/ holds the generated OpenSpec skills, which are never edited because every update rewrites them, and .claude/skills/ links there
 ```
 
 ## Commands

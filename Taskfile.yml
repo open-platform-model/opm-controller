@@ -50,7 +50,7 @@ vars:
   IGNORE_NOT_FOUND: '{{.IGNORE_NOT_FOUND | default "false"}}'
   # The OpenSpec CLI that validates the specs. The one pin: task openspec:install
   # and the CI step both read it from here.
-  OPENSPEC_VERSION: 1.14.1
+  OPENSPEC_VERSION: 2.1.1
 
 includes:
   dev:
