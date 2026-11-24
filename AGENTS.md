@@ -26,6 +26,7 @@ Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the n
 - **Registry precedence on the binary:** `--registry`, then `OPM_REGISTRY`, then the built-in default. `CUE_REGISTRY` as pod env is ignored.
 - **Add new automation as a task in `.tasks/`, not in the `Makefile`.** `Taskfile.yml` is the source of truth. The `Makefile` is the Kubebuilder scaffold and still serves some local flows.
 - **Enhancement references in comments:** default is none; the form is in the workspace enhancements reference. Repo extras: never in scaffold templates, generated files, fixtures a user copies or CLI output strings; in a CUE file the reference goes in a `// WHY` block, one blank line below the doc comment, because `cue lsp` hover and `cue def` replay a doc comment verbatim; no `Was:` rename history. `task cite-lint` checks this.
+- **A verify run on an OpenSpec change also applies `openspec/verify.md`,** because the generated verify skill does not name that file.
 
 ## Layout
 
