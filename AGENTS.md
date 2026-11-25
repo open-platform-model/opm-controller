@@ -58,7 +58,7 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | `task dev:manifests` | CRDs, RBAC and webhook manifests with controller-gen, then the controller module's data (needs `cue` at the `CUE_VERSION` that CI sets) | After API markers, type files or an RBAC marker changes |
 | `task dev:generate` | DeepCopy methods | Same |
 | `task dev:fmt dev:vet dev:test` | Format, vet, unit and integration tests with envtest | Minimum after a Go change in `cmd/` or `internal/` |
-| `task check:commit` | Format, vet, lint and the OpenSpec check; no tests | Before every commit except a tests commit |
+| `task check:commit` | Format check (`dev:fmt:check`, gofmt, rewrites nothing), vet, lint and the OpenSpec check; no tests | Before every commit except a tests commit |
 | `task dev:lint` / `dev:lint:fix` | golangci-lint | Before you finish a non-trivial change |
 | `task dev:lint:config` | Check the lint config and the linter version agree | After a linter version move |
 | `task docs:bundle:check` | Pins check, then build and lint the docs bundle | After `docs/site/`, `api/v1alpha1`, `config/samples`, `docs-kit.cue` or a docs-kit pin |

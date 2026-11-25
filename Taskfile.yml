@@ -229,9 +229,9 @@ tasks:
       - .bin/opm-docs check --project opm-controller
 
   check:commit:
-    desc: The checks that run before every commit except a tests commit (format, vet, lint and the OpenSpec check; no tests, no e2e)
+    desc: The checks that run before every commit except a tests commit (format check, vet, lint and the OpenSpec check; no tests, no e2e)
     cmds:
-      - task: dev:fmt
+      - task: dev:fmt:check
       - task: dev:vet
       - task: dev:lint
       - task: openspec:check

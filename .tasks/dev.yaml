@@ -6,6 +6,17 @@ tasks:
     cmds:
       - go fmt ./...
 
+  fmt:check:
+    desc: Fail on Go files that gofmt would change; rewrites nothing
+    cmds:
+      - |
+        out=$(git ls-files -z '*.go' ':(exclude,glob)**/testdata/**' ':(exclude,glob)vendor/**' | xargs -0 -r gofmt -l)
+        if [ -n "$out" ]; then
+          echo "gofmt would change these files (run task dev:fmt):"
+          echo "$out"
+          exit 1
+        fi
+
   vet:
     desc: Run go vet
     cmds:
