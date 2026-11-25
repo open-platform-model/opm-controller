@@ -308,19 +308,15 @@ var _ = Describe("TransformerRegistration claim", Ordered, func() {
 		var identityV string
 		Eventually(func(g Gomega) {
 			g.Expect(platformField(g, backupEntry("source"))).To(Equal("Registration"))
-			// The entry names the same build in either spelling; the package
-			// identity, a function of the claims' coordinates, is what shows
-			// the platform was regenerated for the edited claim.
-			g.Expect(strings.TrimPrefix(platformField(g, backupEntry("version")), "v")).To(Equal(backup.Version))
+			// The controller reads a catalog version in its bare spelling, so
+			// the entry lists the claim's version bare whatever the claim
+			// wrote, and the package identity, a function of the claims'
+			// bare coordinates, does not move on a spelling-only edit: the
+			// same build, no regeneration.
+			g.Expect(platformField(g, backupEntry("version"))).To(Equal(backup.Version))
 			identityV = platformField(g, "{.status.packageIdentity}")
 			g.Expect(identityV).NotTo(BeEmpty())
-			// The identity moves on a spelling-only edit only because the
-			// claim coordinates keep the claim's own spelling
-			// (opm-controller#234). A change that normalises the version to
-			// bare SemVer must turn this into identityV == identityBare: the
-			// same build, no regeneration.
-			g.Expect(identityV).NotTo(Equal(identityBare), "package identity did not move")
-			g.Expect(identityV).NotTo(Equal(identityBefore))
+			g.Expect(identityV).To(Equal(identityBare), "a spelling-only edit moved the package identity")
 			g.Expect(platformField(g, `{.status.conditions[?(@.type=="Ready")].status}`)).To(Equal("True"))
 			g.Expect(platformField(g, `{.status.conditions[?(@.type=="Ready")].reason}`)).To(Equal("Generated"))
 		}, 5*time.Minute, 5*time.Second).Should(Succeed())

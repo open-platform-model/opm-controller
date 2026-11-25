@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/pkg/runtime/patch"
@@ -350,11 +351,17 @@ func claimCoordinates(claims []releasesv1alpha1.TransformerRegistration) []platf
 	for _, claim := range claims {
 		coords = append(coords, platformstore.ClaimCoordinate{
 			Catalog: claim.Spec.Catalog,
-			Version: claim.Spec.Version,
+			Version: bareVersion(claim.Spec.Version),
 		})
 	}
 	return coords
 }
+
+// bareVersion returns v without a leading "v": the spelling the generated
+// platform module stamps. "0.1.0" and "v0.1.0" name the same build, so the
+// package identity and the status union read every catalog version through
+// it. It validates nothing; CUE's module system does.
+func bareVersion(v string) string { return strings.TrimPrefix(v, "v") }
 
 // recordEffectiveRegistry stamps the package identity and the resolved
 // registry union on the Platform's status. It is called only where a package
@@ -526,7 +533,7 @@ func platformEntries(plat *releasesv1alpha1.Platform, claims []releasesv1alpha1.
 		}
 		entries = append(entries, platformmodule.Entry{
 			Path:    path,
-			Version: sub.Version,
+			Version: bareVersion(sub.Version),
 			Enable:  sub.Enable == nil || *sub.Enable,
 		})
 		seen[path] = true
@@ -537,7 +544,7 @@ func platformEntries(plat *releasesv1alpha1.Platform, claims []releasesv1alpha1.
 		}
 		entries = append(entries, platformmodule.Entry{
 			Path:    claim.Spec.Catalog,
-			Version: claim.Spec.Version,
+			Version: bareVersion(claim.Spec.Version),
 			Enable:  true,
 		})
 		seen[claim.Spec.Catalog] = true

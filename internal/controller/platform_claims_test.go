@@ -514,6 +514,109 @@ var _ = Describe("Platform generation from the active-claim set", func() {
 			Expect(readyCondition(fetchPlatform()).Reason).To(Equal(status.GeneratedReason),
 				"a skipped regeneration still reports the platform ready")
 		})
+
+		It("lists a v-prefixed subscription and claim bare, under the identity of the bare tuple", func() {
+			k, reg := buildKernelOrSkip()
+			store := platformstore.NewStore()
+			r := newPlatformReconciler(store, k, reg)
+
+			// Both sources spell their version with a leading v. The fixture
+			// coordinates are bare SemVer, so prefixing them is the only
+			// difference from the bare tuple.
+			plat := &releasesv1alpha1.Platform{
+				ObjectMeta: metav1.ObjectMeta{Name: platformSingletonName},
+				Spec: releasesv1alpha1.PlatformSpec{
+					Type:     "kubernetes",
+					Registry: map[string]releasesv1alpha1.Subscription{testCatalogPath(): {Version: "v" + fixtures.CatalogVersion()}},
+				},
+			}
+			Expect(k8sClient.Create(ctx, plat)).To(Succeed())
+			storeActiveClaim("default."+providerInstanceName, claimCatalogPath(), "v"+claimCatalogVersion())
+			Eventually(func(g Gomega) {
+				var list releasesv1alpha1.TransformerRegistrationList
+				g.Expect(k8sClient.List(ctx, &list)).To(Succeed())
+				g.Expect(list.Items).To(HaveLen(1))
+			}).Should(Succeed())
+
+			_, err := r.Reconcile(ctx, clusterRequest)
+			Expect(err).NotTo(HaveOccurred())
+
+			fetched := fetchPlatform()
+			Expect(readyCondition(fetched).Reason).To(Equal(status.GeneratedReason),
+				"a v-prefixed subscription names the same build as the bare one, so it builds")
+			Expect(fetched.Status.Registry).To(ConsistOf(
+				releasesv1alpha1.ResolvedRegistryEntry{
+					Catalog: testCatalogPath(),
+					Version: fixtures.CatalogVersion(),
+					Enabled: true,
+					Source:  releasesv1alpha1.RegistryEntrySubscription,
+				},
+				releasesv1alpha1.ResolvedRegistryEntry{
+					Catalog: claimCatalogPath(),
+					Version: claimCatalogVersion(),
+					Enabled: true,
+					Source:  releasesv1alpha1.RegistryEntryRegistration,
+				},
+			), "the status union lists every version in its bare spelling")
+
+			bareTuple := platformstore.NewPackageIdentity(fetched.Generation, []platformstore.ClaimCoordinate{
+				{Catalog: claimCatalogPath(), Version: claimCatalogVersion()},
+			})
+			Expect(fetched.Status.PackageIdentity).To(Equal(bareTuple.String()),
+				"the identity is the one the same tuple written bare produces")
+		})
+
+		It("keeps the identity and the package when an active claim's version changes only in spelling", func() {
+			k, reg := buildKernelOrSkip()
+			store := platformstore.NewStore()
+			r := newPlatformReconciler(store, k, reg)
+
+			plat := &releasesv1alpha1.Platform{
+				ObjectMeta: metav1.ObjectMeta{Name: platformSingletonName},
+				Spec: releasesv1alpha1.PlatformSpec{
+					Type:     "kubernetes",
+					Registry: map[string]releasesv1alpha1.Subscription{testCatalogPath(): {Version: fixtures.CatalogVersion()}},
+				},
+			}
+			Expect(k8sClient.Create(ctx, plat)).To(Succeed())
+			claim := storeActiveClaim("default."+providerInstanceName, claimCatalogPath(), claimCatalogVersion())
+			Eventually(func(g Gomega) {
+				var list releasesv1alpha1.TransformerRegistrationList
+				g.Expect(k8sClient.List(ctx, &list)).To(Succeed())
+				g.Expect(list.Items).To(HaveLen(1))
+			}).Should(Succeed())
+
+			_, err := r.Reconcile(ctx, clusterRequest)
+			Expect(err).NotTo(HaveOccurred())
+			identityBare := fetchPlatform().Status.PackageIdentity
+			Expect(identityBare).NotTo(BeEmpty())
+			bare, ok := store.Generated()
+			Expect(ok).To(BeTrue())
+			markPackage(bare.Dir)
+
+			// The same build, spelled with a leading v. The claim stays
+			// accepted and active: only its spec moves.
+			vVersion := "v" + claimCatalogVersion()
+			Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(claim), claim)).To(Succeed())
+			claim.Spec.Version = vVersion
+			Expect(k8sClient.Update(ctx, claim)).To(Succeed())
+			Eventually(func(g Gomega) {
+				var stored releasesv1alpha1.TransformerRegistration
+				g.Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(claim), &stored)).To(Succeed())
+				g.Expect(stored.Spec.Version).To(Equal(vVersion))
+				g.Expect(stored.Status.Active).To(BeTrue())
+			}).Should(Succeed())
+
+			_, err = r.Reconcile(ctx, clusterRequest)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fetchPlatform().Status.PackageIdentity).To(Equal(identityBare),
+				"a spelling-only version edit keeps the package identity")
+			after, ok := store.Generated()
+			Expect(ok).To(BeTrue())
+			Expect(after.Dir).To(Equal(bare.Dir))
+			Expect(packageWasRegenerated(bare.Dir)).To(BeFalse(),
+				"a spelling-only version edit does not regenerate the platform package")
+		})
 	})
 })
 
