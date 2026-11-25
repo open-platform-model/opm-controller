@@ -80,9 +80,11 @@ type Subscription struct {
 	// +optional
 	Enable *bool `json:"enable,omitempty"`
 
-	// Version names exactly one published catalog build as a bare SemVer
-	// string (e.g. "2.0.0-alpha.3") — the platform module IS the resolution
-	// (enhancement 0010); there is no range or allow/deny vocabulary. The
+	// Version names exactly one published catalog build as a SemVer string,
+	// bare ("2.0.0-alpha.3") or with a leading v ("v2.0.0-alpha.3"). Both
+	// spellings name the same build, and status.registry shows the bare
+	// form. The platform module IS the resolution (enhancement 0010); there
+	// is no range or allow/deny vocabulary. The
 	// version's major must agree with the subscription key's `@vN` suffix.
 	// The controller uses it twice: as the generated cue.mod pin and as the
 	// entry's stamped expected version, which unifies with the imported
@@ -125,8 +127,9 @@ type ResolvedRegistryEntry struct {
 	// +required
 	Catalog string `json:"catalog"`
 
-	// version is the bare SemVer build the generated platform module pins
-	// the catalog at.
+	// version is the SemVer build the generated platform module pins the
+	// catalog at. It is always the bare spelling ("0.1.0"), also when the
+	// subscription or the claim wrote it with a leading v ("v0.1.0").
 	// +kubebuilder:validation:MinLength=1
 	// +required
 	Version string `json:"version"`
