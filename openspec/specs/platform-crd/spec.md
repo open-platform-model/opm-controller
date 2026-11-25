@@ -76,7 +76,7 @@ The controller SHALL register `Platform` and `PlatformList` with the runtime sch
 - **THEN** the API server rejects it
 
 ### Requirement: The registry maps catalog paths to subscriptions of one published version
-`PlatformSpec.Registry` SHALL map major-suffixed catalog module paths (`opmodel.dev/catalogs/opm@v2`) to subscriptions of the form `{enable?, version}`. `version` SHALL name exactly one published catalog build as a bare SemVer string (`MinLength=1`); the filter vocabulary (`filter.range`, `filter.allow`, `filter.deny`) SHALL NOT exist in the schema.
+`PlatformSpec.Registry` SHALL map major-suffixed catalog module paths (`opmodel.dev/catalogs/opm@v2`) to subscriptions of the form `{enable?, version}`. `version` SHALL name exactly one published catalog build as a SemVer string (`MinLength=1`), bare (`2.0.0-alpha.3`) or with a leading `v` (`v2.0.0-alpha.3`); both spellings SHALL name the same build. The filter vocabulary (`filter.range`, `filter.allow`, `filter.deny`) SHALL NOT exist in the schema.
 
 #### Scenario: Scalar subscription accepted
 
