@@ -1,0 +1,11 @@
+{
+  "plan": {
+    "outcome": "reviewed",
+    "source": "criteria",
+    "criteria": ["assumption", "contract"],
+    "reason": "The plan rests on assumptions the owner did not answer: a local prefix strip, the release class, the doc rewording and where the spec rule lives. It also changes CRD descriptions and the values of status.registry.",
+    "result": "approve",
+    "comments": [],
+    "datetime": "2026-11-25T09:43:11Z"
+  }
+}
