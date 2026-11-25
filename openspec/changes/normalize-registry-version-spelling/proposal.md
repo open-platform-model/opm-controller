@@ -25,6 +25,7 @@ None.
 
 - `registration-driven-regeneration`: adds a requirement that every catalog version is read in its bare spelling, for the package identity and for the status union.
 - `platform-crd`: a subscription version is accepted in either spelling and names the same build.
+- `live-flux-e2e`: the v-prefixed claim step expects the bare-version package identity, and the identity requirement says that a spelling-only edit does not move it.
 
 ## Impact
 
