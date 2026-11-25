@@ -2,10 +2,25 @@
   "plan": {
     "outcome": "reviewed",
     "source": "criteria",
-    "criteria": ["assumption", "contract"],
+    "criteria": [
+      "assumption",
+      "contract"
+    ],
     "reason": "The plan rests on assumptions the owner did not answer: a local prefix strip, the release class, the doc rewording and where the spec rule lives. It also changes CRD descriptions and the values of status.registry.",
     "result": "approve",
     "comments": [],
     "datetime": "2026-11-25T09:43:11Z"
+  },
+  "result": {
+    "outcome": "reviewed",
+    "source": "criteria",
+    "criteria": [
+      "fix-round",
+      "open-finding"
+    ],
+    "reason": "Verify needed a fix round (a stale live-flux-e2e spec and a commit task), and the verify report still lists leads. The report criterion was not decisive: the build report names no disputed test, bug or stop.",
+    "result": "approve",
+    "comments": [],
+    "datetime": "2026-11-25T10:35:51Z"
   }
 }
