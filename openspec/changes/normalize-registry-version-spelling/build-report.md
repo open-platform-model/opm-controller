@@ -83,3 +83,8 @@ Base: main
 ### Commits
 
 - `965d0acd` docs(openspec): sync the e2e spec and tasks with bare version spelling
+
+### Answers
+
+- Answer: past | b2efc78cde9647c4c314b2f2af07e70af80e96f4 | keep | commit title is 76 characters, over the 72-character subject limit | 2026-11-25T10:31Z
+- Answer: past | 8e637257c67a05263632f4725a649d7d6d9c6f4c | keep | commit title is 75 characters, over the 72-character subject limit | 2026-11-25T10:31Z
