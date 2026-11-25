@@ -227,3 +227,11 @@ tasks:
     cmds:
       - task: docs:pins:check
       - .bin/opm-docs check --project opm-controller
+
+  check:commit:
+    desc: The checks that run before every commit except a tests commit (format, vet, lint and the OpenSpec check; no tests, no e2e)
+    cmds:
+      - task: dev:fmt
+      - task: dev:vet
+      - task: dev:lint
+      - task: openspec:check

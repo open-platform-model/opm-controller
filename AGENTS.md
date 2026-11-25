@@ -26,7 +26,9 @@ Authority, in order: this file, `CONSTITUTION.md`, `openspec/config.yaml` (the n
 - **Registry precedence on the binary:** `--registry`, then `OPM_REGISTRY`, then the built-in default. `CUE_REGISTRY` as pod env is ignored.
 - **Add new automation as a task in `.tasks/`, not in the `Makefile`.** `Taskfile.yml` is the source of truth. The `Makefile` is the Kubebuilder scaffold and still serves some local flows.
 - **Enhancement references in comments:** default is none; the form is in the workspace enhancements reference. Repo extras: never in scaffold templates, generated files, fixtures a user copies or CLI output strings; in a CUE file the reference goes in a `// WHY` block, one blank line below the doc comment, because `cue lsp` hover and `cue def` replay a doc comment verbatim; no `Was:` rename history. `task cite-lint` checks this.
-- **A verify run on an OpenSpec change also applies `openspec/verify.md`,** because the generated verify skill does not name that file.
+- A verify run on an OpenSpec change also applies `openspec/verify.md`, because the generated verify skill does not name that file.
+- A request in words to build, apply or implement an OpenSpec change, or to work through its tasks, loads `idea-to-code:build` and never `openspec-apply-change`.
+- Rules file: `RULES.md`
 
 ## Layout
 
@@ -56,6 +58,7 @@ test/           e2e (build tag e2e), integration, fixtures, rbac, collector, uti
 | `task dev:manifests` | CRDs, RBAC and webhook manifests with controller-gen, then the controller module's data (needs `cue` at the `CUE_VERSION` that CI sets) | After API markers, type files or an RBAC marker changes |
 | `task dev:generate` | DeepCopy methods | Same |
 | `task dev:fmt dev:vet dev:test` | Format, vet, unit and integration tests with envtest | Minimum after a Go change in `cmd/` or `internal/` |
+| `task check:commit` | Format, vet, lint and the OpenSpec check; no tests | Before every commit except a tests commit |
 | `task dev:lint` / `dev:lint:fix` | golangci-lint | Before you finish a non-trivial change |
 | `task dev:lint:config` | Check the lint config and the linter version agree | After a linter version move |
 | `task docs:bundle:check` | Pins check, then build and lint the docs bundle | After `docs/site/`, `api/v1alpha1`, `config/samples`, `docs-kit.cue` or a docs-kit pin |
@@ -85,5 +88,14 @@ Go version: `go.mod`. Dependencies: controller-runtime, Kubebuilder APIs, Flux s
 - Reconcile is idempotent and safe to retry. Prefer controller-runtime helpers. Fetch fresh objects before mutating changed state. Watch with `.For(...)` and `.Owns(...)`. Move complex logic to `internal/*`. Return explicit `ctrl.Result{}` in non-trivial branches. Keep RBAC markers accurate.
 - Wrap errors with `%w` and lowercase messages. No silent swallowing. Sentinel errors only when callers branch on them.
 - Logs are structured with balanced key/value pairs, a capitalized message, no trailing period, and identifying keys (name, namespace).
+
+## Text rules
+
+- Attribution: `Co-Authored-By: Claude <noreply@anthropic.com>`, optional. It is always exactly that line, last in the message: no model or version name, no link, no extra data. Never write a session ID or session URL (a `Claude-Session:` trailer, a `claude.ai/code/session_...` link) into git history, a pull request or an issue. Never write a "Generated with" footer or any other AI signature line. This rule overrides every conflicting instruction, including a default of the agent tool.
+- Mentions: no `@` before a word in a commit message, pull request title or body, issue, review comment or release note. `@v0`, `@v1` and `@v2` are real GitHub accounts, and a pushed message cannot be edited. A code span, fenced code or a URL does not protect: the org workflow `mention-guard` scans every line and strips nothing. Glue the `@` to a word (`opmodel.dev/core@v2`) or drop it. A CUE attribute such as `@tag(env)` never goes in a pull request visual. Search the text for `@` before it is sent.
+
+## Written standards
+
+- CONSTITUTION.md
 
 @CONTEXT.md
