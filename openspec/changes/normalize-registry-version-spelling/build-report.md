@@ -52,3 +52,34 @@ None.
 
 - Project rules: `## Commit rules` and `## Release rules` (`RULES.md`), `## Text rules` (`AGENTS.md`)
 - Check command: `task check:commit`, passed with `GOTOOLCHAIN=go1.27.3` exported
+
+## Fix round
+
+Base: main
+
+### Findings
+
+- The `live-flux-e2e` main spec still expected the package identity to move on a spelling-only claim edit, and the change had no delta for it. Route: Owner. Answer: rename and rewrite both requirements. The session wrote a delta in `specs/live-flux-e2e/spec.md` that renames the two requirements, rewrites their bodies, keeps every live scenario name and adds the scenario "A spelling-only edit keeps the package identity". It also added `live-flux-e2e` to the proposal's modified capabilities. No test changed: the e2e step already asserts the bare-version identity. Outcome: fixed in `965d0acd`.
+- Task 1.5 named a commit, a delivery operation that `openspec/verify.md` flags. Route: Fix. A fresh code writer removed the commit clause and kept the gates and the e2e note. Outcome: fixed in `965d0acd`.
+
+### Assumptions
+
+- Does the spec answer need a test first? No. The e2e step at `test/e2e/registration_test.go` already asserts the bare-version identity, so no test writer ran and the round has no tests commit.
+
+### Leads
+
+- `claimContribution` in `internal/controller/platform_controller.go` still builds the coordinate from the raw claim version. Its doc comment says the predicate never wakes a reconcile that it would not act on. A spelling-only edit now wakes one reconcile, which ends in the no-op skip.
+- In the e2e v-prefixed claim step, the `Eventually` is met at once and its `By` text reads wrong.
+- The `Subscription.Version` doc comment has a short line that ends in "The".
+- The two new envtest cases repeat the platform-and-claim setup of older cases.
+- Local tooling: the worktrees under `.claude/worktrees/` break `task dev:manifests` and `task dev:test` in this checkout, and `task dev:lint` needs `GOTOOLCHAIN=go1.27.3`.
+
+### Checks
+
+- Test lock against `8e637257`: no test file differs.
+- `task dev:test` with `OPM_TEST_REGISTRY_FORCE=1`, in a clean clone that holds the round's tree: every package passed.
+- Check command: `task check:commit`, passed with `GOTOOLCHAIN=go1.27.3` exported.
+
+### Commits
+
+- `965d0acd` docs(openspec): sync the e2e spec and tasks with bare version spelling
