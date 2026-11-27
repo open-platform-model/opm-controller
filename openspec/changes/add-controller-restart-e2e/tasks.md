@@ -2,9 +2,9 @@
 
 ## 1. Crash-window cases at the reconcile function
 
-- [ ] 1.1 In `test/integration/reconcile/state_recovery_test.go`, add the case "should converge after a crash between the first apply and the status commit": reconcile a new instance to Ready with the `stubRenderer`, record the `test-module` UID, clear `status.inventory`, the three `lastApplied*Digest` fields and `lastAppliedInputs` through the status subresource, reconcile again. Verify: Ready=True on the current generation, the same UID, the inventory lists exactly `test-module`, and no ConfigMap with the instance's UUID label is outside it.
-- [ ] 1.2 In the same file, add the case "should prune a pending stale object after a crash": reconcile to Ready, create ConfigMap `stale-object` with `app.kubernetes.io/managed-by: opm-controller` and `module-instance.opmodel.dev/uuid: <status.instanceUUID>`, stage an inventory of `test-module` and `stale-object` with the digests and `lastAppliedInputs` cleared, reconcile again. Verify: `stale-object` is gone and not in the inventory, and `test-module` keeps its UID.
-- [ ] 1.3 Clean up both cases with the file's existing pattern (delete the ConfigMaps, `cleanupInstance`). Verify: `task dev:fmt dev:vet dev:lint dev:test` green.
+- [x] 1.1 In `test/integration/reconcile/state_recovery_test.go`, add the case "should converge after a crash between the first apply and the status commit": reconcile a new instance to Ready with the `stubRenderer`, record the `test-module` UID, clear `status.inventory`, the three `lastApplied*Digest` fields and `lastAppliedInputs` through the status subresource, reconcile again. Verify: Ready=True on the current generation, the same UID, the inventory lists exactly `test-module`, and no ConfigMap with the instance's UUID label is outside it.
+- [x] 1.2 In the same file, add the case "should prune a pending stale object after a crash": reconcile to Ready, create ConfigMap `stale-object` with `app.kubernetes.io/managed-by: opm-controller` and `module-instance.opmodel.dev/uuid: <status.instanceUUID>`, stage an inventory of `test-module` and `stale-object` with the digests and `lastAppliedInputs` cleared, reconcile again. Verify: `stale-object` is gone and not in the inventory, and `test-module` keeps its UID.
+- [x] 1.3 Clean up both cases with the file's existing pattern (delete the ConfigMaps, `cleanupInstance`). Verify: `task dev:fmt dev:vet dev:lint dev:test` green.
 
 ## 2. Controller restart specs on Kind
 
