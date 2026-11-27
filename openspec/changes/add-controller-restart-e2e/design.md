@@ -22,15 +22,15 @@ See proposal.md for the motivation. The facts this design rests on, read in the 
 
 **Non-Goals:**
 
-- No change to product code, flags or manifests. No fault-injection hook in the binary.
-- The parallel-instances stub stays skipped.
-- No hard kill (`--grace-period=0 --force`): the staged state already proves the no-commit window, and a forced delete lets two pods overlap.
+- The change MUST NOT change product code, flags or manifests. It MUST NOT add a fault-injection hook to the binary.
+- The parallel-instances stub MUST stay skipped.
+- The specs MUST NOT use a hard kill (`--grace-period=0 --force`): the staged state already proves the no-commit window, and a forced delete lets two pods overlap.
 
 ## Decisions
 
 ### The crash state is staged, not timed
 
-A `hello` reconcile ends in seconds, so a kill timed from outside rarely lands between the apply and the commit. The test stops the controller (Deployment scaled to 0), writes the status a crash would leave through the status subresource, and starts the controller again (scaled to 1). Alternatives weighed: a timed hard kill only (where it lands is luck), and a test flag in the binary (test code in the shipped binary). The owner chose staging.
+A `hello` reconcile ends in seconds, so a kill timed from outside rarely lands between the apply and the commit. The test MUST stop the controller (Deployment scaled to 0), write the status a crash would leave through the status subresource, and start the controller again (scaled to 1). Alternatives weighed: a timed hard kill only (where it lands is luck), and a test flag in the binary (test code in the shipped binary). The owner chose staging.
 
 Staged first-apply crash, as a status merge patch:
 
@@ -53,11 +53,11 @@ status:
       - {kind: ConfigMap, v: v1, namespace: default, name: hello-stale, component: <rendered component>}
 ```
 
-`instanceUUID`, the conditions and `observedGeneration` stay as they are. A crash keeps them.
+A staged patch MUST leave `instanceUUID`, the conditions and `observedGeneration` as they are. A crash keeps them.
 
 ### What "converged" means
 
-Each spec reads the rendered objects' UIDs before the stop and checks after the restart. The check helper is shared by the three e2e specs, and the envtest cases use the same four checks:
+Each spec MUST read the rendered objects' UIDs before the stop and MUST check after the restart. The three e2e specs MUST share the check helper, and the envtest cases MUST make the same four checks:
 
 ```go
 // convergedSince waits until the instance reconciled after t, then checks
@@ -73,18 +73,18 @@ Eventually(func(g Gomega) {
 }, 3*time.Minute, 2*time.Second).Should(Succeed())
 ```
 
-`lastAppliedAt` after the staging time is what tells a reconcile after the restart from the Ready condition that the staged status kept. Events are not asserted: `PlatformNotReady` is expected after a restart, and the owner declined an events check as flaky.
+The check MUST also require `lastAppliedAt` after the staging time: that is what tells a reconcile after the restart from the Ready condition that the staged status kept. Events MUST NOT be asserted: `PlatformNotReady` is expected after a restart, and the owner declined an events check as flaky.
 
 ### The pod delete smoke check
 
-The spec changes `spec.values.message` and at once runs `kubectl delete pod -l control-plane=manager -n opm-system`, with no wait. A ModuleInstance reconcile never sets `Reconciling=True` (only a panic, a render timeout or a deletion does), so no condition shows that a reconcile runs, and a `hello` reconcile ends in seconds. The delete may land during the reconcile or after it: the spec is a smoke check of a real process stop after a change, and the staged specs prove the crash windows. It then waits for a new pod to be Ready, and runs the full check with the new message in the ConfigMap.
+The spec MUST change `spec.values.message` and at once run `kubectl delete pod -l control-plane=manager -n opm-system`, with no wait. A ModuleInstance reconcile never sets `Reconciling=True` (only a panic, a render timeout or a deletion does), so no condition shows that a reconcile runs, and a `hello` reconcile ends in seconds. The delete can land during the reconcile or after it: the spec is a smoke check of a real process stop after a change, and the staged specs prove the crash windows. It MUST then wait for a new pod to be Ready, and run the full check with the new message in the ConfigMap.
 
 ### Where the tests live
 
 Two seams, both agreed with the owner:
 
-- Envtest: `test/integration/reconcile/state_recovery_test.go`, through `opmreconcile.ReconcileModuleInstance` with the suite's `stubRenderer` (one ConfigMap, `test-module`). A take-in or stale-set regression fails `task dev:test` in seconds.
-- E2e: an Ordered Describe in `test/e2e/concurrent_test.go` with its own controller deploy, Platform, `hello` instance and teardown, in the pattern of the other e2e files (the deploy steps and the `LOCAL_REGISTRY` override of `e2e_test.go`, `helloInstanceManifest` from `registry_auth_test.go`). The parallel-instances `Skip` moves to its own Describe in the same file.
+- Envtest: the cases MUST live in `test/integration/reconcile/state_recovery_test.go` and MUST go through `opmreconcile.ReconcileModuleInstance` with the suite's `stubRenderer` (one ConfigMap, `test-module`). A take-in or stale-set regression fails `task dev:test` in seconds.
+- E2e: the specs MUST live in one Describe in `test/e2e/concurrent_test.go`. That Describe MUST be Ordered and MUST have its own controller deploy, Platform, `hello` instance and teardown, in the pattern of the other e2e files (the deploy steps and the `LOCAL_REGISTRY` override of `e2e_test.go`, `helloInstanceManifest` from `registry_auth_test.go`). The parallel-instances `Skip` MUST move to its own Describe in the same file.
 
 ## Reconcile phase impact
 
@@ -108,10 +108,10 @@ None changed. The tests drive these phases after a restart: Platform gate (`Plat
 
 ## Risks / Trade-offs
 
-- [A staged status may differ from what a real crash leaves] → The patch clears only the fields that the deferred commit writes, and the pod delete spec adds a real process stop.
-- [A new test fails on the current code] → That is a real bug in resume. The build stops that slice and adds a fix slice for the reconcile code; the spec delta stays as written.
-- [The lease wait and the Platform rebuild make the e2e slow or flaky] → Eventually windows of 3 minutes, and the restart helper waits for the new pod's Ready and the Platform's Ready before it checks the instance.
-- [Scaling to 0 while a reconcile runs] → The staging starts only after the instance is Ready and the pod is gone (`kubectl wait --for=delete`).
+- [A staged status can differ from what a real crash leaves] → The patch MUST clear only the fields that the deferred commit writes, and the pod delete spec adds a real process stop.
+- [A new test fails on the current code] → That is a real bug in resume. The build MUST stop that slice and add a fix slice for the reconcile code; the spec delta MUST stay as written.
+- [The lease wait and the Platform rebuild make the e2e slow or flaky] → Eventually windows of 3 minutes, and the restart helper MUST wait for the new pod's Ready and the Platform's Ready before it checks the instance.
+- [Scaling to 0 while a reconcile runs] → The staging MUST start only after the instance is Ready and the pod is gone (`kubectl wait --for=delete`).
 
 ## Slices
 
