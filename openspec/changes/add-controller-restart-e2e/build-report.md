@@ -1,0 +1,70 @@
+# Build report: add-controller-restart-e2e
+
+Base: main
+
+Working branch: `add-controller-restart-e2e`. Both slices are tests only (Delivers starts with `Tests only:`), so no code writer ran and the test-lock check did not apply. Each slice has a tests commit and a commit that ticks its boxes.
+
+## Slices and commits
+
+- S1: Crash-window cases at the reconcile function
+  - `f93d4e36` test(reconcile): cover crash recovery before the status commit (tests commit, `Tests-For: S1`; also carries the change folder)
+  - `9846cff7` test(reconcile): close the crash recovery slice (`tasks.md`)
+- S2: Controller restart specs on Kind
+  - `cd19bd1b` test(e2e): cover a controller restart after a crash and a pod delete (tests commit, `Tests-For: S2`; also carries the owner's spec, design and task 2.5 edits)
+  - `551d8292` test(e2e): close the controller restart slice (`tasks.md`)
+
+## Guard tests
+
+Every new test is a guard test, because the behaviour exists already.
+
+- S1, "should converge after a crash between the first apply and the status commit": guards "A crash after the first apply". Break: in `internal/apply/guard.go` the take-in was removed. Result: `Ready` was `False` where `True` was expected.
+- S1, "should prune a pending stale object after a crash": guards "A crash with a pending prune". Break: `staleEntries` in `internal/reconcile/converted.go` got an empty stale set. Result: `stale-object` was not deleted within 10s.
+- S2, "should converge after a crash between the first apply and the status commit": guards "A crash after the first apply". Break: take-in refused in `internal/apply/guard.go`. Result: `ApplyRefused`, and no apply after the restart.
+- S2, "should prune a pending stale object after a crash": guards "A crash with a pending prune". Break: `staleEntries` returns `nil`. Result: `hello-stale` was still there after 180s.
+- S2, "should converge correctly after a controller restart mid-reconcile": guards "The controller pod is deleted during a reconcile". There was no break check. The delete may land after the apply, so no one-line break makes the spec fail on its window. A regression is caught by the ConfigMap message check (the new values are applied) and by the converged check (same UIDs, inventory equal to the render, no orphan, Ready on the current generation).
+
+## Assumptions
+
+- S1: How are the crash states made? By a reconcile to Ready, then a status merge patch through the status subresource. `instanceUUID`, the conditions and `observedGeneration` stay.
+- S1: Which component does the stale inventory entry get? A copy of the rendered `test-module` entry with only the name changed, and `count: 2`.
+- S1: Which objects count for "no labeled object outside the inventory"? ConfigMaps in the suite namespace with the UUID label, without a deletion timestamp.
+- S1: In which order are the checks? The outcome checks (Ready, inventory, UID) run before the requeue check.
+- S1: How is cleanup done? With the file's inline pattern (delete the ConfigMaps, `cleanupInstance`), not `DeferCleanup`.
+- S2: Where does the expected render come from? From the inventory at the first Ready, checked to be one ConfigMap in `default` with `spec.prune: true`.
+- S2: Which objects count for "no labeled object outside the inventory"? ConfigMaps in all namespaces with the UUID label, not being deleted.
+- S2: What does the staged pending-prune inventory hold? `revision` and `digest` null, `count: 2`, and the rendered entry plus `hello-stale`.
+- S2: How is `lastAppliedAt` compared, given its 1s resolution? It must not be before the reference time cut to the second. For the pod delete spec the reference is the values change.
+- S2: What is the teardown order? The order of `registry_auth_test.go`. `opm-system` is not deleted.
+- S2: How does the spec know the pod is new? It waits for one Ready controller pod whose name differs from the pod before the delete.
+
+## Bugs, fix slices and leads
+
+- Bugs fixed: none. Fix slices: none.
+- Lead: "wait for the Platform Ready again" in the restart helper passes at once. The Platform keeps `Ready=True` in its status while the controller is stopped. The real wait is the converged check (`lastAppliedAt` after the staging time, within 3 minutes).
+- Lead: the repo lint config sets no build tags, so `task dev:lint` does not lint the e2e files. `golangci-lint run --build-tags=e2e ./test/e2e/...` shows 10 findings that were there before, such as `modernize: plusbuild` on each `// +build e2e` line.
+
+## Disputed tests
+
+None.
+
+## Base failures
+
+None.
+
+## Failed checks
+
+- S1, before the tests commit: `task dev:test` failed in `dev:manifests:config` with "CRD for ModuleInstance.opmodel.dev has no storage version". Cause: two git worktrees under `.claude/worktrees/` inside the repo. A clean checkout of `main` passed that step. The owner moved both worktrees out of the repo, and then `task dev:test` passed.
+- Every run of `task dev:lint`, and so of `task check:commit`: the plugin build of golangci-lint picked Go 1.26.5 and refused the Go 1.27.3 target. With `GOTOOLCHAIN=go1.27.3`, the Go version that `go.mod` names, the build works and lint gives `0 issues`. The check command ran with that variable at each commit.
+
+## Stops
+
+- S1, step (c), test command: the test command failed because of the worktrees (above). Owner's answer: the owner moves the worktrees. After that the build went on.
+- S2, step (b), owner decision: a ModuleInstance reconcile never sets `Reconciling=True`, so the pod delete spec's 10s wait always ran out. Owner's answer: delete the pod right after the values change, with no wait, and say so in the text. The spec scenario, `design.md` and task 2.5 were edited, `openspec validate` passed, and a fresh test writer changed the spec.
+
+## e2e result (task 2.6)
+
+`task dev:e2e` on Kind, on the final test file: exit 0. 14 passed, 0 failed, 0 pending, 10 skipped. The skips existed before this change: the parallel-instances stub, and 9 podinfo specs that need `LOCAL_REGISTRY` or `CONTROLLER_DOCKER_CONFIG`. `concurrent_test.go` holds one `Skip`.
+
+Project rules: `## Commit rules` and `## Release rules` (from `RULES.md`), `## Text rules` (from `AGENTS.md`).
+
+Check command: `task check:commit`, run as `GOTOOLCHAIN=go1.27.3 task check:commit`: passed at both closing commits.
