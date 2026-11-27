@@ -1,0 +1,11 @@
+{
+  "plan": {
+    "outcome": "reviewed",
+    "source": "criteria",
+    "criteria": ["assumption"],
+    "reason": "Four choices of the plan were mine, not the owner's: the parallel-instances stub stays skipped, the hello fixture in concurrent_test.go, the 10s Reconciling wait before the pod delete, and the ADDED live-flux-e2e requirement.",
+    "result": "approve",
+    "comments": [],
+    "datetime": "2026-11-27T14:38:20Z"
+  }
+}

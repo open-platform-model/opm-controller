@@ -1,0 +1,253 @@
+idea: Un-skip the pod-restart e2e test in test/e2e/concurrent_test.go, build the controller-pod kill and restart fixture, and show that reconcile resumes safely after a restart
+idea_history: []
+entries:
+  - id: q1
+    phase: explore
+    scope: product
+    kind: question
+    status: settled
+    opened_by: null
+    replaces: null
+    asked: 2026-11-27T11:15:21Z
+    question: How does the test put the controller into the crash window it proves recovery from?
+    options:
+      a: Staged crash state. Let the instance reach Ready, stop the controller, roll its status back to what it held before the apply (objects in the cluster, not in the inventory), start the controller, assert convergence. Optionally also a plain hard kill of a reconcile in flight as a smoke check.
+      b: Timed hard kill only. Apply the instance, wait for Reconciling=True, force-delete the pod, assert convergence. Where in the reconcile the kill lands is luck.
+      c: Fault-injection hook in the binary. A test-only flag or env makes the manager exit at a named point (after apply, before the status commit).
+    recommended: a
+    reason: The window that matters is "applied, but the status is not written" (the original design of this test). A hello reconcile runs in seconds, so a timed kill rarely lands there; staging the state hits it every run with no product code change.
+    predicted_answer: a
+    predicted_outcome: No product code change; the e2e spec fails if the restarted controller recreates an object (UID changes) or leaves an object outside the inventory.
+    answer:
+      choice: a
+      text: null
+      by: owner
+      rule: null
+      at: 2026-11-27T13:48:41Z
+    thoughts: The owner takes the staged state as the core proof. Whether the optional hard-kill smoke check is part of the work is still open.
+    leads_to: none
+    observed: null
+  - id: q2
+    phase: explore
+    scope: product
+    kind: question
+    status: settled
+    opened_by: q1
+    replaces: null
+    asked: 2026-11-27T13:48:41Z
+    question: Which outcomes must the test check before it counts the resume after a restart as safe?
+    options:
+      a: Full check. Each rendered object keeps its UID (not recreated), the inventory equals the rendered set, no object with the instance UUID label is outside the inventory, and Ready=True with observedGeneration current.
+      b: Convergence only. Ready=True with observedGeneration current, and the inventory is not empty.
+      c: Full check plus events. As A, and also no Warning event (for example an ownership conflict) on the instance after the restart.
+    recommended: a
+    reason: The original design of this test names "no duplicate resources, inventory matches render output, no orphaned resources". The UID check is the only one that sees a delete and recreate. Events are noisy across a restart (PlatformNotReady is expected), so C risks a flaky test.
+    predicted_answer: a
+    predicted_outcome: The spec reads object UIDs before the staged crash and fails if any UID differs after the restart, or if the inventory and the labeled objects in the namespace differ.
+    answer:
+      choice: a
+      text: null
+      by: owner
+      rule: null
+      at: 2026-11-27T13:55:38Z
+    thoughts: The owner wants the test to see a recreate, a missing take-in and an orphaned object, not only that Ready is reached.
+    leads_to: none
+    observed: null
+  - id: q3
+    phase: explore
+    scope: product
+    kind: question
+    status: settled
+    opened_by: q2
+    replaces: null
+    asked: 2026-11-27T13:55:38Z
+    question: Does the test also prove that a prune that was pending at the crash still runs after the restart?
+    options:
+      a: Yes, with a staged stale entry. The test creates an extra ConfigMap with the instance's ownership labels and puts it into the staged inventory, as if an earlier render made it. After the restart it asserts that the ConfigMap is deleted.
+      b: No. The test covers only the first-apply window (objects applied, inventory empty).
+      c: Yes, with a real values change. A fixture whose render drops an object for one value; the test changes the value and stages the crash after that apply.
+    recommended: a
+    reason: The original design of this test names "skip prune" as a failure to catch. The stale set is the old inventory minus the new render (moduleinstance.go staleEntries), so a staged inventory entry reaches the same code with the hello fixture; C needs a new or bumped fixture.
+    predicted_answer: a
+    predicted_outcome: The spec fails if the extra ConfigMap still exists once the instance is Ready after the restart; no fixture change.
+    answer:
+      choice: a
+      text: null
+      by: owner
+      rule: null
+      at: 2026-11-27T13:57:12Z
+    thoughts: The prune case rides the same staging step with the hello fixture; no fixture change.
+    leads_to: none
+    observed: null
+  - id: q4
+    phase: explore
+    scope: product
+    kind: question
+    status: settled
+    opened_by: q1
+    replaces: null
+    asked: 2026-11-27T13:57:12Z
+    question: Besides the staged crash, does the test also kill a live controller pod while a reconcile runs?
+    options:
+      a: No. The staged crash only; the controller is stopped and started by scaling the Deployment to 0 and back to 1.
+      b: Yes, a graceful pod delete. kubectl delete pod -l control-plane=manager while the instance reports Reconciling, then the full check from q2.
+      c: Yes, a hard kill. kubectl delete pod with --grace-period=0 --force while the instance reports Reconciling, then the full check from q2.
+    recommended: b
+    reason: The idea names a pod kill and restart fixture, and the TODO in concurrent_test.go names kubectl delete pod. A graceful delete runs the real shutdown path (context cancel, skipped status commit) at low cost. A hard kill adds little over the staged crash, which already proves the no-commit window.
+    predicted_answer: b
+    predicted_outcome: One more It in the restart Describe; it adds about 30s (lease expiry of about 15s plus a hello reconcile) and passes with the same full check.
+    answer:
+      choice: b
+      text: null
+      by: owner
+      rule: null
+      at: 2026-11-27T14:00:07Z
+    thoughts: The pod delete is a smoke check of the shutdown path; the staged crash carries the proof of the window.
+    leads_to: none
+    observed: null
+  - id: c1
+    phase: explore
+    scope: product
+    kind: choice
+    status: settled
+    opened_by: null
+    replaces: null
+    asked: 2026-11-27T14:00:07Z
+    question: Does the parallel-instances stub in concurrent_test.go stay skipped?
+    options:
+      a: Yes. Only the restart spec is un-skipped; the parallel-instances stub stays the one recorded future item.
+      b: No. Build it in the same change.
+    recommended: a
+    reason: The idea names only the restart test.
+    predicted_outcome: concurrent_test.go keeps one Skip, for the parallel-instances spec.
+    answer:
+      choice: a
+      text: null
+      by: agent
+      rule: null
+      at: 2026-11-27T14:00:07Z
+    thoughts: null
+    leads_to: none
+    observed: null
+  - id: c2
+    phase: explore
+    scope: product
+    kind: choice
+    status: settled
+    opened_by: null
+    replaces: null
+    asked: 2026-11-27T14:00:07Z
+    question: How does the change treat the live-flux-e2e rule that names the restart scenario a recorded future item?
+    options:
+      a: A MODIFIED delta on "No permanent Skip stubs in the live tier" that names the parallel-instances scenario as the sole recorded future item, with every scenario name kept verbatim.
+    recommended: a
+    reason: The requirement text names the controller-restart scenario as a future item, so un-skipping it changes the spec.
+    predicted_outcome: openspec validate passes with one MODIFIED requirement in live-flux-e2e.
+    answer:
+      choice: a
+      text: null
+      by: rule
+      rule: openspec/specs/live-flux-e2e/spec.md
+      at: 2026-11-27T14:00:07Z
+    thoughts: null
+    leads_to: none
+    observed: null
+  - id: c3
+    phase: explore
+    scope: program-design
+    kind: choice
+    status: settled
+    opened_by: null
+    replaces: null
+    asked: 2026-11-27T14:00:07Z
+    question: Which fixture and file hold the restart spec?
+    options:
+      a: The hello fixture, in a self-contained Ordered Describe in test/e2e/concurrent_test.go with its own deploy and teardown, the same LOCAL_REGISTRY override as the other specs, and its helpers in the same file.
+      b: A new file test/e2e/restart_test.go.
+    recommended: a
+    reason: The idea names concurrent_test.go; each e2e file is a self-contained Describe; hello renders one ConfigMap and has prune true. Assumption to confirm in the build, that hello resolves in a plain CI run as the registration fixtures do.
+    predicted_outcome: The restart spec runs in task dev:e2e with no new fixture and no new env gate.
+    answer:
+      choice: a
+      text: null
+      by: agent
+      rule: null
+      at: 2026-11-27T14:00:07Z
+    thoughts: null
+    leads_to: none
+    observed: null
+  - id: q5
+    phase: explore
+    scope: program-design
+    kind: question
+    status: settled
+    opened_by: q2
+    replaces: null
+    asked: 2026-11-27T14:00:07Z
+    question: Where do the tests of the safe resume go?
+    options:
+      a: 'E2e only. The restart Describe in concurrent_test.go on Kind, with three specs: staged first-apply crash, staged pending prune, graceful pod delete.'
+      b: E2e plus envtest. As A, and also two cases in test/integration/reconcile/state_recovery_test.go that reconcile to Ready, roll the status back, reconcile again and assert UIDs, inventory and prune.
+      c: Envtest for the crash window, e2e for the pod delete only.
+    recommended: b
+    reason: state_recovery_test.go has no crash-window case today. Envtest runs in task dev:test in seconds and points at the reconcile code; the e2e specs prove the real binary, the lease and the Platform regeneration after a restart.
+    predicted_answer: b
+    predicted_outcome: A regression in the take-in or the stale set fails task dev:test before the e2e job runs.
+    answer:
+      choice: b
+      text: null
+      by: owner
+      rule: null
+      at: 2026-11-27T14:29:11Z
+    thoughts: Two seams, one per tier; the envtest cases share the staging idea with the e2e specs.
+    leads_to: none
+    observed: null
+  - id: c4
+    phase: propose
+    scope: program-design
+    kind: choice
+    status: settled
+    opened_by: q4
+    replaces: null
+    asked: 2026-11-27T14:36:08Z
+    question: When does the pod delete spec delete the pod, given that Reconciling=True may show for less than a poll interval?
+    options:
+      a: Wait up to 10s for Reconciling=True after the values change, then delete; delete anyway with a GinkgoWriter line when it does not show.
+      b: Wait for Reconciling=True and fail the spec when it does not show.
+      c: Delete right after the values change, with no wait.
+    recommended: a
+    reason: Keeps the owner's "while a reconcile runs" where the condition is seen, and never flakes on the race; the spec is a smoke check.
+    predicted_outcome: The pod delete spec passes in task dev:e2e on every run, whether or not Reconciling=True was seen.
+    answer:
+      choice: a
+      text: null
+      by: agent
+      rule: null
+      at: 2026-11-27T14:36:08Z
+    thoughts: null
+    leads_to: none
+    observed: null
+  - id: c5
+    phase: propose
+    scope: product
+    kind: choice
+    status: settled
+    opened_by: c2
+    replaces: null
+    asked: 2026-11-27T14:36:08Z
+    question: Does the live-flux-e2e delta only drop the restart scenario from the future items, or also state what the restart specs prove?
+    options:
+      a: Both. MODIFIED Skip-stub requirement, plus an ADDED requirement "The live tier proves a controller restart converges" with one scenario per spec.
+      b: Only the MODIFIED requirement.
+    recommended: a
+    reason: Verify can then check each spec against a written scenario; the behaviour the tests prove (take-in, prune from inventory) is already required in ssa-apply and reconcile-loop-assembly, so the ADDED requirement states the live-tier proof, not new behaviour.
+    predicted_outcome: openspec validate passes with one MODIFIED and one ADDED requirement in live-flux-e2e.
+    answer:
+      choice: a
+      text: null
+      by: agent
+      rule: null
+      at: 2026-11-27T14:36:08Z
+    thoughts: null
+    leads_to: none
+    observed: null
