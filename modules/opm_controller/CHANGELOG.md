@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/open-platform-model/opm-controller/compare/opm_controller-v0.1.2...opm_controller-v0.1.3) (2026-11-27)
+
+
+### Bug Fixes
+
+* **controller:** record catalog versions in their bare spelling ([#338](https://github.com/open-platform-model/opm-controller/issues/338)) ([8168183](https://github.com/open-platform-model/opm-controller/commit/81681835af6fab7c73a8dd70dab221bc6b09eabe))
+
 ## [0.1.2](https://github.com/open-platform-model/opm-controller/compare/opm_controller-v0.1.1...opm_controller-v0.1.2) (2026-10-27)
 
 
