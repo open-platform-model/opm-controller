@@ -68,3 +68,47 @@ None.
 Project rules: `## Commit rules` and `## Release rules` (from `RULES.md`), `## Text rules` (from `AGENTS.md`).
 
 Check command: `task check:commit`, run as `GOTOOLCHAIN=go1.27.3 task check:commit`: passed at both closing commits.
+
+## Fix round
+
+Base: main
+
+Verify found two findings. `task dev:test` passed, `task dev:e2e` passed on Kind (14 passed, 0 failed, 10 skipped; the three restart specs passed), and the test lock found no offence.
+
+### Findings
+
+- The check command failed in its lint step: "the Go language version (go1.26) used to build golangci-lint is lower than the targeted Go version (1.27.3)". Route: Owner, as a base failure. A clean worktree of `main` fails the same way. Cause: this machine has Go 1.26.5 installed, and the linter is built outside the repo, so the build does not use the Go 1.27.3 that `go.mod` names. With `GOTOOLCHAIN=go1.27.3` the command passes. Outcome: the owner answered Keep it out, so the finding is closed and a separate change fixes the tooling.
+- `design.md` held no RFC 2119 keyword, against `rules.design` in `openspec/config.yaml`. Route: Fix. Outcome: fixed. A fresh code writer stated the decisions that the design already made with `MUST` and `MUST NOT`. No decision changed, and the `## Slices` section is as it was. No other place of the diff breaks the same rule.
+
+### Commits
+
+- `6fbc7ddd` docs(openspec): state the restart e2e design with RFC 2119 keywords
+
+### Questions to the owner
+
+- Does the lint failure stay out of this change? Answer: A, keep it out.
+
+### Assumptions of the code writer
+
+- Which keyword? `MUST` and `MUST NOT` only, because the design's points are firm decisions.
+- Do the two lowercase "may" stay? No. They became "can", so the design holds no lowercase keyword.
+- Does the design get a line that names RFC 2119? No. That would add text beyond the finding.
+
+### Leads
+
+- The pod delete spec cannot tell which controller applied the new values. The old pod can finish before the delete lands. The design accepts this as a smoke check.
+- `test/e2e/concurrent_test.go` copies three label strings that the library owns (`labels.ModuleInstanceUUID`, `labels.ManagedBy`, `labels.ManagedByController`). The name `ownerUUIDLabel` says "owner" where the glossary says Instance UUID.
+- The deploy and teardown block of the restart Describe is the fifth copy in `test/e2e/`.
+- `liveUIDs` handles API groups, but the fixture renders one ConfigMap.
+- The envtest cases create, read and delete ConfigMaps inline where sibling helpers exist.
+- `design.md` cites "test 6.2" of an archived change.
+- The two closing commits of the build use the scopes `reconcile` and `e2e` but change only `tasks.md`.
+- `CONSTITUTION.md` says a section must close with a commit task, and `openspec/config.yaml` says to write none. That text is outside this change.
+
+Project rules: `## Commit rules` and `## Release rules` (from `RULES.md`), `## Text rules` (from `AGENTS.md`).
+
+Check command: `task check:commit`, run as `GOTOOLCHAIN=go1.27.3 task check:commit`: passed.
+
+### Answers
+
+- Answer: base | 81681835af6fab7c73a8dd70dab221bc6b09eabe | keep | task dev:lint in task check:commit, golangci-lint built with go1.26 refuses the Go 1.27.3 target | 2026-11-27T17:54Z
