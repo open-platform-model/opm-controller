@@ -30,5 +30,5 @@ The live tier SHALL prove that a deployed controller that stops between its appl
 #### Scenario: The controller pod is deleted during a reconcile
 
 - **GIVEN** a Ready ModuleInstance whose values were just changed
-- **WHEN** the controller pod is deleted while that reconcile runs, and the Deployment starts a new pod
+- **WHEN** the controller pod is deleted right after the values change, so that the delete may land during that reconcile, and the Deployment starts a new pod
 - **THEN** the new controller SHALL apply the new values, and the instance SHALL meet the same checks: same UIDs, inventory equal to the render, no labeled object outside the inventory, `Ready=True` on the current generation

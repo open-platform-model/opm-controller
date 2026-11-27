@@ -77,7 +77,7 @@ Eventually(func(g Gomega) {
 
 ### The pod delete smoke check
 
-The spec changes `spec.values.message`, waits up to 10s for `Reconciling=True`, then runs `kubectl delete pod -l control-plane=manager -n opm-system`. When `Reconciling=True` does not show in that time, it deletes the pod anyway and writes a `GinkgoWriter` line, so the spec never flakes on the race. It then waits for a new pod to be Ready, and runs the full check with the new message in the ConfigMap.
+The spec changes `spec.values.message` and at once runs `kubectl delete pod -l control-plane=manager -n opm-system`, with no wait. A ModuleInstance reconcile never sets `Reconciling=True` (only a panic, a render timeout or a deletion does), so no condition shows that a reconcile runs, and a `hello` reconcile ends in seconds. The delete may land during the reconcile or after it: the spec is a smoke check of a real process stop after a change, and the staged specs prove the crash windows. It then waits for a new pod to be Ready, and runs the full check with the new message in the ConfigMap.
 
 ### Where the tests live
 
