@@ -28,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/open-platform-model/library/opm/k8s/labels"
 	"github.com/open-platform-model/library/opm/k8s/object"
@@ -71,6 +72,68 @@ func unknownKindRenderResult(namespace string) *render.RenderResult {
 	return &render.RenderResult{
 		Resources: []*object.Resource{resource},
 	}
+}
+
+// stageCrashStatus writes, through the status subresource, the status that a
+// controller leaves when it dies after the apply and before its deferred status
+// commit: the given inventory (nil for a first apply), and no lastApplied*
+// digests and no lastAppliedInputs. instanceUUID, the conditions and
+// observedGeneration stay as they are, as a crash keeps them.
+func stageCrashStatus(nn types.NamespacedName, inventory *releasesv1alpha1.Inventory) {
+	GinkgoHelper()
+	var mi releasesv1alpha1.ModuleInstance
+	Expect(k8sClient.Get(ctx, nn, &mi)).To(Succeed())
+	base := mi.DeepCopy()
+	mi.Status.Inventory = inventory
+	mi.Status.LastAppliedSourceDigest = ""
+	mi.Status.LastAppliedConfigDigest = ""
+	mi.Status.LastAppliedRenderDigest = ""
+	mi.Status.LastAppliedInputs = nil
+	Expect(k8sClient.Status().Patch(ctx, &mi, client.MergeFrom(base))).To(Succeed())
+
+	var staged releasesv1alpha1.ModuleInstance
+	Expect(k8sClient.Get(ctx, nn, &staged)).To(Succeed())
+	Expect(staged.Status.LastAppliedSourceDigest).To(BeEmpty())
+	Expect(staged.Status.LastAppliedConfigDigest).To(BeEmpty())
+	Expect(staged.Status.LastAppliedRenderDigest).To(BeEmpty())
+	Expect(staged.Status.LastAppliedInputs).To(BeNil())
+	if inventory == nil {
+		Expect(staged.Status.Inventory).To(BeNil())
+	} else {
+		Expect(staged.Status.Inventory).NotTo(BeNil())
+		Expect(staged.Status.Inventory.Entries).To(HaveLen(len(inventory.Entries)))
+	}
+}
+
+// expectConverged checks the converged outcome of a reconcile after a crash:
+// Ready=True on the current generation, an inventory of exactly the rendered
+// ConfigMaps (named as Kind/name), and no ConfigMap with the instance's UUID
+// label outside it.
+func expectConverged(nn types.NamespacedName, rendered ...string) {
+	GinkgoHelper()
+	var mi releasesv1alpha1.ModuleInstance
+	Expect(k8sClient.Get(ctx, nn, &mi)).To(Succeed())
+
+	ready := apimeta.FindStatusCondition(mi.Status.Conditions, status.ReadyCondition)
+	Expect(ready).NotTo(BeNil())
+	Expect(ready.Status).To(Equal(metav1.ConditionTrue))
+	Expect(mi.Status.ObservedGeneration).To(Equal(mi.Generation), "status.observedGeneration")
+
+	Expect(mi.Status.Inventory).NotTo(BeNil(), "status.inventory is written again")
+	Expect(inventoryNames(mi.Status.Inventory)).To(ConsistOf(rendered), "inventory lists exactly the rendered objects")
+
+	Expect(mi.Status.InstanceUUID).To(Equal(stubInstanceUUID))
+	var owned corev1.ConfigMapList
+	Expect(k8sClient.List(ctx, &owned, client.InNamespace(namespace),
+		client.MatchingLabels{labels.ModuleInstanceUUID: mi.Status.InstanceUUID})).To(Succeed())
+	var ownedNames []string
+	for _, cm := range owned.Items {
+		if cm.DeletionTimestamp == nil {
+			ownedNames = append(ownedNames, "ConfigMap/"+cm.Name)
+		}
+	}
+	Expect(inventoryNames(mi.Status.Inventory)).To(ContainElements(ownedNames),
+		"no object with the instance's UUID label is outside status.inventory")
 }
 
 var _ = Describe("Reconcile State Recovery", func() {
@@ -296,6 +359,123 @@ var _ = Describe("Reconcile State Recovery", func() {
 
 		// Cleanup
 		Expect(k8sClient.Delete(ctx, &cm)).To(Succeed())
+		cleanupInstance(nn)
+	})
+	// A controller that dies after the first apply and before its status
+	// commit leaves the rendered objects live and a status with no inventory,
+	// no lastApplied* digests and no lastAppliedInputs. The next reconcile
+	// takes the objects in with their UIDs unchanged.
+	It("should converge after a crash between the first apply and the status commit", func() {
+		mrName := "crash-first-apply-mr"
+		createModuleInstance(mrName) // Prune: true
+		nn := types.NamespacedName{Name: mrName, Namespace: namespace}
+
+		params := reconcileParams()
+		ensureFinalizer(params, nn)
+
+		By("first reconcile applies test-module and reaches Ready")
+		result, err := opmreconcile.ReconcileModuleInstance(ctx, params, ctrl.Request{NamespacedName: nn})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result.RequeueAfter).To(BeZero())
+		expectConverged(nn, "ConfigMap/test-module")
+
+		var cm corev1.ConfigMap
+		cmKey := types.NamespacedName{Name: "test-module", Namespace: namespace}
+		Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
+		uidBefore := cm.UID
+		Expect(uidBefore).NotTo(BeEmpty())
+
+		By("staging the status a crash before the status commit leaves")
+		stageCrashStatus(nn, nil)
+
+		By("reconciling again, as the restarted controller does")
+		result, err = opmreconcile.ReconcileModuleInstance(ctx, params, ctrl.Request{NamespacedName: nn})
+		Expect(err).NotTo(HaveOccurred())
+
+		By("test-module is taken in with its UID unchanged")
+		expectConverged(nn, "ConfigMap/test-module")
+		Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
+		Expect(cm.UID).To(Equal(uidBefore), "test-module is not deleted and created again")
+		Expect(result.RequeueAfter).To(BeZero())
+
+		// Cleanup
+		Expect(k8sClient.Delete(ctx, &cm)).To(Succeed())
+		cleanupInstance(nn)
+	})
+
+	// A controller that dies with a prune pending leaves an inventory that
+	// lists an object the current render no longer produces, and no
+	// lastApplied* digests. The next reconcile prunes that object, and the
+	// rendered objects keep their UIDs.
+	It("should prune a pending stale object after a crash", func() {
+		mrName := "crash-pending-prune-mr"
+		createModuleInstance(mrName) // Prune: true
+		nn := types.NamespacedName{Name: mrName, Namespace: namespace}
+
+		params := reconcileParams()
+		ensureFinalizer(params, nn)
+
+		By("first reconcile applies test-module and reaches Ready")
+		result, err := opmreconcile.ReconcileModuleInstance(ctx, params, ctrl.Request{NamespacedName: nn})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result.RequeueAfter).To(BeZero())
+		expectConverged(nn, "ConfigMap/test-module")
+
+		var mi releasesv1alpha1.ModuleInstance
+		Expect(k8sClient.Get(ctx, nn, &mi)).To(Succeed())
+		Expect(mi.Spec.Prune).To(BeTrue())
+		Expect(mi.Status.Inventory.Entries).To(HaveLen(1))
+		rendered := mi.Status.Inventory.Entries[0]
+		Expect(rendered.Name).To(Equal("test-module"))
+
+		var cm corev1.ConfigMap
+		cmKey := types.NamespacedName{Name: "test-module", Namespace: namespace}
+		Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
+		uidBefore := cm.UID
+
+		By("creating stale-object live with the instance's ownership labels")
+		staleKey := types.NamespacedName{Name: "stale-object", Namespace: namespace}
+		stale := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      staleKey.Name,
+				Namespace: staleKey.Namespace,
+				Labels: map[string]string{
+					labels.ManagedBy:          labels.ManagedByController,
+					labels.ModuleInstanceUUID: mi.Status.InstanceUUID,
+				},
+			},
+			Data: map[string]string{"stale": "true"},
+		}
+		Expect(k8sClient.Create(ctx, stale)).To(Succeed())
+
+		By("staging an inventory of test-module and stale-object with the digests cleared")
+		staleEntry := rendered
+		staleEntry.Name = staleKey.Name
+		stageCrashStatus(nn, &releasesv1alpha1.Inventory{
+			Count:   2,
+			Entries: []releasesv1alpha1.InventoryEntry{rendered, staleEntry},
+		})
+
+		By("reconciling again, as the restarted controller does")
+		result, err = opmreconcile.ReconcileModuleInstance(ctx, params, ctrl.Request{NamespacedName: nn})
+		Expect(err).NotTo(HaveOccurred())
+
+		By("stale-object is pruned and absent from the inventory")
+		expectGone(staleKey, &corev1.ConfigMap{}, "stale-object is deleted")
+		expectConverged(nn, "ConfigMap/test-module")
+		Expect(k8sClient.Get(ctx, nn, &mi)).To(Succeed())
+		Expect(inventoryNames(mi.Status.Inventory)).NotTo(ContainElement("ConfigMap/" + staleKey.Name))
+
+		By("test-module keeps its UID")
+		Expect(k8sClient.Get(ctx, cmKey, &cm)).To(Succeed())
+		Expect(cm.UID).To(Equal(uidBefore), "test-module is not deleted and created again")
+		Expect(result.RequeueAfter).To(BeZero())
+
+		// Cleanup
+		Expect(k8sClient.Delete(ctx, &cm)).To(Succeed())
+		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{Name: staleKey.Name, Namespace: staleKey.Namespace},
+		}))).To(Succeed())
 		cleanupInstance(nn)
 	})
 })

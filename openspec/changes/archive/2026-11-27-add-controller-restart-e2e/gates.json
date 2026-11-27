@@ -1,0 +1,26 @@
+{
+  "plan": {
+    "outcome": "reviewed",
+    "source": "criteria",
+    "criteria": [
+      "assumption"
+    ],
+    "reason": "Four choices of the plan were mine, not the owner's: the parallel-instances stub stays skipped, the hello fixture in concurrent_test.go, the 10s Reconciling wait before the pod delete, and the ADDED live-flux-e2e requirement.",
+    "result": "approve",
+    "comments": [],
+    "datetime": "2026-11-27T14:38:20Z"
+  },
+  "result": {
+    "outcome": "reviewed",
+    "source": "criteria",
+    "criteria": [
+      "fix-round",
+      "report",
+      "open-finding"
+    ],
+    "reason": "Verify needed one fix round for the design's missing RFC 2119 keywords and for the lint base failure. The build report names two stops. Ten leads are still in the verify report.",
+    "result": "approve",
+    "comments": [],
+    "datetime": "2026-11-27T18:02:31Z"
+  }
+}
